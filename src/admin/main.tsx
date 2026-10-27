@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { configureApiClient, createLocalStorageTokenStore, createQueryClient } from '../shared/api'
 import '../shared/theme/index.css'
+import './fonts.css'
 import { App } from './App'
 import { initAdminTheme } from './theme'
 

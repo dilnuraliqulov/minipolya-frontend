@@ -18,7 +18,7 @@ export function PlaceholderPage() {
           className="flex h-9 items-center gap-2 rounded-md bg-accent px-3.5 text-base font-medium text-on-accent"
         >
           <Icon size={16} aria-hidden />
-          {theme === 'dark' ? 'Yorug‘ rejim' : 'Tungi rejim'}
+          {theme === 'dark' ? 'Yorugʻ rejim' : 'Tungi rejim'}
         </button>
       </div>
     </main>

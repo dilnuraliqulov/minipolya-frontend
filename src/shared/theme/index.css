@@ -40,8 +40,11 @@
 }
 
 @theme {
-  /* Design font is Inter. It is not bundled yet — see CLAUDE.md "Design". */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  /*
+   * System font by default — the Mini App's native look inside Telegram.
+   * The admin panel switches to self-hosted Inter in src/admin/fonts.css.
+   */
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
 
   /*
    * Type scale from the design. The design leaves line height on auto except
