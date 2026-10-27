@@ -1,13 +1,11 @@
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { PlaceholderPage } from './PlaceholderPage'
+import { routes } from './routes'
 
 // The router lives under /admin; opening the file path directly lands there too.
 // Must run before the router reads the URL.
 if (location.pathname === '/admin.html') history.replaceState(null, '', '/admin/')
 
-const router = createBrowserRouter([{ path: '*', element: <PlaceholderPage /> }], {
-  basename: '/admin',
-})
+const router = createBrowserRouter(routes, { basename: '/admin' })
 
 export function App() {
   return <RouterProvider router={router} />
