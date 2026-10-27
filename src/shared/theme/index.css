@@ -35,8 +35,10 @@
 
   --shadow-*: initial;
   --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
+  --shadow-card: var(--shadow-card);
 }
 
 @theme {
@@ -61,12 +63,20 @@
   --text-base--line-height: 1.5;
   --text-md: 15px; /* logo name, empty-state title */
   --text-md--line-height: 1.4;
-  --text-lg: 17px; /* modal title */
+  --text-lg: 16px; /* section and card titles */
   --text-lg--line-height: 1.3;
-  --text-xl: 22px; /* page title */
+  --text-xl: 17px; /* modal title */
   --text-xl--line-height: 1.3;
-  --text-2xl: 30px; /* KPI value */
-  --text-2xl--line-height: 1.2;
+  --text-2xl: 20px; /* no-access title */
+  --text-2xl--line-height: 1.3;
+  --text-3xl: 22px; /* login brand */
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 24px; /* page title */
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 30px; /* KPI value */
+  --text-5xl--line-height: 1.2;
+  --text-6xl: 32px; /* to-do tile count */
+  --text-6xl--line-height: 1.2;
 
   /* Section titles (12px/600, uppercase) and KPI values. */
   --tracking-caps: 0.6px;
@@ -74,11 +84,13 @@
 
   /* Corner radii used in the design. Spacing uses Tailwind's 4px step, which covers every gap and padding in the design. */
   --radius-*: initial;
-  --radius-sm: 6px; /* segmented control, skeleton */
-  --radius-md: 8px; /* menu item, logo mark */
-  --radius-lg: 10px; /* toast */
+  --radius-xs: 4px; /* skeleton bars, chart bar tops */
+  --radius-sm: 6px; /* segmented control */
+  --radius-md: 8px; /* buttons, inputs, menu item */
+  --radius-lg: 10px; /* toast, notice line */
   --radius-xl: 12px; /* cards */
   --radius-2xl: 14px; /* modals */
+  --radius-3xl: 16px; /* login card */
 }
 
 @layer base {

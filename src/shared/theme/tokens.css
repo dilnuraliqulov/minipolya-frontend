@@ -37,9 +37,11 @@
   --neutral-soft: #6b72801a;
 
   /* Shadows (design effects; only the small one differs in dark mode) */
-  --shadow-sm: 0 1px 2px #0000001a;
-  --shadow-lg: 0 8px 24px #00000029;
-  --shadow-xl: 0 16px 40px #0000002e;
+  --shadow-sm: 0 1px 2px #0000001a; /* segmented control */
+  --shadow-md: 0 4px 12px #00000033; /* chart tooltip */
+  --shadow-lg: 0 8px 24px #00000029; /* toast */
+  --shadow-xl: 0 16px 40px #0000002e; /* modals */
+  --shadow-card: 0 8px 24px #0000000f; /* login card */
 }
 
 :root[data-theme='dark'] {
