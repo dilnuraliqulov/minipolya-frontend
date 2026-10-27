@@ -1,8 +1,6 @@
-const TIYIN_PER_SOM = 100
+import { formatNumber } from './number'
 
-function groupThousands(digits: string): string {
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-}
+const TIYIN_PER_SOM = 100
 
 /**
  * Formats a tiyin amount for display: `15000000` → `"150 000 so'm"`.
@@ -20,5 +18,5 @@ export function formatSom(tiyin: number): string {
   const som = Math.floor(abs / TIYIN_PER_SOM)
   const rest = abs % TIYIN_PER_SOM
   const fraction = rest === 0 ? '' : `,${String(rest).padStart(2, '0')}`
-  return `${sign}${groupThousands(String(som))}${fraction} so'm`
+  return `${sign}${formatNumber(som)}${fraction} so'm`
 }

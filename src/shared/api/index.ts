@@ -1,6 +1,8 @@
 export { ApiError, isApiError } from './ApiError'
 export { api, apiRequest, configureApiClient, getTokenStore } from './client'
 export type { ApiClientConfig, RequestOptions } from './client'
+export { isJwtExpired, readJwtClaims } from './jwt'
+export type { JwtClaims } from './jwt'
 export { API_MESSAGES } from './messages'
 export { createQueryClient, shouldRetry } from './queryClient'
 export { createLocalStorageTokenStore, createMemoryTokenStore } from './tokenStore'

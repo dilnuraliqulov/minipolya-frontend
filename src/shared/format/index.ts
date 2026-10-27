@@ -1,4 +1,5 @@
 export { formatSom } from './money'
+export { formatNumber } from './number'
 export {
   DISPLAY_TIME_ZONE,
   formatDate,
