@@ -29,6 +29,7 @@ All installed:
 | react-router | v8 | |
 | TanStack Query | v5 | |
 | lucide-react | v1 | icons |
+| `@fontsource-variable/inter` | v5 | **admin panel only** — self-hosted Inter |
 | i18next + react-i18next | v26 / v17 | **Mini App only** |
 | Vitest + Testing Library | v5 / v16 | jsdom, `@testing-library/jest-dom` matchers |
 | `@types/node` | v24 | |
@@ -49,6 +50,7 @@ src/
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token), Query
+│   ├── fonts.css     #   self-hosted Inter (admin only)
 │   └── theme.ts      #   system setting on first visit, toggle, remembered
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
@@ -109,12 +111,21 @@ Rules that follow from that:
   `../minipolyaBackend` HEAD, treat the reference as stale and regenerate it.
 - `docs/api-reference.md` has a **"Questions about the backend"** section with
   known gaps and inconsistencies. Read it before building a flow; several
-  items there (no CORS config, no admin login endpoint) block whole features.
+  items there (no admin login endpoint; no CORS config, which matters only in
+  production) block whole features.
 
 ## API rules
 
-- **Base URL** from `VITE_API_URL` (e.g. `http://localhost:8080`). Never
-  hard-code a host.
+- **Base URL.** Never hard-code a host in app code.
+  - **Dev (`npm run dev`):** the apps call `/api/...` on their own origin
+    (`http://localhost:5173`) and the Vite dev server proxies `/api` to the
+    backend at `http://localhost:8080` (`server.proxy` in `vite.config.ts`).
+    Same origin, so **no CORS is needed locally**. Start the backend yourself;
+    with it down, `/api` calls answer 502.
+  - **Production builds:** `VITE_API_URL` (e.g. `https://api.example.uz`).
+    It is ignored in dev. A build without it fails on the first request.
+    Whether production needs CORS depends on hosting — see R1 in
+    `docs/backend-requests.md`.
 - **Every response uses the same envelope:** `{ success, data, message }`.
   Unwrap it in one place in the API client; feature code should see `data`.
   Note there is **no `code` field** — see below.
@@ -240,8 +251,19 @@ encrypted and the content is meaningless as bytes.
   `rounded-sm` 6 · `md` 8 · `lg` 10 · `xl` 12 · `2xl` 14 · `full`. Shadows
   `shadow-sm/lg/xl`. Spacing is Tailwind's default 4px step, which covers
   every gap and padding in the design.
-- The design font is **Inter**; it is first in the font stack but not bundled
-  or loaded yet, so it falls back to the system font until that is decided.
+- **Fonts differ per app:**
+  - **Admin panel: Inter**, self-hosted from `@fontsource-variable/inter`
+    (no Google Fonts request), declared in `src/admin/fonts.css` and imported
+    only by the admin entry. Subsets: Latin (includes Uzbek `ʻ`/`ʼ`, U+02BB /
+    U+02BC), Latin Extended, Cyrillic (Russian) and Cyrillic Extended (Uzbek
+    Cyrillic `қ ғ ҳ ў`). `unicode-range` means a subset is downloaded only when
+    a page uses it; anything Inter lacks falls back to the system font. All of
+    these characters were checked to render in Inter itself.
+  - **Mini App: the system font** (`--font-sans` default in
+    `shared/theme/index.css`) — native look inside Telegram, nothing to
+    download. Do not import `fonts.css` or `@fontsource*` from `src/miniapp`.
+- Write Uzbek with the proper letters: `oʻ`/`gʻ` use U+02BB (`ʻ`), not an
+  apostrophe or `‘`.
 - Mini App: `src/miniapp/theme.ts` — Telegram's `colorScheme` +
   `themeChanged`; the computer's setting outside Telegram.
 - Admin: `src/admin/theme.ts` — `initAdminTheme()`, `toggleAdminTheme()` for
