@@ -66,7 +66,45 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 
 ## Open requests
 
-_None yet._
+### R1 — CORS for production
+
+> **Only needed if the API is served from a different domain than the
+> frontend; decide at deployment.** If the Mini App, the admin panel and the
+> API end up on one origin (for example the API under `/api` behind the same
+> host), nothing is needed.
+
+**What's needed**
+The backend has no CORS configuration at all — no `CorsConfig`, no
+`@CrossOrigin`, no `cors(...)` in `SecurityConfig` (api-reference Q4). A
+browser page on another origin cannot call the API: the preflight
+`OPTIONS` request gets no `Access-Control-Allow-*` headers and the browser
+blocks the call. In development this is avoided by the Vite dev-server proxy
+(`/api` → `http://localhost:8080`), so this is a production-only concern.
+
+**Which screen needs it**
+Every API call from both frontends — Mini App (players and owner mode) and
+admin panel — when they are hosted on a different origin from the API.
+
+**Proposed endpoint**
+No new endpoint. A CORS configuration in `SecurityConfig` (`http.cors(...)`
+with a `CorsConfigurationSource`) covering `/api/**`:
+
+| Setting | Value |
+|---|---|
+| Allowed origins | the deployed frontend origin(s), from configuration (e.g. `app.cors.allowed-origins`), **not** `*` |
+| Allowed methods | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` |
+| Allowed headers | `Authorization`, `Content-Type` |
+| Allow credentials | not needed — the JWT goes in the `Authorization` header, no cookies |
+| Max age | e.g. `3600` s, to cache preflights |
+
+`/webhooks/**` is called server-to-server and needs no CORS.
+
+Response — unchanged; error cases — unchanged (preflights must succeed
+without a JWT, before the security filter rejects them as 401).
+
+**Priority**
+Blocker at deployment, **only if** the frontend and API are on different
+origins; otherwise not needed.
 
 ---
 
