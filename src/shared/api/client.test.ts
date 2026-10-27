@@ -19,6 +19,8 @@ describe('api client', () => {
   const onAccountBlocked = vi.fn()
 
   beforeEach(() => {
+    // Behave like a production build unless a test says otherwise.
+    vi.stubEnv('DEV', false)
     vi.stubEnv('VITE_API_URL', 'http://api.test/')
     tokenStore.clear()
     configureApiClient({ tokenStore, onUnauthorized, onAccountBlocked })
@@ -44,6 +46,22 @@ describe('api client', () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('http://api.test/api/users/me?page=0')
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer jwt-123')
+  })
+
+  it('calls its own origin in dev, for the Vite /api proxy', async () => {
+    vi.stubEnv('DEV', true)
+    const fetchMock = respond(200, { success: true, data: null, message: null })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await api.get('/api/users/me')
+
+    const [url] = fetchMock.mock.calls[0] as [string]
+    expect(url).toBe(`${window.location.origin}/api/users/me`)
+  })
+
+  it('fails loudly when a production build has no VITE_API_URL', async () => {
+    vi.stubEnv('VITE_API_URL', '')
+    await expect(api.get('/x')).rejects.toThrow('VITE_API_URL is not set')
   })
 
   it('sends a JSON body', async () => {

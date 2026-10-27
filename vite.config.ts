@@ -32,6 +32,11 @@ function adminRoutes(): Plugin {
 
 export default defineConfig({
   plugins: [adminRoutes(), react(), tailwindcss()],
+  server: {
+    // In dev the apps call /api on their own origin and Vite forwards it to the
+    // local backend, so no CORS is needed. Production builds use VITE_API_URL.
+    proxy: { '/api': 'http://localhost:8080' },
+  },
   build: {
     rollupOptions: {
       input: {

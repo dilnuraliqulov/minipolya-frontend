@@ -33,10 +33,15 @@ export interface RequestOptions {
   signal?: AbortSignal
 }
 
+/**
+ * Dev: same origin — the Vite dev server proxies /api to the local backend.
+ * Production builds: VITE_API_URL.
+ */
 function baseUrl(): string {
+  if (import.meta.env.DEV) return window.location.origin
   const url = import.meta.env.VITE_API_URL
   if (!url) {
-    throw new Error('VITE_API_URL is not set — copy .env.example to .env.local')
+    throw new Error('VITE_API_URL is not set for this production build')
   }
   return url.replace(/\/+$/, '')
 }
@@ -67,9 +72,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (token) headers.Authorization = `Bearer ${token}`
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
 
+  // Outside the try: a configuration error must not look like a network failure.
+  const url = buildUrl(path, options.query)
+
   let response: Response
   try {
-    response = await fetch(buildUrl(path, options.query), {
+    response = await fetch(url, {
       method: options.method ?? 'GET',
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
