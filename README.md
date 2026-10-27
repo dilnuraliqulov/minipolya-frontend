@@ -1,75 +1,55 @@
-# React + TypeScript + Vite
+# MiniPolya Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontends for **MiniPolya**, a football pitch booking platform for Tashkent.
+Players find and book pitches, pay by card and organise games, including
+team-vs-team matches; stadium owners manage pitches, prices and schedules.
 
-Currently, two official plugins are available:
+This repository holds two apps built from one Vite project:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| App | For | Entry |
+|---|---|---|
+| **Telegram Mini App** | players and stadium owners (owner mode) | `index.html` → `src/miniapp` |
+| **Admin panel** | platform admins, desktop web | `admin.html` → `src/admin` |
 
-## React Compiler
+The backend (Spring Boot) lives in a separate repository, `../minipolyaBackend`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Running locally
 
-## Expanding the ESLint configuration
+Requires Node.js 22.12+ or 24+ (what Vite 8 and Vitest 5 support).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+- Mini App: <http://localhost:5173/>
+- Admin panel: <http://localhost:5173/admin/>
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+In development the apps call `/api` on their own origin and the dev server
+forwards it to the backend at `http://localhost:8080`, so start the backend
+first. No `.env.local` is needed for development. For a production build,
+copy `.env.example` to `.env.local` and set `VITE_API_URL`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Outside Telegram the Mini App renders, but it cannot log in: login needs the
+`initData` Telegram provides when the app is opened from the bot.
 
+## Scripts
+
+```bash
+npm run dev           # dev server for both apps
+npm run build         # type-check and build both apps into dist/
+npm run preview       # serve the production build
+npm run test          # unit tests (Vitest)
+npm run lint          # ESLint
+npm run format        # Prettier
+npm run typecheck     # TypeScript
 ```
+
+## Documentation
+
+- [`CLAUDE.md`](CLAUDE.md): project rules, stack, structure, theme and API
+  conventions. Read this first.
+- [`docs/api-reference.md`](docs/api-reference.md): the backend API, generated
+  from the backend source.
+- [`docs/backend-requests.md`](docs/backend-requests.md): what the frontend
+  needs from the backend that doesn't exist yet.
