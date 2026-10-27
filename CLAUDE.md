@@ -169,6 +169,13 @@ Design files live in `design/`:
 open in pen.dev. Never read, grep or diff a `.pen` file as raw text — they are
 encrypted and the content is meaningless as bytes.
 
+- Light and dark mode, both required everywhere:
+  - All colours are design tokens (CSS variables) with a light and a dark value, taken from the design files through the pencil MCP. Brand: accent #2563EB in both modes (white text on it); in dark mode, links and accent icons use the lighter #60A5FA so they stay readable on black. Status colours (success, warning, danger) also have light and dark values.
+  - Components never use hard-coded colours (no hex values or fixed Tailwind colours like bg-white in components), only the tokens, so every screen switches automatically.
+  - Mini App: follows the user's Telegram setting (light or dark), using OUR palette, not Telegram's colours, and switches live if the user changes it while the app is open.
+  - Admin panel: a light/dark toggle in the sidebar; the first visit follows the computer's setting; the choice is remembered in the browser.
+  - A screen or component is only finished when it has been checked in BOTH modes.
+
 ## Language
 
 **Mini App:** every piece of user-facing text goes through the translation
