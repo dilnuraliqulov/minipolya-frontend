@@ -40,13 +40,18 @@ export function KpiCard({ label, value, delta, loading = false }: KpiCardProps) 
   const trend = delta ? TRENDS[delta.trend] : null
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2.5 rounded-xl border border-border bg-background p-5">
-      <p className="truncate text-sm font-medium text-secondary">{label}</p>
+      <div className="flex items-center gap-2">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium text-secondary">{label}</p>
+        {/* Up here so the comparison line keeps its full width. */}
+        {delta?.sampleRequest && <SampleTag request={delta.sampleRequest} />}
+      </div>
       <p className="truncate text-5xl font-semibold tracking-display text-primary">{value}</p>
       {delta && trend && (
         <p className={cx('flex items-center gap-1 text-xs font-medium', trend.className)}>
           <trend.icon size={14} aria-hidden className="shrink-0" />
-          <span className="truncate">{delta.text}</span>
-          {delta.sampleRequest && <SampleTag request={delta.sampleRequest} />}
+          <span className="truncate" title={delta.text}>
+            {delta.text}
+          </span>
         </p>
       )}
     </div>
