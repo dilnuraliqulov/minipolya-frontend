@@ -16,41 +16,78 @@ their pitches, pricing, schedule and walk-in bookings.
 
 ## Stack
 
-| Part | Status |
-|---|---|
-| Vite | **installed** (v8) |
-| React + React DOM | **installed** (v19) |
-| TypeScript | **installed** (v6) — strict mode comes with the foundation step |
-| ESLint | **installed** (v10, flat config in `eslint.config.js`) |
-| `@types/node` | **installed** |
-| Tailwind CSS v4 | foundation step |
-| react-router | foundation step |
-| TanStack Query | foundation step |
-| lucide-react | foundation step |
-| Vitest + Testing Library | foundation step |
-| Prettier | foundation step |
+All installed:
+
+| Part | Version | Notes |
+|---|---|---|
+| Vite | v8 | multi-page build, `vite.config.ts` |
+| React + React DOM | v19 | |
+| TypeScript | v6 | `strict` + `noUncheckedIndexedAccess` |
+| ESLint | v10 | flat config in `eslint.config.js`, with `eslint-config-prettier` |
+| Prettier | v3 | `.prettierrc.json`; Markdown and `.agents/` are not formatted |
+| Tailwind CSS | v4 | via `@tailwindcss/vite`; config lives in CSS, not a JS file |
+| react-router | v8 | |
+| TanStack Query | v5 | |
+| lucide-react | v1 | icons |
+| i18next + react-i18next | v26 / v17 | **Mini App only** |
+| Vitest + Testing Library | v5 / v16 | jsdom, `@testing-library/jest-dom` matchers |
+| `@types/node` | v24 | |
 
 Nothing above is a suggestion to swap out — if a different library seems
 necessary, raise it rather than quietly introducing it.
 
-## Planned structure
+## Structure
 
 ```
-index.html            → Mini App entry
+index.html            → Mini App entry (the only page that loads telegram-web-app.js)
 admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
+│   ├── main.tsx      #   entry: theme, API client (in-memory token), Query, i18n
+│   ├── telegram.ts   #   typed access to window.Telegram.WebApp
+│   ├── theme.ts      #   follows Telegram's colorScheme live
+│   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
-└── shared/           # api client, types, utils, i18n primitives, shared UI
+│   ├── main.tsx      #   entry: theme, API client (localStorage token), Query
+│   └── theme.ts      #   system setting on first visit, toggle, remembered
+├── shared/           # used by both; imports from neither
+│   ├── api/          #   client, ApiError, message strings, token stores, query client
+│   ├── format/       #   formatSom, Tashkent date/time helpers
+│   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
+└── test/setup.ts     # Vitest setup
 ```
 
 Two Vite entries, one build. **Admin code must never end up in the Mini App
 bundle:** nothing in `src/miniapp` may import from `src/admin`, and nothing in
 `src/shared` may import from either. Shared code flows one way —
-`miniapp`/`admin` → `shared`, never back.
+`miniapp`/`admin` → `shared`, never back. ESLint enforces this
+(`no-restricted-imports` in `eslint.config.js`).
 
-The current `src/App.tsx`, `src/main.tsx`, `src/App.css` and `src/assets/*`
-are leftover Vite scaffolding and get replaced in the foundation step.
+**Dev URLs** (`npm run dev`):
+
+- Mini App — `http://localhost:5173/`
+- Admin panel — `http://localhost:5173/admin/` (any `/admin/*` path serves
+  `admin.html`; the admin router uses `basename: '/admin'`). Production hosting
+  needs the same rewrite: `/admin/*` → `admin.html`, everything else →
+  `index.html`.
+
+Outside Telegram the Mini App has no `initData`, so login cannot work in a
+plain browser; the page still renders and follows the computer's theme.
+
+## Shared building blocks
+
+- **API:** `import { api, ApiError } from '../shared/api'`. `api.get/post/put/
+  patch/delete<T>(path, …)` returns the envelope's `data` or throws `ApiError`
+  (`status`, `message`, `code?` — `code` is never sent today, Q1; status `0` =
+  network failure). Each app calls `configureApiClient` once in `main.tsx` with
+  its token store plus optional `onUnauthorized` / `onAccountBlocked` hooks.
+  Exact backend message strings live only in `shared/api/messages.ts`.
+- **Queries:** `createQueryClient()` — no retries on 4xx, at most 2 on
+  5xx/network, mutations never retried.
+- **Money:** `formatSom(tiyin)` from `shared/format`. **Dates:** `formatDate`,
+  `formatTime`, `formatDateTime`, `formatTimeRange`, `toTashkentParts`
+  (`dayOfWeek` 0 = Monday) from `shared/format`.
+- **Endpoint types** go next to the feature that uses them, not in `shared/api`.
 
 ## The backend is the source of truth
 
@@ -176,6 +213,40 @@ encrypted and the content is meaningless as bytes.
   - Admin panel: a light/dark toggle in the sidebar; the first visit follows the computer's setting; the choice is remembered in the browser.
   - A screen or component is only finished when it has been checked in BOTH modes.
 
+### How the theme works
+
+- `src/shared/theme/tokens.css` holds the design variables from
+  `admin-panel.pen`, **named exactly as in the design**: light values on
+  `:root`, dark values on `:root[data-theme='dark']`. Switching the theme only
+  sets `data-theme` (and `color-scheme`) on `<html>`.
+- `src/shared/theme/index.css` maps them into Tailwind with `@theme inline`
+  and **removes Tailwind's default colours, type scale, radii and shadows**, so
+  `bg-white` or `text-blue-500` simply do not exist. Use:
+
+  | Tailwind | Design variable | Use |
+  |---|---|---|
+  | `bg-page` | `page-bg` | page background |
+  | `bg-background` | `bg` | cards, sidebar, modals |
+  | `bg-surface` | `surface` | inputs, segmented controls |
+  | `bg-hover`, `bg-skeleton`, `bg-overlay` | same | |
+  | `border-border` | `border` | |
+  | `text-primary`, `text-secondary` | `text`, `text-secondary` | **text colours** (not brand) |
+  | `bg-accent`, `bg-accent-soft`, `text-on-accent` | `accent`, `accent-soft`, white | brand |
+  | `text-link` | `link` | links and accent icons (#60A5FA in dark) |
+  | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status |
+
+  Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 17
+  · `xl` 22 · `2xl` 30 px; `tracking-caps` / `tracking-display`. Radii
+  `rounded-sm` 6 · `md` 8 · `lg` 10 · `xl` 12 · `2xl` 14 · `full`. Shadows
+  `shadow-sm/lg/xl`. Spacing is Tailwind's default 4px step, which covers
+  every gap and padding in the design.
+- The design font is **Inter**; it is first in the font stack but not bundled
+  or loaded yet, so it falls back to the system font until that is decided.
+- Mini App: `src/miniapp/theme.ts` — Telegram's `colorScheme` +
+  `themeChanged`; the computer's setting outside Telegram.
+- Admin: `src/admin/theme.ts` — `initAdminTheme()`, `toggleAdminTheme()` for
+  the sidebar, `useAdminTheme()`; stored under `minipolya-admin-theme`.
+
 ## Language
 
 **Mini App:** every piece of user-facing text goes through the translation
@@ -183,6 +254,10 @@ layer **from the very first component** — no hard-coded strings, not even as a
 placeholder. Three languages: **uz (default)**, **ru**, **en**. The user's
 language comes from their backend profile (`user.language` on
 `GET /api/users/me`), not from the browser or Telegram.
+
+Translations live in `src/miniapp/i18n/locales/{uz,ru,en}.json`; keys are
+typed from `uz.json`, and a test fails if the three files' keys differ. Call
+`setLanguage(user.language)` once the profile is loaded.
 
 **Admin panel:** Uzbek (Latin) only. No translation layer needed there.
 
@@ -212,19 +287,16 @@ Local values go in **`.env.local`**, which git ignores (`*.local` in
 
 ## Commands
 
-Currently in `package.json`:
-
 ```bash
-npm run dev       # Vite dev server
-npm run build     # tsc -b && vite build
-npm run lint      # eslint .
-npm run preview   # serve the production build
+npm run dev           # Vite dev server — both apps (URLs under "Structure")
+npm run build         # tsc -b && vite build → dist/index.html + dist/admin.html
+npm run preview       # serve the production build
+npm run test          # Vitest, single run
+npm run test:watch    # Vitest, watch mode
+npm run lint          # eslint .
+npm run format        # prettier --write .
+npm run format:check  # prettier --check .
+npm run typecheck     # tsc -b (project references, no emit)
 ```
 
-To be added in the foundation step:
-
-```bash
-npm run test      # Vitest
-npm run format    # Prettier
-npm run typecheck # tsc --noEmit
-```
+Before committing: `typecheck`, `lint`, `test` and `build` must pass.
