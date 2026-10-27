@@ -49,9 +49,17 @@ src/
 │   ├── theme.ts      #   follows Telegram's colorScheme live
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
-│   ├── main.tsx      #   entry: theme, API client (localStorage token), Query
+│   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts
+│   ├── App.tsx, routes.tsx  # router (basename /admin); one route per menu item
+│   ├── api/          #   endpoint types + calls; sample.ts = clearly marked sample data
+│   ├── auth/         #   session store, login page, dev login, route guard, no-access page
+│   ├── components/   #   shared admin UI from the design's component frames
+│   ├── layout/       #   sidebar, layout, menu (MENU drives routes and the sidebar)
+│   ├── pages/        #   overview ("Bosh sahifa"), "Tez orada" placeholder
+│   ├── format.ts     #   Uzbek month names, relative time ("2 kun oldin")
 │   ├── fonts.css     #   self-hosted Inter (admin only)
 │   └── theme.ts      #   system setting on first visit, toggle, remembered
+scripts/check-dist.mjs  # runs after every build: no dev login / dev initData in dist/
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
 │   ├── format/       #   formatSom, Tashkent date/time helpers
@@ -90,6 +98,39 @@ plain browser; the page still renders and follows the computer's theme.
   `formatTime`, `formatDateTime`, `formatTimeRange`, `toTashkentParts`
   (`dayOfWeek` 0 = Monday) from `shared/format`.
 - **Endpoint types** go next to the feature that uses them, not in `shared/api`.
+- **JWT claims:** `readJwtClaims` / `isJwtExpired` from `shared/api` — for
+  client decisions only (skip an expired token, notice role changes); the
+  signature is never checked client-side.
+
+## Sample data
+
+When a design needs a value the backend does not provide, it may be shown as
+**sample data**, never silently:
+
+- it lives in one place per app (`src/admin/api/sample.ts`), behind the API
+  layer, never inline in a component
+- it is rendered with the visible **"Namuna"** tag (`SampleTag`), whose
+  tooltip names the request
+- it has an entry in `docs/backend-requests.md`, and is deleted when the
+  backend ships the real field
+
+## Admin components
+
+`src/admin/components/` holds the admin UI from the design's component
+frames: `Button` (primary, secondary, danger, danger-outline, text),
+`StatusBadge`, `KpiCard`, `DataTable`, `Pagination`, `FilterBar` /
+`SearchField` / `FilterSelect`, `Tabs`, `Modal` / `ConfirmModal` /
+`ReasonModal`, `ToastProvider` / `useToast`, `Skeleton`, `Avatar`,
+`EmptyState` / `ErrorState`, `PageHeader`, `BarChart`. Use them; do not
+restyle per page.
+
+- `DataTable` sorting only reports clicks — the backend has **no sort
+  parameter**, so a page either sorts what it has, or leaves columns
+  unsortable.
+- Admin pages: add the item to `MENU` in `layout/menu.ts` (route, sidebar and
+  breadcrumbs follow), then replace its `ComingSoonPage` in `routes.tsx`.
+- Admin text is Uzbek Latin with `ʻ` (U+02BB) in oʻ/gʻ and `ʼ` (U+02BC) for
+  the tutuq belgisi (maʼlumot).
 
 ## The backend is the source of truth
 
@@ -177,12 +218,69 @@ identity, their name, or anything else. Only this endpoint's `user` object is
 trustworthy, and verification requires `BOT_TOKEN`, which exists only on the
 server. There is no logout endpoint; dropping the token locally is the logout.
 
-**Admin panel.** Intended to log in with the **Telegram Login Widget**. The
-backend does not yet expose an endpoint for the widget's payload — only the
-Mini App `initData` flow above exists, and the widget sends a different shape
-with a different hash derivation. This is logged as **Q2** in
-`docs/api-reference.md`; admin login cannot be finished until the backend adds
-it, so it belongs in `docs/backend-requests.md` as soon as admin work starts.
+**Admin panel.** Logs in with the **Telegram Login Widget**
+(`VITE_TELEGRAM_BOT_NAME`). The backend has no endpoint for the widget's
+payload yet (Q2) — requested as **R2** in `docs/backend-requests.md`, and
+the frontend is built against that shape (`WIDGET_LOGIN_PATH` in
+`src/admin/api/auth.ts`); until it ships, the widget login answers 404 and
+the page says so. The widget only works on the domain set with BotFather's
+`/setdomain`, never on localhost.
+
+- The JWT is kept in localStorage (`minipolya-admin-token`) and checked with
+  `GET /api/users/me` on startup. If the token's `isAdmin` claim disagrees
+  with `/users/me`, the admin is logged out to get a fresh token.
+- Any 401 → logout → login page ("Sessiya tugadi"). 403 `"Account is
+  blocked"` → logout with its own notice. Logout drops the token and every
+  cached query.
+- Logged in but not an admin → the "Sizda kirish huquqi yoʻq" page.
+
+### Admin dev login
+
+Outside the real widget there is no login data, so **in development only**
+the login page shows a **"Dev login"** button. It posts signed Mini App
+`initData` from `VITE_DEV_INIT_DATA` (in `.env.local`) to the normal
+`POST /api/auth/telegram`. `LoginPage` imports it behind
+`import.meta.env.DEV`, so production builds drop it; **`npm run build` fails
+if `dist/` contains the dev login code, initData, or any `VITE_DEV_*` value**
+(`scripts/check-dist.mjs`).
+
+To set it up (the backend must be running with its `BOT_TOKEN`):
+
+1. Generate the value with the backend's script — in **Git Bash**, from
+   `../minipolyaBackend` (needs `openssl`, which Git Bash has). Use the
+   **same `BOT_TOKEN` the backend runs with**, and any unused Telegram id for
+   the test admin:
+
+   ```bash
+   BOT_TOKEN='<the backend BOT_TOKEN>' scripts/make-init-data.sh 900000001 Admin devadmin uz
+   ```
+
+   Arguments: `<telegram_id> [first_name] [username] [language_code]`. It
+   prints one line (`auth_date=…&query_id=…&user=…&hash=…`).
+2. Put it in `.env.local` (git-ignored), in single quotes, and restart
+   `npm run dev` — Vite reads env files only at startup:
+
+   ```
+   VITE_DEV_INIT_DATA='auth_date=…&query_id=…&user=…&hash=…'
+   ```
+3. Click **Dev login** once. The backend creates the user, who is not an
+   admin yet, so you see "Sizda kirish huquqi yoʻq". Make them an admin in
+   the database (there is no endpoint for the first admin):
+
+   ```sql
+   UPDATE users SET is_admin = true WHERE telegram_id = 900000001;
+   ```
+
+   Then click **Chiqish** and **Dev login** again — the role is in the JWT,
+   so the old token stays non-admin.
+
+**When to regenerate:** today the backend does not check `auth_date`
+(`TelegramAuthValidator` only verifies the signature), so the value keeps
+working until `BOT_TOKEN` changes. Regenerate it when `BOT_TOKEN` changes,
+when Dev login answers "Telegram maʼlumotlari tasdiqlanmadi", or once the
+backend starts rejecting old `auth_date` values (Telegram recommends it; then
+it expires like a real login). The JWT it returns lasts 24 h; after that just
+click Dev login again.
 
 ## Never re-implement business rules
 
@@ -246,11 +344,13 @@ encrypted and the content is meaningless as bytes.
   | `text-link` | `link` | links and accent icons (#60A5FA in dark) |
   | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status |
 
-  Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 17
-  · `xl` 22 · `2xl` 30 px; `tracking-caps` / `tracking-display`. Radii
-  `rounded-sm` 6 · `md` 8 · `lg` 10 · `xl` 12 · `2xl` 14 · `full`. Shadows
-  `shadow-sm/lg/xl`. Spacing is Tailwind's default 4px step, which covers
-  every gap and padding in the design.
+  Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 16
+  · `xl` 17 · `2xl` 20 · `3xl` 22 · `4xl` 24 · `5xl` 30 · `6xl` 32 px;
+  `tracking-caps` / `tracking-display`. Radii `rounded-xs` 4 · `sm` 6 · `md` 8
+  · `lg` 10 · `xl` 12 · `2xl` 14 · `3xl` 16 · `full`. Shadows `shadow-sm`
+  (segmented control) · `md` (tooltip) · `lg` (toast) · `xl` (modal) · `card`
+  (login card). Spacing is Tailwind's default 4px step, which covers every gap
+  and padding in the design.
 - **Fonts differ per app:**
   - **Admin panel: Inter**, self-hosted from `@fontsource-variable/inter`
     (no Google Fonts request), declared in `src/admin/fonts.css` and imported
@@ -311,7 +411,8 @@ Local values go in **`.env.local`**, which git ignores (`*.local` in
 
 ```bash
 npm run dev           # Vite dev server — both apps (URLs under "Structure")
-npm run build         # tsc -b && vite build → dist/index.html + dist/admin.html
+npm run build         # tsc -b && vite build → dist/, then check:dist
+npm run check:dist    # fail if dist/ has the dev login, dev initData or a VITE_DEV_* value
 npm run preview       # serve the production build
 npm run test          # Vitest, single run
 npm run test:watch    # Vitest, watch mode
