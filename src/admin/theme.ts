@@ -50,13 +50,16 @@ export function initAdminTheme(): void {
   }
 }
 
-/** For the sidebar toggle. */
-export function toggleAdminTheme(): void {
-  const next: ThemeMode = getAppliedTheme() === 'dark' ? 'light' : 'dark'
+/** The admin's explicit choice; remembered from now on. */
+export function setAdminTheme(mode: ThemeMode): void {
   stopWatchingSystem?.()
   stopWatchingSystem = null
-  storeTheme(next)
-  setTheme(next)
+  storeTheme(mode)
+  setTheme(mode)
+}
+
+export function toggleAdminTheme(): void {
+  setAdminTheme(getAppliedTheme() === 'dark' ? 'light' : 'dark')
 }
 
 function subscribe(listener: () => void): () => void {
