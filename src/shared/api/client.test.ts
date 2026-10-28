@@ -122,6 +122,24 @@ describe('api client', () => {
     expect((onUnauthorized.mock.calls[0]?.[0] as ApiError).code).toBe('TOKEN_REVOKED')
   })
 
+  it('passes the error data on, e.g. minutesRemaining with ACCOUNT_LOCKED', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respond(423, {
+        success: false,
+        data: { minutesRemaining: 12 },
+        message: 'Hisob vaqtincha bloklandi',
+        code: 'ACCOUNT_LOCKED',
+      }),
+    )
+
+    await expect(api.post('/api/auth/admin/login', {})).rejects.toMatchObject({
+      status: 423,
+      code: 'ACCOUNT_LOCKED',
+      data: { minutesRemaining: 12 },
+    })
+  })
+
   it('reports 401 and the blocked-account 403 globally', async () => {
     vi.stubGlobal(
       'fetch',

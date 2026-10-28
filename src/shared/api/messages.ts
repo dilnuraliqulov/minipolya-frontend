@@ -6,6 +6,14 @@
 export const API_CODES = {
   /** 401 on any request whose token predates the user's last password change. */
   tokenRevoked: 'TOKEN_REVOKED',
+  /** 401 from the admin login: wrong username or password (deliberately the same). */
+  invalidCredentials: 'INVALID_CREDENTIALS',
+  /** 423 from the admin login: too many wrong passwords; `data.minutesRemaining`. */
+  accountLocked: 'ACCOUNT_LOCKED',
+  /** 429 from the admin login: too many attempts from this IP; `data.minutesRemaining`. */
+  tooManyAttempts: 'TOO_MANY_ATTEMPTS',
+  /** 403 from the admin login: right password, but the account is blocked. */
+  accountBlocked: 'ACCOUNT_BLOCKED',
 } as const
 
 /**

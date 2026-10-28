@@ -95,6 +95,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       envelope?.message || response.statusText || 'Request failed',
       response.status,
       envelope?.code,
+      envelope?.data ?? undefined,
     )
     if (error.status === 401) config.onUnauthorized?.(error)
     if (error.status === 403 && error.message === API_MESSAGES.accountBlocked) {
