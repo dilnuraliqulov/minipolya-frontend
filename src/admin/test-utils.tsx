@@ -43,7 +43,11 @@ export const stats: PlatformStats = {
 }
 
 /** `data` is the payload on success and the message on an error. */
-export type Reply = [status: number, data: unknown, error?: { code?: string; data?: unknown }]
+export type Reply = readonly [
+  status: number,
+  data: unknown,
+  error?: { code?: string; data?: unknown },
+]
 
 export interface Request {
   method: string
