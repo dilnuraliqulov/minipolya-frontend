@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatSom } from './money'
+import { formatSom, formatSomParts } from './money'
 
 describe('formatSom', () => {
   it("converts tiyin to grouped so'm", () => {
@@ -27,5 +27,10 @@ describe('formatSom', () => {
   it('rejects non-integer input', () => {
     expect(() => formatSom(1.5)).toThrow(TypeError)
     expect(() => formatSom(Number.NaN)).toThrow(TypeError)
+  })
+
+  it('splits the amount from the unit for separate styling', () => {
+    expect(formatSomParts(4_865_000_000)).toEqual({ amount: '48 650 000', unit: "so'm" })
+    expect(formatSomParts(-105)).toEqual({ amount: '-1,05', unit: "so'm" })
   })
 })
