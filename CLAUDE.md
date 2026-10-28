@@ -51,7 +51,8 @@ src/
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts
 │   ├── App.tsx, routes.tsx  # router (basename /admin); one route per menu item
-│   ├── api/          #   endpoint types + calls; sample.ts = clearly marked sample data
+│   ├── api/          #   endpoint types + calls; missing.ts = endpoints not shipped yet;
+│   │                 #   sample/ = clearly marked sample data (adapter.ts: development only)
 │   ├── auth/         #   session store, login page, route guard, no-access page
 │   ├── components/   #   shared admin UI from the design's component frames
 │   ├── layout/       #   sidebar, layout, menu (MENU drives routes and the sidebar)
@@ -106,15 +107,35 @@ plain browser; the page still renders and follows the computer's theme.
 When a design needs a value the backend does not provide, it may be shown as
 **sample data**, never silently:
 
-- it lives in one place per app (`src/admin/api/sample.ts`), behind the API
+- it lives in one place per app (`src/admin/api/sample/`), behind the API
   layer, never inline in a component
 - it is rendered with the visible **"Namuna"** tag (`SampleTag`), whose
   tooltip names the request, placed on the sample value itself — never on a
-  real value next to it
+  real value next to it (a whole section of sample data gets one tag on its
+  heading)
 - it is shown **in development only** (`SHOW_SAMPLE_DATA`); a production build
   leaves it out rather than show made-up numbers
 - it has an entry in `docs/backend-requests.md`, and is deleted when the
   backend ships the real field
+
+**Missing endpoints.** `src/admin/api/missing.ts` holds the **one list**
+(`MISSING_ENDPOINTS`) of endpoints and fields the panel calls that the backend
+has not shipped, each with its request number. The API functions in
+`src/admin/api` are written against the requested contract and wrap the real
+call in `viaSample(endpoint, real, sample)`:
+
+- development: `api/sample/adapter.ts` answers, keeping its sample data in
+  memory so actions (approve, block, retry…) change what the next request
+  returns; success toasts say the action was a sample
+- production: the adapter is not in the bundle (it is imported only behind
+  `import.meta.env.DEV`); `availability(endpoint)` is `'soon'`, so the section
+  shows "Tez orada" and its action buttons are disabled with the tooltip
+  "Tez orada"
+- when the backend ships one, delete its line from `MISSING_ENDPOINTS` — the
+  real call takes over unchanged — then delete its adapter function
+
+After a build, check that `dist/` contains no sample data (e.g. grep for a
+sample name).
 
 ## Admin components
 

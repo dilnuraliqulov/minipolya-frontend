@@ -215,6 +215,35 @@ cash (`method = cash`) should be excluded from that figure.
 **Priority**
 High — the overview's revenue numbers are wrong (near 0) today.
 
+### R8 — Failed refunds: a count for the sidebar and the overview
+
+**What's needed**
+The admin panel shows a red badge on "Toʻlovlar" and a to-do tile
+"Muvaffaqiyatsiz qaytarishlar" (with "eng eskisi 3 soat oldin") when a refund
+failed at the provider and needs an admin. Today the backend has **no failed
+refund at all**: `PaymentService.refundInFull` calls
+`paymentProvider.refund(...)` and writes the refund row straight as
+`refunded`; a provider error throws and rolls the whole cancellation back.
+This request needs the failure state from **R15** (refund rows that can end
+`failed`), and adds two figures to the stats the sidebar already polls.
+
+**Which screen needs it**
+Admin panel — sidebar ("Toʻlovlar" badge) and overview ("Kutilayotgan ishlar").
+
+**Proposed endpoint**
+No new endpoint: two fields on `AdminPlatformStatsResponse`
+(`GET /api/admin/stats`, admin).
+
+| Field | Type | Notes |
+|---|---|---|
+| `failedRefunds` | number | refund payments (`paymentType = refund`) with `status = failed`, not yet retried successfully or marked as refunded by hand |
+| `oldestFailedRefundAt` | string (UTC)? | `createdAt` of the oldest of those; omitted when there are none |
+
+Error cases — none new.
+
+**Priority**
+High — failed refunds are money owed to players; nothing tells an admin today.
+
 ---
 
 ## Done

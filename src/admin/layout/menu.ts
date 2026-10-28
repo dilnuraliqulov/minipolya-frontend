@@ -1,21 +1,23 @@
 import {
   CalendarCheck,
-  FileText,
   History,
   House,
   LandPlot,
   Settings,
   Users,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import type { PlatformStats } from '../api/types'
+
+/** What a menu item's count badge shows; the sidebar reads each from its query. */
+export type MenuBadge = 'pendingStadiums' | 'failedRefunds'
 
 export interface MenuItem {
   path: string
   label: string
   icon: LucideIcon
-  /** A stats field shown as a count badge when it is above zero. */
-  badge?: keyof PlatformStats
+  /** A count shown as a badge when it is above zero. */
+  badge?: MenuBadge
   /** Draw the divider above this item. */
   dividerBefore?: boolean
 }
@@ -23,10 +25,10 @@ export interface MenuItem {
 /** The sidebar menu, in the design's order. Routes are generated from it. */
 export const MENU: MenuItem[] = [
   { path: '/', label: 'Bosh sahifa', icon: House },
-  { path: '/arizalar', label: 'Arizalar', icon: FileText, badge: 'pendingOwnerApplications' },
-  { path: '/maydonlar', label: 'Maydonlar', icon: LandPlot, badge: 'pendingStadiumApprovals' },
+  { path: '/maydonlar', label: 'Maydonlar', icon: LandPlot, badge: 'pendingStadiums' },
   { path: '/foydalanuvchilar', label: 'Foydalanuvchilar', icon: Users },
   { path: '/bronlar', label: 'Bronlar', icon: CalendarCheck },
+  { path: '/tolovlar', label: 'Toʻlovlar', icon: Wallet, badge: 'failedRefunds' },
   { path: '/jurnal', label: 'Jurnal', icon: History, dividerBefore: true },
   { path: '/sozlamalar', label: 'Sozlamalar', icon: Settings },
 ]

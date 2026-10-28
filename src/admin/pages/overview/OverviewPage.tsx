@@ -3,8 +3,8 @@ import {
   ArrowRight,
   Calendar,
   CircleCheck,
-  FileText,
   LandPlot,
+  ReceiptText,
   type LucideIcon,
   Users,
   Wallet,
@@ -13,37 +13,45 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { formatNumber, formatSomParts } from '../../../shared/format'
 import { SAMPLE_KPI_DELTAS, SHOW_SAMPLE_DATA } from '../../api/sample'
-import {
-  getOldestPendingApplication,
-  getOldestPendingStadium,
-  getPlatformRevenue,
-} from '../../api/stats'
+import { requestFor } from '../../api/missing'
+import { getOldestPendingStadium, getPlatformRevenue, REFUND_ALERTS } from '../../api/stats'
 import { BarChart } from '../../components/BarChart'
 import { CARD, interactiveCard, rise } from '../../components/card'
 import { cx } from '../../components/cx'
 import { KpiCard } from '../../components/KpiCard'
+import { SampleTag } from '../../components/SampleTag'
 import { useReducedMotion } from '../../components/motion'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
 import { formatAgo, tashkentToday } from '../../format'
-import { adminKeys, useStats } from '../../queries'
+import { adminKeys, useRefundAlerts, useStats } from '../../queries'
 import { CHART_HEIGHT, dailyBookingBars } from './chartData'
 
 const card = CARD
 const KPI_GRID = 'grid grid-cols-2 gap-4 xl:grid-cols-4'
 
+const TILE_TONES = {
+  warning: 'bg-warning-soft text-warning',
+  danger: 'bg-danger-soft text-danger',
+}
+
 function TodoTile({
   icon: Icon,
+  tone,
   title,
   count,
+  sampleRequest,
   oldest,
   to,
   className,
   style,
 }: {
   icon: LucideIcon
+  tone: keyof typeof TILE_TONES
   title: string
   count: number
+  /** Set when the count is sample data; names the backend request. */
+  sampleRequest?: string
   /** UTC timestamp of the oldest waiting item; undefined while loading or unknown. */
   oldest: { createdAt?: string; loading: boolean }
   to: string
@@ -61,13 +69,19 @@ function TodoTile({
       )}
       style={style}
     >
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-warning-soft">
-        <Icon size={22} aria-hidden className="text-warning" />
+      <span
+        className={cx(
+          'flex size-12 shrink-0 items-center justify-center rounded-xl',
+          TILE_TONES[tone],
+        )}
+      >
+        <Icon size={22} aria-hidden />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-base font-medium text-secondary">{title}</p>
-        <p className="text-6xl font-semibold tracking-display text-primary">
+        <p className="flex items-center gap-2 text-6xl font-semibold tracking-display text-primary">
           {formatNumber(count)}
+          {sampleRequest && <SampleTag request={sampleRequest} />}
         </p>
         {oldest.loading ? (
           <Skeleton className="mt-1 h-2.5 w-36" />
@@ -127,13 +141,9 @@ export function OverviewPage() {
   const reducedMotion = useReducedMotion()
   const stats = useStats()
   const revenue = useQuery({ queryKey: adminKeys.revenue, queryFn: getPlatformRevenue })
-  const pendingApplications = stats.data?.pendingOwnerApplications ?? 0
+  const refunds = useRefundAlerts()
+  const failedRefunds = refunds.data?.failedRefunds ?? 0
   const pendingStadiums = stats.data?.pendingStadiumApprovals ?? 0
-  const oldestApplication = useQuery({
-    queryKey: adminKeys.oldestApplication,
-    queryFn: getOldestPendingApplication,
-    enabled: pendingApplications > 0,
-  })
   const oldestStadium = useQuery({
     queryKey: adminKeys.oldestStadium,
     queryFn: getOldestPendingStadium,
@@ -170,29 +180,29 @@ export function OverviewPage() {
         <h2 id="todo-title" className="text-lg font-semibold text-primary">
           Kutilayotgan ishlar
         </h2>
-        {pendingApplications === 0 && pendingStadiums === 0 ? (
+        {failedRefunds === 0 && pendingStadiums === 0 ? (
           <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3.5 py-2.5 text-base font-medium text-success">
             <CircleCheck size={16} aria-hidden />
             Hammasi bajarilgan, kutilayotgan ish yoʻq
           </p>
         ) : (
           <div className="flex gap-4">
-            {pendingApplications > 0 && (
+            {failedRefunds > 0 && (
               <TodoTile
-                icon={FileText}
-                title="Egalik arizalari"
-                count={pendingApplications}
-                oldest={{
-                  createdAt: oldestApplication.data?.createdAt,
-                  loading: oldestApplication.isPending,
-                }}
-                to="/arizalar"
+                icon={ReceiptText}
+                tone="danger"
+                title="Muvaffaqiyatsiz qaytarishlar"
+                count={failedRefunds}
+                sampleRequest={refunds.mode === 'sample' ? requestFor(REFUND_ALERTS) : undefined}
+                oldest={{ createdAt: refunds.data?.oldestFailedRefundAt, loading: false }}
+                to="/tolovlar?tab=qaytarishlar"
                 {...enter()}
               />
             )}
             {pendingStadiums > 0 && (
               <TodoTile
                 icon={LandPlot}
+                tone="warning"
                 title="Yangi maydonlar"
                 count={pendingStadiums}
                 oldest={{
@@ -216,13 +226,13 @@ export function OverviewPage() {
           to="/bronlar"
           {...enter()}
         />
-        {/* No payments page yet, so this card is not a link. */}
         <KpiCard
           icon={Wallet}
           label="Shu oy ilova orqali toʻlovlar"
           value={money.amount}
           unit={money.unit}
           delta={deltas?.monthRevenue}
+          to="/tolovlar"
           {...enter()}
         />
         <KpiCard

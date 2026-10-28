@@ -1,6 +1,6 @@
 /**
  * Response types the admin panel uses, copied from docs/api-reference.md
- * (backend commit 12e3a91). Optional fields are the ones the backend omits
+ * (backend commit ed5dec6). Optional fields are the ones the backend omits
  * when null (`@JsonInclude(NON_NULL)`). Money is tiyin, timestamps UTC.
  */
 
@@ -53,8 +53,11 @@ export interface PlatformStats {
   monthRevenue: number
   totalGames: number
   activeGames: number
-  pendingOwnerApplications: number
   pendingStadiumApprovals: number
+  /** Refunds the provider failed to make. Not shipped yet — request R8. */
+  failedRefunds?: number
+  /** UTC. Not shipped yet — request R8. */
+  oldestFailedRefundAt?: string
 }
 
 /** One day of `OwnerRevenueResponse.dailyRevenue` — §10.7. */
@@ -73,27 +76,6 @@ export interface DailyRevenue {
 export interface PlatformRevenue {
   stadiumId?: string
   dailyRevenue: DailyRevenue[]
-}
-
-export type OwnerApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected'
-
-/** `OwnerApplicationResponse` — §10.8. */
-export interface OwnerApplication {
-  id: string
-  userId: string
-  userName: string
-  userPhone?: string
-  businessName: string
-  businessAddress: string
-  phone: string
-  description?: string
-  stadiumCount: number
-  status: OwnerApplicationStatus
-  reviewedBy?: string
-  reviewerName?: string
-  reviewNote?: string
-  reviewedAt?: string
-  createdAt: string
 }
 
 export type StadiumStatus = 'pending' | 'approved' | 'blocked'

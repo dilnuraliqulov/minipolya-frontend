@@ -1,5 +1,6 @@
 import { api, type Page } from '../../shared/api'
-import type { AdminStadium, OwnerApplication, PlatformRevenue, PlatformStats } from './types'
+import { viaSample } from './missing'
+import type { AdminStadium, PlatformRevenue, PlatformStats } from './types'
 
 export function getPlatformStats(): Promise<PlatformStats> {
   return api.get<PlatformStats>('/api/admin/stats')
@@ -9,12 +10,28 @@ export function getPlatformRevenue(): Promise<PlatformRevenue> {
   return api.get<PlatformRevenue>('/api/admin/stats/revenue')
 }
 
-/** The pending list is ordered oldest first, so the first item is the oldest. */
-export async function getOldestPendingApplication(): Promise<OwnerApplication | null> {
-  const page = await api.get<Page<OwnerApplication>>('/api/admin/owner-applications/pending', {
-    query: { page: 0, size: 1 },
-  })
-  return page.content[0] ?? null
+/** Failed refunds waiting for an admin: the sidebar badge and the overview to-do. */
+export interface RefundAlerts {
+  failedRefunds: number
+  /** UTC; absent when there are none. */
+  oldestFailedRefundAt?: string
+}
+
+/** Two new fields on `GET /api/admin/stats` — request R8. */
+export const REFUND_ALERTS = 'GET /api/admin/stats → failedRefunds, oldestFailedRefundAt'
+
+export function getRefundAlerts(): Promise<RefundAlerts> {
+  return viaSample(
+    REFUND_ALERTS,
+    async () => {
+      const stats = await getPlatformStats()
+      return {
+        failedRefunds: stats.failedRefunds ?? 0,
+        oldestFailedRefundAt: stats.oldestFailedRefundAt,
+      }
+    },
+    (sample) => sample.refundAlerts(),
+  )
 }
 
 /**

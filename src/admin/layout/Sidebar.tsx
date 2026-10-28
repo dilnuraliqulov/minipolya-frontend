@@ -6,9 +6,17 @@ import type { User } from '../api/types'
 import { logout } from '../auth/session'
 import { Avatar } from '../components/Avatar'
 import { cx } from '../components/cx'
-import { useStats } from '../queries'
+import { useRefundAlerts, useStats } from '../queries'
 import { setAdminTheme, useAdminTheme } from '../theme'
-import { MENU } from './menu'
+import { MENU, type MenuBadge } from './menu'
+
+const BADGES: Record<MenuBadge, { className: string; label: (count: string) => string }> = {
+  pendingStadiums: { className: 'bg-accent', label: (count) => `${count} ta kutilmoqda` },
+  failedRefunds: {
+    className: 'bg-danger',
+    label: (count) => `${count} ta muvaffaqiyatsiz qaytarish`,
+  },
+}
 
 const row =
   'flex items-center gap-2.5 rounded-md px-3 py-2 text-base font-medium focus-visible:outline-2 focus-visible:outline-accent'
@@ -45,6 +53,11 @@ function ThemeToggle() {
 
 export function Sidebar({ user }: { user: User }) {
   const { data: stats } = useStats()
+  const { data: refunds } = useRefundAlerts()
+  const counts: Record<MenuBadge, number> = {
+    pendingStadiums: stats?.pendingStadiumApprovals ?? 0,
+    failedRefunds: refunds?.failedRefunds ?? 0,
+  }
 
   return (
     <aside className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col border-r border-border bg-background">
@@ -60,7 +73,8 @@ export function Sidebar({ user }: { user: User }) {
 
       <nav aria-label="Asosiy menyu" className="flex flex-col gap-0.5 px-3 py-2">
         {MENU.map((item) => {
-          const count = item.badge && stats ? stats[item.badge] : 0
+          const count = item.badge ? counts[item.badge] : 0
+          const badge = item.badge ? BADGES[item.badge] : null
           return (
             <Fragment key={item.path}>
               {item.dividerBefore && <hr className="mx-3 my-1.5 border-border" />}
@@ -79,10 +93,13 @@ export function Sidebar({ user }: { user: User }) {
                       className={isActive ? 'text-accent' : 'text-secondary'}
                     />
                     <span className="flex-1">{item.label}</span>
-                    {count > 0 && (
+                    {badge && count > 0 && (
                       <span
-                        aria-label={`${count} ta kutilmoqda`}
-                        className="rounded-full bg-accent px-1.75 py-0.5 text-2xs leading-none font-semibold text-on-accent"
+                        aria-label={badge.label(formatNumber(count))}
+                        className={cx(
+                          'rounded-full px-1.75 py-0.5 text-2xs leading-none font-semibold text-on-accent',
+                          badge.className,
+                        )}
                       >
                         {formatNumber(count)}
                       </span>

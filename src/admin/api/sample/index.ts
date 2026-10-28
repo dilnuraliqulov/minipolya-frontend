@@ -1,4 +1,4 @@
-import type { KpiDelta } from '../components/KpiCard'
+import type { KpiDelta } from '../../components/KpiCard'
 
 /**
  * Sample data is shown in development only. A production build shows nothing

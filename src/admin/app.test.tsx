@@ -1,76 +1,9 @@
-import { QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, within } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { configureApiClient, createMemoryTokenStore, getTokenStore } from '../shared/api'
-import type { PlatformStats, User } from './api/types'
-import {
-  logout,
-  resetSessionForTests,
-  restoreSession,
-  startSession,
-  unauthorizedReason,
-} from './auth/session'
-import { ToastProvider } from './components/Toast'
-import { queryClient } from './queryClient'
+import { fireEvent, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { getTokenStore } from '../shared/api'
+import { restoreSession, startSession } from './auth/session'
 import { routes } from './routes'
-
-const admin: User = {
-  id: 'u1',
-  name: 'Aziz Rahimov',
-  language: 'uz',
-  isOwner: false,
-  isAdmin: true,
-  createdAt: '2026-10-01T10:00:00Z',
-}
-
-const stats: PlatformStats = {
-  totalUsers: 900,
-  totalOwners: 40,
-  newUsersToday: 3,
-  newUsersThisWeek: 213,
-  newUsersThisMonth: 500,
-  totalStadiums: 45,
-  approvedStadiums: 38,
-  pendingStadiums: 2,
-  blockedStadiums: 5,
-  totalBookings: 5000,
-  todayBookings: 47,
-  weekBookings: 300,
-  monthBookings: 1200,
-  totalRevenue: 0,
-  todayRevenue: 0,
-  weekRevenue: 0,
-  monthRevenue: 4_865_000_000,
-  totalGames: 10,
-  activeGames: 2,
-  pendingOwnerApplications: 4,
-  pendingStadiumApprovals: 2,
-}
-
-/** `data` is the payload on success and the message on an error. */
-type Reply = [status: number, data: unknown, error?: { code?: string; data?: unknown }]
-
-/** Answers API calls by path, through the real API client. */
-function mockBackend(replies: Record<string, Reply | (() => Reply)>) {
-  const fetchMock = vi.fn(async (input: string) => {
-    const path = new URL(input).pathname
-    const entry = replies[path]
-    const [status, data, error] = typeof entry === 'function' ? entry() : (entry ?? [404, null])
-    const ok = status < 400
-    return new Response(
-      JSON.stringify({
-        success: ok,
-        data: ok ? data : (error?.data ?? null),
-        message: ok ? null : String(data),
-        ...(error?.code && { code: error.code }),
-      }),
-      { status, headers: { 'Content-Type': 'application/json' } },
-    )
-  })
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
-}
+import { admin, mockBackend, type Reply, renderAt, stats, useAdminTestSetup } from './test-utils'
 
 const today = new Date()
 const isoDate = (daysAgo: number) =>
@@ -87,16 +20,6 @@ const overviewReplies: Record<string, Reply> = {
       ],
     },
   ],
-  '/api/admin/owner-applications/pending': [
-    200,
-    {
-      content: [{ id: 'a1', createdAt: new Date(Date.now() - 2 * 86_400_000).toISOString() }],
-      page: 0,
-      size: 1,
-      totalElements: 4,
-      totalPages: 4,
-    },
-  ],
   '/api/admin/stadiums': [
     200,
     {
@@ -109,34 +32,8 @@ const overviewReplies: Record<string, Reply> = {
   ],
 }
 
-function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] })
-  render(
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <RouterProvider router={router} />
-      </ToastProvider>
-    </QueryClientProvider>,
-  )
-  return router
-}
-
 describe('admin panel', () => {
-  beforeEach(() => {
-    resetSessionForTests()
-    queryClient.clear()
-    configureApiClient({
-      tokenStore: createMemoryTokenStore(),
-      // As in main.tsx.
-      onUnauthorized: (error) => logout(unauthorizedReason(error)),
-      onAccountBlocked: () => logout('blocked'),
-    })
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-    vi.unstubAllEnvs()
-  })
+  useAdminTestSetup()
 
   it('sends a visitor without a session to the login form', async () => {
     await restoreSession()
@@ -168,15 +65,37 @@ describe('admin panel', () => {
     expect(screen.getByText("so'm")).toHaveClass('text-secondary')
     expect(screen.getByText('213')).toBeInTheDocument()
     expect(screen.getByText('38')).toBeInTheDocument()
-    expect(screen.getAllByText('Namuna')).toHaveLength(4)
     expect(screen.getByText('jami 43')).toBeInTheDocument()
     expect(screen.getByText('Shu hafta')).toBeInTheDocument()
-    expect(await screen.findByText('eng eskisi 2 kun oldin')).toBeInTheDocument()
+    expect(await screen.findByText('Muvaffaqiyatsiz qaytarishlar')).toBeInTheDocument()
+    expect(screen.getByText('eng eskisi 3 soat oldin')).toBeInTheDocument()
+    // Four sample comparisons and the sample failed-refund count (R8).
+    expect(screen.getAllByText('Namuna')).toHaveLength(5)
     expect(await screen.findByText('eng eskisi 1 kun oldin')).toBeInTheDocument()
 
     const menu = screen.getByRole('navigation', { name: 'Asosiy menyu' })
-    expect(within(menu).getByRole('link', { name: /Arizalar/ })).toHaveTextContent('4')
+    expect(within(menu).queryByRole('link', { name: /Arizalar/ })).not.toBeInTheDocument()
     expect(within(menu).getByRole('link', { name: /Maydonlar/ })).toHaveTextContent('2')
+    expect(within(menu).getByText('2')).toHaveClass('bg-accent')
+    const payments = within(menu).getByRole('link', { name: /Toʻlovlar/ })
+    expect(payments).toHaveAttribute('href', '/tolovlar')
+    expect(within(payments).getByLabelText('1 ta muvaffaqiyatsiz qaytarish')).toHaveClass(
+      'bg-danger',
+    )
+    // In the design's order: after Bronlar, before the divider and Jurnal.
+    expect(
+      within(menu)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual([
+      'Bosh sahifa',
+      'Maydonlar2',
+      'Foydalanuvchilar',
+      'Bronlar',
+      'Toʻlovlar1',
+      'Jurnal',
+      'Sozlamalar',
+    ])
     expect(within(menu).getByRole('link', { name: 'Bosh sahifa' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -196,10 +115,13 @@ describe('admin panel', () => {
       '/foydalanuvchilar',
     )
     expect(kpis.getByRole('link', { name: /Faol maydonlar/ })).toHaveAttribute('href', '/maydonlar')
-    expect(screen.getByRole('link', { name: /Egalik arizalari/ })).toHaveAttribute(
+    expect(kpis.getByRole('link', { name: /Shu oy ilova orqali toʻlovlar/ })).toHaveAttribute(
       'href',
-      '/arizalar',
+      '/tolovlar',
     )
+    expect(
+      await screen.findByRole('link', { name: /Muvaffaqiyatsiz qaytarishlar/ }),
+    ).toHaveAttribute('href', '/tolovlar?tab=qaytarishlar')
     expect(screen.getByRole('link', { name: /Yangi maydonlar/ })).toHaveAttribute(
       'href',
       '/maydonlar',
@@ -222,15 +144,16 @@ describe('admin panel', () => {
     expect(router.state.location.pathname).toBe('/bronlar')
   })
 
-  it('does not make the payments card look or act clickable', async () => {
+  it('marks the failed-refund tile as danger and opens the refunds tab', async () => {
     mockBackend(overviewReplies)
     startSession('t', admin)
-    renderAt('/')
-    const label = await screen.findByText('Shu oy ilova orqali toʻlovlar')
-    expect(label.closest('a')).toBeNull()
-    const cardElement = label.closest('div.rounded-xl')
-    expect(cardElement?.className).not.toMatch(/hover:|cursor-pointer/)
-    expect(within(cardElement as HTMLElement).queryByTestId('kpi-chevron')).toBeNull()
+    const router = renderAt('/')
+    const tile = await screen.findByRole('link', { name: /Muvaffaqiyatsiz qaytarishlar/ })
+    expect(tile.querySelector('.bg-danger-soft')).not.toBeNull()
+    expect(within(tile).getByText('Namuna')).toHaveAttribute('title', expect.stringContaining('R8'))
+    fireEvent.click(tile)
+    expect(router.state.location.pathname).toBe('/tolovlar')
+    expect(router.state.location.search).toBe('?tab=qaytarishlar')
   })
 
   it('animates the cards in one after another', async () => {
@@ -261,7 +184,9 @@ describe('admin panel', () => {
     renderAt('/')
     await screen.findByText('47')
     expect(document.querySelectorAll('.animate-rise')).toHaveLength(0)
-    for (const link of screen.getAllByRole('link', { name: /Bugungi|Faol|Egalik|Yangi/ })) {
+    for (const link of screen.getAllByRole('link', {
+      name: /Bugungi|Faol|Muvaffaqiyatsiz|Yangi/,
+    })) {
       expect(link.className).not.toMatch(/translate|transition|animate/)
     }
   })
@@ -282,12 +207,11 @@ describe('admin panel', () => {
   })
 
   it('shows "everything done" when nothing is waiting', async () => {
+    const adapter = await import('./api/sample/adapter')
+    vi.spyOn(adapter, 'refundAlerts').mockReturnValue({ failedRefunds: 0 })
     mockBackend({
       ...overviewReplies,
-      '/api/admin/stats': [
-        200,
-        { ...stats, pendingOwnerApplications: 0, pendingStadiumApprovals: 0, pendingStadiums: 0 },
-      ],
+      '/api/admin/stats': [200, { ...stats, pendingStadiumApprovals: 0, pendingStadiums: 0 }],
     })
     startSession('t', admin)
     renderAt('/')
@@ -341,13 +265,20 @@ describe('admin panel', () => {
     fireEvent.click(within(crumbs).getByRole('link', { name: 'Bosh sahifa' }))
     expect(router.state.location.pathname).toBe('/')
     for (const path of [
-      '/arizalar',
       '/maydonlar',
       '/foydalanuvchilar',
       '/bronlar',
+      '/tolovlar',
       '/sozlamalar',
     ]) {
       expect(routes[1]?.children?.[0]?.children?.some((r) => r.path === path)).toBe(true)
     }
+  })
+
+  it('has no Arizalar section any more', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    const router = renderAt('/arizalar')
+    expect(router.state.location.pathname).toBe('/')
   })
 })
