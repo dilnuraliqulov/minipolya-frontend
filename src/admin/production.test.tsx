@@ -2,10 +2,18 @@
  * The panel as a production build sees it: sample data switched off. Missing
  * endpoints must show "Tez orada" or nothing — never made-up values.
  */
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { availability, MISSING_ENDPOINTS, NotAvailableError, viaSample } from './api/missing'
-import { mockBackend, type Reply, renderAt, signIn, stats, useAdminTestSetup } from './test-utils'
+import {
+  mockBackend,
+  page,
+  type Reply,
+  renderAt,
+  signIn,
+  stats,
+  useAdminTestSetup,
+} from './test-utils'
 
 vi.mock('./api/sample', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./api/sample')>()),
@@ -45,5 +53,66 @@ describe('production build (no sample data)', () => {
     expect(within(menu).getByRole('link', { name: 'Toʻlovlar' })).toBeInTheDocument()
     // Only real endpoints were called.
     expect(requests.every((r) => r.url.pathname.startsWith('/api/admin/'))).toBe(true)
+  })
+
+  const stadium = {
+    id: 's1',
+    name: 'Chilonzor Arena',
+    address: 'Chilonzor tumani, 12',
+    ownerName: 'Jamshid Karimov',
+    ownerId: 'o1',
+    status: 'pending',
+    format: '5x5',
+    surfaceType: 'artificial',
+    averageRating: 0,
+    reviewCount: 0,
+    totalBookings: 0,
+    totalRevenue: 0,
+    createdAt: '2026-10-27T10:00:00Z',
+  }
+  const stadiumReplies: Record<string, Reply> = {
+    '/api/admin/stats': [200, stats],
+    '/api/admin/stadiums': [200, page([stadium])],
+    '/api/admin/stadiums/s1': [200, stadium],
+    '/api/admin/users/o1': [
+      200,
+      { id: 'o1', name: 'Jamshid Karimov', createdAt: '2026-02-14T07:00:00Z', bookingCount: 6 },
+    ],
+    '/api/admin/audit-log': [200, page([])],
+  }
+
+  it('Maydonlar: hides the sample columns, disables the missing filters, "Tez orada" for rejected', async () => {
+    mockBackend(stadiumReplies)
+    signIn()
+    renderAt('/maydonlar')
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText('Chilonzor Arena')).toBeInTheDocument()
+    for (const header of ['Tuman', 'Narx', 'ATMOS']) {
+      expect(within(table).queryByText(header)).not.toBeInTheDocument()
+    }
+    expect(screen.queryByLabelText('Tuman')).not.toBeInTheDocument()
+    expect(screen.getAllByTitle('Tez orada')).toHaveLength(2)
+    expect(screen.queryByText('Namuna')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Rad etilgan/ }))
+    expect(await screen.findByText('Tez orada', { selector: 'p' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('stadium detail: real parts shown, missing sections "Tez orada", approve still possible', async () => {
+    const { requests } = mockBackend(stadiumReplies)
+    signIn()
+    renderAt('/maydonlar/s1')
+    expect(await screen.findByText('Chilonzor tumani, 12')).toBeInTheDocument()
+    for (const title of ['Rasmlar', 'Narxlar', 'Bron shartlari']) {
+      expect(
+        within(screen.getByRole('region', { name: title })).getByText('Tez orada'),
+      ).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'Tasdiqlash' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Izoh qoʻshish' })).toBeDisabled()
+    expect(screen.queryByText('Namuna')).not.toBeInTheDocument()
+    expect(requests.some((r) => r.url.pathname.includes('notes'))).toBe(false)
+    expect(requests.some((r) => r.url.pathname.includes('legal-details'))).toBe(false)
   })
 })

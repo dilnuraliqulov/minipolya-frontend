@@ -8,11 +8,14 @@ import { ComingSoonPage } from './pages/ComingSoonPage'
 import { JournalPage } from './pages/journal/JournalPage'
 import { OverviewPage } from './pages/overview/OverviewPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
+import { StadiumPage } from './pages/stadiums/StadiumPage'
+import { StadiumsPage } from './pages/stadiums/StadiumsPage'
 
 const home = MENU[0]!
 
 /** The built sections; every other menu item shows "Tez orada". */
 const PAGES: Record<string, ReactNode> = {
+  '/maydonlar': <StadiumsPage />,
   '/jurnal': <JournalPage />,
   '/sozlamalar': <SettingsPage />,
 }
@@ -25,6 +28,11 @@ const sectionRoutes: RouteObject[] = MENU.slice(1).map((item) => ({
     crumbs: [{ label: home.label, to: home.path }, { label: item.label }],
   } satisfies RouteHandle,
 }))
+
+/** Detail pages; each sets its own title and breadcrumbs once its data loads. */
+const detailRoutes: RouteObject[] = [
+  { path: '/maydonlar/:id', element: <StadiumPage />, handle: { title: 'Maydon' } },
+]
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -40,6 +48,7 @@ export const routes: RouteObject[] = [
             handle: { title: home.label } satisfies RouteHandle,
           },
           ...sectionRoutes,
+          ...detailRoutes,
         ],
       },
     ],
