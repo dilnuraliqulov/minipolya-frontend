@@ -50,14 +50,16 @@ src/
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts
-│   ├── App.tsx, routes.tsx  # router (basename /admin); one route per menu item
+│   ├── App.tsx, routes.tsx  # router (basename /admin); a page per menu item + detail pages
 │   ├── api/          #   endpoint types + calls; missing.ts = endpoints not shipped yet;
 │   │                 #   sample/ = clearly marked sample data (adapter.ts: development only)
+│   ├── audit/        #   labels.ts = THE audit mapping (actions, fields, values); links; tables
 │   ├── auth/         #   session store, login page, route guard, no-access page
 │   ├── components/   #   shared admin UI from the design's component frames
 │   ├── layout/       #   sidebar, layout, menu (MENU drives routes and the sidebar)
-│   ├── pages/        #   overview ("Bosh sahifa"), "Tez orada" placeholder
-│   ├── format.ts     #   Uzbek month names, relative time ("2 kun oldin")
+│   ├── pages/        #   overview, stadiums, users, bookings, payments, journal, settings
+│   ├── statuses.ts   #   Uzbek labels + badge tones for every backend enum value
+│   ├── format.ts     #   Uzbek month names, relative time ("2 kun oldin"), slots
 │   ├── fonts.css     #   self-hosted Inter (admin only)
 │   └── theme.ts      #   system setting on first visit, toggle, remembered
 ├── shared/           # used by both; imports from neither
@@ -144,14 +146,22 @@ frames: `Button` (primary, secondary, danger, danger-outline, text),
 `StatusBadge`, `KpiCard`, `DataTable`, `Pagination`, `FilterBar` /
 `SearchField` / `FilterSelect`, `Tabs`, `Modal` / `ConfirmModal` /
 `ReasonModal`, `ToastProvider` / `useToast`, `Skeleton`, `Avatar`,
-`EmptyState` / `ErrorState`, `PageHeader`, `BarChart`. Use them; do not
+`EmptyState` / `ErrorState`, `PageHeader`, `BarChart`, `SidePanel` /
+`PanelSection` / `PanelRow` (the drawer), `DateRangePicker`, `NumberField`,
+`DisabledHint` / `SoonSection` (for missing endpoints). Use them; do not
 restyle per page.
 
 - `DataTable` sorting only reports clicks — the backend has **no sort
   parameter**, so a page either sorts what it has, or leaves columns
   unsortable.
 - Admin pages: add the item to `MENU` in `layout/menu.ts` (route, sidebar and
-  breadcrumbs follow), then replace its `ComingSoonPage` in `routes.tsx`.
+  breadcrumbs follow), then add its page to `PAGES` in `routes.tsx` (until then
+  it shows `ComingSoonPage`). Detail pages go in `detailRoutes` and set their
+  own title, crumbs and status badge with `usePageHeader`.
+- Filters, tabs and the open side panel live in the URL (`useSearchParams`), so
+  a filtered view or one booking can be linked to.
+- Audit-log text comes only from `audit/labels.ts`; an unknown code shows as
+  the code. `audit/links.ts` says which object types have a page.
 - Admin text is Uzbek Latin with `ʻ` (U+02BB) in oʻ/gʻ and `ʼ` (U+02BC) for
   the tutuq belgisi (maʼlumot).
 
