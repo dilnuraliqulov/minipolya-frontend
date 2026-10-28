@@ -115,4 +115,36 @@ describe('production build (no sample data)', () => {
     expect(requests.some((r) => r.url.pathname.includes('notes'))).toBe(false)
     expect(requests.some((r) => r.url.pathname.includes('legal-details'))).toBe(false)
   })
+
+  const user = {
+    id: 'p1',
+    name: 'Bekzod Rahmatov',
+    language: 'uz',
+    isOwner: false,
+    isAdmin: false,
+    isBlocked: false,
+    bookingCount: 6,
+    stadiumCount: 0,
+    createdAt: '2026-10-10T13:42:00Z',
+  }
+
+  it('Foydalanuvchilar: role and status filters "Tez orada"; bookings tab "Tez orada"; blocking works', async () => {
+    const { requests } = mockBackend({
+      '/api/admin/stats': [200, stats],
+      '/api/admin/users': [200, page([user])],
+      '/api/admin/users/p1': [200, user],
+      '/api/admin/audit-log': [200, page([])],
+    })
+    signIn()
+    renderAt('/foydalanuvchilar')
+    expect(await screen.findByText('Bekzod Rahmatov')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Rol')).not.toBeInTheDocument()
+    expect(screen.getAllByTitle('Tez orada')).toHaveLength(2)
+
+    fireEvent.click(screen.getByText('Bekzod Rahmatov'))
+    expect(await screen.findByText('Tez orada', { selector: 'p' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Bloklash' })).toBeEnabled()
+    expect(screen.queryByRole('tab', { name: /Jamoalar/ })).not.toBeInTheDocument()
+    expect(requests.some((r) => r.url.pathname.includes('bookings'))).toBe(false)
+  })
 })

@@ -4,6 +4,8 @@
  */
 const ENTITY_PATHS: Record<string, (id: string) => string> = {
   platform_settings: () => '/sozlamalar',
+  stadium: (id) => `/maydonlar/${id}`,
+  user: (id) => `/foydalanuvchilar/${id}`,
 }
 
 export function entityPath(type: string | undefined, id: string | undefined): string | null {
