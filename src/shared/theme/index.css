@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/* `dark:` follows data-theme on <html>, not the system setting. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /*
  * Tailwind names for the design tokens. `inline` makes every utility point at
  * the CSS variable, so flipping data-theme on <html> re-colours the page live.
@@ -91,6 +94,16 @@
   --radius-xl: 12px; /* cards */
   --radius-2xl: 14px; /* modals */
   --radius-3xl: 16px; /* login card */
+
+  /* Cards fading and sliding in on page load (admin overview). */
+  --animate-rise: rise 160ms ease-out backwards;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
 }
 
 @layer base {
