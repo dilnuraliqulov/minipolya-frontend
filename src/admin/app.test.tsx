@@ -258,8 +258,8 @@ describe('admin panel', () => {
   it('has a "Tez orada" page with breadcrumbs for every other menu item', async () => {
     mockBackend(overviewReplies)
     startSession('t', admin)
-    const router = renderAt('/jurnal')
-    expect(screen.getByRole('heading', { name: 'Jurnal' })).toBeInTheDocument()
+    const router = renderAt('/bronlar')
+    expect(screen.getByRole('heading', { name: 'Bronlar' })).toBeInTheDocument()
     expect(screen.getByText('Tez orada')).toBeInTheDocument()
     const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' })
     fireEvent.click(within(crumbs).getByRole('link', { name: 'Bosh sahifa' }))

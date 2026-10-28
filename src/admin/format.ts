@@ -71,3 +71,13 @@ export function formatAgo(iso: string, now: Date = new Date()): string {
   if (hours < 24) return `${hours} soat oldin`
   return `${Math.floor(hours / 24)} kun oldin`
 }
+
+/** A backend `LocalDate` ("2026-10-14") → "14.10.2026". No time zone involved. */
+export function formatLocalDate(date: string): string {
+  return date.split('-').reverse().join('.')
+}
+
+/** The first day of the month of a `LocalDate`: "2026-10-14" → "2026-10-01". */
+export function monthStart(date: string): string {
+  return `${date.slice(0, 7)}-01`
+}

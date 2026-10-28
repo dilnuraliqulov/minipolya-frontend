@@ -5,6 +5,7 @@ import { RequireAdmin } from './auth/RequireAdmin'
 import { AdminLayout, type RouteHandle } from './layout/AdminLayout'
 import { MENU } from './layout/menu'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { JournalPage } from './pages/journal/JournalPage'
 import { OverviewPage } from './pages/overview/OverviewPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 
@@ -12,6 +13,7 @@ const home = MENU[0]!
 
 /** The built sections; every other menu item shows "Tez orada". */
 const PAGES: Record<string, ReactNode> = {
+  '/jurnal': <JournalPage />,
   '/sozlamalar': <SettingsPage />,
 }
 

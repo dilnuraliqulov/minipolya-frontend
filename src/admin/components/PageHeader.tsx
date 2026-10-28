@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
+import { formatNumber } from '../../shared/format'
 
 export interface Crumb {
   label: string
@@ -8,7 +9,16 @@ export interface Crumb {
 }
 
 /** Breadcrumbs (when there is more than one level) above the page title. */
-export function PageHeader({ title, crumbs = [] }: { title: string; crumbs?: Crumb[] }) {
+export function PageHeader({
+  title,
+  count,
+  crumbs = [],
+}: {
+  title: string
+  /** A total shown after the title, e.g. "Jurnal · 2 318". */
+  count?: number
+  crumbs?: Crumb[]
+}) {
   return (
     <header className="flex flex-col gap-1">
       {crumbs.length > 1 && (
@@ -31,7 +41,10 @@ export function PageHeader({ title, crumbs = [] }: { title: string; crumbs?: Cru
           </ol>
         </nav>
       )}
-      <h1 className="text-4xl font-semibold text-primary">{title}</h1>
+      <h1 className="text-4xl font-semibold text-primary">
+        {title}
+        {count !== undefined && <span className="text-secondary"> · {formatNumber(count)}</span>}
+      </h1>
     </header>
   )
 }
