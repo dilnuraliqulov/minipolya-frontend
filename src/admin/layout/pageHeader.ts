@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect } from 'react'
 import type { Crumb } from '../components/PageHeader'
+import type { BadgeTone } from '../components/StatusBadge'
 
 /** What a page may set over its route's static title: a count, or a detail page's own title. */
 export interface PageHeaderOverride {
@@ -7,6 +8,8 @@ export interface PageHeaderOverride {
   /** Shown after the title: "Jurnal · 2 318". */
   count?: number
   crumbs?: Crumb[]
+  /** A status badge after a detail page's title. */
+  status?: { label: string; tone: BadgeTone }
 }
 
 export const PageHeaderContext = createContext<(override: PageHeaderOverride | null) => void>(

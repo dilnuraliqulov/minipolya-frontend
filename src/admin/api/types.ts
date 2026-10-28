@@ -78,7 +78,8 @@ export interface PlatformRevenue {
   dailyRevenue: DailyRevenue[]
 }
 
-export type StadiumStatus = 'pending' | 'approved' | 'blocked'
+/** `rejected` is not a backend value yet — request R10 (a rejection is `blocked` today). */
+export type StadiumStatus = 'pending' | 'approved' | 'blocked' | 'rejected'
 
 /** `AdminStadiumResponse` — §10.9. */
 export interface AdminStadium {

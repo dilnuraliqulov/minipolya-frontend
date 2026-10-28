@@ -31,6 +31,7 @@ export function AdminLayout() {
           <PageHeader
             title={title}
             count={override?.count}
+            status={override?.status}
             crumbs={override?.crumbs ?? handle?.crumbs}
           />
         )}

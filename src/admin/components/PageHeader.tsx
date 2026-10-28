@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { formatNumber } from '../../shared/format'
+import { StatusBadge, type BadgeTone } from './StatusBadge'
 
 export interface Crumb {
   label: string
@@ -12,11 +13,13 @@ export interface Crumb {
 export function PageHeader({
   title,
   count,
+  status,
   crumbs = [],
 }: {
   title: string
   /** A total shown after the title, e.g. "Jurnal · 2 318". */
   count?: number
+  status?: { label: string; tone: BadgeTone }
   crumbs?: Crumb[]
 }) {
   return (
@@ -41,10 +44,13 @@ export function PageHeader({
           </ol>
         </nav>
       )}
-      <h1 className="text-4xl font-semibold text-primary">
-        {title}
-        {count !== undefined && <span className="text-secondary"> · {formatNumber(count)}</span>}
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-4xl font-semibold text-primary">
+          {title}
+          {count !== undefined && <span className="text-secondary"> · {formatNumber(count)}</span>}
+        </h1>
+        {status && <StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
+      </div>
     </header>
   )
 }

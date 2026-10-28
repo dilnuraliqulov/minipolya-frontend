@@ -6,7 +6,7 @@ import { EmptyState, ErrorState } from './States'
 
 export interface Column<T> {
   key: string
-  header: string
+  header: ReactNode
   render: (row: T) => ReactNode
   /** Fixed column width in px; others share the rest. */
   width?: number

@@ -16,6 +16,14 @@ import { SHOW_SAMPLE_DATA } from './sample'
  */
 export const MISSING_ENDPOINTS = {
   'GET /api/admin/stats → failedRefunds, oldestFailedRefundAt': 'R8',
+  'GET /api/admin/stadiums → photoUrl, district, pricePerHour, ownerContractStatus; ?district, ?format':
+    'R9',
+  'GET /api/admin/stadiums/{id} → photos, location, hours, amenities, pricing, booking terms': 'R9',
+  'GET /api/admin/stadiums?status=rejected': 'R10',
+  'GET /api/admin/users/{id}/legal-details': 'R11',
+  'PUT /api/admin/users/{id}/legal-details': 'R11',
+  'GET /api/admin/stadiums/{id}/notes': 'R12',
+  'POST /api/admin/stadiums/{id}/notes': 'R12',
 } as const
 
 export type MissingEndpoint = keyof typeof MISSING_ENDPOINTS
@@ -68,4 +76,34 @@ export async function viaSample<T>(
     return sample(adapter)
   }
   throw new NotAvailableError(endpoint)
+}
+
+/**
+ * For new fields on an endpoint that exists: returns the real response as is,
+ * and only in development lets the adapter fill in the missing fields. A
+ * production build gets the real response unchanged (the fields stay absent).
+ */
+export async function withSampleFields<T>(
+  endpoint: string,
+  real: T,
+  sample: (adapter: SampleAdapter, real: T) => T | Promise<T>,
+): Promise<T> {
+  if (availability(endpoint) === 'sample' && import.meta.env.DEV) {
+    const adapter = await import('./sample/adapter')
+    return sample(adapter, real)
+  }
+  return real
+}
+
+/** Ids of records that exist only in the development sample data. */
+export const SAMPLE_ID_PREFIX = 'sample-'
+
+export function isSampleId(id: string): boolean {
+  return import.meta.env.DEV && id.startsWith(SAMPLE_ID_PREFIX)
+}
+
+/** The sample adapter, for records that exist only in the sample data. Development only. */
+export async function loadSampleAdapter(): Promise<SampleAdapter> {
+  if (import.meta.env.DEV) return import('./sample/adapter')
+  throw new NotAvailableError('sample adapter')
 }

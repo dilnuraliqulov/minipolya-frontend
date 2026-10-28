@@ -2,7 +2,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
-import { afterEach, beforeEach, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore } from '../shared/api'
 import type { PlatformStats, User } from './api/types'
 import { logout, resetSessionForTests, startSession, unauthorizedReason } from './auth/session'
@@ -106,6 +106,12 @@ export function renderAt(path: string) {
 
 /** Signs in as `admin` with a fresh query cache and API client, and cleans up after. */
 export function useAdminTestSetup() {
+  // Load the (dynamically imported) sample adapter once up front, so the first
+  // test does not spend its time budget on the import.
+  beforeAll(async () => {
+    await import('./api/sample/adapter')
+  })
+
   beforeEach(() => {
     resetSessionForTests()
     queryClient.clear()

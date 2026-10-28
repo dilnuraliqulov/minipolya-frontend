@@ -62,7 +62,9 @@ describe('Jurnal', () => {
     expect(
       await screen.findByText('Foydalanuvchini blokladi', { selector: 'td' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Jurnal · 2 318')
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Jurnal · 2 318'),
+    )
     const rows = screen.getAllByRole('row')
     const first = rows[1]!
     expect(first).toHaveTextContent('22.10.2026 18:30')

@@ -244,6 +244,188 @@ Error cases — none new.
 **Priority**
 High — failed refunds are money owed to players; nothing tells an admin today.
 
+### R9 — Everything an admin needs to review a stadium, for any status
+
+**What's needed**
+To approve a stadium an admin must see what players will see: photos, the
+location, opening hours, amenities, prices and booking terms. The admin
+endpoints return only `AdminStadiumResponse` (name, address, owner, status,
+format, surface, counts). The public `GET /api/stadiums/{id}` and
+`GET /api/stadiums/{id}/pricing` have the rest, but answer **404 for any
+stadium that is not approved and active** (`findByIdAndStatus(..., APPROVED)`),
+i.e. exactly the ones waiting for review. The list also needs a thumbnail, the
+district, the price and the owner's ATMOS contract (R11), and filters by
+district and format. Stadiums have **no district** today, only a free-text
+address.
+
+**Which screen needs it**
+Admin panel — Maydonlar list (thumbnail, Tuman, Narx, ATMOS columns; Tuman and
+Format filters) and the stadium page (gallery, map, Maʼlumotlar, Narxlar,
+Bron shartlari).
+
+**Proposed endpoint**
+`GET /api/admin/stadiums` — admin · paged — new query parameters and fields.
+
+| Query | Type | Required | Validation |
+|---|---|---|---|
+| `district` | string | no | one of the district values below |
+| `format` | string | no | `5x5` \| `7x7` \| `9x9` \| `11x11` |
+| `status`, `search`, `page`, `size` | | | unchanged (`status` also takes `rejected`, R10) |
+
+New fields on each `AdminStadiumResponse` row:
+
+| Field | Type | Notes |
+|---|---|---|
+| `photoUrl` | string? | first photo by `position`; absent when there are none |
+| `district` | string? | one of `Bektemir`, `Chilonzor`, `Mirobod`, `Mirzo Ulugʻbek`, `Olmazor`, `Sergeli`, `Shayxontohur`, `Uchtepa`, `Yakkasaroy`, `Yangihayot`, `Yashnobod`, `Yunusobod` — a new `stadiums.district` column the owner picks (nullable for old rows) |
+| `pricePerHour` | number **(tiyin)** | the stadium's base price |
+| `ownerContractStatus` | string | the owner's ATMOS contract, `none` \| `pending` \| `signed` (R11) |
+
+`GET /api/admin/stadiums/{id}` — admin — everything above, plus the
+`StadiumDetailResponse` fields, for **any status**:
+
+| Field | Type | Notes |
+|---|---|---|
+| `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position` |
+| `latitude`, `longitude` | number? | |
+| `phone`, `description` | string? | |
+| `ownerPhone` | string? | |
+| `openTime`, `closeTime` | string (`LocalTime`) | |
+| `amenities` | `AmenitiesResponse` | the eight booleans |
+| `minBookingAmount` | number? **(tiyin)** | absent ⇒ players pay in full |
+| `cancellationHours` | number | |
+| `pricingRules` | `PricingRuleResponse[]` | active rules, as `GET /api/stadiums/{id}/pricing` returns them |
+
+Error cases — 400 `"Invalid district"` / `"Invalid format"` for an unknown
+filter value; 404 `"Stadium not found"`.
+
+**Priority**
+High — without it an admin approves a stadium without seeing its photos,
+location or prices.
+
+### R10 — A `rejected` stadium status
+
+**What's needed**
+The panel has separate "Rad etilgan" (rejected) and "Bloklangan" (blocked)
+tabs. The backend has no rejected status: rejecting a pending stadium sets it
+to `blocked`, and only the audit action (`STADIUM_REJECTED` vs
+`STADIUM_BLOCKED`) tells the two apart. So the list cannot filter rejected
+stadiums, the Bloklangan tab mixes both, and the stadium page has to read the
+audit log to know which it is.
+
+**Which screen needs it**
+Admin panel — Maydonlar tabs and the stadium page's status badge.
+
+**Proposed endpoint**
+No new endpoint. Add `rejected` to `stadium.status` (DB CHECK constraint, §1.9),
+accept it in `PUT /api/admin/stadiums/{id}/status`
+(`@Pattern(approved|blocked|pending|rejected)`), and in
+`GET /api/admin/stadiums?status=rejected`.
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `status` | string | yes | `approved` \| `blocked` \| `pending` \| `rejected`; `rejected` only from `pending` |
+| `reason` | string | for `rejected` and `blocked` | max 500 |
+
+Response — `AdminStadiumResponse` with `status: "rejected"`; notify the owner as
+today. A rejected stadium stays invisible to players, like a blocked one.
+
+Error cases — 400 `"Only a pending stadium can be rejected"`; 400
+`"reason is required"`.
+
+**Frontend change when shipped** — `setStadiumStatus` sends `rejected` for
+"Rad etish" instead of `blocked` (`src/admin/api/stadiums.ts`).
+
+**Priority**
+Medium — rejections work today; they are just filed under "Bloklangan".
+
+### R11 — Owner legal details and the ATMOS contract
+
+**What's needed**
+Card payments are paid out to owners through ATMOS, which needs a signed
+contract and a recipient id per owner. The admin records each owner's legal
+form, STIR (tax id) and contract state, and **must not approve a stadium whose
+owner has no signed contract**. Nothing in the backend stores any of this.
+
+**Which screen needs it**
+Admin panel — the stadium page's owner card ("Huquqiy maʼlumotlar", the
+"Egasi maʼlumotlari" modal) and decision panel (Tasdiqlash disabled until
+signed); the Maydonlar list's ATMOS column (R9).
+
+**Proposed endpoint**
+`GET /api/admin/users/{id}/legal-details` — admin
+
+Response — `OwnerLegalDetailsResponse`, or `data: null` when nothing has been
+entered yet:
+
+| Field | Type | Notes |
+|---|---|---|
+| `legalType` | string | `yatt` (YaTT) \| `mchj` (MChJ) \| `self_employed` (oʻzini oʻzi band qilgan) |
+| `tin` | string | STIR, 9 digits |
+| `atmosContractStatus` | string | `none` \| `pending` \| `signed` |
+| `atmosRecipientId` | string? | present when `signed` |
+| `updatedAt` | string (UTC) | |
+| `updatedByName` | string? | the admin who last changed it |
+
+`PUT /api/admin/users/{id}/legal-details` — admin
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `legalType` | string | yes | `yatt` \| `mchj` \| `self_employed` |
+| `tin` | string | yes | exactly 9 digits — `"tin must be 9 digits"` |
+| `atmosContractStatus` | string | yes | `none` \| `pending` \| `signed` |
+| `atmosRecipientId` | string | when `signed` | 1–50 chars — `"atmosRecipientId is required when the contract is signed"`; ignored otherwise |
+
+Response — the saved `OwnerLegalDetailsResponse`, `message: "Legal details updated"`.
+Write an audit entry (`OWNER_LEGAL_DETAILS_CHANGED`, entity `user`) with the
+changed fields — never store anything secret in it.
+
+Also: `PUT /api/admin/stadiums/{id}/status` with `approved` should refuse a
+stadium whose owner's contract is not `signed` —
+400 `"The owner's ATMOS contract is not signed"` — so the rule holds even if a
+client skips the check.
+
+Error cases — 400 validation as above; 404 `"User not found"`.
+
+**Priority**
+High — approval depends on it, and payouts cannot work without the recipient id.
+
+### R12 — Internal notes on a stadium
+
+**What's needed**
+Admins keep short notes while reviewing a stadium ("28.10 qoʻngʻiroq
+qilindi, juma kuni shartnoma imzolanadi") that only admins see. Nothing stores
+them.
+
+**Which screen needs it**
+Admin panel — stadium page, "Ichki izohlar" card.
+
+**Proposed endpoint**
+`GET /api/admin/stadiums/{id}/notes` — admin — `StadiumNoteResponse[]`, newest
+first (not paged; a stadium has a handful).
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | |
+| `text` | string | |
+| `authorId` | UUID | the admin |
+| `authorName` | string | their name at the time |
+| `createdAt` | string (UTC) | |
+
+`POST /api/admin/stadiums/{id}/notes` — admin
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `text` | string | yes | `@NotBlank`, max 1000 — `"text is required"`, `"text must be at most 1000 characters"` |
+
+Response — the created `StadiumNoteResponse`, `message: "Note added"`. Notes are
+never shown to owners or players. (Editing and deleting are not needed.)
+
+Error cases — 400 validation; 404 `"Stadium not found"`.
+
+**Priority**
+Low — admins can keep notes elsewhere meanwhile.
+
 ---
 
 ## Done

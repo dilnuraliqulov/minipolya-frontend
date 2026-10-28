@@ -81,3 +81,14 @@ export function formatLocalDate(date: string): string {
 export function monthStart(date: string): string {
   return `${date.slice(0, 7)}-01`
 }
+
+/** A UTC timestamp as a Tashkent calendar date in words: "14 fevral 2026". */
+export function formatLongDate(iso: string): string {
+  const p = toTashkentParts(iso)
+  return `${p.day} ${MONTHS[p.month - 1]} ${p.year}`
+}
+
+/** A stadium format for display: "5x5" → "5×5". */
+export function formatPitch(format: string): string {
+  return format.replace('x', '×')
+}
