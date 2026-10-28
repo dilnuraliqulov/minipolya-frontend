@@ -88,7 +88,7 @@ plain browser; the page still renders and follows the computer's theme.
 
 - **API:** `import { api, ApiError } from '../shared/api'`. `api.get/post/put/
   patch/delete<T>(path, …)` returns the envelope's `data` or throws `ApiError`
-  (`status`, `message`, `code?` — `code` is never sent today, Q1; status `0` =
+  (`status`, `message`, `code?` — `code` only on a few errors, see `API_CODES`; status `0` =
   network failure). Each app calls `configureApiClient` once in `main.tsx` with
   its token store plus optional `onUnauthorized` / `onAccountBlocked` hooks.
   Exact backend message strings live only in `shared/api/messages.ts`.
@@ -169,13 +169,16 @@ Rules that follow from that:
     `docs/backend-requests.md`.
 - **Every response uses the same envelope:** `{ success, data, message }`.
   Unwrap it in one place in the API client; feature code should see `data`.
-  Note there is **no `code` field** — see below.
-- **Errors carry no machine-readable code.** `message` is human-readable
-  English prose. Branch on the **HTTP status** first; only match on the exact
+  Errors may add a `code` — see below.
+- **Most errors carry no machine-readable code.** Only the admin-login errors
+  and `TOKEN_REVOKED` send one (`code` in the envelope, api-reference §1.2);
+  where a `code` exists, branch on it (`API_CODES` in
+  `shared/api/messages.ts`). Elsewhere `message` is human-readable English
+  prose: branch on the **HTTP status** first; only match on the exact
   `message` string where a flow genuinely needs to tell two same-status
   failures apart, and keep every such string in one place so it is obvious
-  what breaks when the backend rewords it. (A real `code` field is request Q1
-  in the reference.)
+  what breaks when the backend rewords it. (Codes everywhere is Q1 in the
+  reference.)
 - **JWT in the `Authorization` header:** `Authorization: Bearer <token>`.
   24-hour expiry, no refresh endpoint. A 401 means re-authenticate.
 - **A 403 `"Account is blocked"` can arrive on any endpoint at any time** —
@@ -229,7 +232,11 @@ the page says so. The widget only works on the domain set with BotFather's
 - The JWT is kept in localStorage (`minipolya-admin-token`) and checked with
   `GET /api/users/me` on startup. If the token's `isAdmin` claim disagrees
   with `/users/me`, the admin is logged out to get a fresh token.
-- Any 401 → logout → login page ("Sessiya tugadi"). 403 `"Account is
+- A password change (`changeOwnPassword` in `auth/session.ts`) stores the
+  fresh token from the response at once — the backend revokes every older
+  token. A 401 with `code: "TOKEN_REVOKED"` → logout with "Sessiya tugadi,
+  qayta kiring"; a 401 for a token that was already replaced is ignored.
+- Any other 401 → logout → login page ("Sessiya tugadi"). 403 `"Account is
   blocked"` → logout with its own notice. Logout drops the token and every
   cached query.
 - Logged in but not an admin → the "Sizda kirish huquqi yoʻq" page.

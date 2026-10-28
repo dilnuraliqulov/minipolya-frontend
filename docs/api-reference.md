@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `main` |
-| Commit | `bba7504` (`bba75049b6f99d5723de98495962727562852610`) — _Feature/endpoint fix (#8)_, 2026-10-26 |
-| Generated | 2026-10-27 |
-| Endpoints documented | **94** callable by the frontend, plus 3 webhooks |
+| Commit | `12e3a91` (`12e3a91bd63012d5735e958791549975ba64d8e7`) — _Remove the nonexistent CorsConfig.java from CLAUDE.md_, 2026-10-28 |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) |
+| Endpoints documented | **96** callable by the frontend, plus 3 webhooks |
 
 ---
 
@@ -48,11 +48,23 @@ Every endpoint — success or error — answers with the same wrapper
 | `success` | `boolean` | `true` on 2xx, `false` on every error |
 | `data` | `T \| null` | the payload; `null` on an error, and `null` on endpoints that return nothing |
 | `message` | `string \| null` | human-readable; `null` on a plain success, always set on an error |
+| `code` | `string`? | machine-readable; **present only on the few errors that carry one** (table below), absent everywhere else |
 
-> **There is no `code` field.** `ApiResponse` has exactly three fields:
-> `success`, `data`, `message`. The frontend must branch on the **HTTP status**
-> plus, where it has to, the exact `message` string. See
-> [Questions about the backend](#11-questions-about-the-backend) — Q1.
+`success`, `data` and `message` are always present. `code` is
+`@JsonInclude(NON_NULL)` and so far is sent only by these errors
+(`exception/CodedApiException.java` and `config/JwtAuthFilter.java`):
+
+| `code` | Status | `data` | Where |
+|---|---|---|---|
+| `INVALID_CREDENTIALS` | 401 | — | `POST /api/auth/admin/login` |
+| `ACCOUNT_LOCKED` | 423 | `{ minutesRemaining }` | `POST /api/auth/admin/login` |
+| `TOO_MANY_ATTEMPTS` | 429 | `{ minutesRemaining }` | `POST /api/auth/admin/login` |
+| `ACCOUNT_BLOCKED` | 403 | — | `POST /api/auth/admin/login` (the filter's blocked 403 has no code) |
+| `TOKEN_REVOKED` | 401 | — | **any** authenticated request (§1.5) |
+
+Everywhere else the frontend still branches on the **HTTP status** plus, where
+it has to, the exact `message` string — see
+[Questions about the backend](#11-questions-about-the-backend) — Q1.
 
 ### 1.3 Null fields are omitted
 
@@ -104,7 +116,8 @@ Authorization: Bearer <token>
 
 `config/JwtAuthFilter.java` reads that header on every request. The token is
 HS256, expires after **24 h** (`app.jwt.expiration-ms = 86400000`), and carries
-`sub` = user id (UUID), `phone`, `isOwner`, `isAdmin`.
+`sub` = user id (UUID), `phone`, `isOwner`, `isAdmin`, and `iatMs` (issue
+time in milliseconds, used for revocation below).
 
 Two things the frontend must handle:
 
@@ -113,6 +126,12 @@ Two things the frontend must handle:
   immediately, on any endpoint, even with a still-valid token.
 - If the token names a user that no longer exists, the request proceeds as
   **unauthenticated** (so a protected endpoint answers 401, not 403).
+- A token issued before the user's last password change
+  (`users.password_changed_at`) is refused on **any** endpoint with
+  **401, `code: "TOKEN_REVOKED"`**, message `"Session ended because the
+  password was changed; sign in again"`. Only admins have passwords, so only
+  admin-panel tokens are ever revoked. The token returned by
+  `POST /api/admin/me/password` is issued after the stamp and stays valid.
 
 ### 1.6 Access levels
 
@@ -141,6 +160,7 @@ These apply to every endpoint and are not repeated below.
 | 400 | `"Invalid id"` | a path or query id is not a valid UUID |
 | 400 | `"<field>: <constraint message>"`, comma-joined | bean validation failed on `@Valid`; e.g. `"rating: must be less than or equal to 5"` |
 | 401 | `"Authentication required"` | no/invalid token on a protected endpoint |
+| 401 | `"Session ended because the password was changed; sign in again"`, `code: "TOKEN_REVOKED"` | token predates the user's last password change (§1.5) |
 | 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` or `/api/admin/**` |
 | 403 | `"Account is blocked"` | the user is blocked |
 | 404 | `"<Thing> not found"` | `ResourceNotFoundException` |
@@ -211,7 +231,7 @@ was deliberately not renamed because casual games share the column.
 
 ### `POST /api/auth/telegram` — public
 
-The only login endpoint. The client posts the raw Telegram Mini App `initData`
+The Mini App's login endpoint. The client posts the raw Telegram Mini App `initData`
 string; the server verifies its HMAC-SHA256 signature against the bot token,
 finds or creates the user by `telegram_id`, and returns a JWT.
 
@@ -252,7 +272,37 @@ finds or creates the user by `telegram_id`, and returns a JWT.
 - There is **no refresh endpoint and no logout endpoint.** On a 401 the Mini
   App re-posts `initData`; the admin panel has to send the user back to login.
 - **There is no Telegram Login Widget endpoint** for the admin panel. See
-  [Q2](#11-questions-about-the-backend).
+  [Q2](#11-questions-about-the-backend). Admins sign in with a username and
+  password instead (next endpoint).
+
+### `POST /api/auth/admin/login` — public
+
+Admin panel sign-in. Admin accounts (username + BCrypt password hash) are
+created directly in the database — there is no endpoint to create one. Only a
+user with `is_admin = true` **and** a password can sign in here.
+
+**Body** (`AdminLoginRequest`)
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `username` | string | yes | `@NotBlank` `"username is required"`, `@Size(max=64)` `"username must be at most 64 characters"`; trimmed |
+| `password` | string | yes | `@NotBlank` `"password is required"`, `@Size(max=200)` `"password must be at most 200 characters"` |
+
+**Response** — `AuthResponse` (`token`, `user`), as for `/api/auth/telegram`;
+`user.username` is set.
+
+**Errors** — in the order the backend checks them:
+
+| Status | `code` | `message` | When |
+|---|---|---|---|
+| 400 | — | validation, as §1.7 | |
+| 429 | `TOO_MANY_ATTEMPTS` | `"Juda ko'p urinish. N daqiqadan so'ng qayta urinib ko'ring"`; `data.minutesRemaining` | more than 20 attempts (right or wrong) from one IP in 15 min |
+| 401 | `INVALID_CREDENTIALS` | `"Login yoki parol noto'g'ri"` | unknown username, not an admin, no password, or wrong password — deliberately indistinguishable |
+| 423 | `ACCOUNT_LOCKED` | `"Hisob vaqtincha bloklandi. N daqiqadan so'ng qayta urinib ko'ring"`; `data.minutesRemaining` | locked; also returned by the 5th wrong password in a row, which locks the account for 15 min |
+| 403 | `ACCOUNT_BLOCKED` | `"Account is blocked"` | right password, but the user is blocked |
+
+Messages are Uzbek with a plain apostrophe (`noto'g'ri`), not `ʻ`. Limits are
+the defaults in `AppProperties.AdminLogin`.
 
 ---
 
@@ -269,6 +319,7 @@ finds or creates the user by `telegram_id`, and returns a JWT.
 | `language` | string | `uz` \| `ru` \| `en` |
 | `isOwner` | boolean | |
 | `isAdmin` | boolean | |
+| `username` | string? | admins who sign in with a password only |
 | `createdAt` | timestamp (UTC) | |
 
 ### `GET /api/users/me` — user
@@ -1262,6 +1313,21 @@ this is how a plain user asks to become one.
 Everything under `/api/admin/**` requires `ROLE_ADMIN`; a non-admin token gets
 403 `"Access denied"`.
 
+#### Own account — `POST /api/admin/me/password`
+
+Body (`ChangePasswordRequest`): `currentPassword` string (`@NotBlank`
+`"currentPassword is required"`), `newPassword` string (`@NotBlank`
+`"newPassword is required"`, `@Size(min=10)` `"newPassword must be at least 10
+characters"`, and at most 72 UTF-8 bytes).
+
+Response: `AuthResponse` (`token`, `user`), `message: "Parol o'zgartirildi"`.
+**Every token issued before the change — the caller's included — is revoked**
+(401 `TOKEN_REVOKED`, §1.5); the client must store the returned token at once.
+
+Errors: 400 `"Joriy parol noto'g'ri"` (wrong current password, or the account
+has no password); 400 `"newPassword must be at most 72 bytes"`; 400
+validation; 404 `"User not found"`.
+
 #### Users
 
 | Endpoint | Notes |
@@ -1372,8 +1438,9 @@ called from the client.
 Things that look unfinished, inconsistent or unclear. **Nothing here has been
 changed** — this is a list for the backend author.
 
-**Q1 — The response envelope has no `code` field.**
-`ApiResponse` is `{ success, data, message }` only. Clients that want to react
+**Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
+now has an optional `code` (§1.2), but only the admin-login errors and
+`TOKEN_REVOKED` set it; everything else is prose only. Clients that want to react
 to a specific failure (for example telling "already booked" apart from
 "outside opening hours", both of which can arrive as a 400/409 with prose)
 have to match on the English `message` string, which is brittle and cannot be
@@ -1386,8 +1453,9 @@ frontend branches on HTTP status and, where it must, on the exact string.
 Widget (web dashboard) — same flow, different payload format"), but no
 endpoint accepts the widget's payload (`id`, `first_name`, `username`,
 `auth_date`, `hash` as separate fields — a different `data_check_string` and a
-different secret derivation from the Mini App's). **The admin panel currently
-has no way to log in.** This blocks the admin panel entirely.
+different secret derivation from the Mini App's). _Since `265ffbf` admins can
+sign in with a username and password instead (`POST /api/auth/admin/login`),
+so this no longer blocks the admin panel._
 
 **Q3 — `JoinGameRequest.gameId` is `@NotNull` but unused.**
 `POST /api/games/{id}/join` takes the id from the path (`@RequestBody(required = false)`),
