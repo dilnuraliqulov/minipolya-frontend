@@ -106,69 +106,6 @@ without a JWT, before the security filter rejects them as 401).
 Blocker at deployment, **only if** the frontend and API are on different
 origins; otherwise not needed.
 
-### R2 — Telegram Login Widget login for the admin panel
-
-**What's needed**
-The admin panel logs in with the Telegram Login Widget, but the only login
-endpoint, `POST /api/auth/telegram`, verifies Mini App `initData`
-(api-reference Q2). The widget sends a different payload and is signed
-differently, so there is no way to log in to the admin panel outside
-development. The frontend is already built against the shape below
-(`WIDGET_LOGIN_PATH` in `src/admin/api/auth.ts`); today it answers 404 and
-the login page says the backend does not support it yet.
-
-**Which screen needs it**
-Admin panel — the login page ("Kirish").
-
-**Proposed endpoint**
-`POST /api/auth/telegram-widget` — public
-
-Request body — exactly the object the widget passes to `data-onauth`:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `id` | number (long) | yes | Telegram user id |
-| `first_name` | string | yes | |
-| `last_name` | string | no | |
-| `username` | string | no | |
-| `photo_url` | string | no | |
-| `auth_date` | number | yes | Unix seconds; reject if older than e.g. 1 day |
-| `hash` | string | yes | hex |
-
-Verification, per Telegram's Login Widget spec (differs from Mini App
-`initData`):
-
-```
-secret_key       = SHA256(bot_token)                  // not HMAC("WebAppData", …)
-data_check_string = every field except hash, sorted by key, "key=value", joined with \n
-hash             = hex(HMAC-SHA256(key = secret_key, data = data_check_string))
-```
-
-Find the user by `telegram_id = id`. Suggested: do **not** create a new user
-here — the admin panel is only for existing admins — and answer 401 for an
-unknown id. (A known non-admin still gets a token; the frontend shows the
-"no access" page.)
-
-Response — `AuthResponse`, the same as `POST /api/auth/telegram`:
-
-| Field | Type | Notes |
-|---|---|---|
-| `token` | string | JWT, same claims and 24 h expiry |
-| `user` | `UserResponse` | |
-
-Error cases:
-
-| Status | `message` |
-|---|---|
-| 400 | bean validation, e.g. `"hash: must not be blank"` |
-| 401 | `"Invalid Telegram signature"` |
-| 401 | `"Telegram login data is too old"` (`auth_date` check) |
-| 401 | `"Unknown Telegram user"` |
-| 403 | `"Account is blocked"` |
-
-**Priority**
-Blocker — admins cannot log in to the admin panel in production without it.
-
 ### R3 — Previous-period figures for the overview KPIs
 
 **What's needed**
@@ -278,8 +215,42 @@ cash (`method = cash`) should be excluded from that figure.
 **Priority**
 High — the overview's revenue numbers are wrong (near 0) today.
 
+### R7 — Remove `POST /api/admin/me/password`
+
+**What's needed**
+Admin accounts and passwords are managed **only in the database** (backend
+`CLAUDE.md`, "Admin accounts": create with `crypt(..., gen_salt('bf', 12))`,
+reset with `password_changed_at = now()`). The admin panel deliberately has no
+change-password screen and never calls `POST /api/admin/me/password`
+(`AdminAccountController`). An unused endpoint that changes credentials is
+attack surface: anyone holding a stolen admin token plus the current password
+could rotate the password and lock the real admin out.
+
+**Which screen needs it**
+None — admin panel; this is a removal.
+
+**Proposed change**
+Delete `POST /api/admin/me/password`, `ChangePasswordRequest` and
+`AdminAuthService.changePassword` (and the `ADMIN_PASSWORD_CHANGED` audit
+action if nothing else writes it). **Keep** `users.password_changed_at` and the
+`TOKEN_REVOKED` check in `JwtAuthFilter`: a reset in the database still revokes
+every session, and the panel relies on that (401 `TOKEN_REVOKED` → login page,
+"Sessiya tugadi, qayta kiring"). Update the backend `CLAUDE.md` too — it says
+to "have the admin change it from the panel after the first sign-in".
+
+Error cases — none new; the path would then answer like any unknown
+`/api/admin/**` path.
+
+**Priority**
+Low — nothing is broken; it removes an unused way to change credentials.
+
 ---
 
 ## Done
 
-_None yet._
+### R2 — Telegram Login Widget login for the admin panel _(withdrawn)_
+
+Asked for `POST /api/auth/telegram-widget` so admins could sign in with the
+Telegram Login Widget. Superseded by username + password sign-in,
+`POST /api/auth/admin/login` (backend `265ffbf`); the panel uses that and the
+widget code is gone.
