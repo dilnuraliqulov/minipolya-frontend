@@ -8,7 +8,7 @@
 export class ApiError extends Error {
   /** HTTP status, or 0 when no response arrived (network failure, CORS). */
   readonly status: number
-  /** Machine-readable code. Not sent by the backend yet (api-reference Q1). */
+  /** Machine-readable code. Sent only on some errors so far (see `API_CODES`). */
   readonly code?: string
 
   constructor(message: string, status: number, code?: string) {

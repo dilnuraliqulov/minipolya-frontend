@@ -102,6 +102,45 @@ describe('api client', () => {
     await expect(api.get('/x')).rejects.toMatchObject({ status: 200, message: 'odd' })
   })
 
+  it('passes the envelope code on, e.g. TOKEN_REVOKED', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respond(401, {
+        success: false,
+        data: null,
+        message: 'Session ended because the password was changed; sign in again',
+        code: 'TOKEN_REVOKED',
+      }),
+    )
+    tokenStore.set('old-token')
+
+    await expect(api.get('/api/admin/settings')).rejects.toMatchObject({
+      status: 401,
+      code: 'TOKEN_REVOKED',
+    })
+    expect(onUnauthorized).toHaveBeenCalledOnce()
+    expect((onUnauthorized.mock.calls[0]?.[0] as ApiError).code).toBe('TOKEN_REVOKED')
+  })
+
+  it('ignores a 401 for a token that was replaced while the request was in flight', async () => {
+    tokenStore.set('old-token')
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(async () => {
+        // The fresh token from a password change lands before this answer does.
+        tokenStore.set('fresh-token')
+        return new Response(
+          JSON.stringify({ success: false, data: null, message: 'x', code: 'TOKEN_REVOKED' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } },
+        )
+      }),
+    )
+
+    await expect(api.get('/api/admin/settings')).rejects.toBeInstanceOf(ApiError)
+    expect(onUnauthorized).not.toHaveBeenCalled()
+    expect(tokenStore.get()).toBe('fresh-token')
+  })
+
   it('reports 401 and the blocked-account 403 globally', async () => {
     vi.stubGlobal(
       'fetch',

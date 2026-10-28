@@ -1,6 +1,13 @@
 import { useSyncExternalStore } from 'react'
-import { getTokenStore, isApiError, isJwtExpired, readJwtClaims } from '../../shared/api'
-import { getMe } from '../api/auth'
+import {
+  API_CODES,
+  type ApiError,
+  getTokenStore,
+  isApiError,
+  isJwtExpired,
+  readJwtClaims,
+} from '../../shared/api'
+import { changePassword, getMe } from '../api/auth'
 import type { User } from '../api/types'
 import { queryClient } from '../queryClient'
 
@@ -14,7 +21,7 @@ import { queryClient } from '../queryClient'
  */
 
 /** Why the user was sent back to the login page; shown there once. */
-export type LogoutReason = 'expired' | 'blocked' | 'roles-changed'
+export type LogoutReason = 'expired' | 'revoked' | 'blocked' | 'roles-changed'
 
 export type Session =
   | { status: 'loading' }
@@ -51,6 +58,11 @@ export function logout(reason?: LogoutReason): void {
   set({ status: 'anonymous', reason: hadSession ? reason : undefined })
 }
 
+/** Which notice a 401 earns: a revoked token (password changed) or a plain expired one. */
+export function unauthorizedReason(error: ApiError): LogoutReason {
+  return error.code === API_CODES.tokenRevoked ? 'revoked' : 'expired'
+}
+
 function rolesMatch(token: string, user: User): boolean {
   const claims = readJwtClaims(token)
   return claims?.isAdmin === undefined || claims.isAdmin === user.isAdmin
@@ -60,6 +72,20 @@ function rolesMatch(token: string, user: User): boolean {
 export function startSession(token: string, user: User): void {
   getTokenStore().set(token)
   set({ status: 'authenticated', user })
+}
+
+/**
+ * Changes the signed-in admin's password. The backend revokes the old token on
+ * success, so the fresh one from the response replaces it at once; the admin stays
+ * signed in. A failure (e.g. 400 for a wrong current password) leaves the session
+ * as it was and is rethrown for the form to show.
+ */
+export async function changeOwnPassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const { token, user } = await changePassword(currentPassword, newPassword)
+  startSession(token, user)
 }
 
 /** On startup: resume from a stored token, if it is still good. */

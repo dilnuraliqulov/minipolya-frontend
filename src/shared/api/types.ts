@@ -6,9 +6,8 @@
 /**
  * The wrapper around every response (`dto/response/ApiResponse.java`).
  *
- * The backend sends `success`, `data` and `message` only. `code` is not sent
- * today (docs/api-reference.md, Q1); it is typed so the client picks it up
- * automatically once the backend adds it.
+ * The backend always sends `success`, `data` and `message`, and adds `code`
+ * only on errors that carry one (e.g. `TOKEN_REVOKED`; see `API_CODES`).
  */
 export interface ApiEnvelope<T> {
   success: boolean

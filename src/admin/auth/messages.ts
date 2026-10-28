@@ -4,6 +4,7 @@ import type { LogoutReason } from './session'
 /** Shown on the login page after being sent back there. */
 export const LOGOUT_NOTICES: Record<LogoutReason, string> = {
   expired: 'Sessiya tugadi. Qaytadan kiring.',
+  revoked: 'Sessiya tugadi, qayta kiring',
   blocked: 'Hisobingiz bloklangan.',
   'roles-changed': 'Huquqlaringiz oʻzgardi. Qaytadan kiring.',
 }

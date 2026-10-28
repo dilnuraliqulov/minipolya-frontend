@@ -28,6 +28,18 @@ export function loginWithWidget(user: TelegramWidgetUser): Promise<AuthResponse>
   return api.post<AuthResponse>(WIDGET_LOGIN_PATH, user)
 }
 
+/**
+ * POST /api/admin/me/password. The backend revokes every token issued before the
+ * change — this one included — and answers with a fresh token and user. Use
+ * `changeOwnPassword` in auth/session.ts, which stores it straight away.
+ */
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<AuthResponse> {
+  return api.post<AuthResponse>('/api/admin/me/password', { currentPassword, newPassword })
+}
+
 export function getMe(): Promise<User> {
   return api.get<User>('/api/users/me')
 }

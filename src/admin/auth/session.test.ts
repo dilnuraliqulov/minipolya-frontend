@@ -8,7 +8,16 @@ import {
 import * as authApi from '../api/auth'
 import type { User } from '../api/types'
 import { queryClient } from '../queryClient'
-import { getSession, logout, resetSessionForTests, restoreSession, startSession } from './session'
+import { LOGOUT_NOTICES } from './messages'
+import {
+  changeOwnPassword,
+  getSession,
+  logout,
+  resetSessionForTests,
+  restoreSession,
+  startSession,
+  unauthorizedReason,
+} from './session'
 
 const admin: User = {
   id: 'u1',
@@ -87,5 +96,47 @@ describe('admin session', () => {
     logout()
     logout('expired')
     expect(getSession()).toEqual({ status: 'anonymous', reason: undefined })
+  })
+
+  it('a password change swaps in the fresh token and keeps the admin signed in', async () => {
+    startSession('old-token', admin)
+    const changed = vi
+      .spyOn(authApi, 'changePassword')
+      .mockResolvedValue({ token: 'fresh-token', user: admin })
+
+    await changeOwnPassword('current-password', 'a-brand-new-password')
+
+    expect(changed).toHaveBeenCalledWith('current-password', 'a-brand-new-password')
+    expect(getTokenStore().get()).toBe('fresh-token')
+    expect(getSession()).toEqual({ status: 'authenticated', user: admin })
+  })
+
+  it('a rejected password change keeps the old token and session', async () => {
+    startSession('old-token', admin)
+    vi.spyOn(authApi, 'changePassword').mockRejectedValue(
+      new ApiError("Joriy parol noto'g'ri", 400),
+    )
+
+    await expect(changeOwnPassword('wrong', 'a-brand-new-password')).rejects.toMatchObject({
+      status: 400,
+    })
+
+    expect(getTokenStore().get()).toBe('old-token')
+    expect(getSession()).toEqual({ status: 'authenticated', user: admin })
+  })
+
+  it('a TOKEN_REVOKED 401 logs out with "Sessiya tugadi, qayta kiring"', () => {
+    startSession('old-token', admin)
+    const error = new ApiError('Session ended', 401, 'TOKEN_REVOKED')
+
+    logout(unauthorizedReason(error))
+
+    expect(getSession()).toEqual({ status: 'anonymous', reason: 'revoked' })
+    expect(LOGOUT_NOTICES.revoked).toBe('Sessiya tugadi, qayta kiring')
+    expect(getTokenStore().get()).toBeNull()
+  })
+
+  it('any other 401 is a plain expired session', () => {
+    expect(unauthorizedReason(new ApiError('Authentication required', 401))).toBe('expired')
   })
 })

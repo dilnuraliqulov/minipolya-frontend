@@ -96,7 +96,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       response.status,
       envelope?.code,
     )
-    if (error.status === 401) config.onUnauthorized?.(error)
+    // A 401 for a token that has since been replaced (e.g. by the fresh one a
+    // password change hands back) says nothing about the current session.
+    if (error.status === 401 && config.tokenStore.get() === token) config.onUnauthorized?.(error)
     if (error.status === 403 && error.message === API_MESSAGES.accountBlocked) {
       config.onAccountBlocked?.(error)
     }
