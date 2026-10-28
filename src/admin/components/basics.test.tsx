@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Check } from 'lucide-react'
-import { describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Avatar } from './Avatar'
 import { Button } from './Button'
 import { initials } from './initials'
@@ -51,6 +52,8 @@ describe('StatusBadge', () => {
 })
 
 describe('KpiCard', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
   it('shows label, value and a trend', () => {
     render(<KpiCard label="Bugungi bronlar" value="47" delta={{ trend: 'up', text: '+12%' }} />)
     expect(screen.getByText('Bugungi bronlar')).toBeInTheDocument()
@@ -59,17 +62,66 @@ describe('KpiCard', () => {
     expect(screen.queryByText('Namuna')).not.toBeInTheDocument()
   })
 
-  it('marks a sample delta', () => {
+  it('shows the unit apart from the value, smaller and secondary', () => {
+    render(<KpiCard label="Toʻlovlar" value="48 650 000" unit="so'm" sublabel="Shu oy" />)
+    expect(screen.getByText('48 650 000')).toHaveClass('text-5xl')
+    expect(screen.getByText("so'm")).toHaveClass('text-lg', 'text-secondary')
+    expect(screen.getByText('Shu oy')).toHaveClass('text-xs')
+  })
+
+  it('marks only the sample comparison, at the end of its line', () => {
     render(
       <KpiCard label="x" value="1" delta={{ trend: 'down', text: '−4%', sampleRequest: 'R4' }} />,
     )
-    expect(screen.getByText('Namuna')).toHaveAttribute('title', expect.stringContaining('R4'))
+    const tag = screen.getByText('Namuna')
+    expect(tag).toHaveAttribute('title', expect.stringContaining('R4'))
+    expect(tag.parentElement).toBe(screen.getByText('−4%').parentElement)
+    expect(tag.parentElement?.lastElementChild).toBe(tag)
   })
 
   it('renders skeletons while loading', () => {
     render(<KpiCard label="x" loading />)
-    expect(screen.getAllByTestId('skeleton')).toHaveLength(3)
+    expect(screen.getAllByTestId('skeleton')).toHaveLength(4)
     expect(screen.queryByText('x')).not.toBeInTheDocument()
+  })
+
+  it('is a focusable link with a hover chevron when it has a destination', () => {
+    render(
+      <MemoryRouter>
+        <KpiCard label="Bugungi bronlar" value="47" to="/bronlar" />
+      </MemoryRouter>,
+    )
+    const link = screen.getByRole('link', { name: /Bugungi bronlar/ })
+    expect(link).toHaveAttribute('href', '/bronlar')
+    link.focus()
+    expect(link).toHaveFocus()
+    expect(link).toHaveClass('focus-visible:outline-accent', 'hover:border-accent/60')
+    // outline-none would cancel the focus ring in Tailwind v4.
+    expect(link).not.toHaveClass('outline-none')
+    expect(screen.getByTestId('kpi-chevron')).toHaveClass('opacity-0', 'group-hover:opacity-100')
+  })
+
+  it('is neither a link nor styled as one without a destination', () => {
+    const { container } = render(<KpiCard label="Toʻlovlar" value="1" />)
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('kpi-chevron')).not.toBeInTheDocument()
+    expect(container.firstElementChild?.className).not.toMatch(/hover:/)
+  })
+
+  it('drops the hover lift and transitions with reduced motion', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('reduce'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    render(
+      <MemoryRouter>
+        <KpiCard label="x" value="1" to="/bronlar" />
+      </MemoryRouter>,
+    )
+    const link = screen.getByRole('link')
+    expect(link.className).not.toMatch(/translate|transition/)
+    expect(link).toHaveClass('hover:border-accent/60')
   })
 })
 
@@ -77,6 +129,12 @@ describe('Skeleton', () => {
   it('is hidden from assistive technology', () => {
     render(<Skeleton className="h-3 w-10" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-hidden')
+  })
+
+  it('takes a radius in place of its default one', () => {
+    render(<Skeleton className="size-9 rounded-full" />)
+    expect(screen.getByTestId('skeleton')).toHaveClass('rounded-full')
+    expect(screen.getByTestId('skeleton')).not.toHaveClass('rounded-xs')
   })
 })
 

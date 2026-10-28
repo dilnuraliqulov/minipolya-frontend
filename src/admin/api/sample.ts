@@ -1,6 +1,12 @@
 import type { KpiDelta } from '../components/KpiCard'
 
 /**
+ * Sample data is shown in development only. A production build shows nothing
+ * in its place rather than made-up numbers.
+ */
+export const SHOW_SAMPLE_DATA: boolean = import.meta.env.DEV
+
+/**
  * SAMPLE DATA — values the design shows but the backend does not provide.
  *
  * Everything here is shown with a visible "Namuna" tag and has an entry in

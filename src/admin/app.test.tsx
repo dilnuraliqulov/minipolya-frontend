@@ -164,12 +164,13 @@ describe('admin panel', () => {
     renderAt('/')
 
     expect(await screen.findByText('47')).toBeInTheDocument()
-    expect(screen.getByText("48 650 000 so'm")).toBeInTheDocument()
+    expect(screen.getByText('48 650 000')).toBeInTheDocument()
+    expect(screen.getByText("so'm")).toHaveClass('text-secondary')
     expect(screen.getByText('213')).toBeInTheDocument()
     expect(screen.getByText('38')).toBeInTheDocument()
     expect(screen.getAllByText('Namuna')).toHaveLength(4)
     expect(screen.getByText('jami 43')).toBeInTheDocument()
-    expect(screen.getAllByTestId('bar')).toHaveLength(30)
+    expect(screen.getByText('Shu hafta')).toBeInTheDocument()
     expect(await screen.findByText('eng eskisi 2 kun oldin')).toBeInTheDocument()
     expect(await screen.findByText('eng eskisi 1 kun oldin')).toBeInTheDocument()
 
@@ -181,6 +182,103 @@ describe('admin panel', () => {
       'page',
     )
     expect(screen.getByText('Aziz Rahimov')).toBeInTheDocument()
+  })
+
+  it('opens the related page from each clickable card', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    const router = renderAt('/')
+    const kpis = within(await screen.findByRole('region', { name: 'Asosiy koʻrsatkichlar' }))
+
+    expect(kpis.getByRole('link', { name: /Bugungi bronlar/ })).toHaveAttribute('href', '/bronlar')
+    expect(kpis.getByRole('link', { name: /Yangi foydalanuvchilar/ })).toHaveAttribute(
+      'href',
+      '/foydalanuvchilar',
+    )
+    expect(kpis.getByRole('link', { name: /Faol maydonlar/ })).toHaveAttribute('href', '/maydonlar')
+    expect(screen.getByRole('link', { name: /Egalik arizalari/ })).toHaveAttribute(
+      'href',
+      '/arizalar',
+    )
+    expect(screen.getByRole('link', { name: /Yangi maydonlar/ })).toHaveAttribute(
+      'href',
+      '/maydonlar',
+    )
+
+    fireEvent.click(kpis.getByRole('link', { name: /Faol maydonlar/ }))
+    expect(router.state.location.pathname).toBe('/maydonlar')
+  })
+
+  it('opens a card from the keyboard: it takes focus and is a real link', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    const router = renderAt('/')
+    const card = await screen.findByRole('link', { name: /Bugungi bronlar/ })
+    card.focus()
+    expect(card).toHaveFocus()
+    // Enter on a focused link is the browser's own click; jsdom does not synthesise it.
+    fireEvent.keyDown(card, { key: 'Enter' })
+    fireEvent.click(card)
+    expect(router.state.location.pathname).toBe('/bronlar')
+  })
+
+  it('does not make the payments card look or act clickable', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    renderAt('/')
+    const label = await screen.findByText('Shu oy ilova orqali toʻlovlar')
+    expect(label.closest('a')).toBeNull()
+    const cardElement = label.closest('div.rounded-xl')
+    expect(cardElement?.className).not.toMatch(/hover:|cursor-pointer/)
+    expect(within(cardElement as HTMLElement).queryByTestId('kpi-chevron')).toBeNull()
+  })
+
+  it('animates the cards in one after another', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    renderAt('/')
+    await screen.findByText('47')
+    expect(screen.getByRole('link', { name: /Bugungi bronlar/ })).toHaveClass('animate-rise')
+    const delays = document.querySelectorAll<HTMLElement>('.animate-rise')
+    expect([...delays].map((el) => el.style.animationDelay)).toEqual([
+      '0ms',
+      '25ms',
+      '50ms',
+      '75ms',
+      '100ms',
+      '125ms',
+    ])
+  })
+
+  it('with reduced motion: no entrance animation, no hover lift, no transitions', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('reduce'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    renderAt('/')
+    await screen.findByText('47')
+    expect(document.querySelectorAll('.animate-rise')).toHaveLength(0)
+    for (const link of screen.getAllByRole('link', { name: /Bugungi|Faol|Egalik|Yangi/ })) {
+      expect(link.className).not.toMatch(/translate|transition|animate/)
+    }
+  })
+
+  it('charts all 30 days, with stubs for the zero days and today highlighted', async () => {
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    renderAt('/')
+    await screen.findByText('jami 43')
+    expect(screen.getAllByTestId('bar')).toHaveLength(30)
+    expect(screen.getAllByTestId('bar-fill')).toHaveLength(2)
+    expect(screen.getAllByTestId('bar-stub')).toHaveLength(28)
+    const today = screen.getAllByTestId('bar').at(-1)
+    expect(today).toHaveAttribute('aria-label', expect.stringMatching(/: 3 ta bron$/))
+    const fills = screen.getAllByTestId('bar-fill')
+    expect(fills.at(-1)).toHaveAttribute('data-strong', 'true')
+    expect(fills[0]).toHaveClass('opacity-45')
   })
 
   it('shows "everything done" when nothing is waiting', async () => {

@@ -109,7 +109,10 @@ When a design needs a value the backend does not provide, it may be shown as
 - it lives in one place per app (`src/admin/api/sample.ts`), behind the API
   layer, never inline in a component
 - it is rendered with the visible **"Namuna"** tag (`SampleTag`), whose
-  tooltip names the request
+  tooltip names the request, placed on the sample value itself — never on a
+  real value next to it
+- it is shown **in development only** (`SHOW_SAMPLE_DATA`); a production build
+  leaves it out rather than show made-up numbers
 - it has an entry in `docs/backend-requests.md`, and is deleted when the
   backend ships the real field
 
