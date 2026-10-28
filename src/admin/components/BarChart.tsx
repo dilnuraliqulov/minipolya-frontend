@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { formatNumber } from '../../shared/format'
 import { cx } from './cx'
 import { labelledIndexes, niceMax, TICKS } from './chartScale'
+import { useReducedMotion } from './motion'
 
 export interface BarDatum {
   key: string
@@ -14,6 +15,8 @@ export interface BarDatum {
 
 const BAR_RADIUS = 4
 const GAP = 4
+/** Height of the light stub that marks a day with zero, so empty days stay visible. */
+const STUB = 3
 const FALLBACK_WIDTH = 1000 // before the first measurement, and in tests (no ResizeObserver)
 
 function topRoundedBar(x: number, y: number, width: number, height: number): string {
@@ -29,10 +32,16 @@ export interface BarChartProps {
   /** Accessible summary of the whole chart. */
   label: string
   height?: number
+  /** Index of the bar drawn in full accent (e.g. today); the others are lighter until hovered. */
+  highlight?: number
 }
 
-/** A small SVG bar chart: grid, y-axis ticks, x-axis labels, tooltip on hover or focus. */
-export function BarChart({ data, formatValue, label, height = 300 }: BarChartProps) {
+/**
+ * A small SVG bar chart: grid, y-axis ticks, x-axis labels, tooltip on hover or
+ * focus. Every datum gets a slot; a zero is a light stub at the baseline.
+ */
+export function BarChart({ data, formatValue, label, height = 300, highlight }: BarChartProps) {
+  const reducedMotion = useReducedMotion()
   const plot = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(FALLBACK_WIDTH)
   const [active, setActive] = useState<number | null>(null)
@@ -52,6 +61,7 @@ export function BarChart({ data, formatValue, label, height = 300 }: BarChartPro
   const barWidth = Math.max(1, slot - GAP)
   const ticks = Array.from({ length: TICKS + 1 }, (_, i) => (max / TICKS) * (TICKS - i))
   const activeDatum = active === null ? undefined : data[active]
+  const fade = cx('fill-accent', !reducedMotion && 'transition-opacity duration-150')
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -94,12 +104,26 @@ export function BarChart({ data, formatValue, label, height = 300 }: BarChartPro
             {data.map((datum, i) => {
               const barHeight = (datum.value / max) * height
               const x = i * slot + GAP / 2
+              const strong = i === highlight || i === active
               return (
                 <g key={datum.key}>
-                  {barHeight > 0 && (
+                  {barHeight > 0 ? (
                     <path
+                      data-testid="bar-fill"
+                      data-strong={strong || undefined}
                       d={topRoundedBar(x, height - barHeight, barWidth, barHeight)}
-                      className={cx('fill-accent transition-opacity', active !== i && 'opacity-72')}
+                      className={cx(fade, !strong && 'opacity-45 dark:opacity-60')}
+                    />
+                  ) : (
+                    <rect
+                      data-testid="bar-stub"
+                      data-strong={strong || undefined}
+                      x={x}
+                      y={height - STUB}
+                      width={barWidth}
+                      height={STUB}
+                      rx={STUB / 2}
+                      className={cx(fade, !strong && 'opacity-20 dark:opacity-40')}
                     />
                   )}
                   <rect

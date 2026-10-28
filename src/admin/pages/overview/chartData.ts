@@ -3,6 +3,8 @@ import type { BarDatum } from '../../components/BarChart'
 import { formatDayMonth, formatDayMonthShort, lastDays } from '../../format'
 
 export const CHART_DAYS = 30
+/** Plot height in px — low enough not to dominate the page when there is little data. */
+export const CHART_HEIGHT = 200
 
 /**
  * One bar per day for the last 30 days ending `today` (Tashkent). The

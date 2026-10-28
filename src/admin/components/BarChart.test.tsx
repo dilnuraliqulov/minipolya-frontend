@@ -28,14 +28,29 @@ describe('chart scale', () => {
 })
 
 describe('BarChart', () => {
-  it('draws one hover target per day and bars only for non-zero days', () => {
-    const { container } = render(
-      <BarChart data={data} label="Bronlar" formatValue={(v) => `${v} ta bron`} />,
-    )
+  it('draws every day: a bar for each count and a light stub for each zero', () => {
+    render(<BarChart data={data} label="Bronlar" formatValue={(v) => `${v} ta bron`} />)
     expect(screen.getByRole('img', { name: 'Bronlar' })).toBeInTheDocument()
     expect(screen.getAllByTestId('bar')).toHaveLength(3)
-    expect(container.querySelectorAll('path.fill-accent')).toHaveLength(2)
+    expect(screen.getAllByTestId('bar-fill')).toHaveLength(2)
+    const stub = screen.getByTestId('bar-stub')
+    expect(stub).toHaveClass('fill-accent', 'opacity-20')
+    expect(stub).toHaveAttribute('height', '3')
     expect(screen.getByText('60')).toBeInTheDocument()
+  })
+
+  it('draws the highlighted bar in full accent, the rest lighter until hovered', () => {
+    render(
+      <BarChart data={data} highlight={2} label="Bronlar" formatValue={(v) => `${v} ta bron`} />,
+    )
+    const [first, last] = screen.getAllByTestId('bar-fill')
+    expect(last).toHaveAttribute('data-strong', 'true')
+    expect(last).not.toHaveClass('opacity-45')
+    expect(first).toHaveClass('opacity-45')
+    fireEvent.mouseEnter(screen.getAllByTestId('bar')[0]!)
+    expect(first).not.toHaveClass('opacity-45')
+    fireEvent.mouseEnter(screen.getAllByTestId('bar')[1]!)
+    expect(screen.getByTestId('bar-stub')).not.toHaveClass('opacity-20')
   })
 
   it('shows a tooltip on hover and on keyboard focus', () => {
