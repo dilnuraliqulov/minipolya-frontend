@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `main` |
-| Commit | `12e3a91` (`12e3a91bd63012d5735e958791549975ba64d8e7`) — _Remove the nonexistent CorsConfig.java from CLAUDE.md_, 2026-10-28 |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) |
-| Endpoints documented | **96** callable by the frontend, plus 3 webhooks |
+| Commit | `ed5dec6` — _Cover the audit log filters in the Postman collection_, 2026-10-28 |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths) |
+| Endpoints documented | **94** callable by the frontend, plus 3 webhooks |
 
 ---
 
@@ -165,6 +165,8 @@ These apply to every endpoint and are not repeated below.
 | 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` or `/api/admin/**` |
 | 403 | `"Account is blocked"` | the user is blocked |
 | 404 | `"<Thing> not found"` | `ResourceNotFoundException` |
+| 404 | `"Not found"` | no endpoint serves the path |
+| 405 | `"Method not allowed"` | the path exists but not with this method |
 | 409 | `"Data conflict"` | a database constraint other than the booking overlap |
 | 410 | `"Booking has expired"` | `BookingExpiredException` |
 | 500 | `"Internal server error"` | anything unhandled |
@@ -1315,23 +1317,9 @@ this is how a plain user asks to become one.
 Everything under `/api/admin/**` requires `ROLE_ADMIN`; a non-admin token gets
 403 `"Access denied"`.
 
-#### Own account — `POST /api/admin/me/password`
-
-> **Not used by the admin panel.** Passwords are set and reset only in the
-> database; removing this endpoint is backend request **R7**.
-
-Body (`ChangePasswordRequest`): `currentPassword` string (`@NotBlank`
-`"currentPassword is required"`), `newPassword` string (`@NotBlank`
-`"newPassword is required"`, `@Size(min=10)` `"newPassword must be at least 10
-characters"`, and at most 72 UTF-8 bytes).
-
-Response: `AuthResponse` (`token`, `user`), `message: "Parol o'zgartirildi"`.
-**Every token issued before the change — the caller's included — is revoked**
-(401 `TOKEN_REVOKED`, §1.5); a caller would have to store the returned token at once.
-
-Errors: 400 `"Joriy parol noto'g'ri"` (wrong current password, or the account
-has no password); 400 `"newPassword must be at most 72 bytes"`; 400
-validation; 404 `"User not found"`.
+There is no endpoint for an admin's own account: passwords are set and reset
+only in the database (`POST /api/admin/me/password` was removed in `40bdbd2`,
+request R7).
 
 #### Users
 
@@ -1339,7 +1327,7 @@ validation; 404 `"User not found"`.
 |---|---|
 | `GET /api/admin/users` · paged | `?search=` optional; newest first |
 | `GET /api/admin/users/{id}` | |
-| `PUT /api/admin/users/{id}` | body `{ isOwner?, isAdmin?, isBlocked? }` — all optional booleans, nulls left unchanged; `message: "User updated"` |
+| `PUT /api/admin/users/{id}` | body `{ isOwner?, isAdmin?, isBlocked?, reason? }` — optional booleans, nulls left unchanged; `reason` string ≤ 500 (`"reason must be at most 500 characters"`), **stored only in the audit log** (on `USER_BLOCKED`/`USER_UNBLOCKED`/`USER_ROLE_CHANGED`); `message: "User updated"` |
 
 `AdminUserResponse` (`NON_NULL`): `id` UUID, `name`, `phone` string?,
 `telegramId` number?, `language` string, `isOwner`, `isAdmin`, `isBlocked`
@@ -1410,8 +1398,76 @@ bean validation, so a rejected value writes **nothing**.
 
 #### Audit log
 
+Read-only; there is no endpoint that changes or deletes an entry.
+
 | Endpoint | Response |
 |---|---|
+| `GET /api/admin/audit-log` · paged | `AuditLogResponse`, **newest first** |
+| `GET /api/admin/audit-log/actions` | `string[]` — every action code, for a filter dropdown |
+
+Query parameters of `GET /api/admin/audit-log`, all optional, combined with AND:
+
+| Param | Type | Notes |
+|---|---|---|
+| `actor` | string | case-insensitive match on the actor's current name, username and phone, and the name saved on the entry |
+| `actorType` | string | `ADMIN`, `OWNER`, `PLAYER`, `SYSTEM` (case-insensitive) |
+| `action` | string, repeatable | `?action=A&action=B` or `?action=A,B` — any of these codes |
+| `entityType` | string | e.g. `stadium`, `user` — see the entity types below |
+| `entityId` | UUID | one thing's history (with `entityType`) |
+| `from`, `to` | `LocalDate` | **Tashkent** calendar days, both inclusive; `to` before `from` → 400 `"to must be on or after from"` |
+
+`AuditLogResponse` (`NON_NULL`):
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | |
+| `time` | string (UTC) | |
+| `actor` | object? | `{ id?, name?, type? }` — `id`/`name` absent for SYSTEM; `name` is the name **as it was then**; `type` absent only on old rows; the whole object is absent on an old system row |
+| `action` | string | a code from `AuditAction` (below); old rows may carry other codes, e.g. `PLATFORM_SETTINGS_UPDATED` |
+| `entity` | object | `{ type?, id?, label? }` — `label` is saved at the time, e.g. `"Chilonzor Arena, 2026-11-02 20:00 (2h)"` |
+| `changes` | `{ field, oldValue, newValue }[]` | **always present** (empty when nothing changed or on an old row). `oldValue` absent/null on a creation, `newValue` on a deletion. Values: numbers (money **tiyin**), booleans, strings (times UTC ISO-8601, dates, UUIDs, lowercase enum values, decimals), or lists of those |
+| `reason` | string? | reject / block / cancel / review note |
+| `ip` | string? | ADMIN entries and admin logins |
+| `details` | string? | legacy free-form JSON, only on rows written before changeset 029 |
+
+**Actor types:** `ADMIN`, `OWNER`, `PLAYER`, `SYSTEM` — the role the action
+was done in, not the user's flags.
+
+**Entity types:** `user`, `stadium`, `owner_application`, `platform_settings`,
+`pricing_rule`, `stadium_closure`, `promotion`, `booking`,
+`booking_series`, `game`, `payment`.
+
+**Action codes** (`audit/AuditAction.java`):
+
+| Area | Codes |
+|---|---|
+| Admin | `ADMIN_LOGIN_SUCCEEDED`, `ADMIN_LOGIN_FAILED`, `APPLICATION_APPROVED`, `APPLICATION_REJECTED`, `STADIUM_APPROVED`, `STADIUM_REJECTED` (pending → blocked), `STADIUM_BLOCKED`, `STADIUM_UNBLOCKED` (blocked → approved), `STADIUM_STATUS_CHANGED` (back to pending), `USER_BLOCKED`, `USER_UNBLOCKED`, `USER_ROLE_CHANGED`, `SETTINGS_CHANGED` |
+| Owner | `STADIUM_CREATED`, `STADIUM_UPDATED`, `PRICING_RULE_CREATED` / `_UPDATED` / `_DELETED`, `CLOSURE_CREATED` / `_DELETED`, `PROMOTION_CREATED` / `_DEACTIVATED`, `MANUAL_BOOKING_CREATED`, `CASH_RECEIVED`, `BOOKING_CANCELLED_BY_OWNER` |
+| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID` |
+| System | `BOOKING_CONFIRMED`, `BOOKING_EXPIRED`, `BOOKING_COMPLETED`, `BOOKING_CANCELLED_BY_OWNER` (by a stadium block), `GAME_CONFIRMED`, `GAME_AUTO_CANCELLED`, `PAYMENT_COMPLETED`, `PAYMENT_RELEASED`, `REFUND_CREATED`, `PROMOTION_EXPIRED` |
+
+**Change fields written** (`grep '.change(|.created('` in the services):
+`status`, `paymentStatus`, `paidAmount`, `price`, `totalPrice`, `amount`,
+`refundAmount`, `releasedAmount`, `refundPaymentId`, `bookingId`, `method`,
+`provider`, `paymentOption`, `startsAt`, `endsAt`, `durationHours`,
+`dayOfWeek`, `startTime`, `endTime`, `startDate`, `endDate`, `pricePerHour`,
+`discountPercent`, `name`, `clientName`, `type`, `maxPlayers`, `team`,
+`teamA`, `side`, `players`, `isActive`, `isOwner`, `isAdmin`, `isBlocked`,
+`failedLoginAttempts`, `lockedUntil`, `lastLoginAt`,
+`bookingCommissionPercent`, `teamGamePlatformFee`, `casualGameServiceFee`;
+plus the stadium snapshot (`StadiumService.auditSnapshot`): `address`,
+`latitude`, `longitude`, `phone`, `description`, `format`,
+`surfaceType`, `openTime`, `closeTime`, `minBookingAmount`,
+`cancellationHours`, `photos`, `amenities.parking` / `.lighting` /
+`.showers` / `.lockerRoom` / `.wifi` / `.cafe` / `.equipmentRental`.
+Secret-looking fields (password, hash, token, card number, cvv, secret, jwt)
+are never recorded.
+
+**Stadium status changes** — note there is no `rejected` stadium status: a
+rejection is `pending → blocked` and is told apart from a block only by the
+audit action (`STADIUM_REJECTED` vs `STADIUM_BLOCKED`).
+
+---|---|
 | `GET /api/admin/audit-log` · paged | newest first |
 | `GET /api/admin/audit-log/user/{userId}` · paged | newest first |
 | `GET /api/admin/audit-log/entity/{type}/{id}` | `AuditLogResponse[]` (not paged) |

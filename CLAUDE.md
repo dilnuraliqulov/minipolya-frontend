@@ -233,8 +233,8 @@ POST /api/auth/admin/login   { "username", "password" }
 **Admin accounts and passwords are managed only in the database** — created,
 set and reset with the SQL in the backend's `CLAUDE.md`, "Admin accounts".
 The panel has **no** register, forgot-password or change-password screen, and
-must not get one (the backend's unused `POST /api/admin/me/password` is
-request R7, to remove it). The login form (`auth/LoginPage.tsx`) maps the
+must not get one (the backend removed its own-password endpoint, request R7).
+The login form (`auth/LoginPage.tsx`) maps the
 error `code`s to Uzbek messages in `auth/messages.ts`: `INVALID_CREDENTIALS`,
 `ACCOUNT_LOCKED` (423, with `data.minutesRemaining`), `TOO_MANY_ATTEMPTS`
 (429), `ACCOUNT_BLOCKED`, and network/server failures.

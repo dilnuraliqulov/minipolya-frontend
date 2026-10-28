@@ -215,42 +215,4 @@ cash (`method = cash`) should be excluded from that figure.
 **Priority**
 High — the overview's revenue numbers are wrong (near 0) today.
 
-### R7 — Remove `POST /api/admin/me/password`
 
-**What's needed**
-Admin accounts and passwords are managed **only in the database** (backend
-`CLAUDE.md`, "Admin accounts": create with `crypt(..., gen_salt('bf', 12))`,
-reset with `password_changed_at = now()`). The admin panel deliberately has no
-change-password screen and never calls `POST /api/admin/me/password`
-(`AdminAccountController`). An unused endpoint that changes credentials is
-attack surface: anyone holding a stolen admin token plus the current password
-could rotate the password and lock the real admin out.
-
-**Which screen needs it**
-None — admin panel; this is a removal.
-
-**Proposed change**
-Delete `POST /api/admin/me/password`, `ChangePasswordRequest` and
-`AdminAuthService.changePassword` (and the `ADMIN_PASSWORD_CHANGED` audit
-action if nothing else writes it). **Keep** `users.password_changed_at` and the
-`TOKEN_REVOKED` check in `JwtAuthFilter`: a reset in the database still revokes
-every session, and the panel relies on that (401 `TOKEN_REVOKED` → login page,
-"Sessiya tugadi, qayta kiring"). Update the backend `CLAUDE.md` too — it says
-to "have the admin change it from the panel after the first sign-in".
-
-Error cases — none new; the path would then answer like any unknown
-`/api/admin/**` path.
-
-**Priority**
-Low — nothing is broken; it removes an unused way to change credentials.
-
----
-
-## Done
-
-### R2 — Telegram Login Widget login for the admin panel _(withdrawn)_
-
-Asked for `POST /api/auth/telegram-widget` so admins could sign in with the
-Telegram Login Widget. Superseded by username + password sign-in,
-`POST /api/auth/admin/login` (backend `265ffbf`); the panel uses that and the
-widget code is gone.
