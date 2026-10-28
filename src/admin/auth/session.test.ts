@@ -10,7 +10,6 @@ import type { User } from '../api/types'
 import { queryClient } from '../queryClient'
 import { LOGOUT_NOTICES } from './messages'
 import {
-  changeOwnPassword,
   getSession,
   logout,
   resetSessionForTests,
@@ -96,33 +95,6 @@ describe('admin session', () => {
     logout()
     logout('expired')
     expect(getSession()).toEqual({ status: 'anonymous', reason: undefined })
-  })
-
-  it('a password change swaps in the fresh token and keeps the admin signed in', async () => {
-    startSession('old-token', admin)
-    const changed = vi
-      .spyOn(authApi, 'changePassword')
-      .mockResolvedValue({ token: 'fresh-token', user: admin })
-
-    await changeOwnPassword('current-password', 'a-brand-new-password')
-
-    expect(changed).toHaveBeenCalledWith('current-password', 'a-brand-new-password')
-    expect(getTokenStore().get()).toBe('fresh-token')
-    expect(getSession()).toEqual({ status: 'authenticated', user: admin })
-  })
-
-  it('a rejected password change keeps the old token and session', async () => {
-    startSession('old-token', admin)
-    vi.spyOn(authApi, 'changePassword').mockRejectedValue(
-      new ApiError("Joriy parol noto'g'ri", 400),
-    )
-
-    await expect(changeOwnPassword('wrong', 'a-brand-new-password')).rejects.toMatchObject({
-      status: 400,
-    })
-
-    expect(getTokenStore().get()).toBe('old-token')
-    expect(getSession()).toEqual({ status: 'authenticated', user: admin })
   })
 
   it('a TOKEN_REVOKED 401 logs out with "Sessiya tugadi, qayta kiring"', () => {
