@@ -14,8 +14,8 @@ type StatusMap = Record<string, StatusLabel>
 
 export const BOOKING_STATUSES: StatusMap = {
   pending: { label: 'Kutilmoqda', tone: 'warning' },
-  confirmed: { label: 'Tasdiqlangan', tone: 'success' },
-  completed: { label: 'Yakunlangan', tone: 'neutral' },
+  confirmed: { label: 'Tasdiqlangan', tone: 'accent' },
+  completed: { label: 'Yakunlangan', tone: 'success' },
   expired: { label: 'Muddati oʻtgan', tone: 'neutral' },
   cancelled_by_user: { label: 'Mijoz bekor qildi', tone: 'danger' },
   cancelled_by_owner: { label: 'Ega bekor qildi', tone: 'danger' },
@@ -30,8 +30,8 @@ export const BOOKING_PAYMENT_STATUSES: StatusMap = {
 
 export const GAME_STATUSES: StatusMap = {
   open: { label: 'Kutilmoqda', tone: 'warning' },
-  confirmed: { label: 'Tasdiqlangan', tone: 'success' },
-  completed: { label: 'Yakunlangan', tone: 'neutral' },
+  confirmed: { label: 'Rejalashtirilgan', tone: 'accent' },
+  completed: { label: 'Yakunlangan', tone: 'success' },
   cancelled_slot_taken: { label: 'Bekor: vaqt band boʻldi', tone: 'danger' },
   cancelled_by_creator: { label: 'Bekor qilingan', tone: 'danger' },
   cancelled_not_filled: { label: 'Bekor: toʻlmadi', tone: 'danger' },
@@ -92,4 +92,11 @@ export const ROLE_LABELS = { player: 'Oʻyinchi', owner: 'Maydon egasi', admin: 
 
 export function statusOf(map: StatusMap, value: string): StatusLabel {
   return map[value] ?? { label: value, tone: 'neutral' }
+}
+
+/** A game's status; a team game that is `open` is waiting for an opponent. */
+export function gameStatus(type: string, status: string): StatusLabel {
+  if (status === 'open' && type === 'team_vs_team')
+    return { label: 'Raqib kutilmoqda', tone: 'warning' }
+  return statusOf(GAME_STATUSES, status)
 }

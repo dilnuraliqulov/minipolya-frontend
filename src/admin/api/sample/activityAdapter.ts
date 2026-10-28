@@ -330,3 +330,8 @@ export function timeline(type: 'booking' | 'game', id: string): Promise<AuditEnt
   const game = GAMES.find((g) => g.id === id)
   return delay(game ? gameTimeline(game) : [])
 }
+
+/** The stadiums sample bookings belong to, for the Bronlar stadium filter. */
+export function sampleStadiumOptions(): Array<{ id: string; name: string }> {
+  return STADIUMS.map((s) => ({ id: s.id, name: s.name }))
+}

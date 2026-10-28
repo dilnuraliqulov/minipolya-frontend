@@ -147,4 +147,16 @@ describe('production build (no sample data)', () => {
     expect(screen.queryByRole('tab', { name: /Jamoalar/ })).not.toBeInTheDocument()
     expect(requests.some((r) => r.url.pathname.includes('bookings'))).toBe(false)
   })
+
+  it('Bronlar: both tabs "Tez orada", no request to the missing endpoints', async () => {
+    const { requests } = mockBackend({ '/api/admin/stats': [200, stats] })
+    signIn()
+    renderAt('/bronlar?bron=b1')
+    expect(await screen.findByText('Tez orada', { selector: 'p' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Oʻyinlar' }))
+    expect(await screen.findByText('Tez orada', { selector: 'p' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(requests.some((r) => /bookings|games/.test(r.url.pathname))).toBe(false)
+  })
 })

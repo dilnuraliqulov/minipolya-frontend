@@ -5,6 +5,7 @@ import { RequireAdmin } from './auth/RequireAdmin'
 import { AdminLayout, type RouteHandle } from './layout/AdminLayout'
 import { MENU } from './layout/menu'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { BookingsPage } from './pages/bookings/BookingsPage'
 import { JournalPage } from './pages/journal/JournalPage'
 import { OverviewPage } from './pages/overview/OverviewPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
@@ -19,6 +20,7 @@ const home = MENU[0]!
 const PAGES: Record<string, ReactNode> = {
   '/maydonlar': <StadiumsPage />,
   '/foydalanuvchilar': <UsersPage />,
+  '/bronlar': <BookingsPage />,
   '/jurnal': <JournalPage />,
   '/sozlamalar': <SettingsPage />,
 }

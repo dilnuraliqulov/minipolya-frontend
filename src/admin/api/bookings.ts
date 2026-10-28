@@ -1,6 +1,6 @@
 import { api, type Page } from '../../shared/api'
 import { getAuditLog, type AuditEntry } from './audit'
-import { isSampleId, loadSampleAdapter, viaSample } from './missing'
+import { isSampleId, loadSampleAdapter, viaSample, withSampleFields } from './missing'
 
 /**
  * Bookings and games for the admin panel — request R15. The backend has
@@ -182,4 +182,23 @@ export async function getTimeline(
   }
   const page = await getAuditLog({ entityType, entityId: id, size: 50 })
   return [...page.content].reverse()
+}
+
+export interface StadiumOption {
+  id: string
+  name: string
+}
+
+/**
+ * Stadiums for the Bronlar "Maydon" filter: the real admin list (every status,
+ * as old bookings can be on a blocked stadium). In development the sample
+ * bookings' stadiums are added, since the sample data points at them.
+ */
+export async function getStadiumOptions(): Promise<StadiumOption[]> {
+  const page = await api.get<Page<StadiumOption>>('/api/admin/stadiums', { query: { size: 200 } })
+  const real = page.content.map(({ id, name }) => ({ id, name }))
+  return withSampleFields(BOOKINGS_LIST, real, (sample, options) => [
+    ...options,
+    ...sample.sampleStadiumOptions(),
+  ])
 }

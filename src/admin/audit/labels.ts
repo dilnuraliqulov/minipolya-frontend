@@ -267,3 +267,31 @@ function safe(format: () => string, fallback: string): string {
     return fallback
   }
 }
+
+/** Short step names for a booking's, game's or payment's status timeline. */
+export const TIMELINE_LABELS: Record<string, string> = {
+  BOOKING_CREATED: 'Yaratildi',
+  MANUAL_BOOKING_CREATED: 'Ega qoʻlda qoʻshdi',
+  BOOKING_CONFIRMED: 'Tasdiqlandi',
+  BOOKING_REMAINDER_PAID: 'Qoldiq toʻlandi',
+  CASH_RECEIVED: 'Ega naqd pulni qabul qildi',
+  BOOKING_COMPLETED: 'Yakunlandi',
+  BOOKING_EXPIRED: 'Muddati oʻtdi',
+  BOOKING_CANCELLED_BY_USER: 'Mijoz bekor qildi',
+  BOOKING_CANCELLED_BY_OWNER: 'Bekor qilindi',
+  GAME_CREATED: 'Yaratildi',
+  GAME_JOINED: 'Qoʻshildi',
+  GAME_LEFT: 'Chiqib ketdi',
+  GAME_OPPONENT_LEFT: 'Raqib chiqib ketdi',
+  GAME_CONFIRMED: 'Tasdiqlandi',
+  GAME_CANCELLED: 'Bekor qilindi',
+  GAME_AUTO_CANCELLED: 'Avtomatik bekor qilindi',
+  GAME_REMAINDER_PAID: 'Qoldiq toʻlandi',
+  PAYMENT_COMPLETED: 'Toʻlov qabul qilindi',
+  PAYMENT_RELEASED: 'Ushlab turilgan pul boʻshatildi',
+  REFUND_CREATED: 'Pul qaytarildi',
+}
+
+export function timelineLabel(action: string): string {
+  return TIMELINE_LABELS[action] ?? actionLabel(action)
+}
