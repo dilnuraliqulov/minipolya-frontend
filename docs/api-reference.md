@@ -130,8 +130,9 @@ Two things the frontend must handle:
   (`users.password_changed_at`) is refused on **any** endpoint with
   **401, `code: "TOKEN_REVOKED"`**, message `"Session ended because the
   password was changed; sign in again"`. Only admins have passwords, so only
-  admin-panel tokens are ever revoked. The token returned by
-  `POST /api/admin/me/password` is issued after the stamp and stays valid.
+  admin tokens are ever revoked — in practice when a password is **reset in the
+  database** (`password_changed_at = now()`, backend `CLAUDE.md`, "Admin
+  accounts"). The admin panel answers it by going to the login page.
 
 ### 1.6 Access levels
 
@@ -271,15 +272,16 @@ finds or creates the user by `telegram_id`, and returns a JWT.
   answer. Verification needs `BOT_TOKEN`, which lives only on the server.
 - There is **no refresh endpoint and no logout endpoint.** On a 401 the Mini
   App re-posts `initData`; the admin panel has to send the user back to login.
-- **There is no Telegram Login Widget endpoint** for the admin panel. See
-  [Q2](#11-questions-about-the-backend). Admins sign in with a username and
-  password instead (next endpoint).
+- The admin panel does **not** use this endpoint: admins sign in with a
+  username and password (next endpoint).
 
 ### `POST /api/auth/admin/login` — public
 
-Admin panel sign-in. Admin accounts (username + BCrypt password hash) are
-created directly in the database — there is no endpoint to create one. Only a
-user with `is_admin = true` **and** a password can sign in here.
+The admin panel's only sign-in. Admin accounts (username + BCrypt password
+hash) are **created, and their passwords set and reset, only in the database**
+(backend `CLAUDE.md`, "Admin accounts") — there is no endpoint to register an
+admin or reset a password, and the panel offers neither. Only a user with
+`is_admin = true` **and** a password can sign in here.
 
 **Body** (`AdminLoginRequest`)
 
@@ -1315,6 +1317,9 @@ Everything under `/api/admin/**` requires `ROLE_ADMIN`; a non-admin token gets
 
 #### Own account — `POST /api/admin/me/password`
 
+> **Not used by the admin panel.** Passwords are set and reset only in the
+> database; removing this endpoint is backend request **R7**.
+
 Body (`ChangePasswordRequest`): `currentPassword` string (`@NotBlank`
 `"currentPassword is required"`), `newPassword` string (`@NotBlank`
 `"newPassword is required"`, `@Size(min=10)` `"newPassword must be at least 10
@@ -1322,7 +1327,7 @@ characters"`, and at most 72 UTF-8 bytes).
 
 Response: `AuthResponse` (`token`, `user`), `message: "Parol o'zgartirildi"`.
 **Every token issued before the change — the caller's included — is revoked**
-(401 `TOKEN_REVOKED`, §1.5); the client must store the returned token at once.
+(401 `TOKEN_REVOKED`, §1.5); a caller would have to store the returned token at once.
 
 Errors: 400 `"Joriy parol noto'g'ri"` (wrong current password, or the account
 has no password); 400 `"newPassword must be at most 72 bytes"`; 400
@@ -1447,15 +1452,15 @@ have to match on the English `message` string, which is brittle and cannot be
 translated. A stable machine-readable `code` would fix both. Until then the
 frontend branches on HTTP status and, where it must, on the exact string.
 
-**Q2 — There is no Telegram Login Widget endpoint.**
+**Q2 — There is no Telegram Login Widget endpoint.** _(Resolved — not needed.)_
 `AuthController` exposes only `POST /api/auth/telegram`, which takes Mini App
 `initData`. The backend `CLAUDE.md` describes a second flow ("Telegram Login
 Widget (web dashboard) — same flow, different payload format"), but no
 endpoint accepts the widget's payload (`id`, `first_name`, `username`,
 `auth_date`, `hash` as separate fields — a different `data_check_string` and a
-different secret derivation from the Mini App's). _Since `265ffbf` admins can
-sign in with a username and password instead (`POST /api/auth/admin/login`),
-so this no longer blocks the admin panel._
+different secret derivation from the Mini App's). _Since `265ffbf` admins
+sign in with a username and password (`POST /api/auth/admin/login`) instead;
+the panel no longer has any Telegram login, and request R2 was withdrawn._
 
 **Q3 — `JoinGameRequest.gameId` is `@NotNull` but unused.**
 `POST /api/games/{id}/join` takes the id from the path (`@RequestBody(required = false)`),
@@ -1524,7 +1529,7 @@ re-read from the database on every request. So blocking takes effect
 instantly, but a newly approved owner keeps getting 403 from `/api/owner/**`
 for up to 24 h unless the client knows to re-authenticate. There is no refresh
 endpoint. The Mini App can re-post `initData` silently; the admin panel cannot
-(see Q2). It would help if `/api/users/me` returning different flags from the
+(it would need the password again). It would help if `/api/users/me` returning different flags from the
 token were a documented signal to re-login.
 
 **Q12 — Payment and refund paths are still mocks.**
