@@ -131,6 +131,8 @@ export interface ReasonModalProps {
   minLength?: number
   hint?: string
   confirmLabel: string
+  /** Danger for negative actions (the default); primary for a neutral record. */
+  confirmVariant?: Extract<ButtonVariant, 'primary' | 'danger'>
   busy?: boolean
   onConfirm: (reason: string) => void
   onClose: () => void
@@ -145,6 +147,7 @@ export function ReasonModal({
   minLength = 10,
   hint,
   confirmLabel,
+  confirmVariant = 'danger',
   busy = false,
   onConfirm,
   onClose,
@@ -170,7 +173,7 @@ export function ReasonModal({
             Bekor qilish
           </Button>
           <Button
-            variant="danger"
+            variant={confirmVariant}
             disabled={!valid || busy}
             onClick={() => {
               onConfirm(reason.trim())

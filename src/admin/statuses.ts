@@ -48,11 +48,11 @@ export const STADIUM_STATUSES: StatusMap = {
 export const PAYMENT_STATUSES: StatusMap = {
   pending: { label: 'Kutilmoqda', tone: 'warning' },
   held: { label: 'Ushlab turilgan', tone: 'warning' },
-  captured: { label: 'Yechib olingan', tone: 'success' },
+  captured: { label: 'Yechildi', tone: 'success' },
   paid: { label: 'Toʻlangan', tone: 'success' },
   completed: { label: 'Toʻlangan', tone: 'success' },
-  released: { label: 'Boʻshatilgan', tone: 'neutral' },
-  refunded: { label: 'Qaytarilgan', tone: 'neutral' },
+  released: { label: 'Boʻshatildi', tone: 'neutral' },
+  refunded: { label: 'Qaytarildi', tone: 'accent' },
   failed: { label: 'Muvaffaqiyatsiz', tone: 'danger' },
 }
 

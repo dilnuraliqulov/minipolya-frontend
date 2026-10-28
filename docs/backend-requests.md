@@ -224,7 +224,7 @@ failed at the provider and needs an admin. Today the backend has **no failed
 refund at all**: `PaymentService.refundInFull` calls
 `paymentProvider.refund(...)` and writes the refund row straight as
 `refunded`; a provider error throws and rolls the whole cancellation back.
-This request needs the failure state from **R15** (refund rows that can end
+This request needs the failure state from **R17** (refund rows that can end
 `failed`), and adds two figures to the stats the sidebar already polls.
 
 **Which screen needs it**
@@ -545,6 +545,131 @@ Error cases — 400 `"to must be on or after from"`, `"Invalid id"`; 404
 
 **Priority**
 High — the Bronlar page has no data without it.
+
+### R16 — Payments for the admin panel: list, detail and a period summary
+
+**What's needed**
+The admin "Toʻlovlar" page shows every payment and refund with how it was
+split between the owner and the platform, opens one with its history and
+linked payments, and sums a period (today / this week / this month / a range).
+Everything needed is in `payments` (`amount`, `owner_amount`,
+`platform_amount`, `commission_percent`, `method`, `provider`,
+`provider_txn_id`, `status`, `refund_of_payment_id`) but no admin endpoint
+reads it. The summary must be the backend's own figures — the frontend must
+not add up payments itself.
+
+**Which screen needs it**
+Admin panel — Toʻlovlar: summary cards, tabs Barchasi / Qaytarishlar /
+Ushlab turilgan, filters, the table and the side panel.
+
+**Proposed endpoint**
+`GET /api/admin/payments` — admin · paged — newest first; with
+`type=refund`, **failed refunds first**, then newest.
+
+| Query | Type | Required | Validation |
+|---|---|---|---|
+| `search` | string | no | payer name or phone, or `providerTxnId` (case-insensitive, spaces ignored in phones) |
+| `type` | string | no | a `payment.paymentType` value (§1.9) |
+| `status` | string | no | a `payment.status` value |
+| `method` | string | no | `card` \| `cash` |
+| `stadiumId` | UUID | no | the booking's or game's stadium |
+| `from`, `to` | `LocalDate` | no | Tashkent days on `createdAt`, both inclusive |
+| `page`, `size` | number | no | |
+
+Response — `AdminPaymentResponse` (`NON_NULL`):
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | |
+| `createdAt` | string (UTC) | |
+| `userId`, `userName`, `userPhone` | UUID? / string? | the payer |
+| `paymentType` | string | |
+| `stadiumId`, `stadiumName` | UUID? / string? | |
+| `bookingId`, `gameId` | UUID? | what it paid for |
+| `amount`, `ownerAmount`, `platformAmount` | number **(tiyin)** | negative on a refund |
+| `commissionPercent` | number | in force when it was taken |
+| `method`, `provider` | string | |
+| `providerTxnId` | string? | absent for cash |
+| `status` | string | |
+| `refundReason` | string? | |
+| `refundOfPaymentId` | UUID? | on a refund: the payment it gives back |
+| `failureReason` | string? | R17 |
+| `refundedManually`, `manualRefundReason` | boolean? / string? | R17 |
+
+`GET /api/admin/payments/{id}` — admin — `AdminPaymentResponse` plus
+`linkedPayments: { id, paymentType, amount, status, method, providerTxnId?, createdAt }[]`
+— a refund's original, or an original's refunds. The status history comes
+from the audit log (`entityType=payment`), which already records
+`PAYMENT_COMPLETED`, `PAYMENT_RELEASED` and `REFUND_CREATED`.
+
+`GET /api/admin/payments/summary?from=&to=` — admin — Tashkent days, both
+required, `to` ≥ `from`. All **tiyin**, all present:
+
+| Field | Type | Notes |
+|---|---|---|
+| `appRevenue` | number | card payments kept (`paid`, `captured`, `completed`) in the period, minus card refunds in the period. **Cash excluded.** |
+| `platformRevenue` | number | the `platformAmount` part of the same |
+| `ownerPayouts` | number | the `ownerAmount` part of the same |
+| `refunded` | number | refunds completed in the period, as a positive amount |
+| `held` | number | everything currently `held` (not limited to the period) |
+
+Error cases — 400 `"to must be on or after from"`, `"from and to are required"`,
+`"Invalid id"`; 404 `"Payment not found"`.
+
+**Priority**
+High — the Toʻlovlar page has no data without it; R6 (revenue misses card
+payments) should be fixed in the same pass so the overview agrees with it.
+
+### R17 — Failed refunds: record them, retry them, or mark them refunded by hand
+
+**What's needed**
+Today a refund cannot fail: `PaymentService.refundInFull` calls
+`paymentProvider.refund(...)` and saves the refund row as `refunded`; if ATMOS
+throws, the whole cancellation rolls back. Money owed to a player then has no
+record at all. The panel needs a refund that the provider declined to be saved
+as **failed** with the provider's error, shown to admins (R8 counts them), and
+two ways out.
+
+**Which screen needs it**
+Admin panel — Toʻlovlar, the side panel of a failed refund: the ATMOS error,
+"Qayta urinish" and "Qoʻlda qaytarildi". Also the overview tile and the
+sidebar badge (R8).
+
+**Proposed change**
+- A refund whose provider call fails is saved with `status = failed` and
+  `failure_reason` (the provider's message, e.g.
+  `"Transaction declined by issuer (code 57)"`); the cancellation itself goes
+  ahead. Audit `REFUND_FAILED` (SYSTEM) with the reason.
+- New columns: `payments.failure_reason`, `refunded_manually` (boolean),
+  `manual_refund_reason`, `manual_refund_by` (admin user id).
+
+`POST /api/admin/payments/{id}/retry-refund` — admin — no body. Calls the
+provider again for a `failed` refund.
+
+Response — `AdminPaymentResponse`: `status: "refunded"` on success (the original
+payment becomes `refunded`, audit `REFUND_RETRIED` by the admin), or still
+`failed` with the new `failureReason` — a decline is a normal answer, not an
+error. `message: "Refund retried"`.
+
+`POST /api/admin/payments/{id}/mark-refunded` — admin — for money returned
+outside the platform (cash, bank transfer).
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `reason` | string | yes | 10–500 characters — `"reason must be at least 10 characters"` |
+
+Response — `AdminPaymentResponse` with `status: "refunded"`,
+`refundedManually: true`, `manualRefundReason`; the original becomes
+`refunded`; audit `REFUND_MARKED_MANUAL` by the admin with the reason.
+`message: "Refund marked as refunded"`.
+
+Error cases (both) — 400 `"Only a failed refund can be retried"` /
+`"Only a failed refund can be marked as refunded"`; 404 `"Payment not found"`;
+502 `"Payment provider unavailable"` when ATMOS cannot be reached at all (retry
+only).
+
+**Priority**
+High — without it, a failed refund is invisible and the money is not returned.
 
 ---
 

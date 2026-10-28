@@ -10,7 +10,6 @@ import { ApiError, type Page } from '../../../shared/api'
 import type { AuditEntry } from '../audit'
 import type { StadiumDetail, StadiumListFields, StadiumNote, StadiumRow } from '../stadiums'
 import { DISTRICTS } from '../stadiums'
-import type { RefundAlerts } from '../stats'
 import type { AdminStadium } from '../types'
 import type { OwnerLegalDetails, OwnerLegalDetailsUpdate } from '../users'
 import { worldStadium } from './activityAdapter'
@@ -19,7 +18,6 @@ import {
   AMENITY_SETS,
   daysAgo,
   DISTRICT_CENTRES,
-  hoursAgo,
   legalFor,
   pick,
   REJECTED_STADIUMS,
@@ -42,15 +40,6 @@ export function pageOf<T>(items: T[], page = 0, size = 20): Page<T> {
     totalElements: items.length,
     totalPages: Math.max(1, Math.ceil(items.length / size)),
   }
-}
-
-// ---- R8: failed refunds ----
-
-const failedRefunds = [{ createdAt: hoursAgo(3) }]
-
-export function refundAlerts(): RefundAlerts {
-  const oldest = failedRefunds.map((r) => r.createdAt).sort()[0]
-  return { failedRefunds: failedRefunds.length, oldestFailedRefundAt: oldest }
 }
 
 // ---- R11: owner legal details ----
@@ -279,3 +268,6 @@ export function addStadiumNote(stadiumId: string, text: string): Promise<Stadium
 
 // R13–R15: users, teams, bookings and games.
 export * from './activityAdapter'
+
+// R8, R16, R17: payments and refunds.
+export * from './paymentsAdapter'

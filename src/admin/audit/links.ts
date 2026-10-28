@@ -8,6 +8,7 @@ const ENTITY_PATHS: Record<string, (id: string) => string> = {
   user: (id) => `/foydalanuvchilar/${id}`,
   booking: (id) => `/bronlar?bron=${id}`,
   game: (id) => `/bronlar?tab=oyinlar&oyin=${id}`,
+  payment: (id) => `/tolovlar?tolov=${id}`,
 }
 
 export function entityPath(type: string | undefined, id: string | undefined): string | null {

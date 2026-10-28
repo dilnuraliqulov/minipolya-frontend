@@ -8,6 +8,7 @@ import { ComingSoonPage } from './pages/ComingSoonPage'
 import { BookingsPage } from './pages/bookings/BookingsPage'
 import { JournalPage } from './pages/journal/JournalPage'
 import { OverviewPage } from './pages/overview/OverviewPage'
+import { PaymentsPage } from './pages/payments/PaymentsPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { StadiumPage } from './pages/stadiums/StadiumPage'
 import { StadiumsPage } from './pages/stadiums/StadiumsPage'
@@ -21,6 +22,7 @@ const PAGES: Record<string, ReactNode> = {
   '/maydonlar': <StadiumsPage />,
   '/foydalanuvchilar': <UsersPage />,
   '/bronlar': <BookingsPage />,
+  '/tolovlar': <PaymentsPage />,
   '/jurnal': <JournalPage />,
   '/sozlamalar': <SettingsPage />,
 }

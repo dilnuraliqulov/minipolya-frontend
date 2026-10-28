@@ -6,6 +6,8 @@ export interface TabItem<V extends string> {
   value: V
   label: string
   count?: number
+  /** A count shown whether or not the tab is active, e.g. failed refunds in red. */
+  alert?: number
 }
 
 /** Underlined tabs with an optional count pill on each. Arrow keys move between tabs. */
@@ -61,6 +63,11 @@ export function Tabs<V extends string>({
             {active && tab.count !== undefined && (
               <span className="rounded-full bg-accent-soft px-1.5 py-px text-xs font-semibold text-accent">
                 {formatNumber(tab.count)}
+              </span>
+            )}
+            {!!tab.alert && (
+              <span className="rounded-full bg-danger-soft px-1.5 py-px text-xs font-semibold text-danger">
+                {formatNumber(tab.alert)}
               </span>
             )}
           </button>

@@ -1,5 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getTokenStore } from '../shared/api'
 import { restoreSession, startSession } from './auth/session'
 import { routes } from './routes'
@@ -34,6 +34,15 @@ const overviewReplies: Record<string, Reply> = {
 
 describe('admin panel', () => {
   useAdminTestSetup()
+
+  // One failed refund, three hours old (the sample payments may hold any number).
+  beforeEach(async () => {
+    const adapter = await import('./api/sample/adapter')
+    vi.spyOn(adapter, 'refundAlerts').mockReturnValue({
+      failedRefunds: 1,
+      oldestFailedRefundAt: new Date(Date.now() - 3 * 3_600_000 - 60_000).toISOString(),
+    })
+  })
 
   it('sends a visitor without a session to the login form', async () => {
     await restoreSession()
@@ -255,12 +264,11 @@ describe('admin panel', () => {
     expect(getTokenStore().get()).toBeNull()
   })
 
-  it('has a "Tez orada" page with breadcrumbs for every other menu item', async () => {
+  it('gives every menu item a page with breadcrumbs', async () => {
     mockBackend(overviewReplies)
     startSession('t', admin)
     const router = renderAt('/tolovlar')
-    expect(screen.getByRole('heading', { name: 'Toʻlovlar' })).toBeInTheDocument()
-    expect(screen.getByText('Tez orada')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Toʻlovlar/ })).toBeInTheDocument()
     const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' })
     fireEvent.click(within(crumbs).getByRole('link', { name: 'Bosh sahifa' }))
     expect(router.state.location.pathname).toBe('/')
@@ -269,6 +277,7 @@ describe('admin panel', () => {
       '/foydalanuvchilar',
       '/bronlar',
       '/tolovlar',
+      '/jurnal',
       '/sozlamalar',
     ]) {
       expect(routes[1]?.children?.[0]?.children?.some((r) => r.path === path)).toBe(true)

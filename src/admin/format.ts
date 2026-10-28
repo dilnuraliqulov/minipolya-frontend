@@ -102,3 +102,10 @@ export function formatSlot(startsAt: string, endsAt: string): string {
   const day = `${WEEKDAYS_SHORT[p.dayOfWeek]} ${p.day} ${MONTHS_SHORT[p.month - 1]}`
   return `${day} · ${formatTimeRange(startsAt, endsAt)}`
 }
+
+/** A UTC timestamp, short, in Tashkent: "28 okt, 14:02". */
+export function formatShortDateTime(iso: string): string {
+  const p = toTashkentParts(iso)
+  const time = String(p.hour).padStart(2, '0') + ':' + String(p.minute).padStart(2, '0')
+  return p.day + ' ' + MONTHS_SHORT[p.month - 1] + ', ' + time
+}

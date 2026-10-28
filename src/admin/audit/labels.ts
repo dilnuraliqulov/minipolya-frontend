@@ -72,6 +72,11 @@ export const ACTION_LABELS: Record<string, string> = {
   PAYMENT_RELEASED: 'Ushlab turilgan pul boʻshatildi',
   REFUND_CREATED: 'Pul qaytarildi',
   PROMOTION_EXPIRED: 'Aksiya muddati tugadi',
+  // Requested in R17; not written by the backend yet.
+  REFUND_REQUESTED: 'Pulni qaytarishni soʻradi',
+  REFUND_FAILED: 'Pulni qaytarib boʻlmadi',
+  REFUND_RETRIED: 'Qaytarishni qayta urindi',
+  REFUND_MARKED_MANUAL: 'Qoʻlda qaytarildi deb belgiladi',
 }
 
 export const ACTOR_TYPE_LABELS: Record<AuditActorType, string> = {
@@ -290,6 +295,10 @@ export const TIMELINE_LABELS: Record<string, string> = {
   PAYMENT_COMPLETED: 'Toʻlov qabul qilindi',
   PAYMENT_RELEASED: 'Ushlab turilgan pul boʻshatildi',
   REFUND_CREATED: 'Pul qaytarildi',
+  REFUND_REQUESTED: 'Qaytarish soʻraldi',
+  REFUND_FAILED: 'Muvaffaqiyatsiz',
+  REFUND_RETRIED: 'Qayta urinildi: qaytarildi',
+  REFUND_MARKED_MANUAL: 'Qoʻlda qaytarildi',
 }
 
 export function timelineLabel(action: string): string {

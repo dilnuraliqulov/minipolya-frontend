@@ -159,4 +159,16 @@ describe('production build (no sample data)', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
     expect(requests.some((r) => /bookings|games/.test(r.url.pathname))).toBe(false)
   })
+
+  it('Toʻlovlar: summary and list "Tez orada", no failed-refund badge, no panel', async () => {
+    const { requests } = mockBackend({ '/api/admin/stats': [200, stats] })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    const summary = await screen.findByRole('region', { name: 'Umumiy koʻrsatkichlar' })
+    expect(within(summary).getByText('Tez orada')).toBeInTheDocument()
+    expect(screen.getAllByText('Tez orada', { selector: 'p' })).toHaveLength(2)
+    expect(within(screen.getByRole('tab', { name: /Qaytarishlar/ })).queryByText(/\d/)).toBeNull()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(requests.some((r) => r.url.pathname.includes('payments'))).toBe(false)
+  })
 })

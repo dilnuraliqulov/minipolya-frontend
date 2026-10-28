@@ -31,6 +31,11 @@ export const MISSING_ENDPOINTS = {
   'GET /api/admin/bookings/{id}': 'R15',
   'GET /api/admin/games': 'R15',
   'GET /api/admin/games/{id}': 'R15',
+  'GET /api/admin/payments': 'R16',
+  'GET /api/admin/payments/{id}': 'R16',
+  'GET /api/admin/payments/summary': 'R16',
+  'POST /api/admin/payments/{id}/retry-refund': 'R17',
+  'POST /api/admin/payments/{id}/mark-refunded': 'R17',
 } as const
 
 export type MissingEndpoint = keyof typeof MISSING_ENDPOINTS
