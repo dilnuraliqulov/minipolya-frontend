@@ -1,6 +1,6 @@
 /**
  * Response types the admin panel uses, copied from docs/api-reference.md
- * (backend commit bba7504). Optional fields are the ones the backend omits
+ * (backend commit 12e3a91). Optional fields are the ones the backend omits
  * when null (`@JsonInclude(NON_NULL)`). Money is tiyin, timestamps UTC.
  */
 
@@ -15,10 +15,12 @@ export interface User {
   language: Language
   isOwner: boolean
   isAdmin: boolean
+  /** Admins who sign in with a password only. */
+  username?: string
   createdAt: string
 }
 
-/** `AuthResponse` — §2. Every field always present. */
+/** `AuthResponse` — §2 (Telegram and admin password login). Every field always present. */
 export interface AuthResponse {
   token: string
   user: User

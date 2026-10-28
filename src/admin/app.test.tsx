@@ -4,7 +4,13 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore, getTokenStore } from '../shared/api'
 import type { PlatformStats, User } from './api/types'
-import { logout, resetSessionForTests, restoreSession, startSession } from './auth/session'
+import {
+  logout,
+  resetSessionForTests,
+  restoreSession,
+  startSession,
+  unauthorizedReason,
+} from './auth/session'
 import { ToastProvider } from './components/Toast'
 import { queryClient } from './queryClient'
 import { routes } from './routes'
@@ -42,17 +48,23 @@ const stats: PlatformStats = {
   pendingStadiumApprovals: 2,
 }
 
-type Reply = [status: number, data: unknown]
+/** `data` is the payload on success and the message on an error. */
+type Reply = [status: number, data: unknown, error?: { code?: string; data?: unknown }]
 
 /** Answers API calls by path, through the real API client. */
 function mockBackend(replies: Record<string, Reply | (() => Reply)>) {
   const fetchMock = vi.fn(async (input: string) => {
     const path = new URL(input).pathname
     const entry = replies[path]
-    const [status, data] = typeof entry === 'function' ? entry() : (entry ?? [404, null])
+    const [status, data, error] = typeof entry === 'function' ? entry() : (entry ?? [404, null])
     const ok = status < 400
     return new Response(
-      JSON.stringify({ success: ok, data: ok ? data : null, message: ok ? null : String(data) }),
+      JSON.stringify({
+        success: ok,
+        data: ok ? data : (error?.data ?? null),
+        message: ok ? null : String(data),
+        ...(error?.code && { code: error.code }),
+      }),
       { status, headers: { 'Content-Type': 'application/json' } },
     )
   })
@@ -115,7 +127,8 @@ describe('admin panel', () => {
     queryClient.clear()
     configureApiClient({
       tokenStore: createMemoryTokenStore(),
-      onUnauthorized: () => logout('expired'),
+      // As in main.tsx.
+      onUnauthorized: (error) => logout(unauthorizedReason(error)),
       onAccountBlocked: () => logout('blocked'),
     })
   })
@@ -125,29 +138,14 @@ describe('admin panel', () => {
     vi.unstubAllEnvs()
   })
 
-  it('sends a visitor without a session to the login page, with the dev login in development', async () => {
+  it('sends a visitor without a session to the login form', async () => {
     await restoreSession()
     const router = renderAt('/')
     expect(router.state.location.pathname).toBe('/login')
     expect(screen.getByText('Admin panel')).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Dev login' })).toBeInTheDocument()
-  })
-
-  it('logs in with the dev login and opens the overview', async () => {
-    vi.stubEnv('VITE_DEV_INIT_DATA', 'auth_date=1&user=%7B%7D&hash=abc')
-    const fetchMock = mockBackend({
-      '/api/auth/telegram': [200, { token: 'x.e30.y', user: admin }],
-      ...overviewReplies,
-    })
-    await restoreSession()
-    const router = renderAt('/login')
-    fireEvent.click(await screen.findByRole('button', { name: 'Dev login' }))
-
-    expect(await screen.findByRole('heading', { name: 'Bosh sahifa' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/')
-    expect(getTokenStore().get()).toBe('x.e30.y')
-    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
-    expect(init.body).toBe(JSON.stringify({ initData: 'auth_date=1&user=%7B%7D&hash=abc' }))
+    expect(screen.getByLabelText('Login')).toBeInTheDocument()
+    expect(screen.getByLabelText('Parol')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Kirish' })).toBeInTheDocument()
   })
 
   it('shows the no-access page to a user who is not an admin', async () => {
@@ -219,6 +217,18 @@ describe('admin panel', () => {
     startSession('t', admin)
     const router = renderAt('/')
     expect(await screen.findByText('Sessiya tugadi. Qaytadan kiring.')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(getTokenStore().get()).toBeNull()
+  })
+
+  it('returns to the login page with its own notice when the token was revoked', async () => {
+    mockBackend({
+      ...overviewReplies,
+      '/api/admin/stats': [401, 'Session ended', { code: 'TOKEN_REVOKED' }],
+    })
+    startSession('t', admin)
+    const router = renderAt('/')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sessiya tugadi, qayta kiring')
     expect(router.state.location.pathname).toBe('/login')
     expect(getTokenStore().get()).toBeNull()
   })
