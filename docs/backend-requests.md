@@ -215,4 +215,19 @@ cash (`method = cash`) should be excluded from that figure.
 **Priority**
 High — the overview's revenue numbers are wrong (near 0) today.
 
+---
 
+## Done
+
+### R7 — Remove `POST /api/admin/me/password` _(shipped in `40bdbd2`)_
+
+The endpoint, `ChangePasswordRequest` and `AdminAuthService.changePassword`
+are gone. `password_changed_at` and the `TOKEN_REVOKED` check remain, so a
+reset in the database still ends every session.
+
+### R2 — Telegram Login Widget login for the admin panel _(withdrawn)_
+
+Asked for `POST /api/auth/telegram-widget` so admins could sign in with the
+Telegram Login Widget. Superseded by username + password sign-in,
+`POST /api/auth/admin/login` (backend `265ffbf`); the panel uses that and the
+widget code is gone.
