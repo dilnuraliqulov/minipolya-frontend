@@ -6,13 +6,14 @@
  * Its state lives in memory, so actions (approve, block, add a note…) change
  * what the next request returns until the page is reloaded.
  */
-import type { Page } from '../../../shared/api'
+import { ApiError, type Page } from '../../../shared/api'
 import type { AuditEntry } from '../audit'
 import type { StadiumDetail, StadiumListFields, StadiumNote, StadiumRow } from '../stadiums'
 import { DISTRICTS } from '../stadiums'
 import type { RefundAlerts } from '../stats'
 import type { AdminStadium } from '../types'
 import type { OwnerLegalDetails, OwnerLegalDetailsUpdate } from '../users'
+import { worldStadium } from './activityAdapter'
 import {
   ADMINS,
   AMENITY_SETS,
@@ -30,10 +31,10 @@ import {
 } from './world'
 
 const SOM = 100
-const delay = <T>(value: T, ms = 250) =>
+export const delay = <T>(value: T, ms = 250) =>
   new Promise<T>((resolve) => setTimeout(() => resolve(value), ms))
 
-function pageOf<T>(items: T[], page = 0, size = 20): Page<T> {
+export function pageOf<T>(items: T[], page = 0, size = 20): Page<T> {
   return {
     content: items.slice(page * size, (page + 1) * size),
     page,
@@ -74,13 +75,15 @@ export function saveOwnerLegalDetails(
   return delay(saved)
 }
 
-function contractOf(ownerId: string) {
+export function contractOf(ownerId: string) {
   return (legalEdits.get(ownerId) ?? legalFor(ownerId))?.atmosContractStatus ?? 'none'
 }
 
 // ---- R9: stadium list and detail fields ----
 
-function listFields(stadium: Pick<AdminStadium, 'id' | 'ownerId' | 'address'>): StadiumListFields {
+export function listFields(
+  stadium: Pick<AdminStadium, 'id' | 'ownerId' | 'address'>,
+): StadiumListFields {
   // A district named in the address wins; otherwise one picked from the id.
   const named = DISTRICTS.find((d) => stadium.address.toLowerCase().includes(d.toLowerCase()))
   return {
@@ -109,7 +112,7 @@ export function stadiumListFields(
   }
 }
 
-function detailFields(stadium: AdminStadium): StadiumDetail {
+export function detailFields(stadium: AdminStadium): StadiumDetail {
   const fields = listFields(stadium)
   const [lat, lng] = DISTRICT_CENTRES[fields.district ?? ''] ?? [41.3111, 69.2797]
   const jitter = (seed(stadium.id) % 100) / 10_000
@@ -203,11 +206,13 @@ export function rejectedStadiums(query: {
 
 function findSample(id: string) {
   const s = REJECTED_STADIUMS.find((x) => x.id === id)
-  if (!s) throw new Error(`No sample stadium ${id}`)
+  if (!s) throw new ApiError('Stadium not found', 404)
   return s
 }
 
 export function sampleStadium(id: string): Promise<StadiumDetail> {
+  const world = worldStadium(id)
+  if (world) return delay(world)
   const s = findSample(id)
   return delay({ ...detailFields(sampleAdminStadium(s)), district: s.district })
 }
@@ -271,3 +276,6 @@ export function addStadiumNote(stadiumId: string, text: string): Promise<Stadium
   notes.set(stadiumId, [note, ...notesFor(stadiumId)])
   return delay(note)
 }
+
+// R13–R15: users, teams, bookings and games.
+export * from './activityAdapter'

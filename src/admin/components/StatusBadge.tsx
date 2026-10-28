@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react'
 import { cx } from './cx'
 
-/** success: approved/active · warning: waiting · danger: rejected/blocked/cancelled · neutral: finished/expired */
-export type BadgeTone = 'success' | 'warning' | 'danger' | 'neutral'
+/** success: approved/active · warning: waiting · danger: rejected/blocked/cancelled · neutral: finished/expired · accent: a role (Admin) */
+export type BadgeTone = 'success' | 'warning' | 'danger' | 'neutral' | 'accent'
 
 const TONES: Record<BadgeTone, string> = {
   success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning',
   danger: 'bg-danger-soft text-danger',
   neutral: 'bg-neutral-soft text-secondary',
+  accent: 'bg-accent-soft text-link',
 }
 
 export function StatusBadge({ tone, children }: { tone: BadgeTone; children: ReactNode }) {

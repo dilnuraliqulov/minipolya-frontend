@@ -25,8 +25,7 @@ export const AMENITY_LABELS: Record<keyof Amenities, string> = {
   equipmentRental: 'Jihoz ijarasi',
 }
 
-/** 0 = Monday, as the backend counts. */
-export const DAYS_SHORT = ['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya']
+export { WEEKDAYS_SHORT as DAYS_SHORT } from '../../format'
 
 export const REJECT_REASONS = ['Rasmlar mos emas', 'Notoʻgʻri maʼlumot', 'Manzil topilmadi']
 export const BLOCK_REASONS = ['Koʻp shikoyatlar', 'Notoʻgʻri maʼlumot', 'Egasining soʻrovi']

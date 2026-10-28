@@ -426,6 +426,126 @@ Error cases — 400 validation; 404 `"Stadium not found"`.
 **Priority**
 Low — admins can keep notes elsewhere meanwhile.
 
+### R13 — Role and status filters on the user list
+
+**What's needed**
+`GET /api/admin/users` takes only `?search=` (name or phone). The users page
+filters by role (player / owner / admin) and by status (active / blocked); with
+1 000+ users that has to happen on the server.
+
+**Which screen needs it**
+Admin panel — Foydalanuvchilar list, "Rol" and "Holat" filters.
+
+**Proposed endpoint**
+`GET /api/admin/users` — admin · paged — two new optional query parameters,
+combined with `search` by AND:
+
+| Query | Type | Required | Validation |
+|---|---|---|---|
+| `role` | string | no | `player` (neither owner nor admin) \| `owner` (`is_owner`) \| `admin` (`is_admin`) |
+| `status` | string | no | `active` (`is_blocked = false`) \| `blocked` |
+
+Response — unchanged (`AdminUserResponse` page, newest first).
+
+Error cases — 400 `"Invalid role"` / `"Invalid status"`.
+
+**Priority**
+Medium — search works; the filters are a convenience until the list grows.
+
+### R14 — A user's teams, and an owner's stadiums
+
+**What's needed**
+The user page has a "Jamoalar" tab (only when the user is in a team) and, for
+owners, a "Maydonlar" tab. `GET /api/teams/me` exists only for the caller, and
+`GET /api/admin/stadiums` cannot filter by owner.
+
+**Which screen needs it**
+Admin panel — the user page, Jamoalar and Maydonlar tabs.
+
+**Proposed endpoint**
+`GET /api/admin/users/{id}/teams` — admin — not paged:
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | the team |
+| `name` | string | |
+| `leaderName` | string? | |
+| `memberCount` | number | |
+| `role` | string | this user's role in it: `leader` \| `member` |
+
+`GET /api/admin/stadiums?ownerId={uuid}` — admin · paged — one new optional
+query parameter on the existing list; response unchanged.
+
+Error cases — 400 `"Invalid id"`; 404 `"User not found"`.
+
+**Priority**
+Low — the user page works without them.
+
+### R15 — Bookings and games for the admin panel
+
+**What's needed**
+The admin "Bronlar" page lists every booking and every game, with filters, and
+opens one in a side panel with its payment summary and status history. The
+user page lists one user's bookings. The backend has only the player's own
+lists (`/api/bookings`, `/api/games/my`) and the owner's per-stadium list —
+nothing an admin can call.
+
+**Which screen needs it**
+Admin panel — Bronlar (both tabs and the side panel); the user page's Bronlar
+tab.
+
+**Proposed endpoint**
+`GET /api/admin/bookings` — admin · paged — newest `startsAt` first.
+
+| Query | Type | Required | Validation |
+|---|---|---|---|
+| `search` | string | no | client name or phone: the booking user's name/phone, or a walk-in's `clientName`/`clientPhone` (case-insensitive, spaces ignored in phones) |
+| `stadiumId` | UUID | no | |
+| `status` | string | no | a `booking.status` value (§1.9) |
+| `from`, `to` | `LocalDate` | no | Tashkent days on `startsAt`, both inclusive; `to` ≥ `from` |
+| `userId` | UUID | no | bookings this user made |
+| `page`, `size` | number | no | |
+
+Response — `AdminBookingResponse`: every `BookingResponse` field (§5) plus:
+
+| Field | Type | Notes |
+|---|---|---|
+| `userName`, `userPhone` | string? | the booking user (absent on a walk-in) |
+| `paidInApp` | number **(tiyin)** | card payments kept on this booking (`PAID`/`CAPTURED`, minus refunds) |
+| `cashReceived` | number? **(tiyin)** | cash the owner marked as received; absent when none |
+| `cashReceivedAt` | string? (UTC) | when the owner marked it |
+
+`GET /api/admin/bookings/{id}` — admin — one `AdminBookingResponse`.
+The status timeline comes from the audit log (`GET /api/admin/audit-log?entityType=booking&entityId=…`),
+which already records every step.
+
+`GET /api/admin/games` — admin · paged — newest `startsAt` first. Same
+`search` (creator or either team's name), `stadiumId`, `status` (a
+`game.status` value), `from`, `to`, `userId` (games the user created or played
+in), `page`, `size`.
+
+Response — `AdminGameResponse`: `id`, `type`, `status`, `stadiumId`,
+`stadiumName`, `startsAt`, `endsAt` (UTC), `totalPrice` **(tiyin)**,
+`creatorId`, `creatorName`, `teamAName`?, `teamBName`? (absent while waiting
+for an opponent), `currentPlayers`?, `maxPlayers`?, `bookingId`?,
+`cancelledAt`?, `cancellationReason`?, `createdAt`.
+
+`GET /api/admin/games/{id}` — admin — `AdminGameResponse` plus:
+
+| Field | Type | Notes |
+|---|---|---|
+| `teams` | `GameTeamResponse[]`? | `team_vs_team` only — the §9 shape (`feeAmount`, `advanceAmount`, `remainderAmount`, `remainderStatus`, `paidInApp`…) plus `players: { userId, userName, status }[]` |
+| `participants` | `{ userId, userName, status }[]`? | casual and open games |
+| `serviceFeePerPerson` | number? **(tiyin)** | casual games |
+
+No chat and no actions: these are read-only views.
+
+Error cases — 400 `"to must be on or after from"`, `"Invalid id"`; 404
+`"Booking not found"` / `"Game not found"`.
+
+**Priority**
+High — the Bronlar page has no data without it.
+
 ---
 
 ## Done

@@ -205,3 +205,18 @@ export function addStadiumNote(id: string, text: string): Promise<StadiumNote> {
     (sample) => sample.addStadiumNote(id, text),
   )
 }
+
+/** Request R14: one owner's stadiums (`?ownerId=` on the admin list). */
+export const OWNER_STADIUMS = 'GET /api/admin/stadiums → ?ownerId'
+
+export function listOwnerStadiums(ownerId: string): Promise<Page<StadiumRow>> {
+  return viaSample(
+    OWNER_STADIUMS,
+    () => api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { ownerId, size: 50 } }),
+    // Until then: the real list, filtered here.
+    (sample) =>
+      sample.ownerStadiums(ownerId, () =>
+        api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { size: 100 } }),
+      ),
+  )
+}

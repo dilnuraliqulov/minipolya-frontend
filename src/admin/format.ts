@@ -1,4 +1,4 @@
-import { parseUtc, toTashkentParts } from '../shared/format'
+import { formatTimeRange, parseUtc, toTashkentParts } from '../shared/format'
 
 /** Uzbek (Latin) month names, index 0 = January. Admin panel only — no i18n there. */
 const MONTHS = [
@@ -91,4 +91,14 @@ export function formatLongDate(iso: string): string {
 /** A stadium format for display: "5x5" → "5×5". */
 export function formatPitch(format: string): string {
   return format.replace('x', '×')
+}
+
+/** Weekday abbreviations, 0 = Monday as the backend counts. */
+export const WEEKDAYS_SHORT = ['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya']
+
+/** A booking's slot in Tashkent: "Pa 22 okt · 20:00–22:00". */
+export function formatSlot(startsAt: string, endsAt: string): string {
+  const p = toTashkentParts(startsAt)
+  const day = `${WEEKDAYS_SHORT[p.dayOfWeek]} ${p.day} ${MONTHS_SHORT[p.month - 1]}`
+  return `${day} · ${formatTimeRange(startsAt, endsAt)}`
 }
