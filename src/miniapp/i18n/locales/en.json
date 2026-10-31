@@ -68,5 +68,40 @@
     "conflict": "The data has changed. Refresh and try again.",
     "tooMany": "Too many attempts. Please try again later.",
     "unknown": "Something went wrong. Please try again."
+  },
+  "languages": {
+    "uz": "Oʻzbekcha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "profile": {
+    "personal": "Personal details",
+    "cards": "My cards",
+    "favorites": "Favourites",
+    "language": "Language",
+    "languageTitle": "Choose a language",
+    "theme": "Theme",
+    "themeTitle": "Choose a theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "noPhone": "No phone number yet",
+    "ownerMode": "Owner mode",
+    "ownerModeText": "Manage your pitches, bookings and payments",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone number",
+    "phoneHint": "Format: +998 XX XXX XX XX",
+    "firstNameRequired": "Enter your first name",
+    "lastNameRequired": "Enter your last name",
+    "phoneRequired": "Enter your phone number",
+    "phoneInvalid": "The number must look like +998 XX XXX XX XX",
+    "notFromTelegram": "Your name and phone are never taken from Telegram automatically — only what you enter is saved.",
+    "soonNotice": "Coming soon: saving your name and phone is not available yet.",
+    "save": "Save",
+    "saved": "Saved",
+    "setupTitle": "Complete your profile",
+    "setupSubtitle": "So the pitch owner can contact you",
+    "continue": "Continue"
   }
 }

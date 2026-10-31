@@ -58,3 +58,34 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.conflict` | Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring. | Данные изменились. Обновите страницу и попробуйте ещё раз. | The data has changed. Refresh and try again. |
 | `errors.tooMany` | Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring. | Слишком много попыток. Попробуйте чуть позже. | Too many attempts. Please try again later. |
 | `errors.unknown` | Nimadir xato ketdi. Qayta urinib koʻring. | Что-то пошло не так. Попробуйте ещё раз. | Something went wrong. Please try again. |
+| `languages.uz` | Oʻzbekcha | Oʻzbekcha | Oʻzbekcha |
+| `languages.ru` | Русский | Русский | Русский |
+| `languages.en` | English | English | English |
+| `profile.personal` | Shaxsiy maʼlumotlar | Личные данные | Personal details |
+| `profile.cards` | Kartalarim | Мои карты | My cards |
+| `profile.favorites` | Sevimlilar | Избранное | Favourites |
+| `profile.language` | Til | Язык | Language |
+| `profile.languageTitle` | Tilni tanlang | Выберите язык | Choose a language |
+| `profile.theme` | Mavzu | Тема | Theme |
+| `profile.themeTitle` | Mavzuni tanlang | Выберите тему | Choose a theme |
+| `profile.themeLight` | Yorugʻ | Светлая | Light |
+| `profile.themeDark` | Qorongʻi | Тёмная | Dark |
+| `profile.themeSystem` | Tizim | Системная | System |
+| `profile.noPhone` | Telefon raqam kiritilmagan | Номер телефона не указан | No phone number yet |
+| `profile.ownerMode` | Ega rejimi | Режим владельца | Owner mode |
+| `profile.ownerModeText` | Maydonlaringiz, bronlar va toʻlovlarni boshqarish | Управление полями, бронированиями и платежами | Manage your pitches, bookings and payments |
+| `profile.firstName` | Ism | Имя | First name |
+| `profile.lastName` | Familiya | Фамилия | Last name |
+| `profile.phone` | Telefon raqam | Номер телефона | Phone number |
+| `profile.phoneHint` | Format: +998 XX XXX XX XX | Формат: +998 XX XXX XX XX | Format: +998 XX XXX XX XX |
+| `profile.firstNameRequired` | Ismni kiriting | Введите имя | Enter your first name |
+| `profile.lastNameRequired` | Familiyani kiriting | Введите фамилию | Enter your last name |
+| `profile.phoneRequired` | Telefon raqamni kiriting | Введите номер телефона | Enter your phone number |
+| `profile.phoneInvalid` | Raqam +998 XX XXX XX XX formatida boʻlishi kerak | Номер должен быть в формате +998 XX XXX XX XX | The number must look like +998 XX XXX XX XX |
+| `profile.notFromTelegram` | Ism, familiya va telefon Telegramʼdan avtomatik olinmaydi — faqat siz kiritgan maʼlumotlar saqlanadi. | Имя, фамилия и телефон не берутся из Telegram автоматически — сохраняется только то, что вы ввели. | Your name and phone are never taken from Telegram automatically — only what you enter is saved. |
+| `profile.soonNotice` | Tez orada: ism, familiya va telefonni saqlash hali ishga tushmagan. | Скоро: сохранение имени, фамилии и телефона ещё не работает. | Coming soon: saving your name and phone is not available yet. |
+| `profile.save` | Saqlash | Сохранить | Save |
+| `profile.saved` | Saqlandi | Сохранено | Saved |
+| `profile.setupTitle` | Profilingizni toʻldiring | Заполните профиль | Complete your profile |
+| `profile.setupSubtitle` | Maydon egasi siz bilan bogʻlana olishi uchun | Чтобы владелец поля мог с вами связаться | So the pitch owner can contact you |
+| `profile.continue` | Davom etish | Продолжить | Continue |

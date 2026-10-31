@@ -68,5 +68,40 @@
     "conflict": "Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.",
     "tooMany": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
     "unknown": "Nimadir xato ketdi. Qayta urinib koʻring."
+  },
+  "languages": {
+    "uz": "Oʻzbekcha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "profile": {
+    "personal": "Shaxsiy maʼlumotlar",
+    "cards": "Kartalarim",
+    "favorites": "Sevimlilar",
+    "language": "Til",
+    "languageTitle": "Tilni tanlang",
+    "theme": "Mavzu",
+    "themeTitle": "Mavzuni tanlang",
+    "themeLight": "Yorugʻ",
+    "themeDark": "Qorongʻi",
+    "themeSystem": "Tizim",
+    "noPhone": "Telefon raqam kiritilmagan",
+    "ownerMode": "Ega rejimi",
+    "ownerModeText": "Maydonlaringiz, bronlar va toʻlovlarni boshqarish",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "phone": "Telefon raqam",
+    "phoneHint": "Format: +998 XX XXX XX XX",
+    "firstNameRequired": "Ismni kiriting",
+    "lastNameRequired": "Familiyani kiriting",
+    "phoneRequired": "Telefon raqamni kiriting",
+    "phoneInvalid": "Raqam +998 XX XXX XX XX formatida boʻlishi kerak",
+    "notFromTelegram": "Ism, familiya va telefon Telegramʼdan avtomatik olinmaydi — faqat siz kiritgan maʼlumotlar saqlanadi.",
+    "soonNotice": "Tez orada: ism, familiya va telefonni saqlash hali ishga tushmagan.",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "setupTitle": "Profilingizni toʻldiring",
+    "setupSubtitle": "Maydon egasi siz bilan bogʻlana olishi uchun",
+    "continue": "Davom etish"
   }
 }

@@ -51,6 +51,7 @@ src/
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
+│   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
 │   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, BackButton, haptics, start_param, invite links
 │   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
