@@ -45,8 +45,8 @@ admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
 │   ├── main.tsx      #   entry: theme, API client (in-memory token), Query, i18n
-│   ├── telegram.ts   #   typed access to window.Telegram.WebApp
-│   ├── theme.ts      #   follows Telegram's colorScheme live
+│   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, BackButton, haptics, start_param, invite links
+│   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts

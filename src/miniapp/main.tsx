@@ -5,9 +5,11 @@ import { configureApiClient, createMemoryTokenStore, createQueryClient } from '.
 import '../shared/theme/index.css'
 import { App } from './App'
 import './i18n'
-import { getTelegramWebApp } from './telegram'
+import { initViewport } from './telegram'
 import { initMiniAppTheme } from './theme'
 
+// ready() + expand() + safe-area CSS variables.
+initViewport()
 initMiniAppTheme()
 
 // The token lives in memory: every launch logs in again from Telegram initData.
@@ -22,7 +24,3 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
-
-const webApp = getTelegramWebApp()
-webApp?.ready()
-webApp?.expand()
