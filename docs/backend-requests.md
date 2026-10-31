@@ -70,6 +70,37 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 waits on; the panel shows "Tez orada" for those until they ship. R18 is a
 correction to fields that already exist, so nothing waits on it there.
 `src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21).
+R22 changes a default the frontend already reads, so nothing waits on it there.
+
+### R22 — New users start in Uzbek, not in their Telegram language
+
+**What's needed**
+The Mini App's language is the user's saved `language` (`UserResponse.language`),
+and a **new user must start in Uzbek (`uz`)**. Today
+`AuthService.createFromTelegram` sets it from Telegram's `language_code`
+(`resolveLanguage`: `ru` / `en` when Telegram says so, otherwise `uz`), so a
+player whose Telegram is in Russian starts in Russian. The frontend cannot
+correct this: it cannot tell a Telegram-copied `ru` from one the player chose,
+and must not override the saved value.
+
+**Which screen needs it**
+Mini App, every screen, a player's first launch.
+
+**Proposed endpoint**
+No new endpoint. In `POST /api/auth/telegram`, a user created on first login
+gets `language = "uz"` regardless of `language_code`. Existing users keep
+their saved value; `PATCH /api/users/me` `language` stays the only way to
+change it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `user.language` | `"uz"` | on the response that **creates** the user |
+
+Error cases — none new.
+
+**Priority**
+Medium — players with a Russian or English Telegram see the app in that
+language on first launch instead of Uzbek; they can switch in Profil → Til.
 
 ### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod)
 

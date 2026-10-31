@@ -59,6 +59,26 @@ describe('Mini App session', () => {
     expect(i18n.language).toBe('ru')
   })
 
+  it("uses the backend's saved language, never Telegram's language_code", async () => {
+    await i18n.changeLanguage('uz')
+    installFakeTelegram({
+      initDataUnsafe: { user: { language_code: 'ru' } } as never,
+      initData: 'user=%7B%22id%22%3A1%2C%22language_code%22%3A%22ru%22%7D&auth_date=1&hash=x',
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, { token: fakeJwt({}), user: makeUser({ language: 'uz' }) }),
+        ),
+    )
+    expect(i18n.language).toBe('uz')
+    session.start()
+    await settled()
+    expect(i18n.language).toBe('uz')
+  })
+
   it('stops with "no-telegram" when there is no initData (a plain browser)', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)

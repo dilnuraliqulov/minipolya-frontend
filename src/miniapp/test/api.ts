@@ -46,7 +46,9 @@ export function stubApi(routes: Record<string, Reply>) {
     sent.push({ key, body })
     if (!(key in routes)) return jsonResponse(404, null, 'Not found')
     const route = routes[key]
-    const reply = typeof route === 'function' ? (route as (b: unknown) => unknown)(body) : route
+    const reply = await (typeof route === 'function'
+      ? (route as (b: unknown) => unknown)(body)
+      : route)
     return reply instanceof Response ? reply : jsonResponse(200, reply)
   })
   vi.stubGlobal('fetch', mock)

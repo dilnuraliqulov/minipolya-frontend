@@ -20,9 +20,10 @@ export function LanguageSheet({
   const toast = useToast()
   const update = useUpdateLanguage()
   const choose = (language: Language) => {
-    if (language === current) return onClose()
+    onClose()
+    if (language === current) return
+    // Switches at once; a failed save switches back and says why.
     update.mutate(language, {
-      onSuccess: onClose,
       onError: (error) => toast.show(errorMessage(error), 'danger'),
     })
   }
