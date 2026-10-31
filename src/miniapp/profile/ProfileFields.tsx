@@ -5,8 +5,8 @@ import type { ProfileForm } from './useProfileForm'
 /** Ism + Familiya side by side (sheet) or stacked (page), then the phone. */
 export function ProfileFields({ form, layout }: { form: ProfileForm; layout: 'sheet' | 'page' }) {
   const { t } = useTranslation()
-  const { fields, errors, available } = form
-  const disabled = !available || form.saving
+  const { fields, errors } = form
+  const disabled = form.saving
   return (
     <>
       <div className={layout === 'sheet' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-4'}>
@@ -43,11 +43,6 @@ export function ProfileFields({ form, layout }: { form: ProfileForm; layout: 'sh
         hint={t('profile.phoneHint')}
         disabled={disabled}
       />
-      {!available && (
-        <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning">
-          {t('profile.soonNotice')}
-        </p>
-      )}
     </>
   )
 }

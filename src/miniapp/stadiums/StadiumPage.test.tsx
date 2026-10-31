@@ -77,7 +77,25 @@ describe('Maydon — the stadium page', () => {
     )
   })
 
-  it('shows the latest reviews with the count; the average waits for R23', async () => {
+  it('shows the average rating and the review count from the detail', async () => {
+    stub({ [DETAIL]: makeDetail({ averageRating: 4.75, reviewCount: 12 }) })
+    renderApp(`/stadiums/${ID}`)
+    await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' })
+    expect(screen.getByText('4.8')).toBeInTheDocument()
+    expect(screen.getByText('(12)')).toBeInTheDocument()
+  })
+
+  it('hides the average when the stadium has no reviews', async () => {
+    stub({
+      [DETAIL]: makeDetail({ averageRating: undefined, reviewCount: 0 }),
+      [REVIEWS]: page([]),
+    })
+    renderApp(`/stadiums/${ID}`)
+    await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' })
+    expect(screen.queryByText('(0)')).not.toBeInTheDocument()
+  })
+
+  it('shows the latest reviews with the count', async () => {
     stub({
       [REVIEWS]: page([makeReview(), makeReview({ id: 'r2', userName: 'Dilshod K.', rating: 4 })], {
         totalPages: 2,

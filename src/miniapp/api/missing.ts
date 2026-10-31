@@ -5,16 +5,12 @@
  * While an endpoint is listed, everything that needs it shows "Tez orada" or
  * is hidden, and nothing is requested. Nothing is ever filled in instead.
  * When the backend ships one, delete its line: the real call takes over.
- * Keys are the constants next to the API functions (e.g. `PROFILE_FIELDS`).
+ * Keys are the constants next to the API functions (e.g. `'GET /api/foo'`).
+ *
+ * Empty while no request is open (R20, R21 and R23 shipped in backend
+ * `4d5faf0`).
  */
-export const MISSING_ENDPOINTS: Record<string, string> = {
-  'PATCH /api/users/me firstName, lastName, phone': 'R20',
-  '403 Account is blocked data.reason, data.blockedAt': 'R21',
-  'GET /api/stadiums district': 'R23',
-  'StadiumResponse coverPhotoUrl, isFavorited': 'R23',
-  'StadiumDetailResponse averageRating, reviewCount': 'R23',
-  'TimeSlot unavailableReason': 'R23',
-}
+export const MISSING_ENDPOINTS: Record<string, string> = {}
 
 export type Availability = 'available' | 'soon'
 

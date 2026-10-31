@@ -51,7 +51,7 @@ export function useUpdateLanguage() {
   })
 }
 
-/** R20 — only usable when `isAvailable(PROFILE_FIELDS)`. */
+/** Saves first name, last name and phone (PATCH /api/users/me). */
 export function useUpdateProfile() {
   const queryClient = useQueryClient()
   return useMutation({

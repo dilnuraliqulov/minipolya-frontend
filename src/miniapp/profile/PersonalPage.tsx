@@ -15,7 +15,7 @@ import { ProfileFields } from './ProfileFields'
 import { useMe } from './queries'
 import { useProfileForm } from './useProfileForm'
 
-/** Profil → Shaxsiy maʼlumotlar: first name, last name and phone (saving needs R20). */
+/** Profil → Shaxsiy maʼlumotlar: first name, last name and phone. */
 export function PersonalPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -48,7 +48,7 @@ function PersonalForm({ user, header }: { user: User; header: React.ReactNode })
       header={header}
       footer={
         <BottomBar>
-          <Button haptic disabled={!form.available} loading={form.saving} onClick={form.submit}>
+          <Button haptic loading={form.saving} onClick={form.submit}>
             {t('profile.save')}
           </Button>
         </BottomBar>

@@ -27,13 +27,7 @@ export function ProfileSetupSheet({
       subtitle={t('profile.setupSubtitle')}
       onClose={onClose}
       actions={
-        <Button
-          variant="secondary"
-          haptic
-          disabled={!form.available}
-          loading={form.saving}
-          onClick={form.submit}
-        >
+        <Button variant="secondary" haptic loading={form.saving} onClick={form.submit}>
           {t('profile.continue')}
         </Button>
       }

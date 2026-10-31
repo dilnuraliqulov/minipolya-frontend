@@ -73,7 +73,7 @@ describe('AuthGate', () => {
     expect(screen.getByText(/Sessiya tugadi/)).toBeInTheDocument()
   })
 
-  it('shows "Hisobingiz bloklangan" without a reason while the backend sends none (R21)', () => {
+  it('shows "Hisobingiz bloklangan" without a reason when the backend sends none', () => {
     renderGate(sessionIn({ status: 'blocked', details: {} }))
     expect(screen.getByRole('heading', { name: 'Hisobingiz bloklangan' })).toBeInTheDocument()
     expect(screen.queryByText(/Sabab:/)).not.toBeInTheDocument()
@@ -91,18 +91,18 @@ describe('AuthGate', () => {
     expect(screen.getByText(/31-oktabr, 2026/)).toBeInTheDocument()
   })
 
-  it('outside Telegram in development, says the dev login is a backend request (R19)', () => {
+  it('outside Telegram in development, adds a note for developers', () => {
     vi.stubEnv('DEV', true)
     renderGate(sessionIn({ status: 'no-telegram' }))
     expect(screen.getByRole('heading', { name: 'Telegram orqali oching' })).toBeInTheDocument()
-    expect(screen.getByText(/R19/)).toBeInTheDocument()
+    expect(screen.getByText(/Dasturlash rejimi/)).toBeInTheDocument()
   })
 
   it('outside Telegram in production, only asks to open it in Telegram', () => {
     vi.stubEnv('DEV', false)
     renderGate(sessionIn({ status: 'no-telegram' }))
     expect(screen.getByRole('heading', { name: 'Telegram orqali oching' })).toBeInTheDocument()
-    expect(screen.queryByText(/R19/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Dasturlash rejimi/)).not.toBeInTheDocument()
   })
 
   it('follows the session live', () => {

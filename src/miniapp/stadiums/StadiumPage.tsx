@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { errorMessage } from '../api/errors'
-import { isAvailable } from '../api/missing'
-import { STADIUM_DETAIL_RATING, type StadiumDetail, type TimeSlot } from '../api/stadiums'
+import type { StadiumDetail, TimeSlot } from '../api/stadiums'
 import {
   BottomBar,
   Button,
@@ -167,7 +166,7 @@ function FavoriteButton({ stadium }: { stadium: StadiumDetail }) {
 
 function StadiumInfo({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
-  const rating = isAvailable(STADIUM_DETAIL_RATING) ? stadium.averageRating : undefined
+  const rating = stadium.averageRating
   const badges = [
     formatLabel(stadium.format),
     isKnownSurface(stadium.surfaceType)

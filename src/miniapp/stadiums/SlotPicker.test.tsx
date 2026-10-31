@@ -10,8 +10,11 @@ const ID = '018f3a2c-0000-7000-8000-0000000000a1'
 const AVAILABILITY = `GET /api/stadiums/${ID}/availability`
 const complete = makeUser({ firstName: 'Aziz', lastName: 'Karimov', phone: '+998901234567' })
 
+const unavailable = (start: string, status: 'booked' | 'closed' | 'past') =>
+  makeSlot(start, { available: false, status, pricePerHour: undefined })
+
 const SLOTS = [
-  makeSlot('19:00', { available: false, pricePerHour: undefined }),
+  unavailable('19:00', 'booked'),
   makeSlot('20:00', { pricePerHour: 15_500_000 }),
   makeSlot('21:00', {
     pricePerHour: 13_500_000,
@@ -20,6 +23,7 @@ const SLOTS = [
     promotionName: 'Kechki',
   }),
   makeSlot('22:00', { pricePerHour: 15_500_000, hasWaitingGame: true }),
+  unavailable('18:00', 'closed'),
 ]
 
 function stub(overrides: Record<string, unknown> = {}) {
@@ -68,14 +72,16 @@ describe('Choosing a slot', () => {
     await vi.waitFor(() => expect(api.queries(AVAILABILITY).at(-1)).toEqual({ date: '2026-11-29' }))
   })
 
-  it('shows each hour with its price from the API; unavailable hours are disabled', async () => {
+  it('shows each hour with its price from the API; booked and closed hours are disabled', async () => {
     stub()
     renderApp(`/stadiums/${ID}`)
     expect(await screen.findByRole('radio', { name: /^20:00–21:00/ })).toHaveAccessibleName(
       '20:00–21:00, 155 000 soʻm',
     )
     expect(slot('19:00')).toBeDisabled()
-    expect(within(slot('19:00')).getByText('Boʻsh emas')).toBeInTheDocument()
+    expect(slot('19:00')).toHaveAccessibleName('19:00–20:00, Band')
+    expect(slot('18:00')).toBeDisabled()
+    expect(slot('18:00')).toHaveAccessibleName('18:00–19:00, Yopiq')
     expect(within(slot('21:00')).getByText('170 000')).toBeInTheDocument()
     expect(within(slot('21:00')).getByText('-20%')).toBeInTheDocument()
     expect(within(slot('22:00')).getByText('Raqib qidirilmoqda')).toBeInTheDocument()
@@ -98,6 +104,19 @@ describe('Choosing a slot', () => {
     // The slot's own price — never a sum.
     expect(bar()).toHaveTextContent('Band qilish · 21:00–22:00 · 135 000 soʻm')
     expect(screen.getAllByRole('radio', { checked: true })).toHaveLength(2) // the day and the slot
+  })
+
+  it('labels an hour that has already started today', async () => {
+    stub({
+      [AVAILABILITY]: {
+        stadiumId: ID,
+        stadiumName: 'x',
+        date: 'x',
+        slots: [unavailable('09:00', 'past'), makeSlot('10:00')],
+      },
+    })
+    renderApp(`/stadiums/${ID}`)
+    expect(await screen.findByRole('radio', { name: '09:00–10:00, Oʻtgan' })).toBeDisabled()
   })
 
   it('ignores a tap on an unavailable hour', async () => {

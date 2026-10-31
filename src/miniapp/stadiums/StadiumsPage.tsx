@@ -10,17 +10,29 @@ import {
   type StadiumFilters,
   type StadiumFormat,
 } from '../api/stadiums'
-import { Button, Chip, EmptyState, ErrorState, SearchField, SkeletonList } from '../components'
+import { errorMessage } from '../api/errors'
+import {
+  Button,
+  Chip,
+  EmptyState,
+  ErrorState,
+  SearchField,
+  SkeletonList,
+  useToast,
+} from '../components'
 import { TabScreen } from '../layout/TabScreen'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
 import { FiltersSheet } from './FiltersSheet'
 import { formatLabel } from './labels'
+import { STADIUM_LISTS_KEY, useToggleFavorite } from './queries'
 import { StadiumCard } from './StadiumCard'
 
 /** Bosh sahifa (the Maydonlar tab): search, format chips, filters, the stadium list. */
 export function StadiumsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const toast = useToast()
+  const toggle = useToggleFavorite()
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<StadiumFilters>(NO_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -28,14 +40,15 @@ export function StadiumsPage() {
   const active = { ...filters, q }
 
   const list = useInfiniteQuery({
-    queryKey: ['stadiums', active],
+    queryKey: [...STADIUM_LISTS_KEY, active],
     queryFn: ({ pageParam }) => getStadiums(active, pageParam),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
   })
 
   const stadiums = list.data?.pages.flatMap((page) => page.content) ?? []
-  const searching = q.trim() !== '' || filters.maxPrice !== null || filters.format !== null
+  const sheetFiltered = filters.maxPrice !== null || filters.district !== null
+  const searching = q.trim() !== '' || sheetFiltered || filters.format !== null
   const clearAll = () => {
     setSearch('')
     setFilters(NO_FILTERS)
@@ -53,7 +66,7 @@ export function StadiumsPage() {
           className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-link"
         >
           <SlidersHorizontal size={20} aria-hidden />
-          {filters.maxPrice !== null && (
+          {sheetFiltered && (
             <span className="absolute top-2 right-2 size-2 rounded-full bg-accent" />
           )}
         </button>
@@ -109,6 +122,18 @@ export function StadiumsPage() {
                 key={stadium.id}
                 stadium={stadium}
                 onOpen={() => navigate(`/stadiums/${stadium.id}`)}
+                favorite={
+                  stadium.isFavorited === undefined
+                    ? undefined
+                    : {
+                        favorited: stadium.isFavorited,
+                        pending: toggle.isPending && toggle.variables === stadium.id,
+                        onToggle: () =>
+                          toggle.mutate(stadium.id, {
+                            onError: (error) => toast.show(errorMessage(error), 'danger'),
+                          }),
+                      }
+                }
               />
             ))}
             {list.hasNextPage && (

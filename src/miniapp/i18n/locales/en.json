@@ -40,7 +40,7 @@
     "errorSession": "Your session has ended. Tap “Try again” or reopen the app.",
     "noTelegramTitle": "Open it in Telegram",
     "noTelegramText": "MiniPolya runs inside Telegram. Open the bot and launch the app.",
-    "noTelegramDev": "Development mode: the backend has no login without Telegram (dev login) yet — request R19, docs/backend-requests.md. For now, open the app inside Telegram through a tunnel."
+    "noTelegramDev": "Development mode: the app can only sign in inside Telegram for now. Open it in Telegram through a tunnel."
   },
   "blocked": {
     "title": "Your account is blocked",
@@ -68,6 +68,7 @@
     "notFound": "Not found.",
     "invalid": "Some details are not valid. Check them and try again.",
     "conflict": "The data has changed. Refresh and try again.",
+    "phoneTaken": "This number is already linked to another account. Enter a different number.",
     "tooMany": "Too many attempts. Please try again later.",
     "unknown": "Something went wrong. Please try again."
   },
@@ -99,7 +100,6 @@
     "phoneRequired": "Enter your phone number",
     "phoneInvalid": "The number must look like +998 XX XXX XX XX",
     "notFromTelegram": "Your name and phone are never taken from Telegram automatically — only what you enter is saved.",
-    "soonNotice": "Coming soon: saving your name and phone is not available yet.",
     "save": "Save",
     "saved": "Saved",
     "setupTitle": "Complete your profile",
@@ -122,6 +122,8 @@
     "clearSearch": "Clear search",
     "maxPrice": "Price per hour, up to (UZS)",
     "district": "District",
+    "allDistricts": "All districts",
+    "chooseDistrict": "Choose a district",
     "apply": "Apply",
     "resetFilters": "Reset filters"
   },
@@ -190,6 +192,7 @@
     "unavailable": "Not available",
     "booked": "Booked",
     "closed": "Closed",
+    "past": "Past",
     "waitingGame": "Looking for an opponent",
     "waitingHint": "If you book a “Looking for an opponent” hour, that game is cancelled and the team gets its money back.",
     "emptyTitle": "No free hours on this day",

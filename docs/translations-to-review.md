@@ -38,7 +38,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `auth.errorSession` | Sessiya tugadi. «Qayta urinish»ni bosing yoki ilovani qayta oching. | Сессия завершилась. Нажмите «Повторить» или откройте приложение заново. | Your session has ended. Tap “Try again” or reopen the app. |
 | `auth.noTelegramTitle` | Telegram orqali oching | Откройте через Telegram | Open it in Telegram |
 | `auth.noTelegramText` | MiniPolya Telegram ichida ishlaydi. Botni oching va ilovani ishga tushiring. | MiniPolya работает внутри Telegram. Откройте бота и запустите приложение. | MiniPolya runs inside Telegram. Open the bot and launch the app. |
-| `auth.noTelegramDev` | Dasturlash rejimi: backendda Telegramʼsiz kirish (dev-login) hali yoʻq — soʻrov R19, docs/backend-requests.md. Hozircha ilovani tunnel orqali Telegram ichida oching. | Режим разработки: в бэкенде пока нет входа без Telegram (dev-login) — запрос R19, docs/backend-requests.md. Пока откройте приложение в Telegram через туннель. | Development mode: the backend has no login without Telegram (dev login) yet — request R19, docs/backend-requests.md. For now, open the app inside Telegram through a tunnel. |
+| `auth.noTelegramDev` | Dasturlash rejimi: ilova hozircha faqat Telegram ichida kiradi. Uni tunnel orqali Telegram ichida oching. | Режим разработки: приложение пока входит только внутри Telegram. Откройте его в Telegram через туннель. | Development mode: the app can only sign in inside Telegram for now. Open it in Telegram through a tunnel. |
 | `blocked.title` | Hisobingiz bloklangan | Ваш аккаунт заблокирован | Your account is blocked |
 | `blocked.reason` | Sabab: {{reason}} | Причина: {{reason}} | Reason: {{reason}} |
 | `blocked.date` | Qaror sanasi: {{date}} | Дата решения: {{date}} | Decision date: {{date}} |
@@ -58,6 +58,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.notFound` | Maʼlumot topilmadi. | Данные не найдены. | Not found. |
 | `errors.invalid` | Maʼlumotlar notoʻgʻri. Tekshirib, qayta urinib koʻring. | Данные неверны. Проверьте их и попробуйте ещё раз. | Some details are not valid. Check them and try again. |
 | `errors.conflict` | Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring. | Данные изменились. Обновите страницу и попробуйте ещё раз. | The data has changed. Refresh and try again. |
+| `errors.phoneTaken` | Bu raqam boshqa hisobga bogʻlangan. Boshqa raqam kiriting. | Этот номер уже привязан к другому аккаунту. Введите другой номер. | This number is already linked to another account. Enter a different number. |
 | `errors.tooMany` | Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring. | Слишком много попыток. Попробуйте чуть позже. | Too many attempts. Please try again later. |
 | `errors.unknown` | Nimadir xato ketdi. Qayta urinib koʻring. | Что-то пошло не так. Попробуйте ещё раз. | Something went wrong. Please try again. |
 | `languages.uz` | Oʻzbekcha | Oʻzbekcha | Oʻzbekcha |
@@ -85,7 +86,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `profile.phoneRequired` | Telefon raqamni kiriting | Введите номер телефона | Enter your phone number |
 | `profile.phoneInvalid` | Raqam +998 XX XXX XX XX formatida boʻlishi kerak | Номер должен быть в формате +998 XX XXX XX XX | The number must look like +998 XX XXX XX XX |
 | `profile.notFromTelegram` | Ism, familiya va telefon Telegramʼdan avtomatik olinmaydi — faqat siz kiritgan maʼlumotlar saqlanadi. | Имя, фамилия и телефон не берутся из Telegram автоматически — сохраняется только то, что вы ввели. | Your name and phone are never taken from Telegram automatically — only what you enter is saved. |
-| `profile.soonNotice` | Tez orada: ism, familiya va telefonni saqlash hali ishga tushmagan. | Скоро: сохранение имени, фамилии и телефона ещё не работает. | Coming soon: saving your name and phone is not available yet. |
 | `profile.save` | Saqlash | Сохранить | Save |
 | `profile.saved` | Saqlandi | Сохранено | Saved |
 | `profile.setupTitle` | Profilingizni toʻldiring | Заполните профиль | Complete your profile |
@@ -106,6 +106,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadiums.clearSearch` | Qidiruvni tozalash | Сбросить поиск | Clear search |
 | `stadiums.maxPrice` | Soatiga narx, gacha (soʻm) | Цена за час, до (сум) | Price per hour, up to (UZS) |
 | `stadiums.district` | Tuman | Район | District |
+| `stadiums.allDistricts` | Barcha tumanlar | Все районы | All districts |
+| `stadiums.chooseDistrict` | Tumanni tanlang | Выберите район | Choose a district |
 | `stadiums.apply` | Qoʻllash | Применить | Apply |
 | `stadiums.resetFilters` | Filtrlarni tozalash | Сбросить фильтры | Reset filters |
 | `stadium.title` | Maydon | Поле | Pitch |
@@ -160,6 +162,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `slots.unavailable` | Boʻsh emas | Недоступно | Not available |
 | `slots.booked` | Band | Занято | Booked |
 | `slots.closed` | Yopiq | Закрыто | Closed |
+| `slots.past` | Oʻtgan | Прошло | Past |
 | `slots.waitingGame` | Raqib qidirilmoqda | Ищут соперника | Looking for an opponent |
 | `slots.waitingHint` | «Raqib qidirilmoqda» vaqtni band qilsangiz, oʻsha oʻyin bekor qilinadi va jamoaga pul qaytariladi. | Если забронировать время «Ищут соперника», та игра отменится, а команде вернут деньги. | If you book a “Looking for an opponent” hour, that game is cancelled and the team gets its money back. |
 | `slots.emptyTitle` | Bu kunda boʻsh vaqt yoʻq | В этот день нет свободного времени | No free hours on this day |

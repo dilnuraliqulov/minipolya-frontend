@@ -1,6 +1,6 @@
 /**
  * Machine-readable `code` values the client branches on. The backend sends a
- * `code` only on some errors so far (the admin auth ones); prefer it over
+ * `code` only on some errors so far (admin auth, blocked, phone taken); prefer it over
  * matching `message` wherever one exists.
  */
 export const API_CODES = {
@@ -12,8 +12,10 @@ export const API_CODES = {
   accountLocked: 'ACCOUNT_LOCKED',
   /** 429 from the admin login: too many attempts from this IP; `data.minutesRemaining`. */
   tooManyAttempts: 'TOO_MANY_ATTEMPTS',
-  /** 403 from the admin login: right password, but the account is blocked. */
+  /** 403 on any request, the Telegram login and the admin login: the account is blocked; `data: { reason?, blockedAt? }`. */
   accountBlocked: 'ACCOUNT_BLOCKED',
+  /** 409 from `PATCH /api/users/me`: the phone belongs to another account. */
+  phoneTaken: 'PHONE_TAKEN',
 } as const
 
 /**

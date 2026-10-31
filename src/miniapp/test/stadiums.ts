@@ -14,14 +14,15 @@ export function makeStadium(overrides: Partial<Stadium> = {}): Stadium {
     isActive: true,
     averageRating: 4.8,
     reviewCount: 128,
+    coverPhotoUrl: 'https://img.test/cover.jpg',
+    isFavorited: false,
     ...overrides,
   }
 }
 
 export function makeDetail(overrides: Partial<StadiumDetail> = {}): StadiumDetail {
   const base: Partial<Stadium> = makeStadium()
-  delete base.averageRating
-  delete base.reviewCount
+  delete base.coverPhotoUrl
   return {
     ...(base as Stadium),
     ownerId: '018f3a2c-0000-7000-8000-0000000000b1',
@@ -58,6 +59,7 @@ export function makeSlot(start: string, overrides: Partial<TimeSlot> = {}): Time
     startTime: `${start}:00`,
     endTime: end,
     available: true,
+    status: 'free',
     pricePerHour: 15_500_000,
     hasWaitingGame: false,
     ...overrides,

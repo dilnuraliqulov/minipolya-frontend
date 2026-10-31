@@ -18,7 +18,7 @@ import { getInitData } from '../telegram'
 export type SessionState =
   | { status: 'loading' }
   | { status: 'ready'; user: User }
-  /** No initData: a plain browser. In development a dev login is request R19. */
+  /** No initData: a plain browser — login cannot work there. */
   | { status: 'no-telegram' }
   | { status: 'blocked'; details: BlockDetails }
   | { status: 'error'; reason: 'network' | 'server' | 'session' }

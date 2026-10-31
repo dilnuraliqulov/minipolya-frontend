@@ -18,6 +18,7 @@ export type ErrorMessageKey =
   | 'errors.notFound'
   | 'errors.invalid'
   | 'errors.conflict'
+  | 'errors.phoneTaken'
   | 'errors.tooMany'
   | 'errors.unknown'
 
@@ -26,6 +27,7 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (isAccountBlocked(error)) return 'errors.blocked'
   if (error.code === API_CODES.tokenRevoked) return 'errors.session'
   if (error.code === API_CODES.tooManyAttempts) return 'errors.tooMany'
+  if (error.code === API_CODES.phoneTaken) return 'errors.phoneTaken'
   if (error.isNetworkError) return 'errors.network'
   if (error.status >= 500) return 'errors.server'
   switch (error.status) {

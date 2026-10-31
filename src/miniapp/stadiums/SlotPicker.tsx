@@ -3,8 +3,7 @@ import { CalendarX, CircleCheck, Info } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatSomParts } from '../../shared/format'
-import { isAvailable } from '../api/missing'
-import { getAvailability, SLOT_UNAVAILABLE_REASON, type TimeSlot } from '../api/stadiums'
+import { getAvailability, type SlotStatus, type TimeSlot } from '../api/stadiums'
 import { Button, Card, ErrorState, cx } from '../components'
 import { formatMoney } from '../format'
 import { haptic } from '../telegram'
@@ -68,6 +67,13 @@ export function DateStrip({
   )
 }
 
+/** The pill on an hour that cannot be booked, by `TimeSlot.status`. */
+const UNAVAILABLE_KEYS = {
+  booked: 'slots.booked',
+  closed: 'slots.closed',
+  past: 'slots.past',
+} as const satisfies Record<Exclude<SlotStatus, 'free'>, string>
+
 function SlotRow({
   slot,
   checked,
@@ -82,13 +88,10 @@ function SlotRow({
   const price = slot.available ? slot.pricePerHour : undefined
 
   if (price === undefined) {
-    const reason = isAvailable(SLOT_UNAVAILABLE_REASON) ? slot.unavailableReason : undefined
     const state =
-      reason === 'booked'
-        ? t('slots.booked')
-        : reason === 'closed'
-          ? t('slots.closed')
-          : t('slots.unavailable')
+      slot.status === 'free' || !(slot.status in UNAVAILABLE_KEYS)
+        ? t('slots.unavailable')
+        : t(UNAVAILABLE_KEYS[slot.status])
     return (
       <button
         type="button"
@@ -96,7 +99,7 @@ function SlotRow({
         aria-checked={false}
         aria-label={`${label}, ${state}`}
         disabled
-        className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-background px-4"
+        className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-surface px-4 opacity-55"
       >
         <span className="text-md font-semibold text-secondary">{label}</span>
         <span className="flex-1" />

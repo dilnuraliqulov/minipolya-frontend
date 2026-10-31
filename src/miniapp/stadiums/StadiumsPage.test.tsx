@@ -64,23 +64,82 @@ describe('Bosh sahifa — the stadium list', () => {
     await vi.waitFor(() => expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20' }))
   })
 
-  it('sends the price limit in tiyin, and keeps the district filter "Tez orada" (R23)', async () => {
+  it('sends the price limit in tiyin and the district from "Tumanni tanlang"', async () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article')
 
     fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
-    const sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
-    expect(within(sheet).getByRole('button', { name: /Tuman.*Tez orada/ })).toBeDisabled()
+    let sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
     fireEvent.change(within(sheet).getByLabelText('Soatiga narx, gacha (soʻm)'), {
       target: { value: '150000' },
     })
+    fireEvent.click(within(sheet).getByRole('button', { name: /Tuman.*Barcha tumanlar/ }))
+
+    const districts = screen.getByRole('dialog', { name: 'Tumanni tanlang' })
+    expect(within(districts).getAllByRole('radio')).toHaveLength(13)
+    expect(within(districts).getByRole('radio', { name: 'Barcha tumanlar' })).toBeChecked()
+    fireEvent.click(within(districts).getByRole('radio', { name: 'Mirzo Ulugʻbek' }))
+
+    sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
+    // The typed price survives the trip to the district list.
+    expect(within(sheet).getByLabelText('Soatiga narx, gacha (soʻm)')).toHaveValue('150000')
     fireEvent.click(within(sheet).getByRole('button', { name: 'Qoʻllash' }))
 
     await vi.waitFor(() =>
-      expect(api.queries(LIST).at(-1)).toEqual({ maxPrice: '15000000', page: '0', size: '20' }),
+      expect(api.queries(LIST).at(-1)).toEqual({
+        maxPrice: '15000000',
+        district: 'Mirzo Ulugʻbek',
+        page: '0',
+        size: '20',
+      }),
     )
-    expect(api.queries(LIST).some((query) => 'district' in query)).toBe(false)
+  })
+
+  it('"Filtrlarni tozalash" drops the price and the district', async () => {
+    const api = stubApi({ [LIST]: page([makeStadium()]) })
+    renderApp('/')
+    await screen.findByRole('article')
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
+    fireEvent.click(screen.getByRole('button', { name: /Tuman/ }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Yunusobod' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Qoʻllash' }))
+    await vi.waitFor(() =>
+      expect(api.queries(LIST).at(-1)).toMatchObject({ district: 'Yunusobod' }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
+    expect(screen.getByRole('button', { name: /Tuman.*Yunusobod/ })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrlarni tozalash' }))
+    await vi.waitFor(() => expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20' }))
+  })
+
+  it('shows the cover photo, and no photo block when the stadium has none', async () => {
+    stubApi({
+      [LIST]: page([
+        makeStadium(),
+        makeStadium({ id: 's2', name: 'Paxtakor Mini Arena', coverPhotoUrl: undefined }),
+      ]),
+    })
+    const { container } = renderApp('/')
+    await screen.findByRole('article', { name: 'Paxtakor Mini Arena' })
+    const images = [...container.querySelectorAll('article img')]
+    expect(images.map((img) => img.getAttribute('src'))).toEqual(['https://img.test/cover.jpg'])
+  })
+
+  it('shows the heart from isFavorited and toggles it on the card', async () => {
+    const ID = makeStadium().id
+    const api = stubApi({
+      [LIST]: page([makeStadium({ isFavorited: false })]),
+      [`POST /api/favorites/${ID}/toggle`]: { favorited: true },
+    })
+    renderApp('/')
+    const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Sevimlilarga qoʻshish' }))
+    expect(
+      await within(card).findByRole('button', { name: 'Sevimlilardan olib tashlash' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(api.calls(`POST /api/favorites/${ID}/toggle`)).toHaveLength(1)
   })
 
   it('loads the next page with "Yana koʻrsatish"', async () => {

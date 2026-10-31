@@ -2,26 +2,25 @@ import { ArrowRight, Heart, Star } from 'lucide-react'
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatSomParts } from '../../shared/format'
-import { isAvailable } from '../api/missing'
-import { STADIUM_LIST_PHOTO_FAVORITE, type Stadium } from '../api/stadiums'
+import type { Stadium } from '../api/stadiums'
 import { Button, cx } from '../components'
 import { formatLabel, ratingLabel } from './labels'
 
 interface StadiumCardProps {
   stadium: Stadium
   onOpen: () => void
-  /** The heart: Sevimlilar always knows; list cards only once R23 ships. */
+  /** The heart — from `isFavorited` on the list, always true on Sevimlilar. */
   favorite?: { favorited: boolean; onToggle: () => void; pending?: boolean }
 }
 
 /**
- * The design's Stadium Card: (photo), name and rating, district · format, and
+ * The design's Stadium Card: cover photo (when the stadium has one), name and rating, district · format, and
  * ONE price per hour — the player price from the API, nothing else.
  */
 export function StadiumCard({ stadium, onOpen, favorite }: StadiumCardProps) {
   const { t } = useTranslation()
   const titleId = useId()
-  const photo = isAvailable(STADIUM_LIST_PHOTO_FAVORITE) ? stadium.coverPhotoUrl : undefined
+  const photo = stadium.coverPhotoUrl
   const meta = [stadium.district, formatLabel(stadium.format)].filter(Boolean).join(' · ')
   const price = formatSomParts(stadium.pricePerHour).amount
 

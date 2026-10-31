@@ -2,11 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore } from '../../shared/api'
-import { PROFILE_FIELDS, type User } from '../api/users'
+import type { User } from '../api/users'
 import { ToastProvider } from '../components/ToastProvider'
 import '../i18n'
 import { makeUser, stubApi } from '../test/api'
-import { markAvailable } from '../test/missing'
 import { isProfileComplete } from './profile'
 import { useProfileGate } from './useProfileGate'
 
@@ -61,7 +60,6 @@ describe('useProfileGate — "Profilingizni toʻldiring" before the first bookin
   })
 
   it('asks first, with empty fields (never from Telegram), and goes on after saving', async () => {
-    markAvailable(PROFILE_FIELDS)
     const onProceed = vi.fn()
     const user = makeUser({ name: 'Telegram Name' })
     stubApi({ 'PATCH /api/users/me': (body) => ({ ...user, ...(body as object) }) })
@@ -83,12 +81,5 @@ describe('useProfileGate — "Profilingizni toʻldiring" before the first bookin
 
     await vi.waitFor(() => expect(onProceed).toHaveBeenCalledOnce())
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('shows the sheet as "Tez orada" while R20 is not shipped', async () => {
-    renderBooking(makeUser(), vi.fn())
-    fireEvent.click(screen.getByRole('button', { name: 'Band qilish' }))
-    expect(await screen.findByText(/Tez orada/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Davom etish' })).toBeDisabled()
   })
 })

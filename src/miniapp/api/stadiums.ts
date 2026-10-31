@@ -1,9 +1,29 @@
 import { api, type Page } from '../../shared/api'
-import { isAvailable } from './missing'
 
 /** `stadium.format` (api-reference §1.9). */
 export const FORMATS = ['5x5', '7x7', '9x9', '11x11'] as const
 export type StadiumFormat = (typeof FORMATS)[number]
+
+/**
+ * `stadium.district` — the twelve exact strings (api-reference §1.9; backend
+ * `util/Districts`), "Mirzo Ulugʻbek" with U+02BB. Anything else is 400
+ * "Invalid district" on the list filter.
+ */
+export const DISTRICTS = [
+  'Bektemir',
+  'Chilonzor',
+  'Mirobod',
+  'Mirzo Ulugʻbek',
+  'Olmazor',
+  'Sergeli',
+  'Shayxontohur',
+  'Uchtepa',
+  'Yakkasaroy',
+  'Yangihayot',
+  'Yashnobod',
+  'Yunusobod',
+] as const
+export type District = (typeof DISTRICTS)[number]
 
 /** `StadiumResponse` — a list item (public: `pricePerHour` is the player price). */
 export interface Stadium {
@@ -23,9 +43,9 @@ export interface Stadium {
   isActive: boolean
   averageRating?: number
   reviewCount?: number
-  /** R23 — not sent yet. */
+  /** The first photo (lowest position); absent when the stadium has none. */
   coverPhotoUrl?: string
-  /** R23 — not sent yet on list items. */
+  /** Player lists, for a signed-in caller only. */
   isFavorited?: boolean
 }
 
@@ -47,7 +67,7 @@ export interface Amenities {
 }
 
 /** `StadiumDetailResponse`. */
-export interface StadiumDetail extends Omit<Stadium, 'averageRating' | 'reviewCount'> {
+export interface StadiumDetail extends Omit<Stadium, 'coverPhotoUrl'> {
   ownerId: string
   ownerPhone?: string
   phone?: string
@@ -57,17 +77,11 @@ export interface StadiumDetail extends Omit<Stadium, 'averageRating' | 'reviewCo
   closeTime: string
   /** Tiyin. Absent ⇒ the player pays in full. */
   minBookingAmount?: number
-  /** Only for a logged-in caller. */
-  isFavorited?: boolean
   cancellationPolicy: { cancellationHours: number }
   photos: Photo[]
   amenities: Amenities
   createdAt: string
   updatedAt: string
-  /** R23 — not sent yet on the detail. */
-  averageRating?: number
-  /** R23 — not sent yet on the detail. */
-  reviewCount?: number
 }
 
 /** `TimeSlot` — one hour, Tashkent local time. */
@@ -75,7 +89,10 @@ export interface TimeSlot {
   /** `"20:00:00"` */
   startTime: string
   endTime: string
+  /** True exactly when `status` is `free`. */
   available: boolean
+  /** Why an hour can or cannot be booked; `past` = today, already started. */
+  status: SlotStatus
   /** Tiyin; the one price for this hour. Absent when not available. */
   pricePerHour?: number
   /** Tiyin; the price before a promotion. */
@@ -87,9 +104,10 @@ export interface TimeSlot {
   waitingGameType?: string
   playersJoined?: number
   playersNeeded?: number
-  /** R23 — not sent yet. */
-  unavailableReason?: 'booked' | 'closed'
 }
+
+/** `TimeSlot.status` (api-reference §4). */
+export type SlotStatus = 'free' | 'booked' | 'closed' | 'past'
 
 export interface Availability {
   stadiumId: string
@@ -116,15 +134,6 @@ export interface Review {
   createdAt: string
 }
 
-/** R23: the `district` parameter on GET /api/stadiums. */
-export const STADIUM_DISTRICT_FILTER = 'GET /api/stadiums district'
-/** R23: `coverPhotoUrl` and `isFavorited` on list items. */
-export const STADIUM_LIST_PHOTO_FAVORITE = 'StadiumResponse coverPhotoUrl, isFavorited'
-/** R23: `averageRating` / `reviewCount` on the detail. */
-export const STADIUM_DETAIL_RATING = 'StadiumDetailResponse averageRating, reviewCount'
-/** R23: `unavailableReason` on a slot. */
-export const SLOT_UNAVAILABLE_REASON = 'TimeSlot unavailableReason'
-
 export const PAGE_SIZE = 20
 
 export interface StadiumFilters {
@@ -132,8 +141,7 @@ export interface StadiumFilters {
   format: StadiumFormat | null
   /** Tiyin — the player price per hour, upper bound. */
   maxPrice: number | null
-  /** Only sent once R23 ships. */
-  district: string | null
+  district: District | null
 }
 
 export const NO_FILTERS: StadiumFilters = { q: '', format: null, maxPrice: null, district: null }
@@ -145,8 +153,7 @@ export function stadiumListQuery(filters: StadiumFilters, page: number) {
     q: q || undefined,
     format: filters.format ?? undefined,
     maxPrice: filters.maxPrice ?? undefined,
-    district:
-      filters.district && isAvailable(STADIUM_DISTRICT_FILTER) ? filters.district : undefined,
+    district: filters.district ?? undefined,
     page,
     size: PAGE_SIZE,
   }

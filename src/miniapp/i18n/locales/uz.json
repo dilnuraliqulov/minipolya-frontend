@@ -40,7 +40,7 @@
     "errorSession": "Sessiya tugadi. «Qayta urinish»ni bosing yoki ilovani qayta oching.",
     "noTelegramTitle": "Telegram orqali oching",
     "noTelegramText": "MiniPolya Telegram ichida ishlaydi. Botni oching va ilovani ishga tushiring.",
-    "noTelegramDev": "Dasturlash rejimi: backendda Telegramʼsiz kirish (dev-login) hali yoʻq — soʻrov R19, docs/backend-requests.md. Hozircha ilovani tunnel orqali Telegram ichida oching."
+    "noTelegramDev": "Dasturlash rejimi: ilova hozircha faqat Telegram ichida kiradi. Uni tunnel orqali Telegram ichida oching."
   },
   "blocked": {
     "title": "Hisobingiz bloklangan",
@@ -68,6 +68,7 @@
     "notFound": "Maʼlumot topilmadi.",
     "invalid": "Maʼlumotlar notoʻgʻri. Tekshirib, qayta urinib koʻring.",
     "conflict": "Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.",
+    "phoneTaken": "Bu raqam boshqa hisobga bogʻlangan. Boshqa raqam kiriting.",
     "tooMany": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
     "unknown": "Nimadir xato ketdi. Qayta urinib koʻring."
   },
@@ -99,7 +100,6 @@
     "phoneRequired": "Telefon raqamni kiriting",
     "phoneInvalid": "Raqam +998 XX XXX XX XX formatida boʻlishi kerak",
     "notFromTelegram": "Ism, familiya va telefon Telegramʼdan avtomatik olinmaydi — faqat siz kiritgan maʼlumotlar saqlanadi.",
-    "soonNotice": "Tez orada: ism, familiya va telefonni saqlash hali ishga tushmagan.",
     "save": "Saqlash",
     "saved": "Saqlandi",
     "setupTitle": "Profilingizni toʻldiring",
@@ -122,6 +122,8 @@
     "clearSearch": "Qidiruvni tozalash",
     "maxPrice": "Soatiga narx, gacha (soʻm)",
     "district": "Tuman",
+    "allDistricts": "Barcha tumanlar",
+    "chooseDistrict": "Tumanni tanlang",
     "apply": "Qoʻllash",
     "resetFilters": "Filtrlarni tozalash"
   },
@@ -190,6 +192,7 @@
     "unavailable": "Boʻsh emas",
     "booked": "Band",
     "closed": "Yopiq",
+    "past": "Oʻtgan",
     "waitingGame": "Raqib qidirilmoqda",
     "waitingHint": "«Raqib qidirilmoqda» vaqtni band qilsangiz, oʻsha oʻyin bekor qilinadi va jamoaga pul qaytariladi.",
     "emptyTitle": "Bu kunda boʻsh vaqt yoʻq",

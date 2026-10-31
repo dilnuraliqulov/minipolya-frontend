@@ -1,14 +1,24 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query'
+import type { Page } from '../../shared/api'
 import {
   getFavorites,
   getStadium,
   getStadiumReviews,
   toggleFavorite,
+  type Stadium,
   type StadiumDetail,
 } from '../api/stadiums'
 
 export const stadiumKey = (id: string) => ['stadium', id] as const
 export const FAVORITES_KEY = ['favorites'] as const
+/** Every Bosh sahifa list, whatever its filters (`['stadiums', filters]`). */
+export const STADIUM_LISTS_KEY = ['stadiums'] as const
 export const availabilityKey = (id: string, date: string) => ['availability', id, date] as const
 
 export function useStadium(id: string) {
@@ -40,7 +50,8 @@ export function useFavorites() {
 
 /**
  * POST /api/favorites/{id}/toggle. The answer says what it is now; the
- * stadium's cached detail takes it and the favourites list reloads.
+ * stadium's cached detail and the loaded Bosh sahifa cards take it, and the
+ * favourites list reloads.
  */
 export function useToggleFavorite() {
   const queryClient = useQueryClient()
@@ -49,6 +60,19 @@ export function useToggleFavorite() {
     onSuccess: ({ favorited }, id) => {
       queryClient.setQueryData<StadiumDetail>(stadiumKey(id), (detail) =>
         detail ? { ...detail, isFavorited: favorited } : detail,
+      )
+      queryClient.setQueriesData<InfiniteData<Page<Stadium>>>(
+        { queryKey: STADIUM_LISTS_KEY },
+        (lists) =>
+          lists && {
+            ...lists,
+            pages: lists.pages.map((page) => ({
+              ...page,
+              content: page.content.map((stadium) =>
+                stadium.id === id ? { ...stadium, isFavorited: favorited } : stadium,
+              ),
+            })),
+          },
       )
       void queryClient.invalidateQueries({ queryKey: FAVORITES_KEY })
     },

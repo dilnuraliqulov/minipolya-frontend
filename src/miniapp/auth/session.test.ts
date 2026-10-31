@@ -95,14 +95,26 @@ describe('Mini App session', () => {
     expect(tokenStore.get()).toBeNull()
   })
 
-  it('also recognises the ACCOUNT_BLOCKED code', async () => {
+  it('also recognises the ACCOUNT_BLOCKED code, and keeps the reason and date it sends', async () => {
     installFakeTelegram()
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(jsonResponse(403, null, 'whatever', 'ACCOUNT_BLOCKED')),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(
+            403,
+            { reason: 'Qoidabuzarlik', blockedAt: '2026-10-31T05:00:00Z' },
+            'whatever',
+            'ACCOUNT_BLOCKED',
+          ),
+        ),
     )
     session.start()
-    expect(await settled()).toMatchObject({ status: 'blocked' })
+    expect(await settled()).toEqual({
+      status: 'blocked',
+      details: { reason: 'Qoidabuzarlik', blockedAt: '2026-10-31T05:00:00Z' },
+    })
   })
 
   it('shows an error when the login fails, and "Qayta urinish" logs in again', async () => {
