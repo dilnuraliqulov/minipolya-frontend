@@ -67,12 +67,21 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 ## Open requests
 
 `src/admin/api/missing.ts` lists the endpoints of open entries that a screen
-waits on; the panel shows "Tez orada" for those until they ship. R18 is a
-correction to fields that already exist, so nothing waits on it there.
-`src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21, R23).
-R22 changes a default the frontend already reads, so nothing waits on it there.
+waits on; the panel shows "Tez orada" for those until they ship.
+`src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists are
+empty while there is no open request.
 
-### R23 — Stadium list and detail fields the player screens need
+None right now.
+
+---
+
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R23 — Stadium list and detail fields the player screens need _(shipped in `c09bfb1`)_
 
 **What's needed**
 The Mini App's Bosh sahifa, stadium page and Sevimlilar are built from
@@ -130,7 +139,9 @@ Medium — without them the district filter is disabled ("Tez orada"), cards
 have no photo or heart (Sevimlilar excepted), the stadium page shows the
 review count without an average, and an unavailable hour reads "Boʻsh emas".
 
-### R22 — New users start in Uzbek, not in their Telegram language
+**Shipped as** — an unknown `district` is 400 `"Invalid district"` (not `"Unknown district"`). Instead of `unavailableReason`, every `TimeSlot` has a `status`: `free` | `booked` | `closed` | `past` (`available` is true exactly when it is `free`; precedence past → booked → closed). `reviewCount` on the detail is `0` with no reviews. `GET /api/favorites` returns the same card (`coverPhotoUrl`, `isFavorited: true`).
+
+### R22 — New users start in Uzbek, not in their Telegram language _(shipped in `9db7f62`)_
 
 **What's needed**
 The Mini App's language is the user's saved `language` (`UserResponse.language`),
@@ -160,7 +171,9 @@ Error cases — none new.
 Medium — players with a Russian or English Telegram see the app in that
 language on first launch instead of Uzbek; they can switch in Profil → Til.
 
-### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod)
+**Shipped as** requested.
+
+### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod) _(shipped in `307b8c8`)_
 
 **What's needed**
 Outside Telegram there is no `initData`, so `POST /api/auth/telegram` cannot
@@ -209,7 +222,9 @@ must **refuse to start** if the `dev` profile is active together with `prod`
 High — without it every Mini App screen can only be checked inside Telegram
 through a tunnel; nothing else is blocked.
 
-### R20 — Player profile: first name, last name and phone, set only by the user
+**Shipped as** requested: `GET /api/auth/dev/users` (the 50 newest), `POST /api/auth/dev/login` `{ userId }`; only under the `dev` profile, and the backend refuses to start with `dev` plus `prod` or `atmos`. A blocked user gets 403 `ACCOUNT_BLOCKED` (R21). The Mini App does not use it yet.
+
+### R20 — Player profile: first name, last name and phone, set only by the user _(shipped in `005a8dd`)_
 
 **What's needed**
 The Mini App asks a player to fill in "Profilingizni toʻldiring" (first name,
@@ -256,7 +271,9 @@ are); 401; 404 `"User not found"`.
 High — blocks the profile setup before the first booking and editing the
 phone; the rest of Profil works today.
 
-### R21 — The reason a player's account was blocked
+**Shipped as** requested. Phones are unique: another account's phone is 409 `code: "PHONE_TAKEN"`, "Phone is already used by another account". Audited `PROFILE_UPDATED`.
+
+### R21 — The reason a player's account was blocked _(shipped in `6edd938`)_
 
 **What's needed**
 A blocked player gets 403 `"Account is blocked"` from every endpoint (from
@@ -282,7 +299,9 @@ Error cases — none new.
 **Priority**
 Medium — the blocked screen works without it but cannot tell the player why.
 
-### R18 — Booking amounts that add up in the owner's and admin's views, for every booking
+**Shipped as** requested — from `JwtAuthFilter`, `POST /api/auth/telegram` and `POST /api/auth/admin/login` alike; `data.reason` / `data.blockedAt` come from the latest `USER_BLOCKED` audit entry and either may be absent.
+
+### R18 — Booking amounts that add up in the owner's and admin's views, for every booking _(shipped in `6383d85`)_
 
 **What's needed**
 Since the one-player-price change (`057ac44`), a booking's `price` in the owner and
@@ -319,13 +338,7 @@ Error cases — none.
 Medium — game bookings and old bookings show paid and remaining amounts that
 don't match their price; new ordinary bookings are right.
 
----
-
-## Done
-
-In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
-where the backend differs from it — the backend is what counts, and
-`docs/api-reference.md` documents it.
+**Shipped as** the first option: `paidAmount + remainingAmount = price` for every booking in the player, owner and admin views (`net` bookings converted by `BookingResponseFactory`); `pricingModel` is not exposed.
 
 ### R15 — Bookings and games for the admin panel _(shipped in `642a274`)_
 

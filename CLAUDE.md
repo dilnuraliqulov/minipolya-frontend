@@ -385,8 +385,8 @@ placeholder. Three languages: **uz (default)**, **ru**, **en**. The user's
 language comes from their backend profile (`user.language` on
 `GET /api/users/me` and on the login answer), never from the browser or
 Telegram's `language_code`. Uzbek is shown until the profile is known, and a
-new user starts in Uzbek — the backend still copies Telegram's language for
-new users; that is request R22, not something the client corrects.
+new user starts in Uzbek — the backend creates every new user with
+`language: "uz"` (R22); the client never corrects the saved value.
 
 Translations live in `src/miniapp/i18n/locales/{uz,ru,en}.json`; keys are
 typed from `uz.json`, and a test fails if the three files' keys differ. The
