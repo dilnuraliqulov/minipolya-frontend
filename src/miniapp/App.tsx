@@ -1,8 +1,13 @@
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { PlaceholderPage } from './PlaceholderPage'
+import { ToastProvider } from './components/ToastProvider'
+import { routes } from './routes'
 
-const router = createBrowserRouter([{ path: '*', element: <PlaceholderPage /> }])
+const router = createBrowserRouter(routes)
 
 export function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
+  )
 }

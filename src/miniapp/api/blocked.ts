@@ -1,4 +1,4 @@
-import { API_CODES, API_MESSAGES, isApiError, type ApiError } from '../../shared/api'
+import { API_CODES, API_MESSAGES, isApiError } from '../../shared/api'
 import { isAvailable } from './missing'
 
 /** R21: the reason and date on the blocked 403. */
@@ -11,7 +11,7 @@ export interface BlockDetails {
 }
 
 /** 403 "Account is blocked" — from the login or from any endpoint. */
-export function isAccountBlocked(error: unknown): error is ApiError {
+export function isAccountBlocked(error: unknown): boolean {
   return (
     isApiError(error) &&
     error.status === 403 &&

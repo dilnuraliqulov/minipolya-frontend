@@ -149,6 +149,23 @@ describe('useBackButton', () => {
     expect(result.current).toBe(false)
   })
 
+  it('only the top-most screen or sheet handles a tap', () => {
+    const fake = installFakeTelegram()
+    const screenBack = vi.fn()
+    const sheetClose = vi.fn()
+    renderHook(() => useBackButton(screenBack))
+    const sheet = renderHook(() => useBackButton(sheetClose))
+
+    act(() => fake.backButton.click())
+    expect(sheetClose).toHaveBeenCalledOnce()
+    expect(screenBack).not.toHaveBeenCalled()
+
+    sheet.unmount()
+    expect(fake.webApp.BackButton.isVisible).toBe(true)
+    act(() => fake.backButton.click())
+    expect(screenBack).toHaveBeenCalledOnce()
+  })
+
   it('does nothing with a null handler', () => {
     const fake = installFakeTelegram()
     renderHook(() => useBackButton(null))

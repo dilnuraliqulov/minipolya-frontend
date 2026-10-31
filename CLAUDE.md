@@ -44,9 +44,17 @@ index.html            → Mini App entry (the only page that loads telegram-web-
 admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
-│   ├── main.tsx      #   entry: theme, API client (in-memory token), Query, i18n
+│   ├── main.tsx      #   entry: viewport, theme, session (in-memory JWT), API client, Query, i18n
+│   ├── App.tsx, routes.tsx  # router; tabs later parts build are SoonTab ("Tez orada")
+│   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
+│   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
+│   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
+│   ├── components/   #   shared Mini App UI from the design's Components frames
+│   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
+│   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
 │   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, BackButton, haptics, start_param, invite links
 │   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
+│   ├── test/         #   test helpers: fake Telegram, renderApp, API responses
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts
@@ -420,8 +428,14 @@ to a translation key.
 names in `src/miniapp/index.css`, so the same Tailwind names
 (`bg-page`, `bg-background`, `text-primary` …) work. Touch targets ≥ 44px.
 Respect Telegram's safe areas (`--tg-safe-*` CSS variables set by
-`telegram/viewport.ts`). Use the components in `src/miniapp/components/`;
-do not restyle per screen. The phone status bar and home indicator in the
+`telegram/viewport.ts`). Use the components in `src/miniapp/components/`
+— `Button` (primary, secondary, danger, ghost, danger-outline), `Input`,
+`Chip`, `Card`, `ListRow`, `Badge`, `Switch`, `BottomSheet`, `ToastProvider` /
+`useToast`, `SkeletonList` / `SkeletonBlock` / `SkeletonListItem`,
+`EmptyState` / `ErrorState`, `Screen` / `Header` / `BottomBar` — and do not
+restyle per screen. Mini App-only Tailwind names: `bg-bar` (header, tab bar,
+bottom bars, sheets — `p3-bg`), `bg-image-overlay`, `text-title` (18px),
+`rounded-t-sheet` (20px). The phone status bar and home indicator in the
 design frames are device chrome — not rendered, the safe-area padding
 replaces them.
 

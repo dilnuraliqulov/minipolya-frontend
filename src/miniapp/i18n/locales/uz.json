@@ -46,5 +46,27 @@
     "date": "Qaror sanasi: {{date}}",
     "questions": "Savollar boʻlsa, bizga yozing",
     "support": "Qoʻllab-quvvatlash bilan bogʻlanish"
+  },
+  "tabs": {
+    "label": "Asosiy menyu",
+    "stadiums": "Maydonlar",
+    "team": "Jamoam",
+    "games": "Oʻyinlarim",
+    "profile": "Profil"
+  },
+  "soon": {
+    "text": "Bu boʻlim tez orada ishga tushadi."
+  },
+  "errors": {
+    "network": "Internet aloqasi yoʻq. Tekshirib, qayta urinib koʻring.",
+    "server": "Serverda xatolik. Birozdan soʻng qayta urinib koʻring.",
+    "session": "Sessiya tugadi. Ilovani qayta oching.",
+    "blocked": "Hisobingiz bloklangan.",
+    "forbidden": "Bu amalga ruxsatingiz yoʻq.",
+    "notFound": "Maʼlumot topilmadi.",
+    "invalid": "Maʼlumotlar notoʻgʻri. Tekshirib, qayta urinib koʻring.",
+    "conflict": "Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.",
+    "tooMany": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
+    "unknown": "Nimadir xato ketdi. Qayta urinib koʻring."
   }
 }
