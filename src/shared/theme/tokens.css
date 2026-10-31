@@ -1,0 +1,73 @@
+/*
+ * MiniPolya design tokens — taken from design/admin-panel.pen (variables,
+ * theme axis `mode`). Variable names match the design file one to one.
+ *
+ * Light values on :root, dark values when <html data-theme="dark">.
+ * Components never use these directly or hard-code colours: they use the
+ * Tailwind names mapped in ./index.css (bg-surface, text-primary, …).
+ */
+
+:root {
+  /* Surfaces */
+  --page-bg: #f7f8fa;
+  --bg: #ffffff;
+  --surface: #f2f4f7;
+  --hover: #f7f8fa;
+  --skeleton: #e9ebef;
+  --border: #e5e7eb;
+  --overlay: #0b122066;
+
+  /* Text */
+  --text: #0b1220;
+  --text-secondary: #6b7280;
+
+  /* Brand */
+  --accent: #2563eb;
+  --accent-soft: #2563eb14;
+  --on-accent: #ffffff;
+  --link: #2563eb;
+
+  /* Status */
+  --success: #16a34a;
+  --success-soft: #16a34a1a;
+  --warning: #d97706;
+  --warning-soft: #d977061a;
+  --danger: #dc2626;
+  --danger-soft: #dc26261a;
+  --neutral-soft: #6b72801a;
+
+  /* Shadows (design effects; only the small one differs in dark mode) */
+  --shadow-sm: 0 1px 2px #0000001a; /* segmented control */
+  --shadow-md: 0 4px 12px #00000033; /* chart tooltip */
+  --shadow-lg: 0 8px 24px #00000029; /* toast */
+  --shadow-xl: 0 16px 40px #0000002e; /* modals */
+  --shadow-card: 0 8px 24px #0000000f; /* login card */
+}
+
+:root[data-theme='dark'] {
+  --page-bg: #000000;
+  --bg: #0e1013;
+  --surface: #16181d;
+  --hover: #16181d;
+  --skeleton: #1c1f25;
+  --border: #23262d;
+  --overlay: #00000099;
+
+  --text: #f5f7fa;
+  --text-secondary: #9ca3af;
+
+  --accent: #2563eb;
+  --accent-soft: #2563eb33;
+  --on-accent: #ffffff;
+  --link: #60a5fa;
+
+  --success: #22c55e;
+  --success-soft: #22c55e26;
+  --warning: #f59e0b;
+  --warning-soft: #f59e0b26;
+  --danger: #ef4444;
+  --danger-soft: #ef444426;
+  --neutral-soft: #9ca3af26;
+
+  --shadow-sm: 0 1px 2px #00000080;
+}

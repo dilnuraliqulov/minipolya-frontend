@@ -1,0 +1,134 @@
+import { formatTimeRange, parseUtc, toTashkentParts } from '../shared/format'
+
+/** Uzbek (Latin) month names, index 0 = January. Admin panel only — no i18n there. */
+const MONTHS = [
+  'yanvar',
+  'fevral',
+  'mart',
+  'aprel',
+  'may',
+  'iyun',
+  'iyul',
+  'avgust',
+  'sentabr',
+  'oktabr',
+  'noyabr',
+  'dekabr',
+]
+const MONTHS_SHORT = [
+  'yan',
+  'fev',
+  'mar',
+  'apr',
+  'may',
+  'iyn',
+  'iyl',
+  'avg',
+  'sen',
+  'okt',
+  'noy',
+  'dek',
+]
+
+function parseLocalDate(date: string): { month: number; day: number } {
+  const [, month, day] = date.split('-').map(Number)
+  return { month: month ?? 1, day: day ?? 1 }
+}
+
+/** A backend `LocalDate` ("2026-10-14") → "14 oktabr". No time zone involved. */
+export function formatDayMonth(date: string): string {
+  const { month, day } = parseLocalDate(date)
+  return `${day} ${MONTHS[month - 1]}`
+}
+
+/** A backend `LocalDate` ("2026-10-14") → "14 okt". */
+export function formatDayMonthShort(date: string): string {
+  const { month, day } = parseLocalDate(date)
+  return `${day} ${MONTHS_SHORT[month - 1]}`
+}
+
+/** Today's date in Tashkent as a `LocalDate` string, e.g. "2026-10-27". */
+export function tashkentToday(now: Date = new Date()): string {
+  const p = toTashkentParts(now)
+  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`
+}
+
+/** The `count` dates ending with `last` (inclusive), oldest first: LocalDate strings. */
+export function lastDays(last: string, count: number): string[] {
+  const [year, month, day] = last.split('-').map(Number)
+  const end = Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1)
+  return Array.from({ length: count }, (_, i) =>
+    new Date(end - (count - 1 - i) * 86_400_000).toISOString().slice(0, 10),
+  )
+}
+
+/** How long ago a UTC timestamp was: "5 daqiqa oldin", "3 soat oldin", "2 kun oldin". */
+export function formatAgo(iso: string, now: Date = new Date()): string {
+  const minutes = Math.max(0, Math.floor((now.getTime() - parseUtc(iso).getTime()) / 60_000))
+  if (minutes < 1) return 'hozirgina'
+  if (minutes < 60) return `${minutes} daqiqa oldin`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} soat oldin`
+  return `${Math.floor(hours / 24)} kun oldin`
+}
+
+/** A backend `LocalDate` ("2026-10-14") → "14.10.2026". No time zone involved. */
+export function formatLocalDate(date: string): string {
+  return date.split('-').reverse().join('.')
+}
+
+/** The first day of the month of a `LocalDate`: "2026-10-14" → "2026-10-01". */
+export function monthStart(date: string): string {
+  return `${date.slice(0, 7)}-01`
+}
+
+/** A UTC timestamp as a Tashkent calendar date in words: "14 fevral 2026". */
+export function formatLongDate(iso: string): string {
+  const p = toTashkentParts(iso)
+  return `${p.day} ${MONTHS[p.month - 1]} ${p.year}`
+}
+
+/** A stadium format for display: "5x5" → "5×5". */
+export function formatPitch(format: string): string {
+  return format.replace('x', '×')
+}
+
+/** Weekday abbreviations, 0 = Monday as the backend counts. */
+export const WEEKDAYS_SHORT = ['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya']
+
+/** A booking's slot in Tashkent: "Pa 22 okt · 20:00–22:00". */
+export function formatSlot(startsAt: string, endsAt: string): string {
+  const p = toTashkentParts(startsAt)
+  const day = `${WEEKDAYS_SHORT[p.dayOfWeek]} ${p.day} ${MONTHS_SHORT[p.month - 1]}`
+  return `${day} · ${formatTimeRange(startsAt, endsAt)}`
+}
+
+/** A UTC timestamp, short, in Tashkent: "28 okt, 14:02". */
+export function formatShortDateTime(iso: string): string {
+  const p = toTashkentParts(iso)
+  const time = String(p.hour).padStart(2, '0') + ':' + String(p.minute).padStart(2, '0')
+  return p.day + ' ' + MONTHS_SHORT[p.month - 1] + ', ' + time
+}
+
+/**
+ * Basis points as a percent, with a dot: 150 → "1.5", 1000 → "10", 5 → "0.05".
+ * Integer arithmetic only, so no float ever touches the value.
+ */
+export function bpsToPercent(bps: number): string {
+  const whole = Math.trunc(bps / 100)
+  const fraction = String(Math.abs(bps % 100))
+    .padStart(2, '0')
+    .replace(/0+$/, '')
+  return fraction ? `${whole}.${fraction}` : String(whole)
+}
+
+/** A percent as typed ("1.5", up to two decimals) in basis points: 150. */
+export function percentToBps(percent: string): number {
+  const [whole = '0', fraction = ''] = percent.split('.')
+  return Number(whole || '0') * 100 + Number(fraction.padEnd(2, '0').slice(0, 2))
+}
+
+/** 150 → "1,5%". */
+export function formatBps(bps: number): string {
+  return `${bpsToPercent(bps).replace('.', ',')}%`
+}

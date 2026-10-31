@@ -1,0 +1,11 @@
+dist
+coverage
+node_modules
+package-lock.json
+design
+*.pen
+.agents
+.claude
+skills-lock.json
+# Hand-written docs with wide tables — Prettier's table reflow makes them unreadable in diffs.
+*.md
