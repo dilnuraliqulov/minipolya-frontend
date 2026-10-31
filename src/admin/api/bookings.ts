@@ -9,8 +9,9 @@ import { getAuditLog, type AuditEntry } from './audit'
 export type BookingSource = 'app' | 'manual' | 'game'
 
 /**
- * `AdminBookingResponse` — the owner's view of `BookingResponse` plus who
- * booked and how it was paid. Only the fields the panel reads.
+ * `AdminBookingResponse` — the admin view of `BookingResponse` (the player's
+ * price, the owner's price, what the owner receives, ATMOS's fee) plus who
+ * booked and the cash taken. Only the fields the panel reads.
  */
 export interface AdminBooking {
   id: string
@@ -27,19 +28,21 @@ export interface AdminBooking {
   startsAt: string
   endsAt: string
   durationHours: number
-  /** Tiyin — what the player pays by card for the whole booking. */
+  /** Tiyin — what the player pays for the whole booking (the owner's own price on a walk-in). */
   price: number
-  /** Tiyin — the owner's price; `price − netPrice` is the card fee. */
-  netPrice?: number
-  /** Tiyin — `price − netPrice`. */
-  cardFee?: number
-  /** Tiyin, net — what has been credited towards `netPrice`, card and cash. */
+  /** Tiyin — the owner's own price for the booking. */
+  ownerPrice?: number
+  /** Tiyin — what has been paid of `price`, in the app and in cash. */
   paidAmount: number
-  /** Tiyin, net — what is still owed of `netPrice`, from the backend. */
+  /** Tiyin — what is left of `price`: the same in the app or in cash. */
   remainingAmount: number
   paymentStatus: string
-  /** Tiyin — card money kept on this booking, gross (card fee included). */
+  /** Tiyin — card money paid in the app and kept (refunds excluded). */
   paidInApp?: number
+  /** Tiyin — what the owner receives: the card money after ATMOS, plus the cash. */
+  ownerReceives?: number
+  /** Tiyin — what ATMOS takes of the card money kept. */
+  atmosFee?: number
   /** Tiyin — cash the owner marked as received; absent when none. */
   cashReceived?: number
   /** UTC — when the owner marked it. */
@@ -66,15 +69,23 @@ export interface AdminGameTeam {
   teamName: string
   leaderId: string
   leaderName: string
-  /** Tiyin — platform fee. */
-  feeAmount: number
-  /** Tiyin — advance to the owner. */
-  advanceAmount: number
-  /** Tiyin — still owed on the pitch. */
+  /** Tiyin — what the team pays in the app on joining. */
+  price?: number
+  /** Tiyin — what the team owes (or owed) after joining, the same in the app or in cash. */
   remainderAmount: number
   remainderStatus: 'unpaid' | 'paid'
   /** Tiyin — everything this team paid through the app. */
   paidInApp: number
+  /** Tiyin — the platform's fixed fee in the team's payment (what it nets). */
+  platformFee?: number
+  /** Tiyin — the owner's advance in the team's payment, in the owner's terms. */
+  ownerAdvance?: number
+  /** Tiyin — the team's remainder in the owner's terms. */
+  ownerRemainder?: number
+  /** Tiyin — what the owner receives of this team's payments, after ATMOS. */
+  ownerReceives?: number
+  /** Tiyin — what ATMOS takes of this team's card payments. */
+  atmosFee?: number
   players: GamePlayer[]
 }
 
@@ -89,7 +100,10 @@ export interface AdminGame {
   /** UTC. */
   startsAt: string
   endsAt: string
-  /** Tiyin. */
+  /**
+   * Tiyin — the pitch's price in the owner's terms, as stored on the game (the
+   * players' own views show what they pay altogether instead).
+   */
   totalPrice: number
   creatorId: string
   creatorName: string

@@ -1,0 +1,22 @@
+# Text files are stored and checked out with LF on every platform, whatever
+# core.autocrlf says, so Prettier's format:check passes on Windows too.
+* text=auto eol=lf
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# Design files are encrypted: Git must never touch their bytes.
+*.pen binary

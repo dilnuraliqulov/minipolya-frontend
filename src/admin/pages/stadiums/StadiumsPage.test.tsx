@@ -30,8 +30,11 @@ const pending: StadiumRow = {
   address: 'Chilonzor tumani, Bunyodkor 12',
   district: 'Chilonzor',
   photoUrl: 'https://cdn.example/s1.jpg',
-  pricePerHour: 20_000_000,
-  price: 20_310_000,
+  // The owner's 150 000 so'm; players pay 155 000; the owner receives 152 675.
+  pricePerHour: 15_000_000,
+  playerPrice: 15_500_000,
+  ownerReceives: 15_267_500,
+  atmosFee: 232_500,
   ownerContractStatus: 'signed',
   ownerName: 'Jamshid Karimov',
   ownerId: 'o1',
@@ -90,6 +93,7 @@ const detail: StadiumDetail = {
     tribune: false,
   },
   minBookingAmount: 5_000_000,
+  playerMinBookingAmount: 5_500_000,
   cancellationHours: 24,
   pricingRules: [
     {
@@ -98,6 +102,7 @@ const detail: StadiumDetail = {
       startTime: '18:00:00',
       endTime: '23:00:00',
       pricePerHour: 25_000_000,
+      playerPrice: 25_500_000,
     },
   ],
 }
@@ -190,11 +195,12 @@ describe('Maydonlar — list', () => {
     expect(lastList(requests).get('status')).toBe('pending')
     expect(screen.getByRole('tab', { name: /Kutilmoqda/ })).toHaveAttribute('aria-selected', 'true')
     const table = within(screen.getByRole('table'))
-    for (const header of ['Tuman', 'Narx', 'ATMOS']) {
+    for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.getByText(header)).toBeInTheDocument()
     }
     expect(table.getAllByText('Chilonzor').length).toBeGreaterThan(0)
-    expect(table.getAllByText("200 000 so'm/soat dan")).toHaveLength(2)
+    expect(table.getAllByText("150 000 so'm")).toHaveLength(2)
+    expect(table.getAllByText("155 000 so'm")).toHaveLength(2)
     expect(table.getByText('Imzolangan')).toBeInTheDocument()
     expect(table.getByText('Kutilmoqda')).toBeInTheDocument()
     expect(table.getByText('5×5')).toBeInTheDocument()
@@ -281,7 +287,7 @@ describe('Maydonlar — list', () => {
     renderAt('/maydonlar?tuman=Chilonzor')
     await screen.findByText('Chilonzor Arena', { selector: 'span' })
     const table = within(screen.getByRole('table'))
-    for (const header of ['Tuman', 'Narx', 'ATMOS']) {
+    for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.queryByText(header)).not.toBeInTheDocument()
     }
     expect(screen.queryByLabelText('Tuman')).not.toBeInTheDocument()
@@ -332,10 +338,19 @@ describe('Maydonlar — detail', () => {
     expect(info.queryByText('Dush')).not.toBeInTheDocument()
 
     const prices = within(screen.getByRole('region', { name: 'Narxlar' }))
-    expect(prices.getByText("200 000 so'm/soat")).toBeInTheDocument()
-    expect(prices.getByText("250 000 so'm")).toBeInTheDocument()
+    // The admin sees the full breakdown, every figure from the backend.
+    const priceRow = (label: string) => prices.getByText(label, { selector: 'dt' }).closest('div')!
+    expect(priceRow('Egasining narxi')).toHaveTextContent("150 000 so'm/soat")
+    expect(priceRow('Oʻyinchilar uchun')).toHaveTextContent("155 000 so'm/soat")
+    expect(priceRow('Egasiga tushadi')).toHaveTextContent("152 675 so'm/soat")
+    expect(priceRow('ATMOS komissiyasi')).toHaveTextContent("2 325 so'm/soat")
+    // A pricing rule shows both prices.
+    const rule = prices.getByText(/18:00–23:00/).closest('tr')!
+    expect(rule).toHaveTextContent("250 000 so'm")
+    expect(rule).toHaveTextContent("255 000 so'm")
     const terms = within(screen.getByRole('region', { name: 'Bron shartlari' }))
-    expect(terms.getByText("50 000 so'm")).toBeInTheDocument()
+    expect(terms.getByText("Egasining: 50 000 so'm")).toBeInTheDocument()
+    expect(terms.getByText("Oʻyinchilar uchun: 55 000 so'm")).toBeInTheDocument()
     expect(terms.getByText('Boshlanishidan 24 soat oldingacha')).toBeInTheDocument()
 
     const phone = await screen.findByRole('link', { name: /\+998 90 123 45 67/ })

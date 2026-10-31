@@ -79,10 +79,10 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
     key: 'paid',
     header: 'Toʻlangan',
     width: 170,
-    // `paidAmount` counts towards the owner's net price, so it is set against that.
+    // Both in the player's terms: `paidAmount` is what was paid of `price`.
     render: (b) => (
-      <span className="whitespace-nowrap" title="Toʻlangan / egasining narxi, soʻm">
-        {som(b.paidAmount)} / {som(b.netPrice ?? b.price)}
+      <span className="whitespace-nowrap" title="Toʻlangan / oʻyinchi narxi, soʻm">
+        {som(b.paidAmount)} / {som(b.price)}
       </span>
     ),
   },

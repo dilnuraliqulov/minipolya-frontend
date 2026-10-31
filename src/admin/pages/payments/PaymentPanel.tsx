@@ -292,13 +292,16 @@ export function PaymentPanel({
               <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
                 {money(p.platformAmount)}
               </PanelRow>
-              {p.cardFee !== undefined && (
-                <PanelRow label="Karta komissiyasi">{money(p.cardFee)}</PanelRow>
+              {p.atmosFee !== undefined && (
+                <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
               )}
               {p.providerCommission !== undefined && (
                 <PanelRow label="ATMOS ushlab qoldi">{money(p.providerCommission)}</PanelRow>
               )}
-              <PanelRow label="Komissiya stavkasi">{p.commissionPercent} %</PanelRow>
+              {/* Only old payments carry a booking commission; bookings have none now. */}
+              {!!p.commissionPercent && (
+                <PanelRow label="Komissiya stavkasi">{p.commissionPercent} %</PanelRow>
+              )}
             </dl>
           </PanelSection>
 

@@ -29,6 +29,9 @@ function slotLong(startsAt: string, endsAt: string): string {
   return `${day} ${formatDate(startsAt)} · ${formatTimeRange(startsAt, endsAt)}`
 }
 
+/** An optional amount from the backend; "—" when it is absent. */
+const amount = (tiyin: number | undefined) => (tiyin === undefined ? '—' : formatSom(tiyin))
+
 /** A short reference for the title: the last 6 characters of the UUID. */
 const shortId = (id: string) => id.replace(/-/g, '').slice(-6).toUpperCase()
 
@@ -109,12 +112,6 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
                   {b.isWalkin && <StatusBadge tone="neutral">Qoʻlda</StatusBadge>}
                 </span>
               </PanelRow>
-              <PanelRow label="Narx">
-                {formatSom(b.price)}
-                {b.netPrice !== undefined && b.netPrice !== b.price && (
-                  <span className="text-secondary"> · egasiga {formatSom(b.netPrice)}</span>
-                )}
-              </PanelRow>
               <PanelRow label="Holat">
                 {status && <StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
               </PanelRow>
@@ -130,7 +127,10 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
 
           <PanelSection title="Toʻlov">
             <dl className="flex flex-col gap-2.5">
-              <PanelRow label="Ilova orqali toʻlangan">{formatSom(b.paidInApp ?? 0)}</PanelRow>
+              {/* Every figure is the backend's; nothing is worked out here. */}
+              <PanelRow label="Oʻyinchi narxi">{formatSom(b.price)}</PanelRow>
+              <PanelRow label="Egasining narxi">{amount(b.ownerPrice)}</PanelRow>
+              <PanelRow label="Ilovada toʻlangan">{amount(b.paidInApp)}</PanelRow>
               {b.cashReceived !== undefined && (
                 <PanelRow label="Naqd (ega qabul qildi)">{formatSom(b.cashReceived)}</PanelRow>
               )}
@@ -140,6 +140,8 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
                   {paymentNote}
                 </span>
               </PanelRow>
+              <PanelRow label="Egasiga tushadi">{amount(b.ownerReceives)}</PanelRow>
+              <PanelRow label="ATMOS komissiyasi">{amount(b.atmosFee)}</PanelRow>
             </dl>
           </PanelSection>
 
@@ -205,14 +207,20 @@ function TeamCard({ team }: { team: AdminGameTeam }) {
         </span>
       </div>
       <dl className="grid grid-cols-3 gap-2 rounded-md bg-surface px-3 py-2 text-xs">
-        <div>
-          <dt className="text-secondary">Platforma haqi</dt>
-          <dd className="font-medium text-primary">{formatSom(team.feeAmount)}</dd>
-        </div>
-        <div>
-          <dt className="text-secondary">Oldindan</dt>
-          <dd className="font-medium text-primary">{formatSom(team.advanceAmount)}</dd>
-        </div>
+        {(
+          [
+            ['Platforma toʻlovi', team.platformFee],
+            ['Egasiga avans', team.ownerAdvance],
+            ['Egasiga qolgan', team.ownerRemainder],
+            ['Egasiga tushadi', team.ownerReceives],
+            ['ATMOS komissiyasi', team.atmosFee],
+          ] as const
+        ).map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-secondary">{label}</dt>
+            <dd className="font-medium text-primary">{amount(value)}</dd>
+          </div>
+        ))}
         <div>
           <dt className="text-secondary">Qoldiq</dt>
           <dd
@@ -246,7 +254,7 @@ function GameBody({ g }: { g: AdminGameDetail }) {
           <PanelRow label="Yaratgan">
             <UserLink id={g.creatorId}>{g.creatorName}</UserLink>
           </PanelRow>
-          <PanelRow label="Maydon narxi">{formatSom(g.totalPrice)}</PanelRow>
+          <PanelRow label="Egasining narxi">{formatSom(g.totalPrice)}</PanelRow>
           {g.serviceFeePerPerson !== undefined && (
             <PanelRow label="Xizmat haqi">{formatSom(g.serviceFeePerPerson)} / oʻyinchi</PanelRow>
           )}

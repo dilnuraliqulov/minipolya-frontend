@@ -66,11 +66,46 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 
 ## Open requests
 
-None: every request the panel had made has shipped (backend `feature/admin-login-impl`,
-up to `00d3bb7`). `src/admin/api/missing.ts` lists the same endpoints as
-these entries, so with nothing open it is empty. Add new requests here with the
-template above, and put the endpoint in `MISSING_ENDPOINTS`; the panel then
-shows "Tez orada" for it until it ships.
+`src/admin/api/missing.ts` lists the endpoints of open entries that a screen
+waits on; the panel shows "Tez orada" for those until they ship. R18 is a
+correction to fields that already exist, so nothing waits on it there.
+
+### R18 — Booking amounts that add up in the owner's and admin's views, for every booking
+
+**What's needed**
+Since the one-player-price change (`057ac44`), a booking's `price` in the owner and
+admin views is the player price D, but on bookings that keep the old accounting —
+those made before changeset 040 and **every game booking** (`GameService` and
+`TeamGameService` create them with `pricing_model = net`) — `paidAmount` and
+`remainingAmount` are still the stored **net** amounts. So `paidAmount +
+remainingAmount ≠ price`, the owner's "Naqd olinadi" is a different figure from
+the remainder the player sees, and `pricingModel` is in no response, so the client
+cannot tell which case it has (api-reference Q19). The client must not convert
+between them itself.
+
+**Which screen needs it**
+Admin panel, Bronlar: the "Toʻlangan" column ("55 000 / 155 000") and the side
+panel's Qolgan summa. Mini App owner mode: the owner's bookings ("Naqd olinadi").
+
+**Proposed endpoint**
+No new endpoint. On `BookingResponse` (owner and admin views) and
+`AdminBookingResponse`, either:
+
+| Field | Type | Notes |
+|---|---|---|
+| `paidAmount`, `remainingAmount` | number (tiyin) | in the same terms as `price` for **every** booking, so `paidAmount + remainingAmount = price` |
+
+or, if old bookings must keep their net figures, add:
+
+| Field | Type | Notes |
+|---|---|---|
+| `pricingModel` | `"player_price"` \| `"net"` | so the panel can label the figures, e.g. show `ownerPrice` against net amounts |
+
+Error cases — none.
+
+**Priority**
+Medium — game bookings and old bookings show paid and remaining amounts that
+don't match their price; new ordinary bookings are right.
 
 ---
 

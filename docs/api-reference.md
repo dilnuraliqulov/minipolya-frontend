@@ -7,9 +7,9 @@ when the backend changes.
 | | |
 |---|---|
 | Backend repository | `../minipolyaBackend` |
-| Branch | `feature/admin-login-impl` |
-| Commit | `00d3bb7` — _Document the admin panel API, and add it to the Postman collection_, 2026-10-30 |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS) |
+| Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
+| Commit | `d2c55a2` — _Document the one-player-price rule; update the Postman collection_, 2026-10-31 |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives) |
 | Endpoints documented | **109** callable by the frontend, plus 3 webhooks |
 
 ---
@@ -254,33 +254,49 @@ was deliberately not renamed because casual games share the column.
 | `failed` | a declined charge, or a **refund row** ATMOS declined (`failureReason` on the admin view) |
 | `pending`, `completed` | legacy Payme/Click hosted checkout only |
 
-### 1.10 Card prices (the card fee)
+### 1.10 The player price (one price)
 
-ATMOS takes a fee from every card payment (`cardFeeBps`, default 150 = 1.5%,
-§10.9 settings). Since `1f18777..8c79245` card prices are **grossed up** by it
-and rounded up to `paymentRoundingStep` (default 10 000 tiyin = 100 so'm), so
-the owner and the platform still net their full amounts. **Cash never carries
-the fee.** The backend computes every figure; the client only displays them.
+Since `00d3bb7..d2c55a2` (backend `CLAUDE.md`, "Payments → The player price"):
+**the owner enters their own price; players see ONE price.** The owner's price
+**N** (`pricePerHour`, pricing rules, `minBookingAmount`) is stored and edited
+as typed. Players see and pay **D = playerAmount(N)** — N grossed up by the
+ATMOS fee (`cardFeeBps`, default 150 = 1.5%) and rounded up to
+`paymentRoundingStep` (§10.9 settings). Players never see the words or fields
+"card fee", "commission", "net" or any breakdown. The backend computes every
+figure; the client only displays them.
 
-- **Players see card prices.** On public responses `pricePerHour` (and a
-  slot's `originalPrice`, a stadium's `minBookingAmount`) is the card price.
-- **Owners (and admins) see net prices**: `pricePerHour` and
-  `minBookingAmount` stay what the owner set, with the card price alongside.
-- The same three names appear wherever a price is quoted, all tiyin and
-  optional:
+- **The platform takes nothing from ordinary bookings.** Every booking card
+  payment — full, deposit or remainder — is all the owner's; ATMOS takes its
+  fee from it. Example (step 5 000 so'm): owner price 150 000 → the player
+  pays **155 000** → the owner receives **152 675**.
+- **Booking:** `FULL` charges D (the sum of each hour's player price, so the
+  slot prices add up exactly); `MINIMUM` charges the deposit
+  **d = min(playerAmount(minBookingAmount), D)**. The rest **r = D − d** is the
+  **same amount** whether paid in the app or taken by the owner in cash.
+  A manual (walk-in) booking is the owner's own price, not converted.
+- **Team game, per team:** pays `playerAmount(advance + fee)` on joining; the
+  platform's split nets exactly the fee (its only money in a team game), the
+  rest is the owner's. A team's remainder is `playerAmount(remainder)`, the
+  same in the app or in cash, all the owner's.
+- **Friends game, per player:** `playerAmount(pitch share + service fee)`; all
+  the owner's unless `casualGameServiceFee > 0`, which is split like the team fee.
+- Cash goes to the owner in full. A full refund returns everything paid by card.
+- **Old bookings keep `pricing_model = net`** (changeset 040; also every game
+  booking): their stored amounts and the old net accounting stay. The field is
+  not in any response; see [Q19](#11-questions-about-the-backend).
 
-| Field | Meaning |
+**Fields per role** (all tiyin, optional):
+
+| Role | Fields |
 |---|---|
-| `price` | what the player pays **by card** |
-| `netPrice` | the owner's own net price — **owner and admin responses only** |
-| `cardFee` | `price − net`: what paying by card adds (fee + rounding) |
-| `remainderByCard` | bookings and game teams: the rest if paid in the app (grossed up) |
-| `remainderInCash` | bookings and game teams: the rest if the owner takes it in cash (net, no fee) |
+| **Player** — public stadium list/detail, availability slots, public pricing rules, the player's own bookings, games and payments | `pricePerHour` (a slot's `originalPrice` too) and a stadium's `minBookingAmount` are **player prices**. A booking's `price` is D, `paidAmount` what was paid of it, `remainingAmount` what is left. `refundIfCancelledNow` is everything paid by card. Games: `totalPrice` is what all players pay together, a friends game's `price` one share, a team's `price` its joining payment and `remainderAmount` its remainder; the challenge board's `amountToPayNow` / `remainderAmount` likewise. **No breakdown field exists** in these views. |
+| **Owner** | `pricePerHour` / `minBookingAmount` are the **owner's own** (what they edit), with `playerPrice` / `playerMinBookingAmount` alongside. A booking shows `price` (what the player pays), `ownerPrice`, `paidInApp`, `remainingAmount` (the remainder to collect in cash) and `ownerReceives` (card splits after ATMOS, plus cash). |
+| **Admin** | the owner's view, plus `ownerReceives` and `atmosFee` on stadiums, pricing rules and bookings; a team adds `platformFee`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee`; a payment shows `ownerAmount`, `platformAmount`, `atmosFee` and `providerCommission`. |
 
-Where they appear: `StadiumResponse` / `StadiumDetailResponse` (§4),
-`TimeSlot` (§4), `PricingRuleResponse` (§10.4), `BookingResponse` (§5),
-`GameTeamResponse`, `GameDetailResponse` and `GameChallengeResponse` (§9). The
-public stadium search's `maxPrice` is a **card** price.
+Removed everywhere: `cardFee`, `netPrice`, `remainderByCard`,
+`remainderInCash`, `price` on stadium / pricing-rule / slot responses, a
+team's `feeAmount` / `advanceAmount`, the public game detail's `serviceFeePerPerson`, the player `PaymentResponse` split (`ownerAmount` / `platformAmount` / `commissionPercent`), and the booking commission setting. The
+public stadium search's `maxPrice` is a **player** price.
 
 ---
 
@@ -415,10 +431,9 @@ layer).
 | `latitude`, `longitude` | number? | |
 | `format`, `surfaceType`, `status` | string | §1.9 |
 | `statusReason` | string? | the admin's reason for a `rejected` or `blocked` status — on the owner's endpoints; absent otherwise |
-| `pricePerHour` | number **(tiyin)** | public: the **card** price; owner endpoints: the owner's **net** price (§1.10) |
-| `price` | number? **(tiyin)** | one hour by card (§1.10) |
-| `netPrice` | number? **(tiyin)** | owner/admin responses only |
-| `cardFee` | number? **(tiyin)** | `price − net` |
+| `pricePerHour` | number **(tiyin)** | public: the **player** price — the one price players pay; owner endpoints: the **owner's own** price, as they set it (§1.10) |
+| `playerPrice` | number? **(tiyin)** | **owner/admin responses only**: what players see and pay for that hour |
+| `ownerReceives`, `atmosFee` | number? **(tiyin)** | declared "admin responses only", but no endpoint that returns `StadiumResponse` fills them — always absent (the admin list uses `AdminStadiumResponse`, §10.9) |
 | `ownerName` | string? | |
 | `isActive` | boolean | |
 | `averageRating` | number? | absent when the stadium has no reviews |
@@ -436,7 +451,9 @@ row. Fetch the detail endpoint for those.
 | `ownerName`, `ownerPhone` | string? | |
 | `phone`, `description` | string? | |
 | `openTime`, `closeTime` | time | `"09:00:00"` |
-| `minBookingAmount` | number? **(tiyin)** | absent ⇒ the player must pay in full. Public: the deposit **by card**; owner: net |
+| `minBookingAmount` | number? **(tiyin)** | absent ⇒ the player must pay in full. Public: the deposit as players pay it; owner/admin: the owner's own minimum |
+| `playerMinBookingAmount` | number? **(tiyin)** | **owner/admin responses only**: the deposit as players see and pay it |
+| `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin detail only** (§10.9): what the owner receives of one hour at `playerPrice` paid by card, after ATMOS, and what ATMOS takes of it |
 | `isFavorited` | boolean? | only present for an authenticated caller |
 | `cancellationPolicy` | `{ cancellationHours: number }` | |
 | `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position` |
@@ -451,7 +468,7 @@ Approved, active stadiums only.
 |---|---|---|---|
 | `q` | string | no | free text search |
 | `format` | string | no | `5x5` \| `7x7` \| `9x9` \| `11x11` |
-| `maxPrice` | number (tiyin) | no | upper bound on the **card** `pricePerHour` players see |
+| `maxPrice` | number (tiyin) | no | upper bound on the **player** `pricePerHour` players see (converted to the largest fitting owner price) |
 | `page`, `size` | number | no | `0` / `20` |
 
 **Response** — paged `StadiumResponse`.
@@ -487,10 +504,8 @@ team is waiting on it.
 |---|---|---|
 | `startTime`, `endTime` | time | one-hour slot, Tashkent local time |
 | `available` | boolean | |
-| `pricePerHour` | number? **(tiyin)** | the **card** price; absent when not available |
-| `originalPrice` | number? **(tiyin)** | the card price before the promotion; absent when there is none |
-| `price` | number? **(tiyin)** | = `pricePerHour` (§1.10) |
-| `cardFee` | number? **(tiyin)** | `price` minus the owner's net for the hour |
+| `pricePerHour` | number? **(tiyin)** | the one price the player pays for this hour (§1.10); absent when not available |
+| `originalPrice` | number? **(tiyin)** | the player price before the promotion; absent when there is none |
 | `discountPercent` | number? | absent when there is no promotion |
 | `promotionName` | string? | |
 | `hasWaitingGame` | boolean | **`team_vs_team` only** — a team looking for an opponent. Casual games are private and never marked |
@@ -542,8 +557,8 @@ in §10).
 | `photos` | string[] | no | each non-blank, max 500 chars (URLs — there is no upload endpoint, see [Q5](#11-questions-about-the-backend)) |
 | `amenities` | object | no | the eight booleans |
 
-**Response** — `StadiumDetailResponse` in the owner's net prices (with
-`price`/`netPrice`/`cardFee`, §1.10), `message: "Stadium submitted for review"`.
+**Response** — `StadiumDetailResponse` in the owner's own prices (with
+`playerPrice`/`playerMinBookingAmount`, §1.10), `message: "Stadium submitted for review"`.
 The stadium is created with `status: "pending"` and is invisible to players
 until an admin approves it (which needs the owner's signed ATMOS contract,
 §10.9).
@@ -563,14 +578,14 @@ deliberately absent — only an admin changes it.
 
 An absent `district` leaves it unchanged.
 
-**Response** — `StadiumDetailResponse` (owner's net prices).
+**Response** — `StadiumDetailResponse` (owner's own prices + `playerPrice`/`playerMinBookingAmount`).
 
 **Errors** — 400 validation / `"Invalid district"` / `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
 
 ### `GET /api/owner/stadiums` — owner
 
 **Response** — `StadiumResponse[]` (not paged) for the calling owner, any
-status, in net prices; `statusReason` tells the owner why a stadium is
+status, in the owner's own prices with `playerPrice` alongside; `statusReason` tells the owner why a stadium is
 `rejected` or `blocked`.
 
 ---
@@ -590,14 +605,14 @@ status, in net prices; `statusReason` tells the owner why a stadium is
 | `status` | string | §1.9 |
 | `startsAt`, `endsAt` | timestamp (UTC) | |
 | `durationHours` | number | |
-| `price` | number **(tiyin)** | the whole booking **by card** — the sum of its slots' card prices (§1.10) |
-| `netPrice` | number? **(tiyin)** | the owner's net price — **owner and admin responses only** |
-| `cardFee` | number? **(tiyin)** | `price − netPrice` |
-| `paidAmount` | number **(tiyin)** | **net**: what successful payments have credited towards the net price |
-| `remainingAmount` | number **(tiyin)** | **net**: what is still owed of the net price |
-| `remainderByCard` | number? **(tiyin)** | the rest if the player pays it in the app (grossed up) |
-| `remainderInCash` | number? **(tiyin)** | the rest if the owner takes it in cash (net, no fee) |
+| `price` | number **(tiyin)** | what the player pays for the whole booking — the player price **D**, the sum of its slots' player prices; the owner's own price on a manual booking (§1.10). The same in every view |
+| `paidAmount` | number **(tiyin)** | what has been paid of `price`, card and cash |
+| `remainingAmount` | number **(tiyin)** | what is left — the **same amount** in the app or in cash. `paidAmount + remainingAmount = price` in the player's view, and in the owner's/admin's view of bookings priced under the player price (old `net` bookings and game bookings differ there: see [Q19](#11-questions-about-the-backend)) |
 | `paymentStatus` | string | `unpaid` \| `partially_paid` \| `paid` |
+| `ownerPrice` | number? **(tiyin)** | **owner and admin views only**: the owner's own price for the booking |
+| `paidInApp` | number? **(tiyin)** | **owner and admin views only**: card money paid in the app and kept (`paid`/`captured`/`completed`, refunds excluded) |
+| `ownerReceives` | number? **(tiyin)** | **owner and admin views only**: the owner's share of the card money kept, after ATMOS's fee, plus the cash taken |
+| `atmosFee` | number? **(tiyin)** | **admin view only**: what ATMOS takes of the card money kept |
 | `clientName`, `clientPhone` | string? | manual/walk-in bookings |
 | `isWalkin` | boolean | |
 | `expiresAt` | timestamp (UTC)? | the hold deadline while `pending` |
@@ -605,7 +620,7 @@ status, in net prices; `statusReason` tells the owner why a stadium is
 | `cancellationReason` | string? | |
 | `cancellationPolicy` | `{ cancellationHours }` | show before confirming |
 | `cancellationDeadline` | timestamp (UTC)? | last moment a cancellation still refunds |
-| `refundIfCancelledNow` | number **(tiyin)**? | **display this, never recompute it**; the full gross paid by card (the fee comes back too) |
+| `refundIfCancelledNow` | number **(tiyin)**? | **display this, never recompute it**; everything paid by card |
 | `refundAmount` | number **(tiyin)**? | only on a cancellation response: what was actually refunded |
 | `createdAt` | timestamp (UTC) | |
 
@@ -648,7 +663,6 @@ Creates the booking **and charges the chosen saved card in the same call.**
 | 400 | `"Stadium is closed on <date>"` (a `stadium_closure` overlaps) |
 | 400 | `"Cannot book more than 4 weeks ahead"` |
 | 400 | `"This stadium requires full payment; it has no minimum booking amount"` (`MINIMUM` on a stadium with no minimum) |
-| 400 | `"The stadium minimum is not below this booking's price, so full payment is required"` |
 | 403 | `"You cannot book your own stadium; add a manual booking instead"` |
 | 404 | `"Stadium not available"` (missing, not approved, or inactive) |
 | 404 | `"Card not found"` (unknown, not the caller's, or deactivated) |
@@ -661,9 +675,11 @@ Creates the booking **and charges the chosen saved card in the same call.**
 - Price = the sum of each hour's price from the pricing rules, with the best
   active promotion applied per hour — identical to what availability showed.
   **Never compute it in the client**; `price` on the response is authoritative.
-- What is charged includes the card fee (§1.10): `FULL` charges the card
-  `price`, `MINIMUM` the stadium's `minBookingAmount` grossed up (the figure
-  public stadium responses already show).
+- What is charged (§1.10): `FULL` charges `price` (D); `MINIMUM` the deposit
+  `min(minBookingAmount as players see it, D)` — the figure public stadium
+  responses already show, capped at the booking's price. `MINIMUM` is no
+  longer refused when the minimum is not below the price (that 400 is gone);
+  the deposit then simply covers the whole booking.
 - Creating a booking cancels any waiting game on those hours and refunds that
   game's team(s).
 
@@ -745,7 +761,7 @@ the full price.
 | `notes` | string | no | |
 | `paymentMethod` | string | no | `"cash"` or null |
 
-**Response** — `BookingResponse`, `message: "Manual booking created"`.
+**Response** — `BookingResponse` in the **owner's view** (`ownerPrice`, `paidInApp`, `ownerReceives`; a walk-in pays the owner's own price, so `price` = `ownerPrice`), `message: "Manual booking created"`.
 
 **Errors** — the booking-window 400s above; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`; 409 overlap.
 
@@ -756,7 +772,7 @@ the full price.
 | `from`, `to` | `LocalDate` | no |
 | `page`, `size` | number | no |
 
-**Response** — paged `BookingResponse`. **Errors** — 403 `"You do not own this stadium"`.
+**Response** — paged `BookingResponse` in the **owner's view** (§1.10). **Errors** — 403 `"You do not own this stadium"`.
 
 ### `DELETE /api/owner/bookings/{bookingId}` — owner
 
@@ -767,7 +783,7 @@ whatever the time left.
 |---|---|---|
 | `reason` | string | no |
 
-**Response** — `BookingResponse`, `message: "Booking cancelled"`.
+**Response** — `BookingResponse` in the owner's view, `message: "Booking cancelled"`.
 
 **Errors** — 400 `"Booking cannot be cancelled in status <status>"`; 403 `"You do not own this stadium"`; 404 `"Booking not found"`.
 
@@ -883,9 +899,7 @@ Soft delete (`isActive = false`) so past payments stay explainable.
 |---|---|---|
 | `id` | UUID | |
 | `bookingId`, `gameId`, `userId` | UUID? | |
-| `amount` | number **(tiyin)** | negative on a refund row |
-| `ownerAmount`, `platformAmount` | number **(tiyin)** | always sum to `amount` |
-| `commissionPercent` | number? | |
+| `amount` | number **(tiyin)** | what the player paid; negative on a refund row. The split (`ownerAmount`, `platformAmount`, `commissionPercent`) is no longer here — only in `AdminPaymentResponse` (§10.9) |
 | `method` | string | `card` \| `cash` |
 | `paymentType` | string | §1.9 |
 | `provider` | string | `atmos` \| `payme` \| `click` \| `cash` |
@@ -983,16 +997,16 @@ them in the client.**
 | `title`, `stadiumName`, `creatorName` | string? |
 | `maxPlayers`, `currentPlayers` | number? |
 | `startsAt`, `endsAt` | timestamp (UTC) |
-| `totalPrice` | number **(tiyin)** |
+| `totalPrice` | number **(tiyin)** — what all the players pay together (§1.10): every share of a casual/open game, both teams' joining prices and remainders of a team game |
 | `isPublic` | boolean |
 
 `GameDetailResponse` (`NON_NULL`) — the above plus `description`, `stadiumId`,
-`creatorId`, `minPlayers`, `serviceFeePerPerson` _(tiyin)_, `teamAId`,
-`teamAName`, `teamBId`, `teamBName`, `bookingId`, `inviteLink` (Telegram deep
-link `t.me/{bot}?start=game_{id}`), `createdAt`, `price` _(tiyin)_? and
-`cardFee` _(tiyin)_? — **casual/open games only**: one player's share (pitch
-share + service fee) by card, and what the card adds (§1.10); `totalPrice`
-stays the pitch's **net** price — plus:
+`creatorId`, `minPlayers`, `teamAId`, `teamAName`, `teamBId`, `teamBName`,
+`bookingId`, `inviteLink` (Telegram deep link `t.me/{bot}?start=game_{id}`),
+`createdAt`, and `price` _(tiyin)_? — **casual/open games only**: what one
+player pays for their share (§1.10). No `serviceFeePerPerson` and no
+`cardFee` any more (the admin game detail still has `serviceFeePerPerson`,
+§10.9) — plus:
 
 `teams` — **`team_vs_team` only**, `GameTeamResponse[]`:
 
@@ -1001,15 +1015,11 @@ stays the pitch's **net** price — plus:
 | `side` | `"a"` \| `"b"` | |
 | `teamId`, `leaderId` | UUID | |
 | `teamName`, `leaderName` | string? | |
-| `feeAmount` | number **(tiyin)** | platform fee; **not** part of the pitch price |
-| `advanceAmount` | number **(tiyin)** | owner advance paid up front |
-| `remainderAmount` | number **(tiyin)** | still owed on the pitch |
+| `price` | number **(tiyin)** | what this team pays in the app on joining (§1.10) |
+| `remainderAmount` | number **(tiyin)** | what this team owes after joining (or owed, once `remainderStatus` is `paid`) — the **same amount** in the app or in cash |
 | `remainderStatus` | `"unpaid"` \| `"paid"` | |
-| `paidInApp` | number **(tiyin)** | everything this team has paid through the app — the **gross** on the card |
-| `price` | number? **(tiyin)** | what this team's card is charged on joining: fee + advance grossed up (§1.10) |
-| `cardFee` | number? **(tiyin)** | `price − (feeAmount + advanceAmount)` |
-| `remainderByCard` | number? **(tiyin)** | the remainder if the leader pays it in the app; 0 once settled |
-| `remainderInCash` | number? **(tiyin)** | the remainder if the owner takes it in cash; 0 once settled |
+| `paidInApp` | number **(tiyin)** | everything this team has paid through the app so far (holds and charges not given back) |
+| `platformFee`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin game detail only** (§10.9) |
 | `cancellationDeadline` | timestamp (UTC) | |
 | `refundIfCancelledNow` | number **(tiyin)** | 0 when nothing would come back — **display, never recompute** |
 
@@ -1034,8 +1044,8 @@ stays the pitch's **net** price — plus:
 
 **Response** — `GameDetailResponse`, `message: "Game created"`.
 
-For `team_vs_team` the creating leader's card is put **on hold** for
-`fee + advance`; no slot is booked and `status` stays `open` (= waiting).
+For `team_vs_team` the creating leader's card is put **on hold** for the
+team's joining `price` (`playerAmount(advance + fee)`, §1.10); no slot is booked and `status` stays `open` (= waiting).
 
 **Errors**
 
@@ -1086,12 +1096,9 @@ first.
 | `stadiumId` UUID, `stadiumName`, `stadiumAddress`, `format` | string | `stadiumAddress` stands in for a district — the board has no `district` field, although stadiums now have one ([Q15](#11-questions-about-the-backend)) |
 | `startsAt`, `endsAt` | timestamp (UTC) | |
 | `durationHours` | number | |
-| `totalPrice` | number **(tiyin)** | whole pitch price |
-| `feeAmount` | number **(tiyin)** | platform fee the joining team pays |
-| `advanceAmount` | number **(tiyin)** | owner advance the joining team pays |
-| `amountToPayNow` | number **(tiyin)** | `fee + advance` grossed up by the card fee — what the card is charged |
-| `cardFee` | number **(tiyin)** | `amountToPayNow − (feeAmount + advanceAmount)` |
-| `remainderAmount` | number **(tiyin)** | what the joining team still owes afterwards |
+| `totalPrice` | number **(tiyin)** | what both teams pay for the game altogether (each side's joining price and remainder) |
+| `amountToPayNow` | number **(tiyin)** | what the joining team pays in the app on joining |
+| `remainderAmount` | number **(tiyin)** | what the joining team still owes afterwards — the same in the app or in cash |
 
 ### `GET /api/games/my` — user · paged
 
@@ -1132,7 +1139,7 @@ invited casual player or team member can POST with no body at all).
 ### `POST /api/games/{id}/pay` — user
 
 A casual player's share. Refuses a team game. With `cardId` the share is
-charged now to that saved card through ATMOS (card price, §1.10); without it,
+charged now to that saved card through ATMOS (the detail's `price`, §1.10); without it,
 the **legacy** hosted checkout of `provider`.
 
 | Query | Type | Required |
@@ -1158,7 +1165,8 @@ after the game.
 
 ### `POST /api/games/{id}/cash` — owner (the stadium's owner)
 
-The owner marks one team's remainder as received in cash. Whichever of cash
+The owner marks one team's remainder as received in cash — the team's
+`remainderAmount`, the same amount it would pay in the app. Whichever of cash
 and card lands first wins; the other then answers 400 `"Already paid"`.
 
 **Body** — `{ "side": "a" | "b" }` (`@NotNull @Pattern(a|b)`).
@@ -1290,11 +1298,12 @@ UUID?, `isRead` boolean, `sentViaTelegram` boolean, `createdAt` (UTC).
 
 `PricingRuleResponse` (`NON_NULL`): `id`, `stadiumId` UUID, `dayOfWeek` number
 (0 = Monday), `startTime`, `endTime` time, `pricePerHour` number **(tiyin)**,
-`price`, `netPrice`, `cardFee` number? **(tiyin)**, `isActive` boolean,
-`createdAt` (UTC). On the **public** `GET /api/stadiums/{id}/pricing`
-`pricePerHour` = `price` is the card price and `netPrice` is absent; on the
-owner (and admin) responses `pricePerHour` = `netPrice` is the owner's net
-price, with the card `price` alongside (§1.10). The request bodies stay net.
+`playerPrice` number? **(tiyin)** (owner/admin only), `ownerReceives`,
+`atmosFee` number? **(tiyin)** (admin only), `isActive` boolean, `createdAt`
+(UTC). On the **public** `GET /api/stadiums/{id}/pricing` `pricePerHour` is
+the **player** price and nothing else is added; on the owner (and admin)
+responses `pricePerHour` is the **owner's own** price, with `playerPrice`
+alongside (§1.10). The request bodies are the owner's own price.
 
 | Endpoint | Access |
 |---|---|
@@ -1354,12 +1363,12 @@ All under `/api/owner/dashboard`, all owner-only, all 403
 
 | Endpoint | Response |
 |---|---|
-| `GET /api/owner/dashboard/stadiums` | `StadiumResponse[]` |
+| `GET /api/owner/dashboard/stadiums` | `StadiumResponse[]` (owner's own prices + `playerPrice`) |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/stats` | `OwnerDashboardStatsResponse` |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/revenue` | `OwnerRevenueResponse` |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/schedule` | `OwnerScheduleResponse[]` |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/reviews` | paged `ReviewResponse`, newest first |
-| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` |
+| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` (owner's view, §5) |
 
 `OwnerDashboardStatsResponse` (all fields present): `stadiumId` UUID,
 `stadiumName` string, `todayBookings`/`weekBookings`/`monthBookings`/
@@ -1371,7 +1380,7 @@ number, `occupancyPercent` number.
 `{ date: LocalDate, revenue: number (tiyin), bookingCount: number }[]`.
 
 `OwnerScheduleResponse` (one per day; `from`/`to` are optional `LocalDate`
-query parameters): `date`, `bookings` `BookingResponse[]`, `waitingGames`
+query parameters): `date`, `bookings` `BookingResponse[]` (owner's view), `waitingGames`
 `{ gameId: UUID, teamName: string, startsAt, endsAt }[]`, `totalSlots`,
 `bookedSlots` number, `revenue` number **(tiyin)**.
 
@@ -1502,8 +1511,10 @@ user need not be an owner yet.
 | `name`, `address` | string | |
 | `district` | string? | absent on stadiums added before it existed |
 | `photoUrl` | string? | the first photo by position; absent when there are none |
-| `pricePerHour` | number **(tiyin)** | the base hourly price, **net** (what the owner set) |
-| `price` | number **(tiyin)** | the same hour **by card** (§1.10) |
+| `pricePerHour` | number **(tiyin)** | the base hourly price — the **owner's own**, as they set it |
+| `playerPrice` | number? **(tiyin)** | what players see and pay for that hour (§1.10) |
+| `ownerReceives` | number? **(tiyin)** | what the owner receives of that hour paid by card, after ATMOS |
+| `atmosFee` | number? **(tiyin)** | what ATMOS takes of that hour paid by card (`playerPrice − ownerReceives`) |
 | `ownerContractStatus` | string | the owner's ATMOS contract: `none` \| `pending` \| `signed` (`none` when no legal details) |
 | `ownerName` | string | |
 | `ownerId` | UUID | |
@@ -1518,7 +1529,8 @@ user need not be an owner yet.
 
 `AdminStadiumDetailResponse` (`NON_NULL`) — every `StadiumDetailResponse`
 field (§4) at the top level, in the **owner's prices** (`pricePerHour` and
-`netPrice` net, `price` by card, `cardFee`; `minBookingAmount` net), including
+`minBookingAmount` the owner's own, with `playerPrice`,
+`playerMinBookingAmount`, and `ownerReceives`/`atmosFee` for one hour), including
 `district`, `statusReason`, `photos`, `amenities`, `cancellationPolicy`,
 `ownerPhone`, `openTime`/`closeTime` (no `isFavorited`), plus:
 
@@ -1530,7 +1542,7 @@ field (§4) at the top level, in the **owner's prices** (`pricePerHour` and
 | `averageRating` | number? | |
 | `reviewCount`, `totalBookings` | number? | as on the row |
 | `totalRevenue` | number? **(tiyin)** | as on the row |
-| `pricingRules` | `PricingRuleResponse[]` | active rules, each with `pricePerHour`/`netPrice` **net** and `price` by card (§10.4) |
+| `pricingRules` | `PricingRuleResponse[]` | active rules, each with `pricePerHour` (the owner's own), `playerPrice`, `ownerReceives`, `atmosFee` (§10.4) |
 
 **Status body** (`AdminUpdateStadiumStatusRequest`)
 
@@ -1583,14 +1595,15 @@ Query parameters (both lists):
 | `userId` | UUID | bookings this user made | games this user created, played in, or led a team in |
 
 `AdminBookingResponse` (`NON_NULL`) — every `BookingResponse` field (§5) at
-the top level **in the owner's view** (card `price`, `netPrice`, `cardFee`,
-net `paidAmount`/`remainingAmount`, `remainderByCard`/`remainderInCash`,
-cancellation figures), plus:
+the top level **in the admin view** (§1.10): `price` (what the player pays),
+`ownerPrice`, `paidAmount`/`remainingAmount`, `paidInApp` (card money kept,
+from payments in `paid`/`captured`/`completed`, given-back ones excluded —
+now a `BookingResponse` field), `ownerReceives`, `atmosFee`, cancellation
+figures — plus:
 
 | Field | Type | Notes |
 |---|---|---|
 | `userName`, `userPhone` | string? | the booking user; absent on a walk-in (whose name is `clientName`) |
-| `paidInApp` | number **(tiyin)** | card money kept on this booking — **gross**, fee included — from card payments in `paid`/`captured`/`completed` (given-back ones excluded) |
 | `cashReceived` | number? **(tiyin)** | cash the owner marked as received; absent when none |
 | `cashReceivedAt` | timestamp (UTC)? | when the owner last marked cash |
 
@@ -1603,7 +1616,7 @@ cancellation figures), plus:
 | `stadiumId` | UUID | |
 | `stadiumName` | string | |
 | `startsAt`, `endsAt` | timestamp (UTC) | |
-| `totalPrice` | number **(tiyin)** | the pitch's **net** price |
+| `totalPrice` | number **(tiyin)** | the pitch's price in the **owner's** terms (the stored game total) — unlike the player-facing `GameResponse.totalPrice` (§9), which is what all players pay |
 | `creatorId` | UUID | |
 | `creatorName` | string | |
 | `teamAName`, `teamBName` | string? | team games: the teams currently in it; absent while a side waits for an opponent |
@@ -1617,7 +1630,7 @@ cancellation figures), plus:
 
 | Field | Type | Notes |
 |---|---|---|
-| `teams` | `AdminGameTeamResponse[]`? | **`team_vs_team` only**: each is a `GameTeamResponse` (§9 — `side`, `feeAmount`, `advanceAmount`, `remainderAmount`, `remainderStatus`, `paidInApp`, `price`, `cardFee`, `remainderByCard`, `remainderInCash`, `cancellationDeadline`, `refundIfCancelledNow`, …) at the top level plus `players` |
+| `teams` | `AdminGameTeamResponse[]`? | **`team_vs_team` only**: each is a `GameTeamResponse` (§9 — `side`, `price`, `remainderAmount`, `remainderStatus`, `paidInApp`, `cancellationDeadline`, `refundIfCancelledNow`, …) at the top level, **plus the admin-only** `platformFee` (the platform's fixed fee in the team's payment — what it nets), `ownerAdvance` and `ownerRemainder` (the owner's terms), `ownerReceives` (what the owner receives of the team's payments, after ATMOS; cash in full) and `atmosFee` (what ATMOS takes of its card payments), plus `players` |
 | `participants` | `AdminGamePlayerResponse[]`? | casual and open games: every participant |
 | `serviceFeePerPerson` | number? **(tiyin)** | casual and open games: the platform's fee per player |
 
@@ -1662,9 +1675,9 @@ List query parameters:
 | `stadiumId`, `stadiumName` | UUID? / string? | the booking's, or for a game payment the game's |
 | `bookingId`, `gameId` | UUID? | what it paid for |
 | `amount`, `ownerAmount`, `platformAmount` | number **(tiyin)** | `amount` is the gross charged (or the cash taken) |
-| `cardFee` | number? **(tiyin)** | what the card fee and the rounding added to the net (`card_fee_expected`; 0 for cash) |
+| `atmosFee` | number? **(tiyin)** | what ATMOS was expected to take, its rate on each split (`card_fee_expected`; 0 for cash). Was `cardFee`; on rows from before the one-player-price rule it is what the card fee and rounding added |
 | `providerCommission` | number? **(tiyin)** | what ATMOS reports having taken; absent until it does |
-| `commissionPercent` | number? | the booking commission in force when it was taken |
+| `commissionPercent` | number? | the booking commission stored on the row when it was taken; **0 on every new payment** (there is no booking commission any more) |
 | `method` | string | `card` \| `cash` |
 | `provider` | string | `atmos` \| `payme` \| `click` \| `cash` |
 | `providerTxnId` | string? | the charge's transaction ids (comma-separated, one per split) or the hold id |
@@ -1734,27 +1747,31 @@ qualifies: 400 `"Only a failed refund can be retried"` /
 | Endpoint | Notes |
 |---|---|
 | `GET /api/admin/settings` | `PlatformSettingsResponse` |
-| `PUT /api/admin/settings` | all five fields optional, only non-null values applied; `message: "Settings updated"` |
+| `PUT /api/admin/settings` | all four fields optional, only non-null values applied; `message: "Settings updated"` |
 
 `PlatformSettingsResponse` (all present):
 
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `id` | UUID | | |
-| `bookingCommissionPercent` | number | 0 | whole percent the platform keeps of a booking |
-| `teamGamePlatformFee` | number **(tiyin)** | 2 500 000 | per team on a team game |
+| `teamGamePlatformFee` | number **(tiyin)** | 2 500 000 | per team on a team game — the platform's only money in one |
 | `casualGameServiceFee` | number **(tiyin)** | 0 | per player on a casual game |
-| `cardFeeBps` | number | 150 | the ATMOS card fee in **basis points** (150 = 1.5%); card prices are grossed up by it (§1.10) |
-| `paymentRoundingStep` | number **(tiyin)** | 10 000 | card prices are rounded **up** to a multiple of it (10 000 = 100 so'm) |
+| `cardFeeBps` | number | 150 | the ATMOS fee in **basis points** (150 = 1.5%); player prices are grossed up by it (§1.10) |
+| `paymentRoundingStep` | number **(tiyin)** | 10 000 | player prices are rounded **up** to a multiple of it (10 000 = 100 so'm) |
 | `updatedAt` | timestamp (UTC) | | |
 
-**Body** — the same five value fields, validated in the service (not bean
+There is **no booking commission**: the platform takes nothing from ordinary
+bookings. `bookingCommissionPercent` is gone from the response and the body
+(changeset 040 dropped the column); a body that still sends it is silently
+ignored (Jackson's default). Old `SETTINGS_CHANGED` audit entries can still
+carry a `bookingCommissionPercent` change.
+
+**Body** — the same four value fields, validated in the service (not bean
 validation), all before the first write, so a rejected value writes
 **nothing**:
 
 | Field | Range | Message |
 |---|---|---|
-| `bookingCommissionPercent` | 0–50 | `"bookingCommissionPercent must be between 0 and 50"` |
 | `teamGamePlatformFee` | ≥ 0 | `"teamGamePlatformFee must not be negative"` |
 | `casualGameServiceFee` | ≥ 0 | `"casualGameServiceFee must not be negative"` |
 | `cardFeeBps` | 0–1000 | `"cardFeeBps must be between 0 and 1000"` |
@@ -1874,7 +1891,7 @@ New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
 `pricePerHour`, `discountPercent`, `name`, `clientName`, `type`,
 `maxPlayers`, `team`, `teamA`, `side`, `players`, `isActive`, `isOwner`,
 `isAdmin`, `isBlocked`, `failedLoginAttempts`, `lockedUntil`, `lastLoginAt`,
-`bookingCommissionPercent`, `teamGamePlatformFee`, `casualGameServiceFee`,
+`teamGamePlatformFee`, `casualGameServiceFee`,
 `cardFeeBps`, `paymentRoundingStep`, `noteId`, `failureReason`,
 `originalStatus`, `refundedManually`; the legal-details snapshot: `legalType`,
 `tin`, `atmosContractStatus`, `atmosRecipientId`; plus the stadium snapshot
@@ -1882,7 +1899,9 @@ New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
 `longitude`, `phone`, `description`, `format`, `surfaceType`, `openTime`,
 `closeTime`, `minBookingAmount`, `cancellationHours`, `photos`,
 `amenities.parking` / `.lighting` / `.showers` / `.lockerRoom` / `.wifi` /
-`.cafe` / `.equipmentRental`. Secret-looking fields (password, hash, token,
+`.cafe` / `.equipmentRental`. `bookingCommissionPercent` is no longer
+written (since `057ac44`), but older `SETTINGS_CHANGED` entries still carry
+it — keep a label for it. Secret-looking fields (password, hash, token,
 card number, cvv, secret, jwt) are never recorded.
 
 **Stadium status changes** — since changeset 038 a rejection is
@@ -1918,6 +1937,9 @@ card payments (R6, `58274e1` — one `RevenueService` calculation, card money
 kept, cash excluded), and R3, R4, R5, R8–R17. The **owner** dashboard revenue
 (Q8) is still its own definition and not resolved. Q9 and Q12 are partly
 answered.
+
+**`00d3bb7..d2c55a2` (one player price):** resolves nothing listed here;
+Q19 and Q20 are new.
 
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and
@@ -1984,7 +2006,7 @@ and therefore does include it. The same stadium reports two different revenue
 figures and the frontend cannot tell which to show. (Already noted as deferred
 in the backend `CLAUDE.md`.)
 
-**Q9 — Money is documented as so'm in some places and tiyin in others.** _Partly answered in `1f18777..8c79245`: `Booking.price` now says "the owner's net price in tiyin"; `Stadium.pricePerHour`, `Game.totalPrice`, `PricingRule.pricePerHour` and the `Booking` / `Payment` class comments ("All money is integer so'm") still say so'm._
+**Q9 — Money is documented as so'm in some places and tiyin in others.** _Partly answered in `1f18777..8c79245`: `Booking.price` now says "the owner's net price in tiyin" (since `057ac44`: "the owner's own price in tiyin"); `Stadium.pricePerHour`, `Game.totalPrice`, `PricingRule.pricePerHour` and the `Booking` / `Payment` class comments ("All money is integer so'm") still say so'm._
 The project rule is tiyin everywhere, and the API does return tiyin. But
 several entity Javadocs still say "Integer so'm — never floating point for
 money": `Booking.price`, `Stadium.pricePerHour`, `Game.totalPrice` — while
@@ -2048,3 +2070,21 @@ The backend `CLAUDE.md` describes `approved → blocked`, but
 It reuses `OwnerRevenueResponse`, which is not `NON_NULL`, so `stadiumId` is
 an explicit `null` (unlike the usual omitted-when-null rule, §1.3). Type it
 `stadiumId?: string | null` or ignore it.
+
+**Q19 — The owner/admin view of `net` bookings mixes two currencies.**
+Bookings made before changeset 040, and every **game** booking, keep
+`pricing_model = net`. For them `BookingResponseFactory.forOwner` returns
+`price` as the player price (`playerAmount(ownerPrice)` — for a game booking
+not what the teams actually pay, which `GameDetailResponse.totalPrice` sums
+per team) but `paidAmount` / `remainingAmount` straight from the row, in the
+owner's net terms — so `paidAmount + remainingAmount ≠ price` there, and the
+player's view of the same booking shows a different (converted) remainder.
+`PaymentService.recordCashPayment` would take the net remainder. The
+`pricing_model` field is not in any response, so the client cannot tell which
+case it is looking at. The backend `CLAUDE.md` "API fields" describes only the
+player-price case. Expose `pricingModel`, or convert consistently.
+
+**Q20 — `StadiumResponse.ownerReceives` / `atmosFee` are never filled.**
+The DTO declares them "admin responses only", but no endpoint returns a
+`StadiumResponse` to an admin (the admin list is `AdminStadiumResponse`, which
+has its own), so they are always omitted. Dead fields, or a missing mapping?

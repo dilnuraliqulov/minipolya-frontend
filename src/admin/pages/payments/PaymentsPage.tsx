@@ -175,7 +175,7 @@ const SUMMARY: Array<{
   icon: LucideIcon
 }> = [
   { key: 'appRevenue', label: 'Ilova orqali tushum', icon: Banknote },
-  { key: 'cardFees', label: 'Karta komissiyasi', icon: CreditCard },
+  { key: 'cardFees', label: 'ATMOS komissiyasi', icon: CreditCard },
   { key: 'platformRevenue', label: 'Platforma daromadi', icon: Landmark },
   { key: 'ownerPayouts', label: 'Maydon egalariga', icon: Store },
   { key: 'refunded', label: 'Qaytarilgan', icon: RotateCcw },

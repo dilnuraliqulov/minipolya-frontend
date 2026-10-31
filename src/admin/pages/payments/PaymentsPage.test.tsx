@@ -52,7 +52,7 @@ const held: AdminPayment = {
   amount: 8_000_000,
   ownerAmount: 7_500_000,
   platformAmount: 500_000,
-  cardFee: 120_000,
+  atmosFee: 120_000,
   providerCommission: 118_000,
   status: 'held',
   providerTxnId: '2c1d77e0aaaabbbbccccddddeeee0000',
@@ -68,7 +68,7 @@ const cash: AdminPayment = {
   method: 'cash',
   provider: 'cash',
   providerTxnId: undefined,
-  cardFee: undefined,
+  atmosFee: undefined,
   providerCommission: undefined,
   status: 'paid',
   amount: 13_000_000,
@@ -142,7 +142,7 @@ describe('Toʻlovlar', () => {
     renderAt('/tolovlar')
     const region = await screen.findByRole('region', { name: 'Umumiy koʻrsatkichlar' })
     expect(await within(region).findByText('48 650 000')).toBeInTheDocument()
-    expect(within(region).getByText('Karta komissiyasi')).toBeInTheDocument()
+    expect(within(region).getByText('ATMOS komissiyasi')).toBeInTheDocument()
     expect(within(region).getByText('730 000')).toBeInTheDocument()
     expect(within(region).getByText('Platforma daromadi')).toBeInTheDocument()
     expect(within(region).getByText('Naqd toʻlovlar tushumga kirmaydi')).toBeInTheDocument()
@@ -286,7 +286,7 @@ describe('Toʻlovlar', () => {
     renderAt('/tolovlar?tolov=p3')
     const panel = await screen.findByRole('dialog', { name: /Jamoa oʻyini ·/ })
     expect(await within(panel).findByText('Ushlab turilgan')).toBeInTheDocument()
-    expect(within(panel).getByText('Karta komissiyasi')).toBeInTheDocument()
+    expect(within(panel).getByText('ATMOS komissiyasi')).toBeInTheDocument()
     expect(within(panel).getByText('ATMOS ushlab qoldi')).toBeInTheDocument()
     expect(
       within(panel).queryByRole('button', { name: /Qayta urinish|Qoʻlda/ }),
