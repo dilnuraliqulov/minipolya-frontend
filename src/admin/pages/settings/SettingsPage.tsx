@@ -88,11 +88,14 @@ function SettingRow({
   description,
   children,
   preview,
+  hint,
 }: {
   title: string
   description: string
   children: React.ReactNode
   preview: string | null
+  /** A fixed note under the preview. */
+  hint?: string
 }) {
   return (
     <section className="flex flex-col gap-4 border-b border-border px-5 py-5 last:border-b-0">
@@ -106,6 +109,7 @@ function SettingRow({
           {preview}
         </p>
       )}
+      {hint && <p className="text-sm text-secondary">{hint}</p>}
     </section>
   )
 }
@@ -307,7 +311,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
         </SettingRow>
         <SettingRow
           title="Karta komissiyasi"
-          description="ATMOS har bir karta toʻlovidan oladigan ulush. Karta narxlari shunga qarab oshiriladi, naqd toʻlovlarga taʼsir qilmaydi"
+          description="ATMOS har bir karta toʻlovidan oladigan ulush. Oʻyinchilar uchun narx shuni qoplaydigan qilib hisoblanadi"
           preview={
             filled('cardFeeBps')
               ? `Har bir karta toʻlovidan: ${formatBps(values.cardFeeBps)}`
@@ -327,10 +331,11 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
         </SettingRow>
         <SettingRow
           title="Narxni yaxlitlash"
-          description="Karta orqali toʻlanadigan narxlar shu summaga karrali qilib yuqoriga yaxlitlanadi"
+          hint="Oʻyinchilar uchun narx shu qadamgacha yuqoriga yaxlitlanadi. Farq maydon egasiga tushadi."
+          description="Oʻyinchilar koʻradigan narxlar shu summaga karrali qilib yuqoriga yaxlitlanadi"
           preview={
             filled('paymentRoundingStep')
-              ? `Karta narxlari ${formatSom(values.paymentRoundingStep)}ga yaxlitlanadi`
+              ? `Oʻyinchilar narxi ${formatSom(values.paymentRoundingStep)}ga yaxlitlanadi`
               : null
           }
         >

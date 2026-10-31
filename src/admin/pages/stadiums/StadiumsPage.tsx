@@ -64,12 +64,18 @@ function columns(tab: StadiumTab, show: boolean): Column<StadiumRow>[] {
       render: (row) => row.district ?? '—',
     },
     { key: 'format', header: 'Format', width: 90, render: (row) => formatPitch(row.format) },
+    // Per hour at the base price: what the owner set, and what players pay.
     show && {
-      key: 'price',
-      header: 'Narx',
-      width: 200,
-      render: (row) =>
-        row.pricePerHour === undefined ? '—' : `${formatSom(row.pricePerHour)}/soat dan`,
+      key: 'ownerPrice',
+      header: 'Egasining narxi',
+      width: 150,
+      render: (row) => (row.pricePerHour === undefined ? '—' : formatSom(row.pricePerHour)),
+    },
+    show && {
+      key: 'playerPrice',
+      header: 'Oʻyinchilar uchun',
+      width: 150,
+      render: (row) => (row.playerPrice === undefined ? '—' : formatSom(row.playerPrice)),
     },
     tab === 'pending' &&
       show && {

@@ -293,7 +293,7 @@ export function PaymentPanel({
                 {money(p.platformAmount)}
               </PanelRow>
               {p.atmosFee !== undefined && (
-                <PanelRow label="Karta komissiyasi">{money(p.atmosFee)}</PanelRow>
+                <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
               )}
               {p.providerCommission !== undefined && (
                 <PanelRow label="ATMOS ushlab qoldi">{money(p.providerCommission)}</PanelRow>

@@ -71,8 +71,13 @@ describe('Sozlamalar', () => {
     expect(field('Komissiya (karta)')).toHaveValue('1,5')
     expect(field('Yaxlitlash qadami')).toHaveValue('100')
     expect(screen.getByText('Har bir karta toʻlovidan: 1,5%')).toBeInTheDocument()
-    expect(screen.getByText("Karta narxlari 100 so'mga yaxlitlanadi")).toBeInTheDocument()
-    expect(screen.queryByText(/egasi/)).not.toBeInTheDocument()
+    expect(screen.getByText("Oʻyinchilar narxi 100 so'mga yaxlitlanadi")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Oʻyinchilar uchun narx shu qadamgacha yuqoriga yaxlitlanadi. Farq maydon egasiga tushadi.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/brondan/)).not.toBeInTheDocument()
     expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument()
   })
 

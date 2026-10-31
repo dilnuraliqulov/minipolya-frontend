@@ -105,6 +105,10 @@ function mapLink(stadium: StadiumDetail): string {
   return `https://www.openstreetmap.org/search?query=${encodeURIComponent(`${stadium.address}, Toshkent`)}`
 }
 
+/** A per-hour amount from the backend, or "—" when it is absent. */
+const perHour = (amount: number | undefined) =>
+  amount === undefined ? '—' : `${formatSom(amount)}/soat`
+
 /** "18:00:00" → "18:00". */
 const hhmm = (time: string) => time.slice(0, 5)
 
@@ -133,7 +137,8 @@ function pricingLines(rules: PricingRule[]) {
     key: rule.id,
     days: from === to ? DAYS_SHORT[from] : `${DAYS_SHORT[from]}–${DAYS_SHORT[to]}`,
     hours: `${hhmm(rule.startTime)}–${hhmm(rule.endTime)}`,
-    price: formatSom(rule.pricePerHour),
+    ownerPrice: formatSom(rule.pricePerHour),
+    playerPrice: rule.playerPrice === undefined ? '—' : formatSom(rule.playerPrice),
   }))
 }
 
@@ -263,30 +268,60 @@ function TermsSection({ stadium, extras }: { stadium: StadiumDetail; extras: boo
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       <Card title="Narxlar">
         <dl className="flex flex-col gap-2.5">
-          <Row label="Asosiy narx">
-            {stadium.pricePerHour === undefined ? '—' : `${formatSom(stadium.pricePerHour)}/soat`}
-          </Row>
+          {/* The base hour: all four figures are the backend's. */}
+          <Row label="Egasining narxi">{perHour(stadium.pricePerHour)}</Row>
+          <Row label="Oʻyinchilar uchun">{perHour(stadium.playerPrice)}</Row>
+          <Row label="Egasiga tushadi">{perHour(stadium.ownerReceives)}</Row>
+          <Row label="ATMOS komissiyasi">{perHour(stadium.atmosFee)}</Row>
         </dl>
         {lines.length > 0 && (
-          <ul className="flex flex-col gap-1.5 rounded-md bg-surface px-3.5 py-3">
-            {lines.map((line) => (
-              <li key={line.key} className="flex gap-3 text-sm">
-                <span className="flex-1 text-secondary">
-                  {line.days} {line.hours}
-                </span>
-                <span className="font-medium text-primary">{line.price}</span>
-              </li>
-            ))}
-          </ul>
+          <table className="w-full rounded-md bg-surface text-sm">
+            <caption className="sr-only">Narx qoidalari</caption>
+            <thead>
+              <tr className="text-left text-xs text-secondary">
+                <th scope="col" className="px-3.5 pt-3 pb-1 font-normal">
+                  Vaqt
+                </th>
+                <th scope="col" className="px-3.5 pt-3 pb-1 text-right font-normal">
+                  Egasining narxi
+                </th>
+                <th scope="col" className="px-3.5 pt-3 pb-1 text-right font-normal">
+                  Oʻyinchilar uchun
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((line) => (
+                <tr key={line.key}>
+                  <td className="px-3.5 py-1 text-secondary">
+                    {line.days} {line.hours}
+                  </td>
+                  <td className="px-3.5 py-1 text-right font-medium text-primary">
+                    {line.ownerPrice}
+                  </td>
+                  <td className="px-3.5 py-1 text-right font-medium text-primary">
+                    {line.playerPrice}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </Card>
       <Card title="Bron shartlari">
         <dl className="flex flex-col gap-2.5">
           <Row label="Minimal toʻlov">
             <span className="flex flex-col gap-0.5">
-              {stadium.minBookingAmount === undefined
-                ? 'Toʻliq toʻlov'
-                : formatSom(stadium.minBookingAmount)}
+              {stadium.minBookingAmount === undefined ? (
+                'Toʻliq toʻlov'
+              ) : (
+                <>
+                  <span>Egasining: {formatSom(stadium.minBookingAmount)}</span>
+                  {stadium.playerMinBookingAmount !== undefined && (
+                    <span>Oʻyinchilar uchun: {formatSom(stadium.playerMinBookingAmount)}</span>
+                  )}
+                </>
+              )}
               <span className="text-xs text-secondary">
                 Bron qilishda oʻyinchi toʻlaydigan eng kam summa
               </span>

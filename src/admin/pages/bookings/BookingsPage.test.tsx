@@ -207,10 +207,16 @@ describe('Bronlar', () => {
     fireEvent.click(await screen.findByText('Sardor Aliyev'))
     expect(router.state.location.search).toBe('?bron=b1')
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
-    expect(await within(panel).findByText(/egasiga 150 000 so'm/)).toBeInTheDocument()
     const payment = await within(panel).findByRole('region', { name: 'Toʻlov' })
-    expect(within(payment).getByText("55 000 so'm")).toBeInTheDocument()
-    expect(within(payment).getByText("100 000 so'm")).toBeInTheDocument()
+    // The admin sees the full breakdown, each figure as the backend sends it.
+    const row = (label: string) => within(payment).getByText(label).closest('div')!
+    expect(row('Oʻyinchi narxi')).toHaveTextContent("155 000 so'm")
+    expect(row('Egasining narxi')).toHaveTextContent("150 000 so'm")
+    expect(row('Ilovada toʻlangan')).toHaveTextContent("55 000 so'm")
+    expect(row('Naqd (ega qabul qildi)')).toHaveTextContent("100 000 so'm")
+    expect(row('Qolgan summa')).toHaveTextContent("0 so'm")
+    expect(row('Egasiga tushadi')).toHaveTextContent("154 175 so'm")
+    expect(row('ATMOS komissiyasi')).toHaveTextContent("825 so'm")
     expect(within(payment).getByText('Egasi qabul qildi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Chilonzor Arena' })).toHaveAttribute(
       'href',
@@ -262,6 +268,13 @@ describe('Bronlar', () => {
     expect(within(teams).getByText('Chilonzor Lions')).toBeInTheDocument()
     expect(within(teams).getByText('Yunusobod Tigers')).toBeInTheDocument()
     expect(within(teams).getAllByText("100 000 so'm")).toHaveLength(2)
+    const lions = within(within(teams).getByText('Chilonzor Lions').closest('div.rounded-lg')!)
+    const figure = (label: string) => lions.getByText(label).closest('div')!
+    expect(figure('Platforma toʻlovi')).toHaveTextContent("25 000 so'm")
+    expect(figure('Egasiga avans')).toHaveTextContent("25 000 so'm")
+    expect(figure('Egasiga qolgan')).toHaveTextContent("75 000 so'm")
+    expect(figure('Egasiga tushadi')).toHaveTextContent("98 500 so'm")
+    expect(figure('ATMOS komissiyasi')).toHaveTextContent("1 500 so'm")
     expect(within(teams).getAllByRole('link', { name: 'Umid K.' })[0]).toHaveAttribute(
       'href',
       '/foydalanuvchilar/u3',

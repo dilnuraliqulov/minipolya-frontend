@@ -100,7 +100,10 @@ export interface AdminGame {
   /** UTC. */
   startsAt: string
   endsAt: string
-  /** Tiyin — what the players pay for the game altogether. */
+  /**
+   * Tiyin — the pitch's price in the owner's terms, as stored on the game (the
+   * players' own views show what they pay altogether instead).
+   */
   totalPrice: number
   creatorId: string
   creatorName: string
