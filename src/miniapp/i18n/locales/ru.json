@@ -127,6 +127,38 @@
   "stadium": {
     "title": "Поле",
     "favorite": "Добавить в избранное",
-    "unfavorite": "Убрать из избранного"
+    "unfavorite": "Убрать из избранного",
+    "districtName": "Район {{district}}",
+    "surface": {
+      "natural": "Натуральный газон",
+      "artificial": "Искусственный газон",
+      "hybrid": "Гибридный газон"
+    },
+    "amenity": {
+      "lighting": "Освещение",
+      "lockerRoom": "Раздевалка",
+      "showers": "Душ",
+      "parking": "Парковка",
+      "tribune": "Трибуна",
+      "equipmentRental": "Прокат мячей",
+      "wifi": "Wi-Fi",
+      "cafe": "Кафе"
+    },
+    "amenities": "Удобства",
+    "address": "Адрес",
+    "openMap": "Открыть на карте",
+    "mapLabel": "Поле на карте",
+    "mapAttribution": "© OpenStreetMap",
+    "cancelRule": "Если отменить не позднее чем за {{hours}} ч до начала игры, оплата вернётся полностью.",
+    "reviews": "Отзывы",
+    "allReviews": "Все отзывы",
+    "noReviews": "Отзывов пока нет",
+    "reviewCount": "Отзывов: {{count}}",
+    "ratingOf": "{{rating}} из 5",
+    "anonymous": "Пользователь",
+    "ownerReply": "Ответ владельца",
+    "photoAlt": "{{name}}, фото {{n}}",
+    "notFoundTitle": "Поле не найдено",
+    "notFoundText": "Этого поля больше нет или оно закрыто."
   }
 }

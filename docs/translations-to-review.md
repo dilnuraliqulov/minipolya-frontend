@@ -110,3 +110,31 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.title` | Maydon | Поле | Pitch |
 | `stadium.favorite` | Sevimlilarga qoʻshish | Добавить в избранное | Add to favourites |
 | `stadium.unfavorite` | Sevimlilardan olib tashlash | Убрать из избранного | Remove from favourites |
+| `stadium.districtName` | {{district}} tumani | Район {{district}} | {{district}} district |
+| `stadium.surface.natural` | Tabiiy gazon | Натуральный газон | Natural grass |
+| `stadium.surface.artificial` | Sunʼiy gazon | Искусственный газон | Artificial turf |
+| `stadium.surface.hybrid` | Gibrid gazon | Гибридный газон | Hybrid turf |
+| `stadium.amenity.lighting` | Yoritish | Освещение | Lighting |
+| `stadium.amenity.lockerRoom` | Kiyinish xonasi | Раздевалка | Changing room |
+| `stadium.amenity.showers` | Dush | Душ | Showers |
+| `stadium.amenity.parking` | Avtoturargoh | Парковка | Parking |
+| `stadium.amenity.tribune` | Tribuna | Трибуна | Stand |
+| `stadium.amenity.equipmentRental` | Toʻp ijarasi | Прокат мячей | Ball rental |
+| `stadium.amenity.wifi` | Wi-Fi | Wi-Fi | Wi-Fi |
+| `stadium.amenity.cafe` | Kafe | Кафе | Café |
+| `stadium.amenities` | Qulayliklar | Удобства | Amenities |
+| `stadium.address` | Manzil | Адрес | Address |
+| `stadium.openMap` | Xaritada ochish | Открыть на карте | Open in maps |
+| `stadium.mapLabel` | Maydon xaritada | Поле на карте | The pitch on a map |
+| `stadium.mapAttribution` | © OpenStreetMap | © OpenStreetMap | © OpenStreetMap |
+| `stadium.cancelRule` | Oʻyin boshlanishiga {{hours}} soat qolguncha bekor qilsangiz, toʻlangan pul toʻliq qaytariladi. | Если отменить не позднее чем за {{hours}} ч до начала игры, оплата вернётся полностью. | Cancel at least {{hours}} hours before the game starts and everything you paid is refunded in full. |
+| `stadium.reviews` | Sharhlar | Отзывы | Reviews |
+| `stadium.allReviews` | Barcha sharhlar | Все отзывы | All reviews |
+| `stadium.noReviews` | Hali sharhlar yoʻq | Отзывов пока нет | No reviews yet |
+| `stadium.reviewCount` | {{count}} ta sharh | Отзывов: {{count}} | Reviews: {{count}} |
+| `stadium.ratingOf` | {{rating}} / 5 | {{rating}} из 5 | {{rating}} out of 5 |
+| `stadium.anonymous` | Foydalanuvchi | Пользователь | User |
+| `stadium.ownerReply` | Maydon egasi javobi | Ответ владельца | Owner’s reply |
+| `stadium.photoAlt` | {{name}}, {{n}}-rasm | {{name}}, фото {{n}} | {{name}}, photo {{n}} |
+| `stadium.notFoundTitle` | Maydon topilmadi | Поле не найдено | Pitch not found |
+| `stadium.notFoundText` | Bu maydon endi mavjud emas yoki yopilgan. | Этого поля больше нет или оно закрыто. | This pitch no longer exists or has been closed. |

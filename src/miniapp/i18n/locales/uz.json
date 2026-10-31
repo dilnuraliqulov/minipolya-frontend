@@ -127,6 +127,38 @@
   "stadium": {
     "title": "Maydon",
     "favorite": "Sevimlilarga qoʻshish",
-    "unfavorite": "Sevimlilardan olib tashlash"
+    "unfavorite": "Sevimlilardan olib tashlash",
+    "districtName": "{{district}} tumani",
+    "surface": {
+      "natural": "Tabiiy gazon",
+      "artificial": "Sunʼiy gazon",
+      "hybrid": "Gibrid gazon"
+    },
+    "amenity": {
+      "lighting": "Yoritish",
+      "lockerRoom": "Kiyinish xonasi",
+      "showers": "Dush",
+      "parking": "Avtoturargoh",
+      "tribune": "Tribuna",
+      "equipmentRental": "Toʻp ijarasi",
+      "wifi": "Wi-Fi",
+      "cafe": "Kafe"
+    },
+    "amenities": "Qulayliklar",
+    "address": "Manzil",
+    "openMap": "Xaritada ochish",
+    "mapLabel": "Maydon xaritada",
+    "mapAttribution": "© OpenStreetMap",
+    "cancelRule": "Oʻyin boshlanishiga {{hours}} soat qolguncha bekor qilsangiz, toʻlangan pul toʻliq qaytariladi.",
+    "reviews": "Sharhlar",
+    "allReviews": "Barcha sharhlar",
+    "noReviews": "Hali sharhlar yoʻq",
+    "reviewCount": "{{count}} ta sharh",
+    "ratingOf": "{{rating}} / 5",
+    "anonymous": "Foydalanuvchi",
+    "ownerReply": "Maydon egasi javobi",
+    "photoAlt": "{{name}}, {{n}}-rasm",
+    "notFoundTitle": "Maydon topilmadi",
+    "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan."
   }
 }

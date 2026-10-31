@@ -127,6 +127,38 @@
   "stadium": {
     "title": "Pitch",
     "favorite": "Add to favourites",
-    "unfavorite": "Remove from favourites"
+    "unfavorite": "Remove from favourites",
+    "districtName": "{{district}} district",
+    "surface": {
+      "natural": "Natural grass",
+      "artificial": "Artificial turf",
+      "hybrid": "Hybrid turf"
+    },
+    "amenity": {
+      "lighting": "Lighting",
+      "lockerRoom": "Changing room",
+      "showers": "Showers",
+      "parking": "Parking",
+      "tribune": "Stand",
+      "equipmentRental": "Ball rental",
+      "wifi": "Wi-Fi",
+      "cafe": "Café"
+    },
+    "amenities": "Amenities",
+    "address": "Address",
+    "openMap": "Open in maps",
+    "mapLabel": "The pitch on a map",
+    "mapAttribution": "© OpenStreetMap",
+    "cancelRule": "Cancel at least {{hours}} hours before the game starts and everything you paid is refunded in full.",
+    "reviews": "Reviews",
+    "allReviews": "All reviews",
+    "noReviews": "No reviews yet",
+    "reviewCount": "Reviews: {{count}}",
+    "ratingOf": "{{rating}} out of 5",
+    "anonymous": "User",
+    "ownerReply": "Owner’s reply",
+    "photoAlt": "{{name}}, photo {{n}}",
+    "notFoundTitle": "Pitch not found",
+    "notFoundText": "This pitch no longer exists or has been closed."
   }
 }

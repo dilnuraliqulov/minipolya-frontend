@@ -48,6 +48,7 @@ export function installFakeTelegram(overrides: Partial<TelegramWebApp> = {}) {
       selectionChanged: vi.fn(),
     },
     openTelegramLink: vi.fn(),
+    openLink: vi.fn(),
     ...overrides,
   } as unknown as TelegramWebApp
 

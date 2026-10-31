@@ -8,6 +8,7 @@ import {
   getTelegramWebApp,
   haptic,
   initViewport,
+  openExternalLink,
   useBackButton,
 } from '.'
 
@@ -75,6 +76,22 @@ describe('buildInviteLink', () => {
     vi.stubEnv('VITE_TELEGRAM_BOT_USERNAME', '')
     vi.stubEnv('VITE_TELEGRAM_APP_NAME', 'app')
     expect(() => buildInviteLink('x')).toThrow('VITE_TELEGRAM_BOT_USERNAME')
+  })
+})
+
+describe('openExternalLink', () => {
+  it("opens through Telegram's openLink inside Telegram", () => {
+    const { webApp } = installFakeTelegram()
+    openExternalLink('https://www.openstreetmap.org/')
+    expect(webApp.openLink).toHaveBeenCalledWith('https://www.openstreetmap.org/')
+  })
+
+  it('opens a new browser tab outside Telegram', () => {
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+    openExternalLink('https://www.openstreetmap.org/')
+    expect(open).toHaveBeenCalledWith('https://www.openstreetmap.org/', '_blank', 'noopener')
+    vi.unstubAllGlobals()
   })
 })
 

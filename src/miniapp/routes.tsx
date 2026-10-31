@@ -2,12 +2,15 @@ import { Navigate, type RouteObject } from 'react-router'
 import { SoonScreen, SoonTab } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
+import { ReviewsPage } from './stadiums/ReviewsPage'
+import { StadiumPage } from './stadiums/StadiumPage'
 import { StadiumsPage } from './stadiums/StadiumsPage'
 
 /** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
 export const routes: RouteObject[] = [
   { path: '/', element: <StadiumsPage /> },
-  { path: '/stadiums/:id', element: <SoonScreen titleKey="stadium.title" /> },
+  { path: '/stadiums/:id', element: <StadiumPage /> },
+  { path: '/stadiums/:id/reviews', element: <ReviewsPage /> },
   { path: '/team', element: <SoonTab titleKey="tabs.team" /> },
   { path: '/games', element: <SoonTab titleKey="tabs.games" /> },
   { path: '/profile', element: <ProfilePage /> },

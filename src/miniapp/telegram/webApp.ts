@@ -36,6 +36,7 @@ export interface TelegramWebApp {
   onEvent(event: TelegramEvent, handler: () => void): void
   offEvent(event: TelegramEvent, handler: () => void): void
   openTelegramLink(url: string): void
+  openLink(url: string): void
   BackButton: {
     isVisible: boolean
     show(): void
