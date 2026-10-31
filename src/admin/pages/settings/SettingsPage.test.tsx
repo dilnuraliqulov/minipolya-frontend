@@ -8,6 +8,8 @@ const settings = {
   bookingCommissionPercent: 10,
   teamGamePlatformFee: 2_500_000,
   casualGameServiceFee: 500_000,
+  cardFeeBps: 150,
+  paymentRoundingStep: 10_000,
   updatedAt: '2026-10-22T11:12:00Z',
 }
 
@@ -21,6 +23,7 @@ const history: AuditEntry[] = [
     changes: [
       { field: 'bookingCommissionPercent', oldValue: 5, newValue: 10 },
       { field: 'teamGamePlatformFee', oldValue: 2_000_000, newValue: 2_500_000 },
+      { field: 'cardFeeBps', oldValue: 200, newValue: 150 },
     ],
     ip: '10.0.0.1',
   },
@@ -48,7 +51,7 @@ function field(name: string) {
 describe('Sozlamalar', () => {
   useAdminTestSetup()
 
-  it('shows the three settings in percent and so’m with a preview under each', async () => {
+  it('shows the five settings in percent and so’m with a preview under each', async () => {
     mockBackend({ ...base })
     signIn()
     renderAt('/sozlamalar')
@@ -58,7 +61,12 @@ describe('Sozlamalar', () => {
     expect(screen.getByText("200 000 so'mlik brondan: 20 000 so'm")).toBeInTheDocument()
     expect(screen.getByText("Har bir jamoadan: 25 000 so'm")).toBeInTheDocument()
     expect(screen.getByText("Har bir oʻyinchidan: 5 000 so'm")).toBeInTheDocument()
-    expect(screen.queryByText(/ATMOS|egasi/)).not.toBeInTheDocument()
+    // The card fee in percent (150 bps), the rounding step in so'm (10 000 tiyin).
+    expect(field('Komissiya (karta)')).toHaveValue('1,5')
+    expect(field('Yaxlitlash qadami')).toHaveValue('100')
+    expect(screen.getByText('Har bir karta toʻlovidan: 1,5%')).toBeInTheDocument()
+    expect(screen.getByText("Karta narxlari 100 so'mga yaxlitlanadi")).toBeInTheDocument()
+    expect(screen.queryByText(/egasi/)).not.toBeInTheDocument()
     expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument()
   })
 
@@ -70,9 +78,11 @@ describe('Sozlamalar', () => {
     expect(await within(table).findByText('5% → 10%')).toBeInTheDocument()
     expect(within(table).getByText("20 000 so'm → 25 000 so'm")).toBeInTheDocument()
     expect(within(table).getByText('Jamoa vs jamoa: platforma haqi')).toBeInTheDocument()
-    expect(within(table).getAllByText('Aziz Rahimov')).toHaveLength(2)
+    expect(within(table).getByText('Karta komissiyasi')).toBeInTheDocument()
+    expect(within(table).getByText('2% → 1,5%')).toBeInTheDocument()
+    expect(within(table).getAllByText('Aziz Rahimov')).toHaveLength(3)
     expect(within(table).getByText('Tafsilotlar yoʻq')).toBeInTheDocument()
-    expect(within(table).getAllByText('22.10.2026 16:12')).toHaveLength(2)
+    expect(within(table).getAllByText('22.10.2026 16:12')).toHaveLength(3)
     const audit = requests.find((r) => r.url.pathname === '/api/admin/audit-log')
     expect(audit?.url.searchParams.get('action')).toBe('SETTINGS_CHANGED,PLATFORM_SETTINGS_UPDATED')
   })
@@ -111,6 +121,47 @@ describe('Sozlamalar', () => {
       expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument(),
     )
     expect(field('Platforma haqi')).toHaveValue('30 000')
+  })
+
+  it('saves the card fee in basis points and the rounding step in tiyin', async () => {
+    const { requests } = mockBackend({
+      ...base,
+      'PUT /api/admin/settings': (request) => [200, { ...settings, ...(request.body as object) }],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    fireEvent.change(await screen.findByLabelText('Komissiya (karta)'), {
+      target: { value: '2,25' },
+    })
+    expect(field('Komissiya (karta)')).toHaveValue('2,25')
+    fireEvent.change(field('Yaxlitlash qadami'), { target: { value: '1 000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Sozlamalar saqlandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+      cardFeeBps: 225,
+      paymentRoundingStep: 100_000,
+    })
+  })
+
+  it('shows the backend range errors on the card fee and the rounding step', async () => {
+    let message = 'cardFeeBps must be between 0 and 1000'
+    mockBackend({ ...base, 'PUT /api/admin/settings': () => [400, message] })
+    signIn()
+    renderAt('/sozlamalar')
+    fireEvent.change(await screen.findByLabelText('Komissiya (karta)'), { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Komissiya 0 dan 10% gacha boʻlishi kerak')).toBeInTheDocument()
+    expect(field('Komissiya (karta)')).toHaveAttribute('aria-invalid', 'true')
+
+    message = 'paymentRoundingStep must be between 1 and 1000000'
+    fireEvent.change(field('Yaxlitlash qadami'), { target: { value: '20000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText("Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak"),
+    ).toBeInTheDocument()
   })
 
   it('"Bekor qilish" puts the saved values back', async () => {

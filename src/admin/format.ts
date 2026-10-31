@@ -109,3 +109,26 @@ export function formatShortDateTime(iso: string): string {
   const time = String(p.hour).padStart(2, '0') + ':' + String(p.minute).padStart(2, '0')
   return p.day + ' ' + MONTHS_SHORT[p.month - 1] + ', ' + time
 }
+
+/**
+ * Basis points as a percent, with a dot: 150 → "1.5", 1000 → "10", 5 → "0.05".
+ * Integer arithmetic only, so no float ever touches the value.
+ */
+export function bpsToPercent(bps: number): string {
+  const whole = Math.trunc(bps / 100)
+  const fraction = String(Math.abs(bps % 100))
+    .padStart(2, '0')
+    .replace(/0+$/, '')
+  return fraction ? `${whole}.${fraction}` : String(whole)
+}
+
+/** A percent as typed ("1.5", up to two decimals) in basis points: 150. */
+export function percentToBps(percent: string): number {
+  const [whole = '0', fraction = ''] = percent.split('.')
+  return Number(whole || '0') * 100 + Number(fraction.padEnd(2, '0').slice(0, 2))
+}
+
+/** 150 → "1,5%". */
+export function formatBps(bps: number): string {
+  return `${bpsToPercent(bps).replace('.', ',')}%`
+}

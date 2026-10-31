@@ -23,6 +23,7 @@ import { Pagination } from '../../components/Pagination'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
 import { useToast } from '../../components/Toast'
+import { bpsToPercent, formatBps, percentToBps } from '../../format'
 
 const settingsKeys = {
   settings: ['admin', 'settings'] as const,
@@ -31,7 +32,11 @@ const settingsKeys = {
 
 const HISTORY_PAGE_SIZE = 10
 
-/** The form keeps digits as typed: the commission in percent, the fees in whole so'm. */
+/**
+ * The form keeps the values as typed: the commission in whole percent, the
+ * card fee in percent with up to two decimals ("1.5"), the fees and the
+ * rounding step in whole so'm.
+ */
 type Draft = Record<SettingsField, string>
 
 const TIYIN_PER_SOM = 100
@@ -43,15 +48,19 @@ function toDraft(settings: PlatformSettings): Draft {
     bookingCommissionPercent: String(settings.bookingCommissionPercent),
     teamGamePlatformFee: String(Math.round(settings.teamGamePlatformFee / TIYIN_PER_SOM)),
     casualGameServiceFee: String(Math.round(settings.casualGameServiceFee / TIYIN_PER_SOM)),
+    cardFeeBps: bpsToPercent(settings.cardFeeBps),
+    paymentRoundingStep: String(Math.round(settings.paymentRoundingStep / TIYIN_PER_SOM)),
   }
 }
 
-/** The draft as the API wants it: percent as is, so'm → tiyin. */
+/** The draft as the API wants it: percent as is, the card fee in basis points, so'm → tiyin. */
 function fromDraft(draft: Draft): Record<SettingsField, number> {
   return {
     bookingCommissionPercent: Number(draft.bookingCommissionPercent),
     teamGamePlatformFee: Number(draft.teamGamePlatformFee) * TIYIN_PER_SOM,
     casualGameServiceFee: Number(draft.casualGameServiceFee) * TIYIN_PER_SOM,
+    cardFeeBps: percentToBps(draft.cardFeeBps),
+    paymentRoundingStep: Number(draft.paymentRoundingStep) * TIYIN_PER_SOM,
   }
 }
 
@@ -59,17 +68,23 @@ const FIELDS: SettingsField[] = [
   'bookingCommissionPercent',
   'teamGamePlatformFee',
   'casualGameServiceFee',
+  'cardFeeBps',
+  'paymentRoundingStep',
 ]
 
 /**
  * The backend validates in the service and names the field first:
  * "bookingCommissionPercent must be between 0 and 50", "teamGamePlatformFee
- * must not be negative". Messages for other fields stay page-level.
+ * must not be negative", "cardFeeBps must be between 0 and 1000",
+ * "paymentRoundingStep must be between 1 and 1000000". Messages for other
+ * fields stay page-level.
  */
 const FIELD_ERRORS: Record<SettingsField, string> = {
   bookingCommissionPercent: 'Komissiya 0 dan 50 gacha boʻlishi kerak',
   teamGamePlatformFee: 'Haq manfiy boʻlishi mumkin emas',
   casualGameServiceFee: 'Haq manfiy boʻlishi mumkin emas',
+  cardFeeBps: 'Komissiya 0 dan 10% gacha boʻlishi kerak',
+  paymentRoundingStep: "Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak",
 }
 
 function fieldOfError(message: string): SettingsField | undefined {
@@ -106,7 +121,7 @@ function SettingRow({
 function SettingsSkeleton() {
   return (
     <div aria-busy className={`${CARD} flex flex-col`}>
-      {[0, 1, 2].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} className="flex flex-col gap-3 border-b border-border p-5 last:border-b-0">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-3 w-72" />
@@ -315,6 +330,44 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
             value={draft.casualGameServiceFee}
             onChange={set('casualGameServiceFee')}
             error={errors.casualGameServiceFee}
+          />
+        </SettingRow>
+        <SettingRow
+          title="Karta komissiyasi"
+          description="ATMOS har bir karta toʻlovidan oladigan ulush. Karta narxlari shunga qarab oshiriladi, naqd toʻlovlarga taʼsir qilmaydi"
+          preview={
+            filled('cardFeeBps')
+              ? `Har bir karta toʻlovidan: ${formatBps(values.cardFeeBps)}`
+              : null
+          }
+        >
+          <NumberField
+            label="Komissiya (karta)"
+            suffix="%"
+            decimals={2}
+            maxLength={5}
+            value={draft.cardFeeBps}
+            onChange={set('cardFeeBps')}
+            helper="0 dan 10 gacha, masalan 1,5"
+            error={errors.cardFeeBps}
+          />
+        </SettingRow>
+        <SettingRow
+          title="Narxni yaxlitlash"
+          description="Karta orqali toʻlanadigan narxlar shu summaga karrali qilib yuqoriga yaxlitlanadi"
+          preview={
+            filled('paymentRoundingStep')
+              ? `Karta narxlari ${formatSom(values.paymentRoundingStep)}ga yaxlitlanadi`
+              : null
+          }
+        >
+          <NumberField
+            label="Yaxlitlash qadami"
+            suffix="so'm"
+            value={draft.paymentRoundingStep}
+            onChange={set('paymentRoundingStep')}
+            helper="1 dan 10 000 so'mgacha"
+            error={errors.paymentRoundingStep}
           />
         </SettingRow>
       </div>

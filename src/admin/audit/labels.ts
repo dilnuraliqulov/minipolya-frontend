@@ -9,6 +9,7 @@
 import { formatNumber, formatSom } from '../../shared/format'
 import { formatDate, formatDateTime } from '../../shared/format'
 import type { AuditActorType, AuditValue } from '../api/audit'
+import { formatBps } from '../format'
 import {
   BOOKING_PAYMENT_STATUSES,
   BOOKING_STATUSES,
@@ -103,6 +104,8 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
 type Kind =
   | 'money'
   | 'percent'
+  /** Basis points, shown as a percent: 150 → 1,5%. */
+  | 'bps'
   | 'bool'
   | 'datetime'
   | 'date'
@@ -177,6 +180,8 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   bookingCommissionPercent: { label: 'Oddiy bronlar komissiyasi', kind: 'percent' },
   teamGamePlatformFee: { label: 'Jamoa vs jamoa: platforma haqi', kind: 'money' },
   casualGameServiceFee: { label: 'Doʻstlar bilan oʻyin: xizmat haqi', kind: 'money' },
+  cardFeeBps: { label: 'Karta komissiyasi', kind: 'bps' },
+  paymentRoundingStep: { label: 'Narxni yaxlitlash', kind: 'money' },
   // The stadium snapshot (owner edits).
   address: { label: 'Manzil', kind: 'text' },
   latitude: { label: 'Kenglik', kind: 'text' },
@@ -236,6 +241,8 @@ export function formatAuditValue(
       return typeof value === 'number' ? formatSom(value) : String(value)
     case 'percent':
       return `${String(value)}%`
+    case 'bps':
+      return typeof value === 'number' ? formatBps(value) : String(value)
     case 'hours':
       return `${String(value)} soat`
     case 'count':

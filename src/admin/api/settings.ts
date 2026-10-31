@@ -9,12 +9,20 @@ export interface PlatformSettings {
   teamGamePlatformFee: number
   /** Tiyin, per player. */
   casualGameServiceFee: number
+  /** What ATMOS takes of a card payment, in basis points: 150 = 1.5%. 0–1000. */
+  cardFeeBps: number
+  /** Card prices are rounded up to a multiple of it. Tiyin, 1–1 000 000. */
+  paymentRoundingStep: number
   /** UTC. */
   updatedAt: string
 }
 
 export type SettingsField =
-  'bookingCommissionPercent' | 'teamGamePlatformFee' | 'casualGameServiceFee'
+  | 'bookingCommissionPercent'
+  | 'teamGamePlatformFee'
+  | 'casualGameServiceFee'
+  | 'cardFeeBps'
+  | 'paymentRoundingStep'
 
 /** Every field optional; only the ones sent are changed. */
 export type SettingsUpdate = Partial<Pick<PlatformSettings, SettingsField>>

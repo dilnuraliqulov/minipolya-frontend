@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { formatAgo, formatDayMonth, formatDayMonthShort, lastDays, tashkentToday } from './format'
+import {
+  bpsToPercent,
+  formatAgo,
+  formatBps,
+  formatDayMonth,
+  formatDayMonthShort,
+  lastDays,
+  percentToBps,
+  tashkentToday,
+} from './format'
 
 describe('admin date formatting', () => {
   it('formats LocalDates in Uzbek', () => {
@@ -25,5 +34,15 @@ describe('admin date formatting', () => {
     expect(formatAgo('2026-10-27T11:15:00Z', now)).toBe('45 daqiqa oldin')
     expect(formatAgo('2026-10-27T07:00:00Z', now)).toBe('5 soat oldin')
     expect(formatAgo('2026-10-25T10:00:00Z', now)).toBe('2 kun oldin')
+  })
+})
+
+describe('basis points', () => {
+  it('turns basis points into a percent and back without floats', () => {
+    expect([150, 1000, 5, 0, 225].map(bpsToPercent)).toEqual(['1.5', '10', '0.05', '0', '2.25'])
+    expect(['1.5', '10', '0.05', '0', '2.25', '1.', '.5'].map(percentToBps)).toEqual([
+      150, 1000, 5, 0, 225, 100, 50,
+    ])
+    expect(formatBps(150)).toBe('1,5%')
   })
 })
