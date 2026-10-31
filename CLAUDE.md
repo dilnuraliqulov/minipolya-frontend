@@ -386,6 +386,74 @@ Note that API error messages come back in **English prose** (with one
 hard-coded Uzbek exception, Q7 in the reference), so anything shown to a user
 needs mapping to a translated string rather than being displayed raw.
 
+## Mini App
+
+Rules for everything under `src/miniapp`. Every later part follows them.
+
+**Real data only.** Use only endpoints and fields that exist in the backend
+(`docs/api-reference.md`, and the DTOs in `../minipolyaBackend` when in
+doubt). Never sample data, never a stand-in record. When something is
+missing: show "Tez orada" (`SoonScreen` / a disabled control with a "Tez
+orada" note) or hide it, request nothing, and add a full contract to
+`docs/backend-requests.md` plus its line to `src/miniapp/api/missing.ts`
+(`MISSING_ENDPOINTS`, same pattern as the admin's). The API function is
+written against the requested contract behind `isAvailable(...)`.
+
+**Money and rules.** Never calculate prices, deposits, fees, refunds or
+deadlines in the frontend — show what the API returns ("Never re-implement
+business rules" above). **Players see ONE price**: never show komissiya,
+karta toʻlovi, xizmat haqi or any breakdown (api-reference §1.10). Money is
+tiyin from the API → `formatSom` → "155 000 soʻm". Times arrive in UTC → the
+`shared/format` helpers show Asia/Tashkent.
+
+**Text.** Every string goes through i18next (`t()`), uz default, ru, en —
+never a hard-coded string, not even a placeholder or an `aria-label`. Uzbek
+uses `ʻ` (U+02BB) in oʻ/gʻ and `ʼ` (U+02BC) for the tutuq belgisi. Claude
+writes the ru/en translations itself and lists every new key in
+`docs/translations-to-review.md` for a native speaker to check. Backend error
+prose is never shown: `src/miniapp/api/errors.ts` is the **one** mapping from
+an `ApiError` (code → status → exact message from `shared/api/messages.ts`)
+to a translation key.
+
+**Look.** Light and dark from the shared tokens; the Mini App palette from
+`design/telegram-webapp.pen` (`p3-*` variables) overrides the shared variable
+names in `src/miniapp/tokens.css`, so the same Tailwind names
+(`bg-page`, `bg-background`, `text-primary` …) work. Touch targets ≥ 44px.
+Respect Telegram's safe areas (`--tg-safe-*` CSS variables set by
+`telegram/viewport.ts`). Use the components in `src/miniapp/components/`;
+do not restyle per screen. The phone status bar and home indicator in the
+design frames are device chrome — not rendered, the safe-area padding
+replaces them.
+
+**Every screen** has a loading state (skeleton), an empty state and an error
+state with "Qayta urinish" (`ScreenState` helpers in `components/`).
+
+**Telegram.** Only the official script (`telegram-web-app.js`, loaded by
+`index.html`) and the typed wrapper in `src/miniapp/telegram/` — no
+community SDK. Back navigation uses Telegram's BackButton (`useBackButton`);
+main actions give light haptic feedback (`haptic.light()` / the `Button`
+`haptic` prop). Deep links: `getStartParam()` reads `start_param`;
+`buildInviteLink(param)` builds
+`https://t.me/<VITE_TELEGRAM_BOT_USERNAME>/<VITE_TELEGRAM_APP_NAME>?startapp=<param>`.
+
+**Theme.** Profil → Mavzu: "Tizim" follows Telegram's `colorScheme` (live,
+on `themeChanged`); "Yorugʻ" / "Qorongʻi" override it. The choice is a
+display preference stored in localStorage (`minipolya-miniapp-theme`).
+
+**Auth and secrets.** The JWT lives **in memory only** (`createMemoryTokenStore`)
+— every launch logs in again from `initData`, so nothing has to persist it.
+On a 401 the app re-posts `initData` once; if that fails, a full error
+screen. A blocked account (403 `"Account is blocked"`, or `code:
+ACCOUNT_BLOCKED`) → the full "Hisobingiz bloklangan" screen. Never log or
+store card numbers, SMS codes or JWTs (no `console.log` of them, no
+localStorage/sessionStorage, no query cache keys containing them). Secrets
+never go in `VITE_` variables; public values (bot username, Mini App name)
+are fine.
+
+**Profile setup.** "Profilingizni toʻldiring" (first name, last name, +998
+phone) is shown **before the first booking**, not on app start, and is
+never pre-filled from Telegram. Gate a flow with `useProfileGate()`.
+
 ## Secrets
 
 **Everything starting with `VITE_` is inlined into the public bundle.** Anyone

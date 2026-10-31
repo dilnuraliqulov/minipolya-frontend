@@ -69,6 +69,129 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 `src/admin/api/missing.ts` lists the endpoints of open entries that a screen
 waits on; the panel shows "Tez orada" for those until they ship. R18 is a
 correction to fields that already exist, so nothing waits on it there.
+`src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21).
+
+### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod)
+
+**What's needed**
+Outside Telegram there is no `initData`, so `POST /api/auth/telegram` cannot
+work in a plain browser and the Mini App cannot be developed or tested locally
+without opening it inside Telegram through a tunnel. The backend has no dev
+login (no `dev` profile, no endpoint other than `/api/auth/telegram` and
+`/api/auth/admin/login`, checked at `d2c55a2`). The frontend must never hold
+the bot token, so it cannot sign fake `initData` itself.
+
+**Which screen needs it**
+Mini App, every screen, local development only (`npm run dev`, no Telegram).
+The frontend would use it only when `import.meta.env.DEV` is true **and**
+there is no Telegram `initData`, behind a small dev-only user picker.
+
+**Proposed endpoint**
+`GET /api/auth/dev/users` — public, **registered only under the `dev`
+Spring profile** (`@Profile("dev")` on the controller, so the mapping does
+not exist anywhere else — a 404 `"Not found"` in every other profile).
+
+Response — a short list of users to pick from (not paged, at most 50,
+newest first):
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | |
+| `name` | string | |
+| `isOwner` | boolean | |
+| `isAdmin` | boolean | |
+| `isBlocked` | boolean | so the blocked screen can be tested too |
+
+`POST /api/auth/dev/login` — public, `dev` profile only, same rule.
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `userId` | UUID | yes | must exist — 404 `"User not found"` |
+
+Response — `AuthResponse` (`token`, `user`), exactly as
+`POST /api/auth/telegram` returns it, with the same JWT claims and expiry.
+
+Error cases — 400 `"Invalid id"`; 404 `"User not found"`; 403 `"Account is
+blocked"` for a blocked user (same as the Telegram login). The application
+must **refuse to start** if the `dev` profile is active together with `prod`
+(or `atmos`), so the endpoint can never reach production.
+
+**Priority**
+High — without it every Mini App screen can only be checked inside Telegram
+through a tunnel; nothing else is blocked.
+
+### R20 — Player profile: first name, last name and phone, set only by the user
+
+**What's needed**
+The Mini App asks a player to fill in "Profilingizni toʻldiring" (first name,
+last name, +998 phone) before their first booking, and lets them edit it under
+Profil → Shaxsiy maʼlumotlar. Today `PATCH /api/users/me` accepts only `name`
+and `language`; there is no way to set `phone`, and `UserResponse` has a single
+`name` that the backend fills from Telegram on first login. So the client
+cannot tell whether the player entered their name themselves (the setup must
+never be pre-filled from Telegram), and cannot save a phone at all.
+
+**Which screen needs it**
+Mini App player: the profile-setup sheet before the first booking, Profil →
+Shaxsiy maʼlumotlar, and the phone line on Profil.
+
+**Proposed endpoint**
+`PATCH /api/users/me` — logged-in user. New optional body fields, applied
+when non-null (existing `name` / `language` unchanged):
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `firstName` | string | no | trimmed, 1–60 — `"firstName must be between 1 and 60 characters"` |
+| `lastName` | string | no | trimmed, 1–60 — `"lastName must be between 1 and 60 characters"` |
+| `phone` | string | no | `^\+998\d{9}$` — `"phone must be in the format +998XXXXXXXXX"` |
+
+When `firstName` or `lastName` is set, the backend also updates `name` to
+`"<firstName> <lastName>"`, so every existing screen keeps working.
+
+Response — the updated `UserResponse`, which gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `firstName` | string? | **only ever set by the user** through this endpoint — never from Telegram; absent until then |
+| `lastName` | string? | same rule |
+| `phone` | string? | already exists; now writable, `+998XXXXXXXXX` |
+
+The profile counts as complete when all three are present; the client checks
+presence only.
+
+Error cases — 400 with the validation messages above; 409 `"Phone is already
+used by another account"` if phones must be unique (please say whether they
+are); 401; 404 `"User not found"`.
+
+**Priority**
+High — blocks the profile setup before the first booking and editing the
+phone; the rest of Profil works today.
+
+### R21 — The reason a player's account was blocked
+
+**What's needed**
+A blocked player gets 403 `"Account is blocked"` from every endpoint (from
+`JwtAuthFilter` without a `code`, from `POST /api/auth/telegram` likewise).
+The design's "Hisobingiz bloklangan" screen shows **why** and **when**, but
+the reason an admin types (`PUT /api/admin/users/{id}` `reason`) is stored
+only in the audit log and is not returned to the player.
+
+**Which screen needs it**
+Mini App: the full-screen "Hisobingiz bloklangan".
+
+**Proposed endpoint**
+No new endpoint. On every blocked 403 (the filter and the Telegram login):
+
+| Field | Type | Notes |
+|---|---|---|
+| `code` | `"ACCOUNT_BLOCKED"` | the same code the admin login already sends |
+| `data.reason` | string? | the reason given with the latest `USER_BLOCKED`, as typed; absent when none was given |
+| `data.blockedAt` | timestamp (UTC)? | when the latest block happened |
+
+Error cases — none new.
+
+**Priority**
+Medium — the blocked screen works without it but cannot tell the player why.
 
 ### R18 — Booking amounts that add up in the owner's and admin's views, for every booking
 
