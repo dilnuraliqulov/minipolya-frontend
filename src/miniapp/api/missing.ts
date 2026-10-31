@@ -10,6 +10,10 @@
 export const MISSING_ENDPOINTS: Record<string, string> = {
   'PATCH /api/users/me firstName, lastName, phone': 'R20',
   '403 Account is blocked data.reason, data.blockedAt': 'R21',
+  'GET /api/stadiums district': 'R23',
+  'StadiumResponse coverPhotoUrl, isFavorited': 'R23',
+  'StadiumDetailResponse averageRating, reviewCount': 'R23',
+  'TimeSlot unavailableReason': 'R23',
 }
 
 export type Availability = 'available' | 'soon'

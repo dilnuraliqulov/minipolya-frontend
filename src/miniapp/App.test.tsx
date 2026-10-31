@@ -1,8 +1,18 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { stubApi } from './test/api'
 import { renderApp } from './test/renderApp'
+import { page } from './test/stadiums'
 
 describe('Mini App shell', () => {
+  beforeEach(() => {
+    stubApi({ 'GET /api/stadiums': page([]) })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('opens on Maydonlar with the four tabs from the design', async () => {
     renderApp('/')
     const nav = await screen.findByRole('navigation')
@@ -15,7 +25,7 @@ describe('Mini App shell', () => {
 
   it('shows "Tez orada" on the tabs later parts build', async () => {
     renderApp('/')
-    expect(await screen.findByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Hozircha maydonlar yoʻq' })
 
     fireEvent.click(screen.getByRole('link', { name: 'Jamoam' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Jamoam' })).toBeInTheDocument()

@@ -1,4 +1,4 @@
-export { formatSom, formatSomParts } from './money'
+export { formatSom, formatSomParts, somToTiyin } from './money'
 export { formatNumber } from './number'
 export {
   DISPLAY_TIME_ZONE,

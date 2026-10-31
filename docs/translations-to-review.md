@@ -16,6 +16,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `common.loading` | Yuklanmoqda | Загрузка | Loading |
 | `common.soon` | Tez orada | Скоро | Coming soon |
 | `common.back` | Orqaga | Назад | Back |
+| `common.clear` | Tozalash | Очистить | Clear |
 | `states.errorTitle` | Xatolik yuz berdi | Произошла ошибка | Something went wrong |
 | `states.errorNetwork` | Maʼlumotlarni yuklab boʻlmadi. Internet aloqasini tekshirib, qayta urinib koʻring. | Не удалось загрузить данные. Проверьте подключение к интернету и попробуйте ещё раз. | Couldn't load the data. Check your internet connection and try again. |
 | `states.errorServer` | Server javob bermadi. Birozdan soʻng qayta urinib koʻring. | Сервер не ответил. Попробуйте ещё раз чуть позже. | The server didn't respond. Please try again in a moment. |
@@ -89,3 +90,23 @@ Placeholders such as `{{count}}` must stay as they are.
 | `profile.setupTitle` | Profilingizni toʻldiring | Заполните профиль | Complete your profile |
 | `profile.setupSubtitle` | Maydon egasi siz bilan bogʻlana olishi uchun | Чтобы владелец поля мог с вами связаться | So the pitch owner can contact you |
 | `profile.continue` | Davom etish | Продолжить | Continue |
+| `stadiums.search` | Maydon yoki manzilni qidiring | Поиск поля или адреса | Search for a pitch or address |
+| `stadiums.filters` | Filtrlar | Фильтры | Filters |
+| `stadiums.allFormats` | Hammasi | Все | All |
+| `stadiums.allStadiums` | Barcha maydonlar | Все поля | All pitches |
+| `stadiums.perHour` | soʻm/soat | сум/час | UZS/hour |
+| `stadiums.book` | Band qilish | Забронировать | Book |
+| `stadiums.more` | Yana koʻrsatish | Показать ещё | Show more |
+| `stadiums.emptyTitle` | Hozircha maydonlar yoʻq | Пока нет полей | No pitches yet |
+| `stadiums.emptyText` | Maydonlar qoʻshilishi bilan shu yerda paydo boʻladi. | Поля появятся здесь, как только их добавят. | Pitches will appear here as soon as they are added. |
+| `stadiums.notFoundTitle` | Hech narsa topilmadi | Ничего не найдено | Nothing found |
+| `stadiums.notFoundQuery` | «{{q}}» boʻyicha maydon topilmadi. Boshqa nom yoki tumanni kiritib koʻring. | По запросу «{{q}}» полей не найдено. Попробуйте другое название или район. | No pitches found for “{{q}}”. Try another name or district. |
+| `stadiums.notFoundFilters` | Tanlangan filtrlar boʻyicha maydon topilmadi. | По выбранным фильтрам полей не найдено. | No pitches match the selected filters. |
+| `stadiums.clearSearch` | Qidiruvni tozalash | Сбросить поиск | Clear search |
+| `stadiums.maxPrice` | Soatiga narx, gacha (soʻm) | Цена за час, до (сум) | Price per hour, up to (UZS) |
+| `stadiums.district` | Tuman | Район | District |
+| `stadiums.apply` | Qoʻllash | Применить | Apply |
+| `stadiums.resetFilters` | Filtrlarni tozalash | Сбросить фильтры | Reset filters |
+| `stadium.title` | Maydon | Поле | Pitch |
+| `stadium.favorite` | Sevimlilarga qoʻshish | Добавить в избранное | Add to favourites |
+| `stadium.unfavorite` | Sevimlilardan olib tashlash | Убрать из избранного | Remove from favourites |

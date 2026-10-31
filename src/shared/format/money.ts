@@ -29,3 +29,14 @@ export function formatSom(tiyin: number): string {
   const { amount, unit } = formatSomParts(tiyin)
   return `${amount} ${unit}`
 }
+
+/**
+ * A whole so'm amount the user typed (e.g. a price filter) → tiyin for the
+ * API: `150000` → `15000000`. The only so'm → tiyin conversion.
+ */
+export function somToTiyin(som: number): number {
+  if (!Number.isSafeInteger(som) || som < 0) {
+    throw new TypeError(`somToTiyin expects a whole, non-negative so'm amount, got ${som}`)
+  }
+  return som * TIYIN_PER_SOM
+}

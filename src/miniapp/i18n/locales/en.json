@@ -7,7 +7,8 @@
     "retry": "Try again",
     "loading": "Loading",
     "soon": "Coming soon",
-    "back": "Back"
+    "back": "Back",
+    "clear": "Clear"
   },
   "states": {
     "errorTitle": "Something went wrong",
@@ -103,5 +104,29 @@
     "setupTitle": "Complete your profile",
     "setupSubtitle": "So the pitch owner can contact you",
     "continue": "Continue"
+  },
+  "stadiums": {
+    "search": "Search for a pitch or address",
+    "filters": "Filters",
+    "allFormats": "All",
+    "allStadiums": "All pitches",
+    "perHour": "UZS/hour",
+    "book": "Book",
+    "more": "Show more",
+    "emptyTitle": "No pitches yet",
+    "emptyText": "Pitches will appear here as soon as they are added.",
+    "notFoundTitle": "Nothing found",
+    "notFoundQuery": "No pitches found for “{{q}}”. Try another name or district.",
+    "notFoundFilters": "No pitches match the selected filters.",
+    "clearSearch": "Clear search",
+    "maxPrice": "Price per hour, up to (UZS)",
+    "district": "District",
+    "apply": "Apply",
+    "resetFilters": "Reset filters"
+  },
+  "stadium": {
+    "title": "Pitch",
+    "favorite": "Add to favourites",
+    "unfavorite": "Remove from favourites"
   }
 }

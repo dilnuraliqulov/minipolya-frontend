@@ -7,7 +7,8 @@
     "retry": "Qayta urinish",
     "loading": "Yuklanmoqda",
     "soon": "Tez orada",
-    "back": "Orqaga"
+    "back": "Orqaga",
+    "clear": "Tozalash"
   },
   "states": {
     "errorTitle": "Xatolik yuz berdi",
@@ -103,5 +104,29 @@
     "setupTitle": "Profilingizni toʻldiring",
     "setupSubtitle": "Maydon egasi siz bilan bogʻlana olishi uchun",
     "continue": "Davom etish"
+  },
+  "stadiums": {
+    "search": "Maydon yoki manzilni qidiring",
+    "filters": "Filtrlar",
+    "allFormats": "Hammasi",
+    "allStadiums": "Barcha maydonlar",
+    "perHour": "soʻm/soat",
+    "book": "Band qilish",
+    "more": "Yana koʻrsatish",
+    "emptyTitle": "Hozircha maydonlar yoʻq",
+    "emptyText": "Maydonlar qoʻshilishi bilan shu yerda paydo boʻladi.",
+    "notFoundTitle": "Hech narsa topilmadi",
+    "notFoundQuery": "«{{q}}» boʻyicha maydon topilmadi. Boshqa nom yoki tumanni kiritib koʻring.",
+    "notFoundFilters": "Tanlangan filtrlar boʻyicha maydon topilmadi.",
+    "clearSearch": "Qidiruvni tozalash",
+    "maxPrice": "Soatiga narx, gacha (soʻm)",
+    "district": "Tuman",
+    "apply": "Qoʻllash",
+    "resetFilters": "Filtrlarni tozalash"
+  },
+  "stadium": {
+    "title": "Maydon",
+    "favorite": "Sevimlilarga qoʻshish",
+    "unfavorite": "Sevimlilardan olib tashlash"
   }
 }
