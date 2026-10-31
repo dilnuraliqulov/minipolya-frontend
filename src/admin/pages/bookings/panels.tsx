@@ -109,7 +109,12 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
                   {b.isWalkin && <StatusBadge tone="neutral">Qoʻlda</StatusBadge>}
                 </span>
               </PanelRow>
-              <PanelRow label="Narx">{formatSom(b.price)}</PanelRow>
+              <PanelRow label="Narx">
+                {formatSom(b.price)}
+                {b.netPrice !== undefined && b.netPrice !== b.price && (
+                  <span className="text-secondary"> · egasiga {formatSom(b.netPrice)}</span>
+                )}
+              </PanelRow>
               <PanelRow label="Holat">
                 {status && <StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
               </PanelRow>
@@ -125,7 +130,7 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
 
           <PanelSection title="Toʻlov">
             <dl className="flex flex-col gap-2.5">
-              <PanelRow label="Ilova orqali toʻlangan">{formatSom(b.paidInApp)}</PanelRow>
+              <PanelRow label="Ilova orqali toʻlangan">{formatSom(b.paidInApp ?? 0)}</PanelRow>
               {b.cashReceived !== undefined && (
                 <PanelRow label="Naqd (ega qabul qildi)">{formatSom(b.cashReceived)}</PanelRow>
               )}

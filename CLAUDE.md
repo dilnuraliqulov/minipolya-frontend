@@ -51,8 +51,7 @@ src/
 ├── admin/            # admin panel only
 │   ├── main.tsx      #   entry: theme, API client (localStorage token + 401/blocked → logout), Query, toasts
 │   ├── App.tsx, routes.tsx  # router (basename /admin); a page per menu item + detail pages
-│   ├── api/          #   endpoint types + calls; missing.ts = endpoints not shipped yet;
-│   │                 #   sample/ = clearly marked sample data (adapter.ts: development only)
+│   ├── api/          #   endpoint types + calls; missing.ts = endpoints not shipped yet
 │   ├── audit/        #   labels.ts = THE audit mapping (actions, fields, values); links; tables
 │   ├── auth/         #   session store, login page, route guard, no-access page
 │   ├── components/   #   shared admin UI from the design's component frames
@@ -104,40 +103,36 @@ plain browser; the page still renders and follows the computer's theme.
   client decisions only (skip an expired token, notice role changes); the
   signature is never checked client-side.
 
-## Sample data
+## Real data only
 
-When a design needs a value the backend does not provide, it may be shown as
-**sample data**, never silently:
+The admin panel shows **only real backend data**, the same in development and
+production:
 
-- it lives in one place per app (`src/admin/api/sample/`), behind the API
-  layer, never inline in a component
-- it is rendered with the visible **"Namuna"** tag (`SampleTag`), whose
-  tooltip names the request, placed on the sample value itself — never on a
-  real value next to it (a whole section of sample data gets one tag on its
-  heading)
-- it is shown **in development only** (`SHOW_SAMPLE_DATA`); a production build
-  leaves it out rather than show made-up numbers
-- it has an entry in `docs/backend-requests.md`, and is deleted when the
-  backend ships the real field
+- **The backend has the endpoint or field → use it.**
+- **It doesn't → show "Tez orada"**: the section is a `SoonSection` (or a
+  small "Tez orada" line), its column or field is hidden, its filter or button
+  is disabled with the tooltip "Tez orada" (`DisabledHint`), and nothing is
+  requested. Never fill in invented values, never stand in another record, and
+  never filter or count a single page in the client to fake a server filter.
+- There is no sample data, no sample adapter and no "Namuna" badge. A test
+  (`src/admin/real-data.test.ts`) fails if anything under `src` imports a
+  sample module.
 
 **Missing endpoints.** `src/admin/api/missing.ts` holds the **one list**
-(`MISSING_ENDPOINTS`) of endpoints and fields the panel calls that the backend
-has not shipped, each with its request number. The API functions in
-`src/admin/api` are written against the requested contract and wrap the real
-call in `viaSample(endpoint, real, sample)`:
+(`MISSING_ENDPOINTS`) of endpoints and fields the panel needs that the backend
+has not shipped, each with its request number in `docs/backend-requests.md`.
+`availability(endpoint)` / `isAvailable(endpoint)` answer `'available'` or
+`'soon'`; every section that depends on a requested endpoint checks it, keyed
+by the endpoint constant next to its API function (`BOOKINGS_LIST`,
+`STADIUM_DETAIL_FIELDS`, …).
 
-- development: `api/sample/adapter.ts` answers, keeping its sample data in
-  memory so actions (approve, block, retry…) change what the next request
-  returns; success toasts say the action was a sample
-- production: the adapter is not in the bundle (it is imported only behind
-  `import.meta.env.DEV`); `availability(endpoint)` is `'soon'`, so the section
-  shows "Tez orada" and its action buttons are disabled with the tooltip
-  "Tez orada"
-- when the backend ships one, delete its line from `MISSING_ENDPOINTS` — the
-  real call takes over unchanged — then delete its adapter function
-
-After a build, check that `dist/` contains no sample data (e.g. grep for a
-sample name).
+- When a screen needs something new: add the request to
+  `docs/backend-requests.md`, its line to `MISSING_ENDPOINTS`, and write the
+  API function against the requested contract behind that check.
+- When the backend ships it: delete its line — the real call takes over — and
+  move the request to Done.
+- In tests, `markMissing(endpoint)` (`test-utils.tsx`) puts an endpoint on the
+  list for one test; each page has a test for its "Tez orada" state.
 
 ## Admin components
 

@@ -59,7 +59,6 @@ describe('KpiCard', () => {
     expect(screen.getByText('Bugungi bronlar')).toBeInTheDocument()
     expect(screen.getByText('47')).toBeInTheDocument()
     expect(screen.getByText('+12%').parentElement).toHaveClass('text-success')
-    expect(screen.queryByText('Namuna')).not.toBeInTheDocument()
   })
 
   it('shows the unit apart from the value, smaller and secondary', () => {
@@ -67,16 +66,6 @@ describe('KpiCard', () => {
     expect(screen.getByText('48 650 000')).toHaveClass('text-5xl')
     expect(screen.getByText("so'm")).toHaveClass('text-lg', 'text-secondary')
     expect(screen.getByText('Shu oy')).toHaveClass('text-xs')
-  })
-
-  it('marks only the sample comparison, at the end of its line', () => {
-    render(
-      <KpiCard label="x" value="1" delta={{ trend: 'down', text: '−4%', sampleRequest: 'R4' }} />,
-    )
-    const tag = screen.getByText('Namuna')
-    expect(tag).toHaveAttribute('title', expect.stringContaining('R4'))
-    expect(tag.parentElement).toBe(screen.getByText('−4%').parentElement)
-    expect(tag.parentElement?.lastElementChild).toBe(tag)
   })
 
   it('renders skeletons while loading', () => {

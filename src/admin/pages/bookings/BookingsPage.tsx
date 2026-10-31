@@ -12,13 +12,12 @@ import {
   type AdminGame,
   type BookingFilters,
 } from '../../api/bookings'
-import { availability, requestFor } from '../../api/missing'
+import { availability } from '../../api/missing'
 import { SoonSection } from '../../components/Availability'
 import { DataTable, type Column } from '../../components/DataTable'
 import { DateRangePicker } from '../../components/DateRangePicker'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Tabs } from '../../components/Tabs'
 import { useDebounced } from '../../components/useDebounced'
@@ -80,9 +79,10 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
     key: 'paid',
     header: 'Toʻlangan',
     width: 170,
+    // `paidAmount` counts towards the owner's net price, so it is set against that.
     render: (b) => (
-      <span className="whitespace-nowrap" title="Toʻlangan / narx, soʻm">
-        {som(b.paidAmount)} / {som(b.price)}
+      <span className="whitespace-nowrap" title="Toʻlangan / egasining narxi, soʻm">
+        {som(b.paidAmount)} / {som(b.netPrice ?? b.price)}
       </span>
     ),
   },
@@ -294,11 +294,6 @@ export function BookingsPage() {
           </FilterBar>
 
           <div className="flex flex-col gap-2">
-            {mode === 'sample' && (
-              <span className="self-start">
-                <SampleTag request={requestFor(BOOKINGS_LIST)!} />
-              </span>
-            )}
             {tab === 'bookings' ? (
               <DataTable
                 columns={BOOKING_COLUMNS}

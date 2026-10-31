@@ -1,18 +1,37 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import type { AdminPayment, AdminPaymentDetail } from '../../api/payments'
-import { mockBackend, page, renderAt, signIn, stats, useAdminTestSetup } from '../../test-utils'
+import { describe, expect, it } from 'vitest'
+import { BOOKING_DETAIL } from '../../api/bookings'
+import {
+  PAYMENTS_LIST,
+  PAYMENTS_SUMMARY,
+  REFUND_MANUAL,
+  REFUND_RETRY,
+  type AdminPayment,
+  type AdminPaymentDetail,
+  type PaymentSummary,
+} from '../../api/payments'
+import {
+  markMissing,
+  mockBackend,
+  page,
+  renderAt,
+  type Reply,
+  type Request,
+  signIn,
+  stats,
+  useAdminTestSetup,
+} from '../../test-utils'
 
 const failedRefund: AdminPayment = {
-  id: 'sample-payment-0001',
+  id: 'p1',
   createdAt: '2026-10-28T09:02:00Z',
-  userId: 'sample-user-0001',
+  userId: 'u7',
   userName: 'Sardor Aliyev',
   userPhone: '+998 90 111 22 33',
   paymentType: 'refund',
-  stadiumId: 'sample-stadium-0011',
-  stadiumName: 'Bunyodkor Arena',
-  bookingId: 'sample-booking-0001',
+  stadiumId: 'st1',
+  stadiumName: 'Chilonzor Arena',
+  bookingId: 'b1',
   amount: -20_000_000,
   ownerAmount: -19_000_000,
   platformAmount: -1_000_000,
@@ -22,17 +41,19 @@ const failedRefund: AdminPayment = {
   providerTxnId: '8f3a2c1d5e764b098d317a4e9c21abcd-refund',
   status: 'failed',
   refundReason: 'Bron bekor qilindi',
-  refundOfPaymentId: 'sample-payment-0002',
+  refundOfPaymentId: 'p2',
   failureReason: 'Transaction declined by issuer (code 57)',
 }
 const held: AdminPayment = {
   ...failedRefund,
-  id: 'sample-payment-0003',
+  id: 'p3',
   userName: 'Jasur Toshev',
   paymentType: 'team_game',
   amount: 8_000_000,
   ownerAmount: 7_500_000,
   platformAmount: 500_000,
+  cardFee: 120_000,
+  providerCommission: 118_000,
   status: 'held',
   providerTxnId: '2c1d77e0aaaabbbbccccddddeeee0000',
   failureReason: undefined,
@@ -41,84 +62,94 @@ const held: AdminPayment = {
 }
 const cash: AdminPayment = {
   ...held,
-  id: 'sample-payment-0004',
+  id: 'p4',
   userName: 'Alisher Mirzayev',
   paymentType: 'remainder',
   method: 'cash',
   provider: 'cash',
   providerTxnId: undefined,
+  cardFee: undefined,
+  providerCommission: undefined,
   status: 'paid',
   amount: 13_000_000,
   ownerAmount: 13_000_000,
   platformAmount: 0,
 }
 
-async function sample() {
-  const adapter = await import('../../api/sample/adapter')
-  const list = vi
-    .spyOn(adapter, 'listPayments')
-    .mockImplementation((q) =>
-      Promise.resolve(
-        page(
-          [failedRefund, held, cash].filter(
-            (p) => (!q.type || p.paymentType === q.type) && (!q.status || p.status === q.status),
-          ),
-        ),
-      ),
-    )
-  vi.spyOn(adapter, 'getPayment').mockImplementation((id) => {
-    const p = [failedRefund, held, cash].find((x) => x.id === id)!
-    const detail: AdminPaymentDetail = {
-      ...p,
-      linkedPayments:
-        p.id === failedRefund.id
-          ? [
-              {
-                id: 'sample-payment-0002',
-                paymentType: 'booking',
-                amount: 20_000_000,
-                status: 'paid',
-                method: 'card',
-                providerTxnId: 'b41e000000000000000000000000003af',
-                createdAt: '2026-10-20T09:03:00Z',
-              },
-            ]
-          : [],
-    }
-    return Promise.resolve(detail)
-  })
-  vi.spyOn(adapter, 'paymentSummary').mockResolvedValue({
-    appRevenue: 4_865_000_000,
-    platformRevenue: 125_000_000,
-    ownerPayouts: 4_740_000_000,
-    refunded: 210_000_000,
-    held: 30_000_000,
-  })
-  vi.spyOn(adapter, 'refundAlerts').mockReturnValue({ failedRefunds: 1 })
-  return { list, adapter }
+const summary: PaymentSummary = {
+  appRevenue: 4_865_000_000,
+  cardFees: 73_000_000,
+  platformRevenue: 125_000_000,
+  ownerPayouts: 4_667_000_000,
+  refunded: 210_000_000,
+  held: 30_000_000,
 }
 
-const replies = {
-  '/api/admin/stats': [200, stats],
-  '/api/admin/stadiums': [200, page([])],
-} as const
+function detail(p: AdminPayment): AdminPaymentDetail {
+  return {
+    ...p,
+    linkedPayments:
+      p.id === failedRefund.id
+        ? [
+            {
+              id: 'p2',
+              paymentType: 'booking',
+              amount: 20_000_000,
+              status: 'refund_failed',
+              method: 'card',
+              providerTxnId: 'b41e000000000000000000000000003af',
+              createdAt: '2026-10-20T09:03:00Z',
+            },
+          ]
+        : [],
+  }
+}
+
+function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
+  return mockBackend({
+    '/api/admin/stats': [200, { ...stats, failedRefunds: 1 }],
+    '/api/admin/stadiums': [200, page([])],
+    // The backend filters by type and status; the mock answers as it would.
+    '/api/admin/payments': (request) => {
+      const type = request.url.searchParams.get('type')
+      const status = request.url.searchParams.get('status')
+      return [
+        200,
+        page(
+          [failedRefund, held, cash].filter(
+            (p) => (!type || p.paymentType === type) && (!status || p.status === status),
+          ),
+        ),
+      ]
+    },
+    '/api/admin/payments/summary': [200, summary],
+    '/api/admin/payments/p1': [200, detail(failedRefund)],
+    '/api/admin/payments/p3': [200, detail(held)],
+    '/api/admin/audit-log': [200, page([])],
+    ...extra,
+  })
+}
+
+const last = (requests: Request[], path: string) =>
+  requests.filter((r) => r.url.pathname === path).at(-1)!.url.searchParams
 
 describe('Toʻlovlar', () => {
   useAdminTestSetup()
 
   it('shows the period summary with the cash note, and the payments table', async () => {
-    const { adapter } = await sample()
-    mockBackend({ ...replies })
+    const { requests } = backend()
     signIn()
     renderAt('/tolovlar')
-    const summary = await screen.findByRole('region', { name: 'Umumiy koʻrsatkichlar' })
-    expect(await within(summary).findByText('48 650 000')).toBeInTheDocument()
-    expect(within(summary).getByText('Platforma daromadi')).toBeInTheDocument()
-    expect(within(summary).getByText('Naqd toʻlovlar tushumga kirmaydi')).toBeInTheDocument()
+    const region = await screen.findByRole('region', { name: 'Umumiy koʻrsatkichlar' })
+    expect(await within(region).findByText('48 650 000')).toBeInTheDocument()
+    expect(within(region).getByText('Karta komissiyasi')).toBeInTheDocument()
+    expect(within(region).getByText('730 000')).toBeInTheDocument()
+    expect(within(region).getByText('Platforma daromadi')).toBeInTheDocument()
+    expect(within(region).getByText('Naqd toʻlovlar tushumga kirmaydi')).toBeInTheDocument()
     // "Oy" by default: from the 1st of this month to today.
-    const [from, to] = vi.mocked(adapter.paymentSummary).mock.calls.at(-1)!
-    expect(from.endsWith('-01')).toBe(true)
-    expect(to >= from).toBe(true)
+    const range = last(requests, '/api/admin/payments/summary')
+    expect(range.get('from')!.endsWith('-01')).toBe(true)
+    expect(range.get('to')! >= range.get('from')!).toBe(true)
 
     const table = screen.getByRole('table')
     const refundRow = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
@@ -134,65 +165,64 @@ describe('Toʻlovlar', () => {
   })
 
   it('changes the summary period', async () => {
-    const { adapter } = await sample()
-    mockBackend({ ...replies })
+    const { requests } = backend()
     signIn()
     renderAt('/tolovlar')
     await screen.findByText('Sardor Aliyev')
     fireEvent.click(screen.getByRole('button', { name: 'Bugun' }))
     await waitFor(() => {
-      const [from, to] = vi.mocked(adapter.paymentSummary).mock.calls.at(-1)!
-      expect(from).toBe(to)
+      const range = last(requests, '/api/admin/payments/summary')
+      expect(range.get('from')).toBe(range.get('to'))
     })
     expect(screen.getByRole('button', { name: 'Bugun' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('has refund and held tabs: the refund tab filters by type and shows the failed count', async () => {
-    const { list } = await sample()
-    mockBackend({ ...replies })
+    const { requests } = backend()
     signIn()
     renderAt('/tolovlar')
     const refundsTab = await screen.findByRole('tab', { name: /Qaytarishlar/ })
     expect(await within(refundsTab).findByText('1')).toHaveClass('text-danger')
     fireEvent.click(refundsTab)
-    await waitFor(() => expect(list.mock.calls.at(-1)![0]).toMatchObject({ type: 'refund' }))
+    await waitFor(() => expect(last(requests, '/api/admin/payments').get('type')).toBe('refund'))
     expect(screen.queryByLabelText('Turi')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: /Ushlab turilgan/ }))
-    await waitFor(() => expect(list.mock.calls.at(-1)![0]).toMatchObject({ status: 'held' }))
+    await waitFor(() => expect(last(requests, '/api/admin/payments').get('status')).toBe('held'))
     expect(screen.queryByLabelText('Holat')).not.toBeInTheDocument()
   })
 
-  it('sends the search and the filters', async () => {
-    const { list } = await sample()
-    mockBackend({ ...replies })
+  it('sends the search and the filters to the backend', async () => {
+    const { requests } = backend()
     signIn()
     renderAt('/tolovlar')
     await screen.findByText('Sardor Aliyev')
     fireEvent.change(screen.getByLabelText('Ism, telefon yoki tranzaksiya ID'), {
       target: { value: '8f3a' },
     })
-    await waitFor(() => expect(list.mock.calls.at(-1)![0].search).toBe('8f3a'))
+    await waitFor(() => expect(last(requests, '/api/admin/payments').get('search')).toBe('8f3a'))
     fireEvent.change(screen.getByLabelText('Turi'), { target: { value: 'refund' } })
     fireEvent.change(screen.getByLabelText('Usul'), { target: { value: 'card' } })
     fireEvent.change(screen.getByLabelText('Holat'), { target: { value: 'failed' } })
-    await waitFor(() =>
-      expect(list.mock.calls.at(-1)![0]).toMatchObject({
-        type: 'refund',
-        method: 'card',
-        status: 'failed',
-        page: 0,
-      }),
-    )
+    await waitFor(() => {
+      const query = last(requests, '/api/admin/payments')
+      expect([query.get('type'), query.get('method'), query.get('status')]).toEqual([
+        'refund',
+        'card',
+        'failed',
+      ])
+      expect(query.get('page')).toBe('0')
+    })
   })
 
   it('opens a failed refund with the ATMOS error, retries it and links the original', async () => {
-    const { adapter } = await sample()
-    const retry = vi
-      .spyOn(adapter, 'retryRefund')
-      .mockResolvedValue({ ...failedRefund, status: 'refunded', failureReason: undefined })
-    mockBackend({ ...replies })
+    const { requests } = backend({
+      'POST /api/admin/payments/p1/retry-refund': [
+        200,
+        { ...failedRefund, status: 'refunded', failureReason: undefined },
+      ],
+    })
     signIn()
-    const router = renderAt('/tolovlar?tolov=sample-payment-0001')
+    const router = renderAt('/tolovlar?tolov=p1')
     const panel = await screen.findByRole('dialog', { name: /Qaytarish ·/ })
     expect(await within(panel).findByText('Qaytarish amalga oshmadi')).toBeInTheDocument()
     expect(
@@ -200,26 +230,40 @@ describe('Toʻlovlar', () => {
     ).toBeInTheDocument()
     expect(within(panel).getByText('Egadan')).toBeInTheDocument()
     expect(within(panel).getByText('5 %')).toBeInTheDocument()
+    expect(within(panel).getByText('Qaytarish oʻtmadi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Bronni ochish' })).toHaveAttribute(
       'href',
-      '/bronlar?bron=sample-booking-0001',
+      '/bronlar?bron=b1',
     )
     fireEvent.click(within(panel).getByRole('button', { name: 'Qayta urinish' }))
-    expect(await screen.findByText('Pul qaytarildi (namuna)')).toBeInTheDocument()
-    expect(retry).toHaveBeenCalledWith('sample-payment-0001')
+    expect(await screen.findByText('Pul qaytarildi')).toBeInTheDocument()
+    expect(requests.some((r) => r.method === 'POST')).toBe(true)
 
     fireEvent.click(within(panel).getByRole('button', { name: /Asl toʻlov/ }))
-    expect(router.state.location.search).toContain('tolov=sample-payment-0002')
+    expect(router.state.location.search).toContain('tolov=p2')
+  })
+
+  it('says when ATMOS cannot be reached on a retry', async () => {
+    backend({
+      'POST /api/admin/payments/p1/retry-refund': [502, 'Payment provider unavailable'],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    expect(
+      await screen.findByText('ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'),
+    ).toBeInTheDocument()
   })
 
   it('marks a failed refund as refunded by hand, with a required reason', async () => {
-    const { adapter } = await sample()
-    const mark = vi
-      .spyOn(adapter, 'markRefunded')
-      .mockResolvedValue({ ...failedRefund, status: 'refunded', refundedManually: true })
-    mockBackend({ ...replies })
+    const { requests } = backend({
+      'POST /api/admin/payments/p1/mark-refunded': [
+        200,
+        { ...failedRefund, status: 'refunded', refundedManually: true },
+      ],
+    })
     signIn()
-    renderAt('/tolovlar?tolov=sample-payment-0001')
+    renderAt('/tolovlar?tolov=p1')
     fireEvent.click(await screen.findByRole('button', { name: 'Qoʻlda qaytarildi' }))
     const dialog = screen.getByRole('dialog', { name: 'Qoʻlda qaytarildi deb belgilash' })
     expect(dialog).toHaveTextContent('Faqat pul boshqa yoʻl bilan qaytarilgan boʻlsa belgilang')
@@ -230,31 +274,58 @@ describe('Toʻlovlar', () => {
       target: { value: 'Mijozga maydonda naqd qaytarildi' },
     })
     fireEvent.click(confirm)
-    expect(await screen.findByText('Qoʻlda qaytarildi deb belgilandi (namuna)')).toBeInTheDocument()
-    expect(mark).toHaveBeenCalledWith('sample-payment-0001', 'Mijozga maydonda naqd qaytarildi')
+    expect(await screen.findByText('Qoʻlda qaytarildi deb belgilandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
+      reason: 'Mijozga maydonda naqd qaytarildi',
+    })
   })
 
-  it('has no actions on other payments', async () => {
-    await sample()
-    mockBackend({ ...replies })
+  it('shows the card fee of a card payment and has no actions on it', async () => {
+    backend()
     signIn()
-    renderAt('/tolovlar?tolov=sample-payment-0003')
+    renderAt('/tolovlar?tolov=p3')
     const panel = await screen.findByRole('dialog', { name: /Jamoa oʻyini ·/ })
     expect(await within(panel).findByText('Ushlab turilgan')).toBeInTheDocument()
+    expect(within(panel).getByText('Karta komissiyasi')).toBeInTheDocument()
+    expect(within(panel).getByText('ATMOS ushlab qoldi')).toBeInTheDocument()
     expect(
       within(panel).queryByRole('button', { name: /Qayta urinish|Qoʻlda/ }),
     ).not.toBeInTheDocument()
   })
 
   it('shows empty and error states', async () => {
-    const { list } = await sample()
-    list.mockResolvedValue(page([]))
-    mockBackend({ ...replies })
+    let fail = false
+    backend({ '/api/admin/payments': () => (fail ? [500, 'boom'] : [200, page([])]) })
     signIn()
     renderAt('/tolovlar')
     expect(await screen.findByText('Toʻlovlar yoʻq')).toBeInTheDocument()
-    list.mockRejectedValue(new Error('boom'))
+    fail = true
     fireEvent.change(screen.getByLabelText('Usul'), { target: { value: 'cash' } })
     expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toBeInTheDocument()
+  })
+
+  it('while R16 is missing: the whole page is "Tez orada" — no summary, tabs, panel or request', async () => {
+    markMissing(PAYMENTS_LIST, PAYMENTS_SUMMARY)
+    const { requests } = backend()
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    expect(await screen.findByText('Tez orada')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Umumiy koʻrsatkichlar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(requests.some((r) => r.url.pathname.startsWith('/api/admin/payments'))).toBe(false)
+  })
+
+  it('while R17 is missing: the refund actions are disabled "Tez orada"; while R15 is, no booking link', async () => {
+    markMissing(REFUND_RETRY, REFUND_MANUAL, BOOKING_DETAIL)
+    backend()
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    const panel = await screen.findByRole('dialog', { name: /Qaytarish ·/ })
+    const retry = await within(panel).findByRole('button', { name: 'Qayta urinish' })
+    expect(retry).toBeDisabled()
+    expect(retry.closest('[title]')).toHaveAttribute('title', 'Tez orada')
+    expect(within(panel).getByRole('button', { name: 'Qoʻlda qaytarildi' })).toBeDisabled()
+    expect(within(panel).queryByRole('link', { name: 'Bronni ochish' })).not.toBeInTheDocument()
   })
 })

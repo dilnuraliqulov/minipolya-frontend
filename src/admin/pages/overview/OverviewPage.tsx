@@ -12,23 +12,23 @@ import {
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { formatNumber, formatSomParts } from '../../../shared/format'
-import { SAMPLE_KPI_DELTAS, SHOW_SAMPLE_DATA } from '../../api/sample'
-import { requestFor } from '../../api/missing'
-import { getOldestPendingStadium, getPlatformRevenue, REFUND_ALERTS } from '../../api/stats'
+import { isAvailable } from '../../api/missing'
+import { getDailyBookings, getOldestPendingStadium, KPI_COMPARISONS } from '../../api/stats'
 import { BarChart } from '../../components/BarChart'
 import { CARD, interactiveCard, rise } from '../../components/card'
 import { cx } from '../../components/cx'
 import { KpiCard } from '../../components/KpiCard'
-import { SampleTag } from '../../components/SampleTag'
 import { useReducedMotion } from '../../components/motion'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
 import { formatAgo, tashkentToday } from '../../format'
-import { adminKeys, useRefundAlerts, useStats } from '../../queries'
+import { adminKeys, useFailedRefunds, useStats } from '../../queries'
 import { CHART_HEIGHT, dailyBookingBars } from './chartData'
+import { comparison } from './comparison'
 
 const card = CARD
 const KPI_GRID = 'grid grid-cols-2 gap-4 xl:grid-cols-4'
+const LAST_WEEK = 'oʻtgan haftaga nisbatan'
 
 const TILE_TONES = {
   warning: 'bg-warning-soft text-warning',
@@ -40,7 +40,6 @@ function TodoTile({
   tone,
   title,
   count,
-  sampleRequest,
   oldest,
   to,
   className,
@@ -50,8 +49,6 @@ function TodoTile({
   tone: keyof typeof TILE_TONES
   title: string
   count: number
-  /** Set when the count is sample data; names the backend request. */
-  sampleRequest?: string
   /** UTC timestamp of the oldest waiting item; undefined while loading or unknown. */
   oldest: { createdAt?: string; loading: boolean }
   to: string
@@ -79,9 +76,8 @@ function TodoTile({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-base font-medium text-secondary">{title}</p>
-        <p className="flex items-center gap-2 text-6xl font-semibold tracking-display text-primary">
+        <p className="text-6xl font-semibold tracking-display text-primary">
           {formatNumber(count)}
-          {sampleRequest && <SampleTag request={sampleRequest} />}
         </p>
         {oldest.loading ? (
           <Skeleton className="mt-1 h-2.5 w-36" />
@@ -140,9 +136,9 @@ function OverviewSkeleton() {
 export function OverviewPage() {
   const reducedMotion = useReducedMotion()
   const stats = useStats()
-  const revenue = useQuery({ queryKey: adminKeys.revenue, queryFn: getPlatformRevenue })
-  const refunds = useRefundAlerts()
-  const failedRefunds = refunds.data?.failedRefunds ?? 0
+  const daily = useQuery({ queryKey: adminKeys.dailyBookings, queryFn: getDailyBookings })
+  const refunds = useFailedRefunds()
+  const failedRefunds = refunds?.count ?? 0
   const pendingStadiums = stats.data?.pendingStadiumApprovals ?? 0
   const oldestStadium = useQuery({
     queryKey: adminKeys.oldestStadium,
@@ -150,25 +146,25 @@ export function OverviewPage() {
     enabled: pendingStadiums > 0,
   })
 
-  if (stats.isError || revenue.isError) {
+  if (stats.isError || daily.isError) {
     return (
       <div className={card}>
         <ErrorState
           onRetry={() => {
             void stats.refetch()
-            void revenue.refetch()
+            void daily.refetch()
           }}
         />
       </div>
     )
   }
-  if (!stats.data || !revenue.data) return <OverviewSkeleton />
+  if (!stats.data || !daily.data) return <OverviewSkeleton />
 
   const s = stats.data
-  const bars = dailyBookingBars(revenue.data.dailyRevenue, tashkentToday())
+  const bars = dailyBookingBars(daily.data, tashkentToday())
   const total = bars.reduce((sum, bar) => sum + bar.value, 0)
   const money = formatSomParts(s.monthRevenue)
-  const deltas = SHOW_SAMPLE_DATA ? SAMPLE_KPI_DELTAS : undefined
+  const compare = isAvailable(KPI_COMPARISONS)
 
   // Entrance order: the to-do tiles first, then the KPI cards.
   let order = 0
@@ -193,8 +189,7 @@ export function OverviewPage() {
                 tone="danger"
                 title="Muvaffaqiyatsiz qaytarishlar"
                 count={failedRefunds}
-                sampleRequest={refunds.mode === 'sample' ? requestFor(REFUND_ALERTS) : undefined}
-                oldest={{ createdAt: refunds.data?.oldestFailedRefundAt, loading: false }}
+                oldest={{ createdAt: refunds?.oldestAt, loading: false }}
                 to="/tolovlar?tab=qaytarishlar"
                 {...enter()}
               />
@@ -222,7 +217,9 @@ export function OverviewPage() {
           icon={Calendar}
           label="Bugungi bronlar"
           value={formatNumber(s.todayBookings)}
-          delta={deltas?.todayBookings}
+          delta={
+            compare ? comparison(s.todayBookings, s.todayBookingsLastWeek, LAST_WEEK) : undefined
+          }
           to="/bronlar"
           {...enter()}
         />
@@ -231,17 +228,24 @@ export function OverviewPage() {
           label="Shu oy ilova orqali toʻlovlar"
           value={money.amount}
           unit={money.unit}
-          delta={deltas?.monthRevenue}
+          delta={
+            compare
+              ? comparison(s.monthRevenue, s.previousMonthRevenueToDate, 'oʻtgan oyga nisbatan')
+              : undefined
+          }
           to="/tolovlar"
           {...enter()}
         />
         <KpiCard
           icon={Users}
           label="Yangi foydalanuvchilar"
-          // newUsersThisWeek counts from Monday 00:00 Tashkent, not the last 7 days (R5).
-          sublabel="Shu hafta"
-          value={formatNumber(s.newUsersThisWeek)}
-          delta={deltas?.newUsers}
+          sublabel="Oxirgi 7 kun"
+          value={formatNumber(s.newUsersLast7Days)}
+          delta={
+            compare
+              ? comparison(s.newUsersLast7Days, s.newUsersPrevious7Days, 'oldingi 7 kunga nisbatan')
+              : undefined
+          }
           to="/foydalanuvchilar"
           {...enter()}
         />
@@ -249,7 +253,11 @@ export function OverviewPage() {
           icon={LandPlot}
           label="Faol maydonlar"
           value={formatNumber(s.approvedStadiums)}
-          delta={deltas?.approvedStadiums}
+          delta={
+            compare
+              ? comparison(s.approvedStadiums, s.approvedStadiumsWeekAgo, LAST_WEEK)
+              : undefined
+          }
           to="/maydonlar"
           {...enter()}
         />

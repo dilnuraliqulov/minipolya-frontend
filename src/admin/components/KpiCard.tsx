@@ -4,14 +4,11 @@ import { Link } from 'react-router'
 import { CARD, interactiveCard } from './card'
 import { cx } from './cx'
 import { useReducedMotion } from './motion'
-import { SampleTag } from './SampleTag'
 import { Skeleton } from './Skeleton'
 
 export interface KpiDelta {
   trend: 'up' | 'down' | 'flat'
   text: string
-  /** Set when the delta is sample data; names the backend request. */
-  sampleRequest?: string
 }
 
 const TRENDS = {
@@ -98,16 +95,9 @@ export function KpiCard({
         {unit && <span className="text-lg font-medium tracking-normal text-secondary">{unit}</span>}
       </p>
       {delta && trend && (
-        // Inline flow, so a sample tag sits at the end of the text, wrapping only when it must.
         <p className={cx('text-xs leading-5 font-medium', trend.className)}>
           <trend.icon size={14} aria-hidden className="mr-1 inline align-[-2px]" />
           <span>{delta.text}</span>
-          {delta.sampleRequest && (
-            <>
-              {' '}
-              <SampleTag request={delta.sampleRequest} />
-            </>
-          )}
         </p>
       )}
     </>

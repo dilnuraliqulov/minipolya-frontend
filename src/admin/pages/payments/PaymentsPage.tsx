@@ -1,10 +1,18 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Banknote, Clock, Landmark, RotateCcw, Store, type LucideIcon } from 'lucide-react'
+import {
+  Banknote,
+  Clock,
+  CreditCard,
+  Landmark,
+  RotateCcw,
+  Store,
+  type LucideIcon,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { formatSomParts } from '../../../shared/format'
 import { getStadiumOptions } from '../../api/bookings'
-import { availability, requestFor } from '../../api/missing'
+import { availability } from '../../api/missing'
 import {
   getPaymentSummary,
   listPayments,
@@ -14,7 +22,6 @@ import {
   type PaymentFilters,
   type PaymentTab,
 } from '../../api/payments'
-import { REFUND_ALERTS } from '../../api/stats'
 import { SoonSection } from '../../components/Availability'
 import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
@@ -22,7 +29,6 @@ import { DataTable, type Column } from '../../components/DataTable'
 import { DateRangePicker, type DateRange } from '../../components/DateRangePicker'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { Skeleton } from '../../components/Skeleton'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Tabs } from '../../components/Tabs'
@@ -35,7 +41,7 @@ import {
   tashkentToday,
 } from '../../format'
 import { usePageHeader } from '../../layout/pageHeader'
-import { useRefundAlerts } from '../../queries'
+import { useFailedRefunds } from '../../queries'
 import { PAYMENT_METHODS, PAYMENT_STATUSES, PAYMENT_TYPES, statusOf } from '../../statuses'
 import { money, shortTxn } from './format'
 import { CopyButton, PaymentPanel } from './PaymentPanel'
@@ -169,6 +175,7 @@ const SUMMARY: Array<{
   icon: LucideIcon
 }> = [
   { key: 'appRevenue', label: 'Ilova orqali tushum', icon: Banknote },
+  { key: 'cardFees', label: 'Karta komissiyasi', icon: CreditCard },
   { key: 'platformRevenue', label: 'Platforma daromadi', icon: Landmark },
   { key: 'ownerPayouts', label: 'Maydon egalariga', icon: Store },
   { key: 'refunded', label: 'Qaytarilgan', icon: RotateCcw },
@@ -186,7 +193,7 @@ function Summary({ from, to }: { from: string; to: string }) {
   if (mode === 'soon') return <SoonSection title="Umumiy koʻrsatkichlar" />
   return (
     <section aria-label="Umumiy koʻrsatkichlar" className="flex flex-col gap-2">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {SUMMARY.map(({ key, label, icon: Icon }) => {
           const value = summary.data?.[key]
           const parts = value === undefined ? null : formatSomParts(value)
@@ -212,7 +219,6 @@ function Summary({ from, to }: { from: string; to: string }) {
       </div>
       <p className="flex items-center gap-2 text-sm text-secondary">
         Naqd toʻlovlar tushumga kirmaydi
-        {mode === 'sample' && <SampleTag request={requestFor(PAYMENTS_SUMMARY)!} />}
       </p>
     </section>
   )
@@ -247,7 +253,7 @@ export function PaymentsPage() {
   }
   const range = periodRange(period, custom)
   const mode = availability(PAYMENTS_LIST)
-  const refunds = useRefundAlerts()
+  const failedRefunds = useFailedRefunds()
 
   const update = (changes: Record<string, string | undefined>, keepPage = false) =>
     setParams(
@@ -306,7 +312,9 @@ export function PaymentsPage() {
   usePageHeader({ count: list.data?.totalElements })
 
   const filtered = Boolean(query || type || status || method || stadium || from || to)
-  const failed = refunds.mode !== 'soon' ? refunds.data?.failedRefunds : undefined
+
+  // Without the list there is nothing to show: no summary, tabs or panel.
+  if (mode === 'soon') return <SoonSection />
 
   return (
     <div className="flex flex-col gap-4">
@@ -370,8 +378,8 @@ export function PaymentsPage() {
         tabs={TABS.map((t) => ({
           value: t.value,
           label: t.label,
-          count: t.value === tab && mode !== 'soon' ? list.data?.totalElements : undefined,
-          alert: t.value === 'refunds' ? failed : undefined,
+          count: t.value === tab ? list.data?.totalElements : undefined,
+          alert: t.value === 'refunds' ? failedRefunds?.count : undefined,
         }))}
         value={tab}
         onChange={(value) => {
@@ -384,121 +392,109 @@ export function PaymentsPage() {
         }}
       />
 
-      {mode === 'soon' ? (
-        <SoonSection />
-      ) : (
-        <>
-          <FilterBar
-            onClear={
-              filtered
-                ? () => {
-                    setSearch('')
-                    update({
-                      [PARAMS.search]: undefined,
-                      [PARAMS.type]: undefined,
-                      [PARAMS.status]: undefined,
-                      [PARAMS.method]: undefined,
-                      [PARAMS.stadium]: undefined,
-                      [PARAMS.from]: undefined,
-                      [PARAMS.to]: undefined,
-                    })
-                  }
-                : undefined
-            }
-          >
-            <SearchField
-              value={search}
-              onChange={setSearch}
-              placeholder="Ism, telefon yoki tranzaksiya ID"
-            />
-            {tab === 'all' && (
-              <FilterSelect
-                label="Turi"
-                value={type}
-                options={[
-                  { value: '', label: 'Barchasi' },
-                  ...Object.entries(PAYMENT_TYPES).map(([value, label]) => ({ value, label })),
-                ]}
-                onChange={(value) => update({ [PARAMS.type]: value || undefined })}
-              />
-            )}
-            {tab !== 'held' && (
-              <FilterSelect
-                label="Holat"
-                value={status}
-                options={[
-                  { value: '', label: 'Barchasi' },
-                  ...Object.entries(PAYMENT_STATUSES)
-                    .filter(([value]) => value !== 'completed')
-                    .map(([value, s]) => ({ value, label: s.label })),
-                ]}
-                onChange={(value) => update({ [PARAMS.status]: value || undefined })}
-              />
-            )}
-            <FilterSelect
-              label="Usul"
-              value={method}
-              options={[
-                { value: '', label: 'Barchasi' },
-                ...Object.entries(PAYMENT_METHODS).map(([value, label]) => ({ value, label })),
-              ]}
-              onChange={(value) => update({ [PARAMS.method]: value || undefined })}
-            />
-            <FilterSelect
-              label="Maydon"
-              value={stadium}
-              options={[
-                { value: '', label: 'Barchasi' },
-                ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
-              ]}
-              onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
-            />
-            <DateRangePicker
-              value={{ from, to }}
-              onChange={(r) => update({ [PARAMS.from]: r.from, [PARAMS.to]: r.to })}
-            />
-          </FilterBar>
-
-          <div className="flex flex-col gap-2">
-            {mode === 'sample' && (
-              <span className="flex items-center gap-2 self-start">
-                <SampleTag request={requestFor(PAYMENTS_LIST)!} />
-                {failed !== undefined && <SampleTag request={requestFor(REFUND_ALERTS)!} />}
-              </span>
-            )}
-            <DataTable
-              columns={COLUMNS}
-              rows={list.data?.content}
-              rowKey={(p) => p.id}
-              selectedKey={open ?? undefined}
-              onRowClick={(p) => update({ [PARAMS.payment]: p.id }, true)}
-              loading={list.isPending}
-              error={list.isError}
-              onRetry={() => void list.refetch()}
-              empty={
-                filtered
-                  ? { title: 'Hech narsa topilmadi', description: 'Filtrlarni oʻzgartirib koʻring' }
-                  : tab === 'refunds'
-                    ? { title: 'Qaytarishlar yoʻq' }
-                    : tab === 'held'
-                      ? { title: 'Ushlab turilgan toʻlov yoʻq' }
-                      : { title: 'Toʻlovlar yoʻq' }
+      <FilterBar
+        onClear={
+          filtered
+            ? () => {
+                setSearch('')
+                update({
+                  [PARAMS.search]: undefined,
+                  [PARAMS.type]: undefined,
+                  [PARAMS.status]: undefined,
+                  [PARAMS.method]: undefined,
+                  [PARAMS.stadium]: undefined,
+                  [PARAMS.from]: undefined,
+                  [PARAMS.to]: undefined,
+                })
               }
-            />
-            {list.data && list.data.totalPages > 1 && (
-              <Pagination
-                page={list.data.page}
-                size={list.data.size}
-                totalElements={list.data.totalElements}
-                totalPages={list.data.totalPages}
-                onPageChange={(next) => update({ [PARAMS.page]: String(next) }, true)}
-              />
-            )}
-          </div>
-        </>
-      )}
+            : undefined
+        }
+      >
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder="Ism, telefon yoki tranzaksiya ID"
+        />
+        {tab === 'all' && (
+          <FilterSelect
+            label="Turi"
+            value={type}
+            options={[
+              { value: '', label: 'Barchasi' },
+              ...Object.entries(PAYMENT_TYPES).map(([value, label]) => ({ value, label })),
+            ]}
+            onChange={(value) => update({ [PARAMS.type]: value || undefined })}
+          />
+        )}
+        {tab !== 'held' && (
+          <FilterSelect
+            label="Holat"
+            value={status}
+            options={[
+              { value: '', label: 'Barchasi' },
+              ...Object.entries(PAYMENT_STATUSES)
+                .filter(([value]) => value !== 'completed')
+                .map(([value, s]) => ({ value, label: s.label })),
+            ]}
+            onChange={(value) => update({ [PARAMS.status]: value || undefined })}
+          />
+        )}
+        <FilterSelect
+          label="Usul"
+          value={method}
+          options={[
+            { value: '', label: 'Barchasi' },
+            ...Object.entries(PAYMENT_METHODS).map(([value, label]) => ({ value, label })),
+          ]}
+          onChange={(value) => update({ [PARAMS.method]: value || undefined })}
+        />
+        <FilterSelect
+          label="Maydon"
+          value={stadium}
+          options={[
+            { value: '', label: 'Barchasi' },
+            ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
+          ]}
+          onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
+        />
+        <DateRangePicker
+          value={{ from, to }}
+          onChange={(r) => update({ [PARAMS.from]: r.from, [PARAMS.to]: r.to })}
+        />
+      </FilterBar>
 
-      {open && mode !== 'soon' && (
+      <div className="flex flex-col gap-2">
+        <DataTable
+          columns={COLUMNS}
+          rows={list.data?.content}
+          rowKey={(p) => p.id}
+          selectedKey={open ?? undefined}
+          onRowClick={(p) => update({ [PARAMS.payment]: p.id }, true)}
+          loading={list.isPending}
+          error={list.isError}
+          onRetry={() => void list.refetch()}
+          empty={
+            filtered
+              ? { title: 'Hech narsa topilmadi', description: 'Filtrlarni oʻzgartirib koʻring' }
+              : tab === 'refunds'
+                ? { title: 'Qaytarishlar yoʻq' }
+                : tab === 'held'
+                  ? { title: 'Ushlab turilgan toʻlov yoʻq' }
+                  : { title: 'Toʻlovlar yoʻq' }
+          }
+        />
+        {list.data && list.data.totalPages > 1 && (
+          <Pagination
+            page={list.data.page}
+            size={list.data.size}
+            totalElements={list.data.totalElements}
+            totalPages={list.data.totalPages}
+            onPageChange={(next) => update({ [PARAMS.page]: String(next) }, true)}
+          />
+        )}
+      </div>
+
+      {open && (
         <PaymentPanel
           key={open}
           id={open}

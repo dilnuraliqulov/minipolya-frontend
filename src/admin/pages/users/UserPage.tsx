@@ -6,11 +6,11 @@ import { isApiError } from '../../../shared/api'
 import { formatDate, formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { BOOKINGS_LIST, listBookings, type AdminBooking } from '../../api/bookings'
-import { availability, requestFor } from '../../api/missing'
+import { isAvailable } from '../../api/missing'
 import { listOwnerStadiums, OWNER_STADIUMS, type StadiumRow } from '../../api/stadiums'
 import {
-  getAdminUser,
   getLatestBlock,
+  getUser,
   getUserTeams,
   setUserBlocked,
   USER_TEAMS,
@@ -26,7 +26,6 @@ import { cx } from '../../components/cx'
 import { DataTable, type Column } from '../../components/DataTable'
 import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { Skeleton } from '../../components/Skeleton'
 import { EmptyState, ErrorState } from '../../components/States'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -87,22 +86,17 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
 function BookingsTab({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
-  const mode = availability(BOOKINGS_LIST)
+  const shown = isAvailable(BOOKINGS_LIST)
   const bookings = useQuery({
     queryKey: ['admin', 'bookings', 'user', userId, page],
     queryFn: () => listBookings({ userId, page, size: PAGE_SIZE }),
     placeholderData: keepPreviousData,
-    enabled: mode !== 'soon',
+    enabled: shown,
   })
-  if (mode === 'soon') return <SoonSection />
+  if (!shown) return <SoonSection />
   const data = bookings.data
   return (
     <div className="flex flex-col gap-2">
-      {mode === 'sample' && (
-        <span className="self-start">
-          <SampleTag request={requestFor(BOOKINGS_LIST)!} />
-        </span>
-      )}
       <DataTable
         columns={BOOKING_COLUMNS}
         rows={data?.content}
@@ -143,23 +137,21 @@ const STADIUM_COLUMNS: Column<StadiumRow>[] = [
 
 function StadiumsTab({ ownerId }: { ownerId: string }) {
   const navigate = useNavigate()
-  const mode = availability(OWNER_STADIUMS)
+  const [page, setPage] = useState(0)
+  const shown = isAvailable(OWNER_STADIUMS)
   const stadiums = useQuery({
-    queryKey: ['admin', 'stadiums', 'owner', ownerId],
-    queryFn: () => listOwnerStadiums(ownerId),
-    enabled: mode !== 'soon',
+    queryKey: ['admin', 'stadiums', 'owner', ownerId, page],
+    queryFn: () => listOwnerStadiums(ownerId, page),
+    placeholderData: keepPreviousData,
+    enabled: shown,
   })
-  if (mode === 'soon') return <SoonSection />
+  if (!shown) return <SoonSection />
+  const data = stadiums.data
   return (
     <div className="flex flex-col gap-2">
-      {mode === 'sample' && (
-        <span className="self-start">
-          <SampleTag request={requestFor(OWNER_STADIUMS)!} />
-        </span>
-      )}
       <DataTable
         columns={STADIUM_COLUMNS}
-        rows={stadiums.data?.content}
+        rows={data?.content}
         rowKey={(s) => s.id}
         onRowClick={(s) => void navigate(`/maydonlar/${s.id}`)}
         loading={stadiums.isPending}
@@ -168,6 +160,15 @@ function StadiumsTab({ ownerId }: { ownerId: string }) {
         empty={{ title: 'Maydonlar yoʻq' }}
         loadingRows={2}
       />
+      {data && data.totalPages > 1 && (
+        <Pagination
+          page={data.page}
+          size={data.size}
+          totalElements={data.totalElements}
+          totalPages={data.totalPages}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   )
 }
@@ -201,19 +202,22 @@ type TabKey = 'bookings' | 'teams' | 'stadiums'
 
 function UserTabs({ user }: { user: AdminUser }) {
   const [tab, setTab] = useState<TabKey>('bookings')
-  const teamsMode = availability(USER_TEAMS)
+  const teamsShown = isAvailable(USER_TEAMS)
   const teams = useQuery({
     queryKey: ['admin', 'users', 'teams', user.id],
     queryFn: () => getUserTeams(user.id),
-    enabled: teamsMode !== 'soon',
+    enabled: teamsShown,
   })
   const teamList = teams.data ?? []
   const showStadiums = user.isOwner || user.stadiumCount > 0
   const tabs = [
     { value: 'bookings' as const, label: 'Bronlar', count: user.bookingCount },
-    ...(teamList.length
-      ? [{ value: 'teams' as const, label: 'Jamoalar', count: teamList.length }]
-      : []),
+    // Only when the user is in a team; while the endpoint is missing, the tab says "Tez orada".
+    ...(!teamsShown
+      ? [{ value: 'teams' as const, label: 'Jamoalar' }]
+      : teamList.length
+        ? [{ value: 'teams' as const, label: 'Jamoalar', count: teamList.length }]
+        : []),
     ...(showStadiums
       ? [{ value: 'stadiums' as const, label: 'Maydonlar', count: user.stadiumCount }]
       : []),
@@ -223,16 +227,7 @@ function UserTabs({ user }: { user: AdminUser }) {
     <div className="flex flex-col gap-3">
       <Tabs label="Foydalanuvchi maʼlumotlari" tabs={tabs} value={active} onChange={setTab} />
       {active === 'bookings' && <BookingsTab userId={user.id} />}
-      {active === 'teams' && (
-        <div className="flex flex-col gap-2">
-          {teamsMode === 'sample' && (
-            <span className="self-start">
-              <SampleTag request={requestFor(USER_TEAMS)!} />
-            </span>
-          )}
-          <TeamsTab teams={teamList} />
-        </div>
-      )}
+      {active === 'teams' && (teamsShown ? <TeamsTab teams={teamList} /> : <SoonSection />)}
       {active === 'stadiums' && <StadiumsTab ownerId={user.id} />}
     </div>
   )
@@ -279,7 +274,6 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
     queryFn: () => getLatestBlock(user.id),
     enabled: user.isBlocked,
   })
-  const sample = user.id.startsWith('sample-')
   const change = useMutation({
     mutationFn: (args: { blocked: boolean; reason?: string }) =>
       setUserBlocked(user.id, args.blocked, args.reason),
@@ -287,7 +281,7 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
       setDialog(null)
       void queryClient.invalidateQueries({ queryKey: ['admin'] })
       const text = args.blocked ? 'Foydalanuvchi bloklandi' : 'Foydalanuvchi blokdan chiqarildi'
-      toast.success(sample ? `${text} (namuna)` : text)
+      toast.success(text)
     },
     onError: (error) => {
       setDialog(null)
@@ -377,12 +371,10 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
 
 function UserHistory({ userId }: { userId: string }) {
   const [page, setPage] = useState(0)
-  const sample = userId.startsWith('sample-')
   const history = useQuery({
     queryKey: ['admin', 'audit-log', 'user', userId, page],
     queryFn: () => getAuditLog({ entityType: 'user', entityId: userId, page, size: PAGE_SIZE }),
     placeholderData: keepPreviousData,
-    enabled: !sample,
   })
   const data = history.data
   return (
@@ -392,8 +384,8 @@ function UserHistory({ userId }: { userId: string }) {
       </h2>
       <AuditLogTable
         compact
-        entries={sample ? [] : data?.content}
-        loading={!sample && history.isPending}
+        entries={data?.content}
+        loading={history.isPending}
         error={history.isError}
         onRetry={() => void history.refetch()}
         empty={{
@@ -419,7 +411,7 @@ export function UserPage() {
   const session = useSession()
   const user = useQuery({
     queryKey: ['admin', 'users', 'detail', id],
-    queryFn: () => getAdminUser(id),
+    queryFn: () => getUser(id),
     retry: false,
   })
   const data = user.data

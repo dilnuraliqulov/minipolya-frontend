@@ -1,20 +1,21 @@
 import { api, type Page } from '../../shared/api'
 import { getAuditLog, type AuditEntry } from './audit'
-import { isSampleId, loadSampleAdapter, viaSample, withSampleFields } from './missing'
 import type { AdminStadium, StadiumStatus } from './types'
 import type { ContractStatus } from './users'
 
-// ---- Request R9: what an admin needs to review a stadium ----
+// ---- What an admin reviews about a stadium (request R9) ----
 
-/** New fields on `GET /api/admin/stadiums` rows (R9). */
+/** The review fields on `GET /api/admin/stadiums` rows. */
 export interface StadiumListFields {
   /** The first photo, for the list thumbnail. */
   photoUrl?: string
   /** One of `DISTRICTS`. */
   district?: string
-  /** Base price, tiyin. */
+  /** Base price, tiyin, net — what the owner set. */
   pricePerHour?: number
-  /** The owner's ATMOS contract (R11). */
+  /** The same hour by card, tiyin. */
+  price?: number
+  /** The owner's ATMOS contract (R11); approval needs `signed`. */
   ownerContractStatus?: ContractStatus
 }
 
@@ -28,8 +29,10 @@ export interface PricingRule {
   /** `LocalTime`, "18:00:00". */
   startTime: string
   endTime: string
-  /** Tiyin. */
+  /** Tiyin, net. */
   pricePerHour: number
+  /** Tiyin, by card. */
+  price?: number
 }
 
 export interface Amenities {
@@ -43,7 +46,7 @@ export interface Amenities {
   tribune: boolean
 }
 
-/** New fields on `GET /api/admin/stadiums/{id}` (R9) — what the public detail has, for any status. */
+/** `GET /api/admin/stadiums/{id}` — the public detail's fields, for any status, in the owner's prices. */
 export interface StadiumDetailFields extends StadiumListFields {
   photos?: { id: string; url: string; position: number }[]
   latitude?: number
@@ -63,7 +66,7 @@ export interface StadiumDetailFields extends StadiumListFields {
 
 export type StadiumDetail = AdminStadium & StadiumDetailFields
 
-/** Tashkent's districts, for the `district` field and filter (R9). */
+/** Tashkent's districts, as the backend accepts them (`util/Districts`). */
 export const DISTRICTS = [
   'Bektemir',
   'Chilonzor',
@@ -86,7 +89,7 @@ export const STADIUM_DETAIL_FIELDS =
 /** Request R10: a stadium status of its own for a rejection. */
 export const REJECTED_STATUS = 'GET /api/admin/stadiums?status=rejected'
 
-export type StadiumTab = StadiumStatus | 'rejected' | 'all'
+export type StadiumTab = StadiumStatus | 'all'
 
 export interface StadiumListParams {
   tab: StadiumTab
@@ -107,47 +110,23 @@ export function listStadiums(params: StadiumListParams): Promise<Page<StadiumRow
     page,
     size,
   }
-  if (tab === 'rejected') {
-    return viaSample(
-      REJECTED_STATUS,
-      () => api.get<Page<StadiumRow>>('/api/admin/stadiums', { query }),
-      (sample) => sample.rejectedStadiums(query),
-    )
-  }
-  return api
-    .get<Page<StadiumRow>>('/api/admin/stadiums', { query })
-    .then((real) =>
-      withSampleFields(STADIUM_LIST_FIELDS, real, (sample, rows) =>
-        sample.stadiumListFields(rows, { district, format }),
-      ),
-    )
+  return api.get<Page<StadiumRow>>('/api/admin/stadiums', { query })
 }
 
-export async function getStadium(id: string): Promise<StadiumDetail> {
-  if (isSampleId(id)) {
-    const sample = await loadSampleAdapter()
-    return sample.sampleStadium(id)
-  }
-  const real = await api.get<StadiumDetail>(`/api/admin/stadiums/${id}`)
-  return withSampleFields(STADIUM_DETAIL_FIELDS, real, (sample, stadium) =>
-    sample.stadiumDetailFields(stadium),
-  )
+export function getStadium(id: string): Promise<StadiumDetail> {
+  return api.get<StadiumDetail>(`/api/admin/stadiums/${id}`)
 }
 
 /**
- * `PUT /api/admin/stadiums/{id}/status`. A rejection is `blocked` today — the
- * backend tells it apart only by the audit action (`STADIUM_REJECTED`);
- * R10 asks for a `rejected` status, and then `reject` sends that instead.
+ * `PUT /api/admin/stadiums/{id}/status`. `rejected` only from pending; it and
+ * `blocked` need a reason, which the owner sees. `approved` needs the owner's
+ * signed ATMOS contract (400 otherwise).
  */
-export async function setStadiumStatus(
+export function setStadiumStatus(
   id: string,
-  status: 'approved' | 'blocked',
+  status: 'approved' | 'rejected' | 'blocked',
   reason?: string,
 ): Promise<AdminStadium> {
-  if (isSampleId(id)) {
-    const sample = await loadSampleAdapter()
-    return sample.setSampleStadiumStatus(id, status, reason)
-  }
   return api.put<AdminStadium>(`/api/admin/stadiums/${id}/status`, { status, reason })
 }
 
@@ -162,10 +141,6 @@ export const STADIUM_DECISIONS = [
 
 /** The latest status decision: who blocked or rejected it, when, and why. */
 export async function getLatestDecision(id: string): Promise<AuditEntry | null> {
-  if (isSampleId(id)) {
-    const sample = await loadSampleAdapter()
-    return sample.sampleDecision(id)
-  }
   const page = await getAuditLog({
     entityType: 'stadium',
     entityId: id,
@@ -175,7 +150,7 @@ export async function getLatestDecision(id: string): Promise<AuditEntry | null> 
   return page.content[0] ?? null
 }
 
-// ---- Request R12: internal notes ----
+// ---- Internal notes (request R12) ----
 
 export interface StadiumNote {
   id: string
@@ -191,32 +166,17 @@ export const NOTES_POST = 'POST /api/admin/stadiums/{id}/notes'
 
 /** Newest first. */
 export function getStadiumNotes(id: string): Promise<StadiumNote[]> {
-  return viaSample(
-    NOTES_GET,
-    () => api.get<StadiumNote[]>(`/api/admin/stadiums/${id}/notes`),
-    (sample) => sample.stadiumNotes(id),
-  )
+  return api.get<StadiumNote[]>(`/api/admin/stadiums/${id}/notes`)
 }
 
+/** `text`: 1–1000 characters. */
 export function addStadiumNote(id: string, text: string): Promise<StadiumNote> {
-  return viaSample(
-    NOTES_POST,
-    () => api.post<StadiumNote>(`/api/admin/stadiums/${id}/notes`, { text }),
-    (sample) => sample.addStadiumNote(id, text),
-  )
+  return api.post<StadiumNote>(`/api/admin/stadiums/${id}/notes`, { text })
 }
 
 /** Request R14: one owner's stadiums (`?ownerId=` on the admin list). */
 export const OWNER_STADIUMS = 'GET /api/admin/stadiums → ?ownerId'
 
-export function listOwnerStadiums(ownerId: string): Promise<Page<StadiumRow>> {
-  return viaSample(
-    OWNER_STADIUMS,
-    () => api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { ownerId, size: 50 } }),
-    // Until then: the real list, filtered here.
-    (sample) =>
-      sample.ownerStadiums(ownerId, () =>
-        api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { size: 100 } }),
-      ),
-  )
+export function listOwnerStadiums(ownerId: string, page = 0): Promise<Page<StadiumRow>> {
+  return api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { ownerId, page, size: 20 } })
 }

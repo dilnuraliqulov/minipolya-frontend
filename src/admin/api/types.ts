@@ -1,6 +1,6 @@
 /**
  * Response types the admin panel uses, copied from docs/api-reference.md
- * (backend commit ed5dec6). Optional fields are the ones the backend omits
+ * (backend commit 00d3bb7). Optional fields are the ones the backend omits
  * when null (`@JsonInclude(NON_NULL)`). Money is tiyin, timestamps UTC.
  */
 
@@ -31,54 +31,54 @@ export interface PlatformStats {
   totalUsers: number
   totalOwners: number
   newUsersToday: number
-  /** Since Monday 00:00 Tashkent — a calendar week, not the last 7 days. */
+  /** Since Monday 00:00 Tashkent — a calendar week. */
   newUsersThisWeek: number
+  /** The last 7 × 24 hours, whatever the weekday. */
+  newUsersLast7Days: number
   newUsersThisMonth: number
   totalStadiums: number
   approvedStadiums: number
   pendingStadiums: number
   blockedStadiums: number
+  rejectedStadiums: number
   totalBookings: number
   /** Bookings STARTING today (Tashkent) with a counted status. */
   todayBookings: number
   weekBookings: number
   monthBookings: number
+  /** Card money kept through the app, cash excluded (the backend's one revenue figure). */
   totalRevenue: number
   todayRevenue: number
   weekRevenue: number
-  /**
-   * Payments with status `completed` since the 1st of the month (Tashkent).
-   * Misses card payments (`paid`/`captured`) — backend-requests R6.
-   */
+  /** Since the 1st of the month (Tashkent). */
   monthRevenue: number
   totalGames: number
   activeGames: number
+  pendingOwnerApplications: number
   pendingStadiumApprovals: number
-  /** Refunds the provider failed to make. Not shipped yet — request R8. */
-  failedRefunds?: number
-  /** UTC. Not shipped yet — request R8. */
+  // The previous period, for the comparison lines (the panel works out the %).
+  /** Bookings starting on the same weekday last week, counted like `todayBookings`. */
+  todayBookingsLastWeek: number
+  /** Last month from the 1st to the same day of the month, counted like `monthRevenue`. */
+  previousMonthRevenueToDate: number
+  /** Users created 7 to 14 days ago — the period before `newUsersLast7Days`. */
+  newUsersPrevious7Days: number
+  /** Stadiums that were approved 7 days ago. */
+  approvedStadiumsWeekAgo: number
+  /** Refunds the provider declined that still wait for an admin. */
+  failedRefunds: number
+  /** UTC; omitted when there are none. */
   oldestFailedRefundAt?: string
 }
 
-/** One day of `OwnerRevenueResponse.dailyRevenue` — §10.7. */
-export interface DailyRevenue {
+/** One day of `GET /api/admin/stats/bookings-daily` — the last 30 days, every day present. */
+export interface DailyBookingCount {
   /** `LocalDate` in Tashkent, e.g. "2026-10-22". */
   date: string
-  revenue: number
-  /**
-   * Named bookingCount, but counts payments with status `completed` that day
-   * (backend-requests R4, R6). Days without payments are omitted.
-   */
+  /** Bookings starting that day, counted like `todayBookings`. */
   bookingCount: number
 }
 
-/** `GET /api/admin/stats/revenue` — the last 30 days, platform-wide. */
-export interface PlatformRevenue {
-  stadiumId?: string
-  dailyRevenue: DailyRevenue[]
-}
-
-/** `rejected` is not a backend value yet — request R10 (a rejection is `blocked` today). */
 export type StadiumStatus = 'pending' | 'approved' | 'blocked' | 'rejected'
 
 /** `AdminStadiumResponse` — §10.9. */
@@ -89,6 +89,8 @@ export interface AdminStadium {
   ownerName: string
   ownerId: string
   status: StadiumStatus
+  /** Why it is rejected or blocked; absent otherwise. */
+  statusReason?: string
   format: string
   surfaceType: string
   averageRating: number

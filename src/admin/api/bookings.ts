@@ -1,18 +1,17 @@
 import { api, type Page } from '../../shared/api'
 import { getAuditLog, type AuditEntry } from './audit'
-import { isSampleId, loadSampleAdapter, viaSample, withSampleFields } from './missing'
 
 /**
- * Bookings and games for the admin panel — request R15. The backend has
- * player and owner views (`/api/bookings`, `/api/owner/stadiums/{id}/bookings`,
- * `/api/games/{id}`) but nothing that lists every booking or game for an
- * admin. These types follow `BookingResponse` and `GameDetailResponse`
- * (§5, §9) plus the few fields the panel needs.
+ * Every booking and every game, for the admin panel — request R15. Read only;
+ * the status history of either comes from the audit log.
  */
 
 export type BookingSource = 'app' | 'manual' | 'game'
 
-/** `AdminBookingResponse` (R15) — `BookingResponse` plus who booked and how it was paid. */
+/**
+ * `AdminBookingResponse` — the owner's view of `BookingResponse` plus who
+ * booked and how it was paid. Only the fields the panel reads.
+ */
 export interface AdminBooking {
   id: string
   stadiumId: string
@@ -28,15 +27,19 @@ export interface AdminBooking {
   startsAt: string
   endsAt: string
   durationHours: number
-  /** Tiyin — the whole pitch price. */
+  /** Tiyin — what the player pays by card for the whole booking. */
   price: number
-  /** Tiyin — every successful payment, card and cash. */
+  /** Tiyin — the owner's price; `price − netPrice` is the card fee. */
+  netPrice?: number
+  /** Tiyin — `price − netPrice`. */
+  cardFee?: number
+  /** Tiyin, net — what has been credited towards `netPrice`, card and cash. */
   paidAmount: number
-  /** Tiyin — `max(0, price − paidAmount)`, from the backend. */
+  /** Tiyin, net — what is still owed of `netPrice`, from the backend. */
   remainingAmount: number
   paymentStatus: string
-  /** Tiyin — the part of `paidAmount` paid by card through the app. */
-  paidInApp: number
+  /** Tiyin — card money kept on this booking, gross (card fee included). */
+  paidInApp?: number
   /** Tiyin — cash the owner marked as received; absent when none. */
   cashReceived?: number
   /** UTC — when the owner marked it. */
@@ -136,50 +139,30 @@ const query = (filters: BookingFilters) => ({
 
 /** Newest start first. */
 export function listBookings(filters: BookingFilters): Promise<Page<AdminBooking>> {
-  return viaSample(
-    BOOKINGS_LIST,
-    () => api.get<Page<AdminBooking>>('/api/admin/bookings', { query: query(filters) }),
-    (sample) => sample.listBookings(filters),
-  )
+  return api.get<Page<AdminBooking>>('/api/admin/bookings', { query: query(filters) })
 }
 
 export function getBooking(id: string): Promise<AdminBooking> {
-  return viaSample(
-    BOOKING_DETAIL,
-    () => api.get<AdminBooking>(`/api/admin/bookings/${id}`),
-    (sample) => sample.getBooking(id),
-  )
-}
-
-/** `search` matches the creator or either team's name; `userId`: games the user played in. */
-export function listGames(filters: BookingFilters): Promise<Page<AdminGame>> {
-  return viaSample(
-    GAMES_LIST,
-    () => api.get<Page<AdminGame>>('/api/admin/games', { query: query(filters) }),
-    (sample) => sample.listGames(filters),
-  )
-}
-
-export function getGame(id: string): Promise<AdminGameDetail> {
-  return viaSample(
-    GAME_DETAIL,
-    () => api.get<AdminGameDetail>(`/api/admin/games/${id}`),
-    (sample) => sample.getGame(id),
-  )
+  return api.get<AdminBooking>(`/api/admin/bookings/${id}`)
 }
 
 /**
- * The status timeline of a booking or game: its audit entries, oldest first.
- * Real for real records; sample records have their own.
+ * `search` matches the creator or any team's name; `userId`: games the user
+ * created, played in, or led a team in.
  */
+export function listGames(filters: BookingFilters): Promise<Page<AdminGame>> {
+  return api.get<Page<AdminGame>>('/api/admin/games', { query: query(filters) })
+}
+
+export function getGame(id: string): Promise<AdminGameDetail> {
+  return api.get<AdminGameDetail>(`/api/admin/games/${id}`)
+}
+
+/** The status timeline of a booking or game: its audit entries, oldest first. */
 export async function getTimeline(
   entityType: 'booking' | 'game',
   id: string,
 ): Promise<AuditEntry[]> {
-  if (isSampleId(id)) {
-    const sample = await loadSampleAdapter()
-    return sample.timeline(entityType, id)
-  }
   const page = await getAuditLog({ entityType, entityId: id, size: 50 })
   return [...page.content].reverse()
 }
@@ -191,14 +174,9 @@ export interface StadiumOption {
 
 /**
  * Stadiums for the Bronlar "Maydon" filter: the real admin list (every status,
- * as old bookings can be on a blocked stadium). In development the sample
- * bookings' stadiums are added, since the sample data points at them.
+ * as old bookings can be on a blocked stadium).
  */
 export async function getStadiumOptions(): Promise<StadiumOption[]> {
   const page = await api.get<Page<StadiumOption>>('/api/admin/stadiums', { query: { size: 200 } })
-  const real = page.content.map(({ id, name }) => ({ id, name }))
-  return withSampleFields(BOOKINGS_LIST, real, (sample, options) => [
-    ...options,
-    ...sample.sampleStadiumOptions(),
-  ])
+  return page.content.map(({ id, name }) => ({ id, name }))
 }

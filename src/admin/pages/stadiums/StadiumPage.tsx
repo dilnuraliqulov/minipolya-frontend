@@ -13,10 +13,10 @@ import {
 } from 'lucide-react'
 import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
-import { isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
-import { availability, requestFor } from '../../api/missing'
+import { isAvailable } from '../../api/missing'
 import {
   addStadiumNote,
   getLatestDecision,
@@ -44,7 +44,6 @@ import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
 import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { Skeleton } from '../../components/Skeleton'
 import { EmptyState, ErrorState } from '../../components/States'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -66,22 +65,14 @@ const StadiumMap = lazy(() => import('./StadiumMap'))
 
 const HISTORY_SIZE = 10
 
-/** The success toast for an action; a sample action says so. */
-function done(text: string, sample: boolean) {
-  return sample ? `${text} (namuna)` : text
-}
-
 function Card({
   title,
   action,
-  sample,
   children,
   className,
 }: {
   title: string
   action?: ReactNode
-  /** The backend request when the card shows sample data. */
-  sample?: string
   children: ReactNode
   className?: string
 }) {
@@ -89,7 +80,6 @@ function Card({
     <section aria-label={title} className={cx(CARD, 'flex flex-col', className)}>
       <div className="flex items-center gap-2.5 px-5 pt-3.5 pb-2.5">
         <h2 className="text-lg font-semibold text-primary">{title}</h2>
-        {sample && <SampleTag request={sample} />}
         <span className="flex-1" />
         {action}
       </div>
@@ -193,29 +183,18 @@ function InfoSection({
   extras,
 }: {
   stadium: StadiumDetail
-  extras: 'real' | 'sample' | 'soon'
+  /** The review fields (R9) exist: photos, district, phone, hours, amenities, map. */
+  extras: boolean
 }) {
-  const sample = extras === 'sample' ? requestFor(STADIUM_DETAIL_FIELDS) : undefined
   const amenities = stadium.amenities
     ? (Object.keys(AMENITY_LABELS) as Array<keyof typeof AMENITY_LABELS>).filter(
         (key) => stadium.amenities?.[key],
       )
     : []
-  const hasMap = stadium.latitude !== undefined && stadium.longitude !== undefined
+  const hasMap = extras && stadium.latitude !== undefined && stadium.longitude !== undefined
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-[300px_1fr]">
-      {extras === 'soon' ? (
-        <SoonSection title="Rasmlar" />
-      ) : (
-        <div className="flex flex-col gap-2">
-          <Gallery stadium={stadium} />
-          {sample && (
-            <span className="self-start">
-              <SampleTag request={sample} />
-            </span>
-          )}
-        </div>
-      )}
+      {extras ? <Gallery stadium={stadium} /> : <SoonSection title="Rasmlar" />}
       <Card title="Maʼlumotlar">
         <dl className="flex flex-col gap-2.5">
           <Row label="Manzil">
@@ -232,25 +211,16 @@ function InfoSection({
               </a>
             </span>
           </Row>
-          {stadium.district && (
-            <Row label="Tuman">
-              {stadium.district} {sample && <SampleTag request={sample} />}
-            </Row>
-          )}
-          {stadium.phone && (
-            <Row label="Telefon">
-              {stadium.phone} {sample && <SampleTag request={sample} />}
-            </Row>
-          )}
+          {extras && stadium.district && <Row label="Tuman">{stadium.district}</Row>}
+          {extras && stadium.phone && <Row label="Telefon">{stadium.phone}</Row>}
           <Row label="Format">{formatPitch(stadium.format)}</Row>
           <Row label="Qoplama">{SURFACE_TYPES[stadium.surfaceType] ?? stadium.surfaceType}</Row>
-          {stadium.openTime && stadium.closeTime && (
+          {extras && stadium.openTime && stadium.closeTime && (
             <Row label="Ish vaqti">
-              {hhmm(stadium.openTime)}–{hhmm(stadium.closeTime)}{' '}
-              {sample && <SampleTag request={sample} />}
+              {hhmm(stadium.openTime)}–{hhmm(stadium.closeTime)}
             </Row>
           )}
-          {amenities.length > 0 && (
+          {extras && amenities.length > 0 && (
             <Row label="Qulayliklar">
               <span className="flex flex-wrap gap-1.5">
                 {amenities.map((key) => (
@@ -258,12 +228,12 @@ function InfoSection({
                     {AMENITY_LABELS[key]}
                   </span>
                 ))}
-                {sample && <SampleTag request={sample} />}
               </span>
             </Row>
           )}
           <Row label="Qoʻshilgan">{formatDateTime(stadium.createdAt)}</Row>
           <Row label="Bronlar">{formatNumber(stadium.totalBookings)} ta</Row>
+          {!extras && <Row label="Ish vaqti, qulayliklar">{SOON}</Row>}
         </dl>
         {hasMap && (
           <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
@@ -279,14 +249,8 @@ function InfoSection({
   )
 }
 
-function TermsSection({
-  stadium,
-  extras,
-}: {
-  stadium: StadiumDetail
-  extras: 'real' | 'sample' | 'soon'
-}) {
-  if (extras === 'soon') {
+function TermsSection({ stadium, extras }: { stadium: StadiumDetail; extras: boolean }) {
+  if (!extras) {
     return (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <SoonSection title="Narxlar" />
@@ -294,11 +258,10 @@ function TermsSection({
       </div>
     )
   }
-  const sample = extras === 'sample' ? requestFor(STADIUM_DETAIL_FIELDS) : undefined
   const lines = pricingLines(stadium.pricingRules ?? [])
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <Card title="Narxlar" sample={sample}>
+      <Card title="Narxlar">
         <dl className="flex flex-col gap-2.5">
           <Row label="Asosiy narx">
             {stadium.pricePerHour === undefined ? '—' : `${formatSom(stadium.pricePerHour)}/soat`}
@@ -317,7 +280,7 @@ function TermsSection({
           </ul>
         )}
       </Card>
-      <Card title="Bron shartlari" sample={sample}>
+      <Card title="Bron shartlari">
         <dl className="flex flex-col gap-2.5">
           <Row label="Minimal toʻlov">
             <span className="flex flex-col gap-0.5">
@@ -349,13 +312,13 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
     queryFn: () => getUser(stadium.ownerId),
     retry: false,
   })
-  const legalMode = availability(LEGAL_DETAILS_GET)
+  const legalShown = isAvailable(LEGAL_DETAILS_GET)
   const legal = useQuery({
     queryKey: ['admin', 'users', 'legal', stadium.ownerId],
     queryFn: () => getOwnerLegalDetails(stadium.ownerId),
-    enabled: legalMode !== 'soon',
+    enabled: legalShown,
   })
-  const saveMode = availability(LEGAL_DETAILS_PUT)
+  const canSave = isAvailable(LEGAL_DETAILS_PUT)
   const save = useMutation({
     mutationFn: (update: Parameters<typeof saveOwnerLegalDetails>[1]) =>
       saveOwnerLegalDetails(stadium.ownerId, update),
@@ -363,7 +326,7 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
       queryClient.setQueryData(['admin', 'users', 'legal', stadium.ownerId], saved)
       void queryClient.invalidateQueries({ queryKey: ['admin', 'stadiums'] })
       setEditing(false)
-      toast.success(done('Maʼlumotlar saqlandi', saveMode === 'sample'))
+      toast.success('Maʼlumotlar saqlandi')
     },
     onError: () => toast.error('Saqlab boʻlmadi. Qayta urinib koʻring'),
   })
@@ -371,9 +334,8 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
   const name = owner.data?.name ?? stadium.ownerName
   const phone = owner.data?.phone ?? stadium.ownerPhone
   const details = legal.data
-  const sample = legalMode === 'sample' ? requestFor(LEGAL_DETAILS_GET) : undefined
   const editButton = (label: string, icon = Pencil) =>
-    saveMode === 'soon' ? (
+    !canSave ? (
       <DisabledHint hint={SOON}>
         <Button variant="secondary" icon={icon} disabled className="h-8 text-sm">
           {label}
@@ -446,19 +408,20 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
       </dl>
 
       <div className="flex flex-col gap-2.5 border-t border-border pt-3">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-primary">Huquqiy maʼlumotlar</h3>
-          {sample && <SampleTag request={sample} />}
-        </div>
-        {legalMode === 'soon' ? (
+        <h3 className="text-sm font-semibold text-primary">Huquqiy maʼlumotlar</h3>
+        {!legalShown ? (
           <p className="text-sm text-secondary">{SOON}</p>
         ) : legal.isPending ? (
           <Skeleton className="h-16 w-full rounded-md" />
         ) : details ? (
           <>
             <dl className="flex flex-col gap-2">
-              <Row label="Huquqiy shakl">{LEGAL_TYPE_LABELS[details.legalType]}</Row>
-              <Row label="STIR">{details.tin}</Row>
+              <Row label="Huquqiy shakl">
+                {details.legalType ? LEGAL_TYPE_LABELS[details.legalType] : '—'}
+              </Row>
+              <Row label={details.legalType === 'self_employed' ? 'JShShIR' : 'STIR'}>
+                {details.tin ?? '—'}
+              </Row>
               <Row label="ATMOS shartnomasi">
                 <StatusBadge tone={CONTRACT_LABELS[details.atmosContractStatus].tone}>
                   {CONTRACT_LABELS[details.atmosContractStatus].label}
@@ -501,33 +464,29 @@ function NotesCard({ stadiumId }: { stadiumId: string }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [text, setText] = useState('')
-  const mode = availability(NOTES_GET)
-  const postMode = availability(NOTES_POST)
+  const shown = isAvailable(NOTES_GET)
+  const canPost = isAvailable(NOTES_POST)
   const notes = useQuery({
     queryKey: ['admin', 'stadiums', 'notes', stadiumId],
     queryFn: () => getStadiumNotes(stadiumId),
-    enabled: mode !== 'soon',
+    enabled: shown,
   })
   const add = useMutation({
     mutationFn: (note: string) => addStadiumNote(stadiumId, note),
     onSuccess: () => {
       setText('')
       void queryClient.invalidateQueries({ queryKey: ['admin', 'stadiums', 'notes', stadiumId] })
-      toast.success(done('Izoh qoʻshildi', postMode === 'sample'))
+      toast.success('Izoh qoʻshildi')
     },
     onError: () => toast.error('Izohni saqlab boʻlmadi'),
   })
-  const sample = mode === 'sample' ? requestFor(NOTES_GET) : undefined
-
+  if (!shown) return <SoonSection title="Ichki izohlar" />
   return (
     <Card
       title="Ichki izohlar"
-      sample={sample}
       action={<span className="text-xs text-secondary">Faqat adminlar koʻradi</span>}
     >
-      {mode === 'soon' ? (
-        <p className="text-sm text-secondary">{SOON}</p>
-      ) : notes.isPending ? (
+      {notes.isPending ? (
         <Skeleton className="h-12 w-full rounded-md" />
       ) : notes.isError ? (
         <p className="text-sm text-danger">Izohlarni yuklab boʻlmadi</p>
@@ -563,12 +522,12 @@ function NotesCard({ stadiumId }: { stadiumId: string }) {
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Izoh yozing…"
-          disabled={postMode === 'soon'}
+          disabled={!canPost}
           maxLength={1000}
           className="h-18 resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-primary outline-none focus:border-accent disabled:opacity-60"
         />
         <div className="flex justify-end">
-          {postMode === 'soon' ? (
+          {!canPost ? (
             <DisabledHint hint={SOON}>
               <Button variant="secondary" icon={Plus} disabled className="h-8 text-sm">
                 Izoh qoʻshish
@@ -593,7 +552,7 @@ function NotesCard({ stadiumId }: { stadiumId: string }) {
 
 type Dialog = 'approve' | 'reject' | 'block' | 'unblock' | null
 
-function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shownStatus: string }) {
+function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -601,39 +560,39 @@ function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shown
     queryKey: ['admin', 'stadiums', 'decision', stadium.id],
     queryFn: () => getLatestDecision(stadium.id),
   })
-  const legalMode = availability(LEGAL_DETAILS_GET)
-  const legal = useQuery({
-    queryKey: ['admin', 'users', 'legal', stadium.ownerId],
-    queryFn: () => getOwnerLegalDetails(stadium.ownerId),
-    enabled: legalMode !== 'soon',
-  })
-  const sampleStadium = stadium.id.startsWith('sample-')
 
   const change = useMutation({
-    mutationFn: (args: { status: 'approved' | 'blocked'; reason?: string; message: string }) =>
-      setStadiumStatus(stadium.id, args.status, args.reason),
+    mutationFn: (args: {
+      status: 'approved' | 'rejected' | 'blocked'
+      reason?: string
+      message: string
+    }) => setStadiumStatus(stadium.id, args.status, args.reason),
     onSuccess: (_, args) => {
       setDialog(null)
       void queryClient.invalidateQueries({ queryKey: ['admin'] })
-      toast.success(done(args.message, sampleStadium))
+      toast.success(args.message)
     },
     onError: (error) => {
       setDialog(null)
       toast.error(
         isApiError(error) && error.status === 404
           ? 'Maydon topilmadi'
-          : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
+          : isApiError(error) && error.message === API_MESSAGES.contractNotSigned
+            ? 'Egasining ATMOS shartnomasi imzolanmagan'
+            : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
       )
     },
   })
 
-  // Approval waits for a signed ATMOS contract. Without the contract data
-  // (production, until R11 ships) the button stays usable; the backend should
-  // enforce it too (R11).
+  // The backend refuses approval without the owner's signed ATMOS contract;
+  // the button says so up front. While the contract data is missing (R11) it
+  // stays usable and the backend decides.
   const unsigned =
-    legalMode !== 'soon' && legal.data !== undefined && legal.data?.atmosContractStatus !== 'signed'
-  const contractLoading = legalMode !== 'soon' && legal.isPending
+    isAvailable(LEGAL_DETAILS_GET) &&
+    stadium.ownerContractStatus !== undefined &&
+    stadium.ownerContractStatus !== 'signed'
   const last = decision.data
+  const shownStatus = stadium.status
 
   let body: ReactNode
   if (shownStatus === 'pending') {
@@ -641,7 +600,7 @@ function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shown
       <Button
         icon={Check}
         className="w-full"
-        disabled={unsigned || contractLoading || change.isPending}
+        disabled={unsigned || change.isPending}
         onClick={() => setDialog('approve')}
       >
         Tasdiqlash
@@ -700,17 +659,19 @@ function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shown
         <p className="text-base font-semibold text-danger">
           {rejected ? 'Rad etilgan' : 'Bloklangan'}
         </p>
-        {decision.isPending ? (
-          <Skeleton className="h-14 w-full rounded-md" />
-        ) : last ? (
-          <dl className="flex flex-col gap-2">
-            <Row label="Sabab">{last.reason ?? '—'}</Row>
-            <Row label="Qachon">{formatDateTime(last.time)}</Row>
-            <Row label="Kim">{last.actor?.name ?? 'Tizim'}</Row>
-          </dl>
-        ) : (
-          <p className="text-sm text-secondary">Sabab yozilmagan</p>
-        )}
+        <dl className="flex flex-col gap-2">
+          <Row label="Sabab">{stadium.statusReason ?? last?.reason ?? 'Sabab yozilmagan'}</Row>
+          {decision.isPending ? (
+            <Skeleton className="h-9 w-full rounded-md" />
+          ) : (
+            last && (
+              <>
+                <Row label="Qachon">{formatDateTime(last.time)}</Row>
+                <Row label="Kim">{last.actor?.name ?? 'Tizim'}</Row>
+              </>
+            )
+          )}
+        </dl>
         {!rejected && (
           <Button
             icon={LockOpen}
@@ -759,7 +720,7 @@ function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shown
         busy={change.isPending}
         onClose={() => setDialog(null)}
         onConfirm={(reason) =>
-          change.mutate({ status: 'blocked', reason, message: 'Maydon rad etildi' })
+          change.mutate({ status: 'rejected', reason, message: 'Maydon rad etildi' })
         }
       />
       <ReasonModal
@@ -781,13 +742,11 @@ function DecisionPanel({ stadium, shownStatus }: { stadium: StadiumDetail; shown
 
 function StadiumHistory({ stadiumId }: { stadiumId: string }) {
   const [page, setPage] = useState(0)
-  const sample = stadiumId.startsWith('sample-')
   const history = useQuery({
     queryKey: ['admin', 'audit-log', 'stadium', stadiumId, page],
     queryFn: () =>
       getAuditLog({ entityType: 'stadium', entityId: stadiumId, page, size: HISTORY_SIZE }),
     placeholderData: keepPreviousData,
-    enabled: !sample,
   })
   const data = history.data
   return (
@@ -797,8 +756,8 @@ function StadiumHistory({ stadiumId }: { stadiumId: string }) {
       </h2>
       <AuditLogTable
         compact
-        entries={sample ? [] : data?.content}
-        loading={!sample && history.isPending}
+        entries={data?.content}
+        loading={history.isPending}
         error={history.isError}
         onRetry={() => void history.refetch()}
         empty={{
@@ -841,17 +800,8 @@ export function StadiumPage() {
     queryFn: () => getStadium(id),
     retry: false,
   })
-  const decision = useQuery({
-    queryKey: ['admin', 'stadiums', 'decision', id],
-    queryFn: () => getLatestDecision(id),
-  })
   const data = stadium.data
-  // A rejection is `blocked` in the backend today; the audit action tells them apart (R10).
-  const shownStatus =
-    data?.status === 'blocked' && decision.data?.action === 'STADIUM_REJECTED'
-      ? 'rejected'
-      : (data?.status ?? '')
-  const status = data ? statusOf(STADIUM_STATUSES, shownStatus) : undefined
+  const status = data ? statusOf(STADIUM_STATUSES, data.status) : undefined
   usePageHeader({
     title: data?.name ?? 'Maydon',
     crumbs: [{ label: 'Maydonlar', to: '/maydonlar' }, { label: data?.name ?? 'Maydon' }],
@@ -872,7 +822,7 @@ export function StadiumPage() {
   }
   if (!data) return <DetailSkeleton />
 
-  const extras = availability(STADIUM_DETAIL_FIELDS)
+  const extras = isAvailable(STADIUM_DETAIL_FIELDS)
   return (
     <div className="flex items-start gap-6">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
@@ -884,7 +834,7 @@ export function StadiumPage() {
         aria-label="Qaror va egasi"
         className="sticky top-6 flex max-h-[calc(100dvh-3rem)] w-94 shrink-0 flex-col gap-4 overflow-y-auto"
       >
-        <DecisionPanel stadium={data} shownStatus={shownStatus} />
+        <DecisionPanel stadium={data} />
         <OwnerCard stadium={data} />
         <NotesCard stadiumId={data.id} />
       </aside>

@@ -1,121 +1,25 @@
-import { SHOW_SAMPLE_DATA } from './sample'
-
 /**
- * THE list of endpoints (and fields) the admin panel calls that the backend
- * has not shipped yet, each with its request in docs/backend-requests.md.
+ * THE list of endpoints (and fields) the admin panel needs that the backend
+ * has not shipped yet, each with its request in docs/backend-requests.md, e.g.
+ * `'GET /api/admin/payments': 'R16'`.
  *
- * The API functions are written against those contracts and go through
- * `viaSample` below. While an endpoint is listed here:
- * - in development, a sample adapter (`./sample/adapter`, never in a
- *   production build) answers instead, and every value it gives is tagged
- *   "Namuna";
- * - in a production build, the section shows "Tez orada" and its actions are
- *   disabled.
+ * While an endpoint is listed, everything that needs it shows "Tez orada":
+ * its section says so, its column or field is hidden, its filter or button is
+ * disabled with the tooltip "Tez orada", and nothing is requested. Nothing is
+ * ever filled in instead.
  *
- * When the backend ships one, delete its line: the real call takes over unchanged.
+ * When the backend ships one, delete its line: the real call takes over.
+ * Every request the panel had asked for has shipped (backend 00d3bb7), so the
+ * list is empty.
  */
-export const MISSING_ENDPOINTS = {
-  'GET /api/admin/stats → failedRefunds, oldestFailedRefundAt': 'R8',
-  'GET /api/admin/stadiums → photoUrl, district, pricePerHour, ownerContractStatus; ?district, ?format':
-    'R9',
-  'GET /api/admin/stadiums/{id} → photos, location, hours, amenities, pricing, booking terms': 'R9',
-  'GET /api/admin/stadiums?status=rejected': 'R10',
-  'GET /api/admin/users/{id}/legal-details': 'R11',
-  'PUT /api/admin/users/{id}/legal-details': 'R11',
-  'GET /api/admin/stadiums/{id}/notes': 'R12',
-  'POST /api/admin/stadiums/{id}/notes': 'R12',
-  'GET /api/admin/users → ?role, ?status': 'R13',
-  'GET /api/admin/users/{id}/teams': 'R14',
-  'GET /api/admin/stadiums → ?ownerId': 'R14',
-  'GET /api/admin/bookings': 'R15',
-  'GET /api/admin/bookings/{id}': 'R15',
-  'GET /api/admin/games': 'R15',
-  'GET /api/admin/games/{id}': 'R15',
-  'GET /api/admin/payments': 'R16',
-  'GET /api/admin/payments/{id}': 'R16',
-  'GET /api/admin/payments/summary': 'R16',
-  'POST /api/admin/payments/{id}/retry-refund': 'R17',
-  'POST /api/admin/payments/{id}/mark-refunded': 'R17',
-} as const
+export const MISSING_ENDPOINTS: Record<string, string> = {}
 
-export type MissingEndpoint = keyof typeof MISSING_ENDPOINTS
+export type Availability = 'available' | 'soon'
 
-export type Availability =
-  /** The backend serves it. */
-  | 'real'
-  /** Missing; development answers with sample data. */
-  | 'sample'
-  /** Missing; a production build shows "Tez orada". */
-  | 'soon'
-
-export function availability(endpoint: string | null): Availability {
-  if (endpoint === null || !Object.hasOwn(MISSING_ENDPOINTS, endpoint)) return 'real'
-  return SHOW_SAMPLE_DATA ? 'sample' : 'soon'
+export function availability(endpoint: string): Availability {
+  return Object.hasOwn(MISSING_ENDPOINTS, endpoint) ? 'soon' : 'available'
 }
 
-/** The backend request for a missing endpoint, for the "Namuna" tag. */
-export function requestFor(endpoint: string): string | undefined {
-  return (MISSING_ENDPOINTS as Record<string, string>)[endpoint]
-}
-
-/** Thrown when a production build reaches an endpoint that does not exist yet. */
-export class NotAvailableError extends Error {
-  readonly endpoint: string
-  constructor(endpoint: string) {
-    super(`Not available yet: ${endpoint}`)
-    this.endpoint = endpoint
-    this.name = 'NotAvailableError'
-  }
-}
-
-export type SampleAdapter = typeof import('./sample/adapter')
-
-/**
- * Calls the real endpoint, or — while it is missing — the development sample
- * adapter. The adapter is imported only behind `import.meta.env.DEV`, so a
- * production build contains none of it.
- */
-export async function viaSample<T>(
-  endpoint: string,
-  real: () => Promise<T>,
-  sample: (adapter: SampleAdapter) => T | Promise<T>,
-): Promise<T> {
-  const mode = availability(endpoint)
-  if (mode === 'real') return real()
-  // Both conditions: the DEV check is what keeps the adapter out of a production build.
-  if (mode === 'sample' && import.meta.env.DEV) {
-    const adapter = await import('./sample/adapter')
-    return sample(adapter)
-  }
-  throw new NotAvailableError(endpoint)
-}
-
-/**
- * For new fields on an endpoint that exists: returns the real response as is,
- * and only in development lets the adapter fill in the missing fields. A
- * production build gets the real response unchanged (the fields stay absent).
- */
-export async function withSampleFields<T>(
-  endpoint: string,
-  real: T,
-  sample: (adapter: SampleAdapter, real: T) => T | Promise<T>,
-): Promise<T> {
-  if (availability(endpoint) === 'sample' && import.meta.env.DEV) {
-    const adapter = await import('./sample/adapter')
-    return sample(adapter, real)
-  }
-  return real
-}
-
-/** Ids of records that exist only in the development sample data. */
-export const SAMPLE_ID_PREFIX = 'sample-'
-
-export function isSampleId(id: string): boolean {
-  return import.meta.env.DEV && id.startsWith(SAMPLE_ID_PREFIX)
-}
-
-/** The sample adapter, for records that exist only in the sample data. Development only. */
-export async function loadSampleAdapter(): Promise<SampleAdapter> {
-  if (import.meta.env.DEV) return import('./sample/adapter')
-  throw new NotAvailableError('sample adapter')
+export function isAvailable(endpoint: string): boolean {
+  return availability(endpoint) === 'available'
 }

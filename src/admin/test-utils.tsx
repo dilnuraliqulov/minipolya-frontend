@@ -2,8 +2,9 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
-import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore } from '../shared/api'
+import { MISSING_ENDPOINTS } from './api/missing'
 import type { PlatformStats, User } from './api/types'
 import { logout, resetSessionForTests, startSession, unauthorizedReason } from './auth/session'
 import { ToastProvider } from './components/Toast'
@@ -23,12 +24,14 @@ export const stats: PlatformStats = {
   totalUsers: 900,
   totalOwners: 40,
   newUsersToday: 3,
-  newUsersThisWeek: 213,
+  newUsersThisWeek: 150,
+  newUsersLast7Days: 213,
   newUsersThisMonth: 500,
   totalStadiums: 45,
   approvedStadiums: 38,
   pendingStadiums: 2,
   blockedStadiums: 5,
+  rejectedStadiums: 1,
   totalBookings: 5000,
   todayBookings: 47,
   weekBookings: 300,
@@ -39,7 +42,13 @@ export const stats: PlatformStats = {
   monthRevenue: 4_865_000_000,
   totalGames: 10,
   activeGames: 2,
+  pendingOwnerApplications: 0,
   pendingStadiumApprovals: 2,
+  todayBookingsLastWeek: 42,
+  previousMonthRevenueToDate: 4_500_000_000,
+  newUsersPrevious7Days: 222,
+  approvedStadiumsWeekAgo: 38,
+  failedRefunds: 0,
 }
 
 /** `data` is the payload on success and the message on an error. */
@@ -106,12 +115,6 @@ export function renderAt(path: string) {
 
 /** Signs in as `admin` with a fresh query cache and API client, and cleans up after. */
 export function useAdminTestSetup() {
-  // Load the (dynamically imported) sample adapter once up front, so the first
-  // test does not spend its time budget on the import.
-  beforeAll(async () => {
-    await import('./api/sample/adapter')
-  })
-
   beforeEach(() => {
     resetSessionForTests()
     queryClient.clear()
@@ -124,6 +127,7 @@ export function useAdminTestSetup() {
   })
 
   afterEach(() => {
+    for (const endpoint of Object.keys(MISSING_ENDPOINTS)) delete MISSING_ENDPOINTS[endpoint]
     vi.unstubAllGlobals()
     vi.unstubAllEnvs()
     vi.restoreAllMocks()
@@ -132,4 +136,12 @@ export function useAdminTestSetup() {
 
 export function signIn(user: User = admin) {
   startSession('t', user)
+}
+
+/**
+ * Puts endpoints on the missing list for one test, as if the backend had not
+ * shipped them (`useAdminTestSetup` empties the list after each test).
+ */
+export function markMissing(...endpoints: string[]) {
+  for (const endpoint of endpoints) MISSING_ENDPOINTS[endpoint] = 'R?'
 }

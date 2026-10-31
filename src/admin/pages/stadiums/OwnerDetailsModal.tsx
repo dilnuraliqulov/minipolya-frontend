@@ -115,8 +115,15 @@ export function OwnerDetailsModal({
   const [recipient, setRecipient] = useState(current?.atmosRecipientId ?? '')
   const [submitted, setSubmitted] = useState(false)
 
+  // The backend's rule: a STIR of 9 digits, or the 14-digit JShShIR (PINFL) when self-employed.
+  const pinfl = legalType === 'self_employed'
+  const tinLength = pinfl ? 14 : 9
+  const tinLabel = pinfl ? 'JShShIR' : 'STIR'
   const errors = {
-    tin: tin.length !== 9 ? 'STIR 9 ta raqamdan iborat boʻlishi kerak' : undefined,
+    tin:
+      tin.length !== tinLength
+        ? `${tinLabel} ${tinLength} ta raqamdan iborat boʻlishi kerak`
+        : undefined,
     recipient:
       contract === 'signed' && !recipient ? '«Imzolangan» holati uchun majburiy' : undefined,
   }
@@ -161,11 +168,11 @@ export function OwnerDetailsModal({
         onChange={setLegalType}
       />
       <TextField
-        label="STIR"
+        label={tinLabel}
         value={tin}
         onChange={setTin}
-        maxLength={9}
-        helper="9 ta raqam"
+        maxLength={tinLength}
+        helper={`${tinLength} ta raqam`}
         error={submitted ? errors.tin : undefined}
       />
       <RadioGroup
@@ -179,7 +186,7 @@ export function OwnerDetailsModal({
           label="ATMOS qabul qiluvchi ID"
           value={recipient}
           onChange={setRecipient}
-          maxLength={20}
+          maxLength={50}
           helper="«Imzolangan» holati uchun majburiy"
           error={submitted ? errors.recipient : undefined}
         />

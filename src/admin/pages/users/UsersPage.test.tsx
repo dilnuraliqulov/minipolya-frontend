@@ -1,9 +1,12 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { AuditEntry } from '../../api/audit'
-import type { AdminUser } from '../../api/users'
+import { BOOKINGS_LIST, type AdminBooking } from '../../api/bookings'
+import { OWNER_STADIUMS } from '../../api/stadiums'
+import { USER_FILTERS, USER_TEAMS, type AdminUser, type UserTeam } from '../../api/users'
 import {
   admin,
+  markMissing,
   mockBackend,
   page,
   renderAt,
@@ -47,10 +50,52 @@ const blockEntry: AuditEntry = {
   reason: 'Koʻp bekor qilishlar',
 }
 
+const booking: AdminBooking = {
+  id: 'k1',
+  stadiumId: 's1',
+  stadiumName: 'Chilonzor Arena',
+  userId: 'p1',
+  userName: 'Bekzod Rahmatov',
+  source: 'app',
+  status: 'confirmed',
+  startsAt: '2026-11-02T15:00:00Z',
+  endsAt: '2026-11-02T16:00:00Z',
+  durationHours: 1,
+  price: 20_310_000,
+  paidAmount: 20_000_000,
+  remainingAmount: 0,
+  paymentStatus: 'paid',
+  isWalkin: false,
+  createdAt: '2026-10-30T10:00:00Z',
+}
+
+const team: UserTeam = { id: 't1', name: 'Chilonzor Lions', memberCount: 8, role: 'leader' }
+
+/** The backend's role and status filters, as the mock answers them. */
+function usersReply(request: Request): Reply {
+  const role = request.url.searchParams.get('role')
+  const status = request.url.searchParams.get('status')
+  const users = [self, player, owner, blocked].filter(
+    (u) =>
+      (!role ||
+        (role === 'owner' && u.isOwner) ||
+        (role === 'admin' && u.isAdmin) ||
+        (role === 'player' && !u.isOwner && !u.isAdmin)) &&
+      (!status || (status === 'blocked') === u.isBlocked),
+  )
+  return [200, page(users, role || status ? users.length : 1284)]
+}
+
 function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
   return mockBackend({
     '/api/admin/stats': [200, stats],
-    '/api/admin/users': [200, page([self, player, owner, blocked], 1284)],
+    '/api/admin/users': usersReply,
+    '/api/admin/users/p1/teams': [200, [team]],
+    '/api/admin/users/o1/teams': [200, []],
+    '/api/admin/users/b1/teams': [200, []],
+    [`/api/admin/users/${admin.id}/teams`]: [200, []],
+    '/api/admin/bookings': (request) =>
+      request.url.searchParams.get('userId') === 'p1' ? [200, page([booking])] : [200, page([])],
     '/api/admin/users/p1': [200, player],
     '/api/admin/users/o1': [200, owner],
     '/api/admin/users/b1': [200, blocked],
@@ -105,7 +150,6 @@ describe('Foydalanuvchilar — list', () => {
 
     fireEvent.change(screen.getByLabelText('Rol'), { target: { value: 'owner' } })
     await waitFor(() => expect(lastList(requests).get('role')).toBe('owner'))
-    // Until R13 ships, development narrows the page itself.
     await waitFor(() => expect(screen.queryByText('Bekzod Rahmatov')).not.toBeInTheDocument())
     expect(screen.getByText('Jamshid Karimov')).toBeInTheDocument()
 
@@ -118,6 +162,24 @@ describe('Foydalanuvchilar — list', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Tozalash' }))
     await waitFor(() => expect(router.state.location.search).toBe(''))
+  })
+
+  it('while R13 is missing: Rol and Holat disabled "Tez orada", never sent', async () => {
+    markMissing(USER_FILTERS)
+    const { requests } = backend()
+    signIn()
+    renderAt('/foydalanuvchilar?rol=owner')
+    await screen.findByText('Bekzod Rahmatov')
+    expect(screen.queryByLabelText('Rol')).not.toBeInTheDocument()
+    expect(screen.getByText('Rol: Hammasi').closest('[title]')).toHaveAttribute(
+      'title',
+      'Tez orada',
+    )
+    expect(screen.getByText('Holat: Hammasi').closest('[title]')).toHaveAttribute(
+      'title',
+      'Tez orada',
+    )
+    expect(lastList(requests).has('role')).toBe(false)
   })
 
   it('opens a user from the list', async () => {
@@ -145,8 +207,8 @@ describe('Foydalanuvchilar — list', () => {
 describe('Foydalanuvchilar — detail', () => {
   useAdminTestSetup()
 
-  it('shows the summary, the bookings tab (sample) and the teams tab when there are teams', async () => {
-    backend()
+  it('shows the summary, their bookings and their teams', async () => {
+    const { requests } = backend()
     signIn()
     renderAt('/foydalanuvchilar/p1')
     expect(
@@ -161,17 +223,55 @@ describe('Foydalanuvchilar — detail', () => {
     const tabs = screen.getByRole('tablist')
     expect(within(tabs).getByRole('tab', { name: /Bronlar/ })).toHaveTextContent('6')
     expect(within(tabs).queryByRole('tab', { name: /Maydonlar/ })).not.toBeInTheDocument()
-    // Booking rows link to the stadium and open the booking.
-    const stadiumLinks = await screen.findAllByRole('link', { name: /Arena|Futsal|Sport|Stadion/ })
-    expect(stadiumLinks[0]).toHaveAttribute('href', expect.stringMatching(/^\/maydonlar\//))
+    // Only this user's bookings, asked of the backend; rows link to the stadium.
+    expect(await screen.findByRole('link', { name: 'Chilonzor Arena' })).toHaveAttribute(
+      'href',
+      '/maydonlar/s1',
+    )
+    const bookings = requests.find((r) => r.url.pathname === '/api/admin/bookings')
+    expect(bookings?.url.searchParams.get('userId')).toBe('p1')
+
+    fireEvent.click(await within(tabs).findByRole('tab', { name: /Jamoalar/ }))
+    expect(await screen.findByText('Chilonzor Lions')).toBeInTheDocument()
+    expect(screen.getByText('Sardor')).toBeInTheDocument()
   })
 
-  it('shows the Maydonlar tab for an owner', async () => {
+  it('has no Jamoalar tab for a user in no team', async () => {
     backend()
+    signIn()
+    renderAt('/foydalanuvchilar/o1')
+    await screen.findByRole('tab', { name: /Maydonlar/ })
+    expect(screen.queryByRole('tab', { name: /Jamoalar/ })).not.toBeInTheDocument()
+  })
+
+  it('while R15 and R14 are missing: the Bronlar, Jamoalar and Maydonlar tabs say "Tez orada"', async () => {
+    markMissing(BOOKINGS_LIST, USER_TEAMS, OWNER_STADIUMS)
+    const { requests } = backend()
+    signIn()
+    renderAt('/foydalanuvchilar/o1')
+    await screen.findByRole('heading', { level: 1, name: /Jamshid Karimov/ })
+    expect(screen.getByText('Tez orada')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /Jamoalar/ }))
+    expect(screen.getByText('Tez orada')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /Maydonlar/ }))
+    expect(screen.getByText('Tez orada')).toBeInTheDocument()
+    for (const path of [
+      '/api/admin/bookings',
+      '/api/admin/users/o1/teams',
+      '/api/admin/stadiums',
+    ]) {
+      expect(requests.some((r) => r.url.pathname === path)).toBe(false)
+    }
+  })
+
+  it('shows the Maydonlar tab for an owner, from the list filtered by owner', async () => {
+    const { requests } = backend()
     signIn()
     renderAt('/foydalanuvchilar/o1')
     fireEvent.click(await screen.findByRole('tab', { name: /Maydonlar/ }))
     expect(await screen.findByText('Maydonlar yoʻq')).toBeInTheDocument()
+    const list = requests.find((r) => r.url.pathname === '/api/admin/stadiums')
+    expect(list?.url.searchParams.get('ownerId')).toBe('o1')
   })
 
   it('blocks with a reason, warning that the user cannot use the app', async () => {

@@ -1,24 +1,38 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { getTokenStore } from '../shared/api'
+import { KPI_COMPARISONS, REFUND_ALERTS } from './api/stats'
 import { restoreSession, startSession } from './auth/session'
 import { routes } from './routes'
-import { admin, mockBackend, type Reply, renderAt, stats, useAdminTestSetup } from './test-utils'
+import {
+  admin,
+  markMissing,
+  mockBackend,
+  type Reply,
+  renderAt,
+  stats,
+  useAdminTestSetup,
+} from './test-utils'
 
 const today = new Date()
 const isoDate = (daysAgo: number) =>
   new Date(today.getTime() - daysAgo * 86_400_000 + 5 * 3_600_000).toISOString().slice(0, 10)
 
+// One failed refund, three hours old.
+const overviewStats = {
+  ...stats,
+  failedRefunds: 1,
+  oldestFailedRefundAt: new Date(Date.now() - 3 * 3_600_000 - 60_000).toISOString(),
+}
+
 const overviewReplies: Record<string, Reply> = {
-  '/api/admin/stats': [200, stats],
-  '/api/admin/stats/revenue': [
+  '/api/admin/stats': [200, overviewStats],
+  '/api/admin/stats/bookings-daily': [
     200,
-    {
-      dailyRevenue: [
-        { date: isoDate(1), revenue: 100, bookingCount: 40 },
-        { date: isoDate(0), revenue: 100, bookingCount: 3 },
-      ],
-    },
+    [
+      { date: isoDate(1), bookingCount: 40 },
+      { date: isoDate(0), bookingCount: 3 },
+    ],
   ],
   '/api/admin/stadiums': [
     200,
@@ -34,15 +48,6 @@ const overviewReplies: Record<string, Reply> = {
 
 describe('admin panel', () => {
   useAdminTestSetup()
-
-  // One failed refund, three hours old (the sample payments may hold any number).
-  beforeEach(async () => {
-    const adapter = await import('./api/sample/adapter')
-    vi.spyOn(adapter, 'refundAlerts').mockReturnValue({
-      failedRefunds: 1,
-      oldestFailedRefundAt: new Date(Date.now() - 3 * 3_600_000 - 60_000).toISOString(),
-    })
-  })
 
   it('sends a visitor without a session to the login form', async () => {
     await restoreSession()
@@ -64,7 +69,7 @@ describe('admin panel', () => {
     expect(router.state.location.pathname).toBe('/login')
   })
 
-  it('shows the overview with real numbers and marks the sample ones', async () => {
+  it('shows the overview from the stats, with the comparison lines', async () => {
     mockBackend(overviewReplies)
     startSession('t', admin)
     renderAt('/')
@@ -72,14 +77,18 @@ describe('admin panel', () => {
     expect(await screen.findByText('47')).toBeInTheDocument()
     expect(screen.getByText('48 650 000')).toBeInTheDocument()
     expect(screen.getByText("so'm")).toHaveClass('text-secondary')
+    // The last 7 days, not this calendar week.
     expect(screen.getByText('213')).toBeInTheDocument()
+    expect(screen.getByText('Oxirgi 7 kun')).toBeInTheDocument()
     expect(screen.getByText('38')).toBeInTheDocument()
     expect(screen.getByText('jami 43')).toBeInTheDocument()
-    expect(screen.getByText('Shu hafta')).toBeInTheDocument()
-    expect(await screen.findByText('Muvaffaqiyatsiz qaytarishlar')).toBeInTheDocument()
+    // 47 vs 42, 48.65M vs 45M, 213 vs 222, 38 vs 38.
+    expect(screen.getByText('+12% oʻtgan haftaga nisbatan')).toBeInTheDocument()
+    expect(screen.getByText('+8% oʻtgan oyga nisbatan')).toBeInTheDocument()
+    expect(screen.getByText('−4% oldingi 7 kunga nisbatan')).toBeInTheDocument()
+    expect(screen.getByText('Oʻzgarish yoʻq')).toBeInTheDocument()
+    expect(screen.getByText('Muvaffaqiyatsiz qaytarishlar')).toBeInTheDocument()
     expect(screen.getByText('eng eskisi 3 soat oldin')).toBeInTheDocument()
-    // Four sample comparisons and the sample failed-refund count (R8).
-    expect(screen.getAllByText('Namuna')).toHaveLength(5)
     expect(await screen.findByText('eng eskisi 1 kun oldin')).toBeInTheDocument()
 
     const menu = screen.getByRole('navigation', { name: 'Asosiy menyu' })
@@ -159,7 +168,6 @@ describe('admin panel', () => {
     const router = renderAt('/')
     const tile = await screen.findByRole('link', { name: /Muvaffaqiyatsiz qaytarishlar/ })
     expect(tile.querySelector('.bg-danger-soft')).not.toBeNull()
-    expect(within(tile).getByText('Namuna')).toHaveAttribute('title', expect.stringContaining('R8'))
     fireEvent.click(tile)
     expect(router.state.location.pathname).toBe('/tolovlar')
     expect(router.state.location.search).toBe('?tab=qaytarishlar')
@@ -216,8 +224,6 @@ describe('admin panel', () => {
   })
 
   it('shows "everything done" when nothing is waiting', async () => {
-    const adapter = await import('./api/sample/adapter')
-    vi.spyOn(adapter, 'refundAlerts').mockReturnValue({ failedRefunds: 0 })
     mockBackend({
       ...overviewReplies,
       '/api/admin/stats': [200, { ...stats, pendingStadiumApprovals: 0, pendingStadiums: 0 }],
@@ -226,6 +232,19 @@ describe('admin panel', () => {
     renderAt('/')
     expect(await screen.findByText('Hammasi bajarilgan, kutilayotgan ish yoʻq')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Koʻrib chiqish' })).not.toBeInTheDocument()
+  })
+
+  it('leaves out the comparisons and the failed-refund tile and badge while R3/R8 are missing', async () => {
+    markMissing(KPI_COMPARISONS, REFUND_ALERTS)
+    mockBackend(overviewReplies)
+    startSession('t', admin)
+    renderAt('/')
+    expect(await screen.findByText('47')).toBeInTheDocument()
+    expect(screen.queryByText(/nisbatan|Oʻzgarish yoʻq/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Muvaffaqiyatsiz qaytarishlar')).not.toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: /Yangi maydonlar/ })).toBeInTheDocument()
+    const menu = screen.getByRole('navigation', { name: 'Asosiy menyu' })
+    expect(within(menu).getByRole('link', { name: /Toʻlovlar/ })).toHaveTextContent(/^Toʻlovlar$/)
   })
 
   it('shows an error with a working retry', async () => {

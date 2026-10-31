@@ -40,7 +40,6 @@ export const GAME_STATUSES: StatusMap = {
 export const STADIUM_STATUSES: StatusMap = {
   pending: { label: 'Kutilmoqda', tone: 'warning' },
   approved: { label: 'Tasdiqlangan', tone: 'success' },
-  /** Not a backend value yet — request R10. */
   rejected: { label: 'Rad etilgan', tone: 'danger' },
   blocked: { label: 'Bloklangan', tone: 'danger' },
 }
@@ -54,6 +53,12 @@ export const PAYMENT_STATUSES: StatusMap = {
   released: { label: 'Boʻshatildi', tone: 'neutral' },
   refunded: { label: 'Qaytarildi', tone: 'accent' },
   failed: { label: 'Muvaffaqiyatsiz', tone: 'danger' },
+  // In flight at the provider; the backend's reconcile job settles them.
+  processing: { label: 'Jarayonda', tone: 'warning' },
+  capture_pending: { label: 'Yechilmoqda', tone: 'warning' },
+  return_pending: { label: 'Qaytarilmoqda', tone: 'warning' },
+  /** The original of a refund the provider declined: the money is still owed. */
+  refund_failed: { label: 'Qaytarish oʻtmadi', tone: 'danger' },
 }
 
 export const PAYMENT_TYPES: Record<string, string> = {

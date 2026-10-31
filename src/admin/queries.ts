@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { availability } from './api/missing'
-import { getPlatformStats, getRefundAlerts, REFUND_ALERTS } from './api/stats'
+import { isAvailable } from './api/missing'
+import { getPlatformStats, REFUND_ALERTS } from './api/stats'
 
 export const adminKeys = {
   stats: ['admin', 'stats'] as const,
-  refundAlerts: ['admin', 'stats', 'refund-alerts'] as const,
-  revenue: ['admin', 'stats', 'revenue'] as const,
+  dailyBookings: ['admin', 'stats', 'bookings-daily'] as const,
   oldestStadium: ['admin', 'stadiums', 'oldest-pending'] as const,
 }
 
@@ -22,16 +21,12 @@ export function useStats() {
 }
 
 /**
- * Failed refunds (request R8). In a production build, while the fields are
- * missing, nothing is fetched and `sample` tells the caller to show nothing.
+ * Failed refunds waiting for an admin, from the stats: the sidebar badge and
+ * the overview to-do. `undefined` while loading, or while the fields are in
+ * the missing list (then nothing is shown).
  */
-export function useRefundAlerts() {
-  const mode = availability(REFUND_ALERTS)
-  const query = useQuery({
-    queryKey: adminKeys.refundAlerts,
-    queryFn: getRefundAlerts,
-    enabled: mode !== 'soon',
-    refetchInterval: BADGE_REFRESH_MS,
-  })
-  return { ...query, mode }
+export function useFailedRefunds(): { count: number; oldestAt?: string } | undefined {
+  const { data } = useStats()
+  if (!data || !isAvailable(REFUND_ALERTS)) return undefined
+  return { count: data.failedRefunds, oldestAt: data.oldestFailedRefundAt }
 }

@@ -1,38 +1,20 @@
 import { api, type Page } from '../../shared/api'
-import { viaSample } from './missing'
-import type { AdminStadium, PlatformRevenue, PlatformStats } from './types'
+import type { AdminStadium, DailyBookingCount, PlatformStats } from './types'
 
 export function getPlatformStats(): Promise<PlatformStats> {
   return api.get<PlatformStats>('/api/admin/stats')
 }
 
-export function getPlatformRevenue(): Promise<PlatformRevenue> {
-  return api.get<PlatformRevenue>('/api/admin/stats/revenue')
+export function getDailyBookings(): Promise<DailyBookingCount[]> {
+  return api.get<DailyBookingCount[]>('/api/admin/stats/bookings-daily')
 }
 
-/** Failed refunds waiting for an admin: the sidebar badge and the overview to-do. */
-export interface RefundAlerts {
-  failedRefunds: number
-  /** UTC; absent when there are none. */
-  oldestFailedRefundAt?: string
-}
+/** The previous-period fields on the stats — request R3. */
+export const KPI_COMPARISONS =
+  'GET /api/admin/stats → todayBookingsLastWeek, previousMonthRevenueToDate, newUsersPrevious7Days, approvedStadiumsWeekAgo'
 
-/** Two new fields on `GET /api/admin/stats` — request R8. */
+/** `failedRefunds` / `oldestFailedRefundAt` on the stats — request R8 (the refunds are R17). */
 export const REFUND_ALERTS = 'GET /api/admin/stats → failedRefunds, oldestFailedRefundAt'
-
-export function getRefundAlerts(): Promise<RefundAlerts> {
-  return viaSample(
-    REFUND_ALERTS,
-    async () => {
-      const stats = await getPlatformStats()
-      return {
-        failedRefunds: stats.failedRefunds ?? 0,
-        oldestFailedRefundAt: stats.oldestFailedRefundAt,
-      }
-    },
-    (sample) => sample.refundAlerts(),
-  )
-}
 
 /**
  * The stadium list is ordered newest first, so the oldest pending stadium is

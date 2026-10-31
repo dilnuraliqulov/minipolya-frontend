@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Copy, HandCoins, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { isApiError } from '../../../shared/api'
 import { formatDateTime } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
@@ -14,6 +15,7 @@ import {
   type AdminPayment,
   type LinkedPayment,
 } from '../../api/payments'
+import { entityPath } from '../../audit/links'
 import { StatusTimeline } from '../../audit/StatusTimeline'
 import { DisabledHint, SOON } from '../../components/Availability'
 import { Button } from '../../components/Button'
@@ -94,7 +96,6 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   const retryMode = availability(REFUND_RETRY)
   const manualMode = availability(REFUND_MANUAL)
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['admin'] })
-  const sample = (text: string, mode: string) => (mode === 'sample' ? `${text} (namuna)` : text)
 
   const retry = useMutation({
     mutationFn: () => retryRefund(payment.id),
@@ -103,17 +104,22 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
       if (result.status === 'failed') {
         toast.error(`Yana amalga oshmadi: ${result.failureReason ?? 'ATMOS xatosi'}`)
       } else {
-        toast.success(sample('Pul qaytarildi', retryMode))
+        toast.success('Pul qaytarildi')
       }
     },
-    onError: () => toast.error('Qayta urinib boʻlmadi. Keyinroq urinib koʻring'),
+    onError: (error) =>
+      toast.error(
+        isApiError(error) && error.status === 502
+          ? 'ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'
+          : 'Qayta urinib boʻlmadi. Keyinroq urinib koʻring',
+      ),
   })
   const manual = useMutation({
     mutationFn: (reason: string) => markRefunded(payment.id, reason),
     onSuccess: () => {
       setMarking(false)
       refresh()
-      toast.success(sample('Qoʻlda qaytarildi deb belgilandi', manualMode))
+      toast.success('Qoʻlda qaytarildi deb belgilandi')
     },
     onError: () => {
       setMarking(false)
@@ -199,6 +205,9 @@ export function PaymentPanel({
   const refund = p?.paymentType === 'refund'
   const type = p ? (PAYMENT_TYPES[p.paymentType] ?? p.paymentType) : ''
   const status = p && statusOf(PAYMENT_STATUSES, p.status)
+  // Links only to pages that can show the record.
+  const bookingPath = entityPath('booking', p?.bookingId)
+  const gamePath = entityPath('game', p?.gameId)
 
   return (
     <SidePanel
@@ -256,16 +265,16 @@ export function PaymentPanel({
                   </span>
                 </PanelRow>
               )}
-              {p.bookingId && (
+              {bookingPath && (
                 <PanelRow label="Bron">
-                  <Link to={`/bronlar?bron=${p.bookingId}`} className={linkClass}>
+                  <Link to={bookingPath} className={linkClass}>
                     Bronni ochish
                   </Link>
                 </PanelRow>
               )}
-              {p.gameId && (
+              {gamePath && (
                 <PanelRow label="Oʻyin">
-                  <Link to={`/bronlar?tab=oyinlar&oyin=${p.gameId}`} className={linkClass}>
+                  <Link to={gamePath} className={linkClass}>
                     Oʻyinni ochish
                   </Link>
                 </PanelRow>
@@ -283,6 +292,12 @@ export function PaymentPanel({
               <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
                 {money(p.platformAmount)}
               </PanelRow>
+              {p.cardFee !== undefined && (
+                <PanelRow label="Karta komissiyasi">{money(p.cardFee)}</PanelRow>
+              )}
+              {p.providerCommission !== undefined && (
+                <PanelRow label="ATMOS ushlab qoldi">{money(p.providerCommission)}</PanelRow>
+              )}
               <PanelRow label="Komissiya stavkasi">{p.commissionPercent} %</PanelRow>
             </dl>
           </PanelSection>
@@ -295,7 +310,7 @@ export function PaymentPanel({
             />
           </PanelSection>
 
-          {p.linkedPayments.length > 0 && (
+          {p.linkedPayments && p.linkedPayments.length > 0 && (
             <PanelSection title="Bogʻliq toʻlovlar">
               <div className="flex flex-col gap-2">
                 {p.linkedPayments.map((item) => (

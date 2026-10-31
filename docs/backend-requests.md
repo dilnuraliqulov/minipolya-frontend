@@ -66,30 +66,23 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 
 ## Open requests
 
-Ordered by priority — the next backend task, top first. Every entry below has
-its full contract; `src/admin/api/missing.ts` lists the same endpoints, and
-the panel shows sample data for them in development and "Tez orada" in
-production until they ship.
+None: every request the panel had made has shipped (backend `feature/admin-login-impl`,
+up to `00d3bb7`). `src/admin/api/missing.ts` lists the same endpoints as
+these entries, so with nothing open it is empty. Add new requests here with the
+template above, and put the endpoint in `MISSING_ENDPOINTS`; the panel then
+shows "Tez orada" for it until it ships.
 
-| # | Request | Priority | What it unblocks |
-|---|---|---|---|
-| 1 | **R15** — Bookings and games for the admin panel | High | Bronlar has no data; the user page has no bookings |
-| 2 | **R16** — Payments for the admin panel: list, detail and a period summary | High | Toʻlovlar has no data |
-| 3 | **R17** — Failed refunds: record them, retry them, or mark them refunded by hand | High | a refund the provider declines is lost; money owed to players is invisible |
-| 4 | **R8** — Failed refunds: a count for the sidebar and the overview | High | no alert for failed refunds (needs R17) |
-| 5 | **R6** — Admin revenue figures ignore card payments | High | overview revenue misses card payments (near 0) |
-| 6 | **R9** — Everything an admin needs to review a stadium, for any status | High | stadiums are approved without seeing photos, map or prices |
-| 7 | **R11** — Owner legal details and the ATMOS contract | High | approval should wait for a signed ATMOS contract; payouts need the recipient id |
-| 8 | **R1** — CORS for production | Blocker at deployment | only if the frontend and API are on different origins |
-| 9 | **R10** — A `rejected` stadium status | Medium | rejected stadiums are filed under Bloklangan |
-| 10 | **R13** — Role and status filters on the user list | Medium | user role/status filters |
-| 11 | **R4** — Daily booking counts for the overview chart | Medium | the overview chart counts payments, not bookings |
-| 12 | **R3** — Previous-period figures for the overview KPIs | Low | overview comparison lines |
-| 13 | **R5** — New users over the last 7 days | Low | new users over 7 days instead of this week |
-| 14 | **R12** — Internal notes on a stadium | Low | internal notes on a stadium |
-| 15 | **R14** — A user's teams, and an owner's stadiums | Low | a user's teams; an owner's stadiums |
+---
 
-### R15 — Bookings and games for the admin panel
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R15 — Bookings and games for the admin panel _(shipped in `642a274`)_
+
+**Shipped as** — Shipped as asked, in the card-fee model: `price` is the card price, with `netPrice`, `cardFee`, `remainderByCard` and `remainderInCash` alongside; `paidAmount` and `remainingAmount` are net; `paidInApp` is gross (card fee included). The games `userId` filter also matches team leaders; `participants` and `serviceFeePerPerson` also come on open games; a team's `players` leave out cancelled ones. Unknown `status` values are not rejected (an empty page) — api-reference Q16.
 
 **What's needed**
 The admin "Bronlar" page lists every booking and every game, with filters, and
@@ -154,7 +147,9 @@ Error cases — 400 `"to must be on or after from"`, `"Invalid id"`; 404
 **Priority**
 High — the Bronlar page has no data without it.
 
-### R16 — Payments for the admin panel: list, detail and a period summary
+### R16 — Payments for the admin panel: list, detail and a period summary _(shipped in `58274e1`)_
+
+**Shipped as** — Shipped with R6. The summary adds `cardFees` (`ownerPayouts + platformRevenue + cardFees = appRevenue`); rows add `cardFee` and `providerCommission`; `commissionPercent` may be absent and `refundedManually` is present only when true; `linkedPayments` are oldest first; 400 `"Invalid type"` / `"Invalid status"` / `"Invalid method"`.
 
 **What's needed**
 The admin "Toʻlovlar" page shows every payment and refund with how it was
@@ -228,7 +223,9 @@ Error cases — 400 `"to must be on or after from"`, `"from and to are required"
 High — the Toʻlovlar page has no data without it; R6 (revenue misses card
 payments) should be fixed in the same pass so the overview agrees with it.
 
-### R17 — Failed refunds: record them, retry them, or mark them refunded by hand
+### R17 — Failed refunds: record them, retry them, or mark them refunded by hand _(shipped in `4725675`)_
+
+**Shipped as** — Shipped with R8. Extra messages `"reason is required"`, `"reason must be at most 500 characters"`; a declined retry is also audited `REFUND_RETRIED`; `REFUND_FAILED` is logged on the original payment.
 
 **What's needed**
 Today a refund cannot fail: `PaymentService.refundInFull` calls
@@ -279,7 +276,9 @@ only).
 **Priority**
 High — without it, a failed refund is invisible and the money is not returned.
 
-### R8 — Failed refunds: a count for the sidebar and the overview
+### R8 — Failed refunds: a count for the sidebar and the overview _(shipped in `4725675`)_
+
+**Shipped as** — Shipped as asked, with R17.
 
 **What's needed**
 The admin panel shows a red badge on "Toʻlovlar" and a to-do tile
@@ -308,7 +307,9 @@ Error cases — none new.
 **Priority**
 High — failed refunds are money owed to players; nothing tells an admin today.
 
-### R6 — Admin revenue figures ignore card payments
+### R6 — Admin revenue figures ignore card payments _(shipped in `58274e1`)_
+
+**Shipped as** — Every revenue figure now comes from one `RevenueService`: card money kept, cash excluded, refunds taken off when they complete.
 
 **What's needed**
 `AdminService.getPlatformStats` computes `totalRevenue`, `todayRevenue`,
@@ -341,7 +342,9 @@ cash (`method = cash`) should be excluded from that figure.
 **Priority**
 High — the overview's revenue numbers are wrong (near 0) today.
 
-### R9 — Everything an admin needs to review a stadium, for any status
+### R9 — Everything an admin needs to review a stadium, for any status _(shipped in `9f4040a`)_
+
+**Shipped as** — Rows also carry `price` (by card) and `statusReason`; `pricePerHour` is net. The detail is in the owner's prices (`pricePerHour`, `minBookingAmount` and the pricing rules net, `price` by card), not the public card prices; `cancellationHours` comes both at the top level and in `cancellationPolicy`.
 
 **What's needed**
 To approve a stadium an admin must see what players will see: photos, the
@@ -400,7 +403,9 @@ filter value; 404 `"Stadium not found"`.
 High — without it an admin approves a stadium without seeing its photos,
 location or prices.
 
-### R11 — Owner legal details and the ATMOS contract
+### R11 — Owner legal details and the ATMOS contract _(shipped in `14ed7ec`)_
+
+**Shipped as** — `tin` is 9 digits, or the 14-digit PINFL (JShShIR) for `self_employed` — `"tin must be 9 digits (or 14 for self-employed)"`; `legalType` and `tin` may be absent on rows carried over by changeset 037; the PUT replaces the whole record. Approval needs the contract signed **and** a recipient id, and the check also applies when un-blocking.
 
 **What's needed**
 Card payments are paid out to owners through ATMOS, which needs a signed
@@ -451,7 +456,9 @@ Error cases — 400 validation as above; 404 `"User not found"`.
 **Priority**
 High — approval depends on it, and payouts cannot work without the recipient id.
 
-### R1 — CORS for production
+### R1 — CORS for production _(shipped in `e2f5f67`)_
+
+**Shipped as** — CORS for `/api/**` from `CORS_ALLOWED_ORIGINS`, off by default.
 
 > **Only needed if the API is served from a different domain than the
 > frontend; decide at deployment.** If the Mini App, the admin panel and the
@@ -491,7 +498,9 @@ without a JWT, before the security filter rejects them as 401).
 Blocker at deployment, **only if** the frontend and API are on different
 origins; otherwise not needed.
 
-### R10 — A `rejected` stadium status
+### R10 — A `rejected` stadium status _(shipped in `6916301`)_
+
+**Shipped as** — `rejected` only from pending, as asked; `blocked` is accepted from any status (api-reference Q17). The pattern message is `"status must be approved, blocked, pending or rejected"`. The panel now sends `rejected` for "Rad etish".
 
 **What's needed**
 The panel has separate "Rad etilgan" (rejected) and "Bloklangan" (blocked)
@@ -527,7 +536,9 @@ Error cases — 400 `"Only a pending stadium can be rejected"`; 400
 **Priority**
 Medium — rejections work today; they are just filed under "Bloklangan".
 
-### R13 — Role and status filters on the user list
+### R13 — Role and status filters on the user list _(shipped in `3170f75`)_
+
+**Shipped as** — Shipped as asked.
 
 **What's needed**
 `GET /api/admin/users` takes only `?search=` (name or phone). The users page
@@ -553,7 +564,9 @@ Error cases — 400 `"Invalid role"` / `"Invalid status"`.
 **Priority**
 Medium — search works; the filters are a convenience until the list grows.
 
-### R4 — Daily booking counts for the overview chart
+### R4 — Daily booking counts for the overview chart _(shipped in `5da70c6`)_
+
+**Shipped as** — Shipped as the separate `GET /api/admin/stats/bookings-daily`; `/stats/revenue` now also sends every day and its `bookingCount` uses the same numbers.
 
 **What's needed**
 The overview chart is "Bronlar soni, oxirgi 30 kun" (bookings per day). The
@@ -582,7 +595,9 @@ Either fix the field's meaning or add a separate series. Suggested: add to
 **Priority**
 Medium — the chart works, but its numbers are payments, not bookings.
 
-### R3 — Previous-period figures for the overview KPIs
+### R3 — Previous-period figures for the overview KPIs _(shipped in `fce0dc6`)_
+
+**Shipped as** — Shipped as the four previous-period fields; the panel works out the percentage. `approvedStadiumsWeekAgo` is rebuilt from the audit log, so status changes from before changeset 029 are not counted.
 
 **What's needed**
 Each KPI card on the admin overview compares with the previous period
@@ -611,7 +626,9 @@ If the backend prefers, it can return the change itself (e.g.
 **Priority**
 Low — the cards show real current values; only the comparison line is sample.
 
-### R5 — New users over the last 7 days
+### R5 — New users over the last 7 days _(shipped in `6c5029d`)_
+
+**Shipped as** — Shipped as asked.
 
 **What's needed**
 The design's KPI is "Yangi foydalanuvchilar (7 kun)". The stats only have
@@ -629,7 +646,9 @@ created in the last 7 × 24 hours.
 **Priority**
 Low.
 
-### R12 — Internal notes on a stadium
+### R12 — Internal notes on a stadium _(shipped in `cd86fd4`)_
+
+**Shipped as** — Shipped as asked; `authorName` falls back to `"Admin"` when the admin has no name.
 
 **What's needed**
 Admins keep short notes while reviewing a stadium ("28.10 qoʻngʻiroq
@@ -665,7 +684,9 @@ Error cases — 400 validation; 404 `"Stadium not found"`.
 **Priority**
 Low — admins can keep notes elsewhere meanwhile.
 
-### R14 — A user's teams, and an owner's stadiums
+### R14 — A user's teams, and an owner's stadiums _(shipped in `23f85e0`)_
+
+**Shipped as** — Shipped as asked.
 
 **What's needed**
 The user page has a "Jamoalar" tab (only when the user is in a team) and, for
@@ -693,10 +714,6 @@ Error cases — 400 `"Invalid id"`; 404 `"User not found"`.
 
 **Priority**
 Low — the user page works without them.
-
----
-
-## Done
 
 ### R7 — Remove `POST /api/admin/me/password` _(shipped in `40bdbd2`)_
 

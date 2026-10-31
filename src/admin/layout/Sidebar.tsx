@@ -6,7 +6,7 @@ import type { User } from '../api/types'
 import { logout } from '../auth/session'
 import { Avatar } from '../components/Avatar'
 import { cx } from '../components/cx'
-import { useRefundAlerts, useStats } from '../queries'
+import { useFailedRefunds, useStats } from '../queries'
 import { setAdminTheme, useAdminTheme } from '../theme'
 import { MENU, type MenuBadge } from './menu'
 
@@ -53,10 +53,10 @@ function ThemeToggle() {
 
 export function Sidebar({ user }: { user: User }) {
   const { data: stats } = useStats()
-  const { data: refunds } = useRefundAlerts()
+  const failedRefunds = useFailedRefunds()
   const counts: Record<MenuBadge, number> = {
     pendingStadiums: stats?.pendingStadiumApprovals ?? 0,
-    failedRefunds: refunds?.failedRefunds ?? 0,
+    failedRefunds: failedRefunds?.count ?? 0,
   }
 
   return (

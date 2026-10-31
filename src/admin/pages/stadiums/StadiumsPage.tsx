@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { formatDateTime, formatSom } from '../../../shared/format'
-import { availability, requestFor } from '../../api/missing'
+import { isAvailable } from '../../api/missing'
 import {
   DISTRICTS,
   listStadiums,
@@ -15,7 +15,6 @@ import { DisabledHint, SOON, SoonSection } from '../../components/Availability'
 import { DataTable, type Column } from '../../components/DataTable'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Tabs } from '../../components/Tabs'
 import { useDebounced } from '../../components/useDebounced'
@@ -40,22 +39,8 @@ function isTab(value: string | null): value is StadiumTab {
   return TABS.some((tab) => tab.value === value)
 }
 
-/** A column header with the "Namuna" tag when its values are sample data. */
-function sampleHeader(label: string, sample: boolean) {
-  const request = requestFor(STADIUM_LIST_FIELDS)
-  return sample && request ? (
-    <span className="inline-flex items-center gap-1.5">
-      {label}
-      <SampleTag request={request} />
-    </span>
-  ) : (
-    label
-  )
-}
-
-function columns(tab: StadiumTab, extras: 'real' | 'sample' | 'soon'): Column<StadiumRow>[] {
-  const sample = extras === 'sample'
-  const show = extras !== 'soon'
+/** `show`: the review fields (R9) exist — thumbnail, Tuman, Narx and ATMOS. */
+function columns(tab: StadiumTab, show: boolean): Column<StadiumRow>[] {
   const list: Array<Column<StadiumRow> | false> = [
     {
       key: 'name',
@@ -74,14 +59,14 @@ function columns(tab: StadiumTab, extras: 'real' | 'sample' | 'soon'): Column<St
     { key: 'owner', header: 'Egasi', width: 170, render: (row) => row.ownerName },
     show && {
       key: 'district',
-      header: sampleHeader('Tuman', sample),
+      header: 'Tuman',
       width: 140,
       render: (row) => row.district ?? '—',
     },
     { key: 'format', header: 'Format', width: 90, render: (row) => formatPitch(row.format) },
     show && {
       key: 'price',
-      header: sampleHeader('Narx', sample),
+      header: 'Narx',
       width: 200,
       render: (row) =>
         row.pricePerHour === undefined ? '—' : `${formatSom(row.pricePerHour)}/soat dan`,
@@ -89,7 +74,7 @@ function columns(tab: StadiumTab, extras: 'real' | 'sample' | 'soon'): Column<St
     tab === 'pending' &&
       show && {
         key: 'atmos',
-        header: sampleHeader('ATMOS', sample),
+        header: 'ATMOS',
         width: 130,
         render: (row) => {
           const contract = CONTRACT_LABELS[row.ownerContractStatus ?? 'none']
@@ -132,8 +117,7 @@ export function StadiumsPage() {
   const page = Number(params.get(PARAMS.page) ?? 0) || 0
   const query = params.get(PARAMS.search) ?? ''
 
-  const extras = availability(STADIUM_LIST_FIELDS)
-  const rejected = availability(REJECTED_STATUS)
+  const extras = isAvailable(STADIUM_LIST_FIELDS)
 
   const update = (changes: Record<string, string | undefined>, keepPage = false) =>
     setParams(
@@ -174,7 +158,7 @@ export function StadiumsPage() {
     page,
     size: PAGE_SIZE,
   }
-  const soonTab = tab === 'rejected' && rejected === 'soon'
+  const soonTab = tab === 'rejected' && !isAvailable(REJECTED_STATUS)
   const list = useQuery({
     queryKey: ['admin', 'stadiums', 'list', listParams],
     queryFn: () => listStadiums(listParams),
@@ -185,7 +169,6 @@ export function StadiumsPage() {
   usePageHeader({ count: data?.totalElements })
 
   const filtered = Boolean(query || district || format)
-  const filterHint = extras === 'soon'
 
   return (
     <div className="flex flex-col gap-4">
@@ -217,7 +200,7 @@ export function StadiumsPage() {
           onChange={setSearch}
           placeholder="Maydon yoki egasi boʻyicha qidirish"
         />
-        {filterHint ? (
+        {!extras ? (
           <>
             <DisabledHint hint={SOON}>
               <span className="flex h-9 items-center rounded-md border border-border px-3 text-base text-secondary opacity-60">
@@ -250,7 +233,6 @@ export function StadiumsPage() {
               ]}
               onChange={(value) => update({ [PARAMS.format]: value || undefined })}
             />
-            {extras === 'sample' && <SampleTag request={requestFor(STADIUM_LIST_FIELDS)!} />}
           </>
         )}
       </FilterBar>
@@ -259,12 +241,6 @@ export function StadiumsPage() {
         <SoonSection />
       ) : (
         <div className="flex flex-col">
-          {tab === 'rejected' && rejected === 'sample' && (
-            <p className="mb-2 flex items-center gap-2 text-sm text-secondary">
-              <SampleTag request={requestFor(REJECTED_STATUS)!} />
-              Rad etilgan maydonlar uchun backendda alohida holat yoʻq
-            </p>
-          )}
           <DataTable
             columns={columns(tab, extras)}
             rows={data?.content}

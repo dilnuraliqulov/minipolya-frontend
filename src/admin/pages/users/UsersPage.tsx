@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { formatDate, formatDateTime } from '../../../shared/format'
-import { availability, requestFor } from '../../api/missing'
+import { isAvailable } from '../../api/missing'
 import {
   listUsers,
   USER_FILTERS,
@@ -15,7 +15,6 @@ import { Avatar } from '../../components/Avatar'
 import { DataTable, type Column } from '../../components/DataTable'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
-import { SampleTag } from '../../components/SampleTag'
 import { useDebounced } from '../../components/useDebounced'
 import { usePageHeader } from '../../layout/pageHeader'
 import { RoleBadges, UserStatusBadge } from './badges'
@@ -88,10 +87,11 @@ export function UsersPage() {
   const debounced = useDebounced(search.trim())
 
   const query = params.get(PARAMS.search) ?? ''
-  const role = (params.get(PARAMS.role) ?? '') as UserRole | ''
-  const status = (params.get(PARAMS.status) ?? '') as UserStatus | ''
+  // A filter the backend does not take yet is never sent, even from a link.
+  const filters = isAvailable(USER_FILTERS)
+  const role = (filters ? (params.get(PARAMS.role) ?? '') : '') as UserRole | ''
+  const status = (filters ? (params.get(PARAMS.status) ?? '') : '') as UserStatus | ''
   const page = Number(params.get(PARAMS.page) ?? 0) || 0
-  const filters = availability(USER_FILTERS)
 
   const update = (changes: Record<string, string | undefined>, keepPage = false) =>
     setParams(
@@ -162,7 +162,7 @@ export function UsersPage() {
             placeholder="Ism yoki telefon boʻyicha qidirish"
           />
         </div>
-        {filters === 'soon' ? (
+        {!filters ? (
           <>
             <DisabledFilter label="Rol" />
             <DisabledFilter label="Holat" />
@@ -181,12 +181,6 @@ export function UsersPage() {
               options={STATUS_OPTIONS}
               onChange={(value) => update({ [PARAMS.status]: value || undefined })}
             />
-            {filters === 'sample' && (role || status) && (
-              <span className="flex items-center gap-1.5 text-xs text-secondary">
-                <SampleTag request={requestFor(USER_FILTERS)!} />
-                faqat shu sahifa filtrlanadi
-              </span>
-            )}
           </>
         )}
       </FilterBar>

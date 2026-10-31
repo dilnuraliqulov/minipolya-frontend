@@ -26,4 +26,6 @@ export const API_CODES = {
 export const API_MESSAGES = {
   /** 403 on any endpoint, at any time, when an admin has blocked the user. */
   accountBlocked: 'Account is blocked',
+  /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium whose owner has no signed ATMOS contract. */
+  contractNotSigned: "The owner's ATMOS contract is not signed",
 } as const
