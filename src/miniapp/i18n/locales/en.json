@@ -2,5 +2,106 @@
   "app": {
     "name": "MiniPolya",
     "tagline": "Book a football pitch in Tashkent"
+  },
+  "common": {
+    "retry": "Try again",
+    "loading": "Loading",
+    "soon": "Coming soon",
+    "back": "Back"
+  },
+  "states": {
+    "errorTitle": "Something went wrong",
+    "errorNetwork": "Couldn't load the data. Check your internet connection and try again.",
+    "errorServer": "The server didn't respond. Please try again in a moment."
+  },
+  "money": {
+    "unit": "UZS"
+  },
+  "format": {
+    "longDate": "{{day}} {{month}} {{year}}"
+  },
+  "months": {
+    "jan": "January",
+    "feb": "February",
+    "mar": "March",
+    "apr": "April",
+    "may": "May",
+    "jun": "June",
+    "jul": "July",
+    "aug": "August",
+    "sep": "September",
+    "oct": "October",
+    "nov": "November",
+    "dec": "December"
+  },
+  "auth": {
+    "errorSession": "Your session has ended. Tap “Try again” or reopen the app.",
+    "noTelegramTitle": "Open it in Telegram",
+    "noTelegramText": "MiniPolya runs inside Telegram. Open the bot and launch the app.",
+    "noTelegramDev": "Development mode: the backend has no login without Telegram (dev login) yet — request R19, docs/backend-requests.md. For now, open the app inside Telegram through a tunnel."
+  },
+  "blocked": {
+    "title": "Your account is blocked",
+    "reason": "Reason: {{reason}}",
+    "date": "Decision date: {{date}}",
+    "questions": "If you have questions, write to us",
+    "support": "Contact support"
+  },
+  "tabs": {
+    "label": "Main menu",
+    "stadiums": "Pitches",
+    "team": "My team",
+    "games": "My games",
+    "profile": "Profile"
+  },
+  "soon": {
+    "text": "This section is coming soon."
+  },
+  "errors": {
+    "network": "No internet connection. Check it and try again.",
+    "server": "Server error. Please try again in a moment.",
+    "session": "Your session has ended. Reopen the app.",
+    "blocked": "Your account is blocked.",
+    "forbidden": "You are not allowed to do this.",
+    "notFound": "Not found.",
+    "invalid": "Some details are not valid. Check them and try again.",
+    "conflict": "The data has changed. Refresh and try again.",
+    "tooMany": "Too many attempts. Please try again later.",
+    "unknown": "Something went wrong. Please try again."
+  },
+  "languages": {
+    "uz": "Oʻzbekcha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "profile": {
+    "personal": "Personal details",
+    "cards": "My cards",
+    "favorites": "Favourites",
+    "language": "Language",
+    "languageTitle": "Choose a language",
+    "theme": "Theme",
+    "themeTitle": "Choose a theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "noPhone": "No phone number yet",
+    "ownerMode": "Owner mode",
+    "ownerModeText": "Manage your pitches, bookings and payments",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone number",
+    "phoneHint": "Format: +998 XX XXX XX XX",
+    "firstNameRequired": "Enter your first name",
+    "lastNameRequired": "Enter your last name",
+    "phoneRequired": "Enter your phone number",
+    "phoneInvalid": "The number must look like +998 XX XXX XX XX",
+    "notFromTelegram": "Your name and phone are never taken from Telegram automatically — only what you enter is saved.",
+    "soonNotice": "Coming soon: saving your name and phone is not available yet.",
+    "save": "Save",
+    "saved": "Saved",
+    "setupTitle": "Complete your profile",
+    "setupSubtitle": "So the pitch owner can contact you",
+    "continue": "Continue"
   }
 }
