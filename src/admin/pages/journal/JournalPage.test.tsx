@@ -1,7 +1,16 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { AuditEntry } from '../../api/audit'
-import { mockBackend, page, renderAt, signIn, stats, useAdminTestSetup } from '../../test-utils'
+import { BOOKING_DETAIL } from '../../api/bookings'
+import {
+  markMissing,
+  mockBackend,
+  page,
+  renderAt,
+  signIn,
+  stats,
+  useAdminTestSetup,
+} from '../../test-utils'
 
 const entries: AuditEntry[] = [
   {
@@ -81,6 +90,19 @@ describe('Jurnal', () => {
       'href',
       '/sozlamalar',
     )
+    expect(
+      screen.getByRole('link', { name: 'Chilonzor Arena, 2026-10-21 20:00 (2h)' }),
+    ).toHaveAttribute('href', '/bronlar?bron=b1')
+  })
+
+  it('shows bookings, games and payments as plain text while their pages wait on R15/R16', async () => {
+    markMissing(BOOKING_DETAIL)
+    mockBackend(replies())
+    signIn()
+    renderAt('/jurnal')
+    const label = await screen.findByText('Chilonzor Arena, 2026-10-21 20:00 (2h)')
+    expect(label.closest('a')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Umid Karimov' })).toBeInTheDocument()
   })
 
   it('expands a row into readable changes, the reason and the IP — never JSON', async () => {

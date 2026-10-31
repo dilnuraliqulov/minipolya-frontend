@@ -1,7 +1,6 @@
 import { Hourglass } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cx } from './cx'
-import { EmptyState } from './States'
 
 export const SOON = 'Tez orada'
 
@@ -34,20 +33,25 @@ export function DisabledHint({
   )
 }
 
-/** A section whose endpoint the backend has not shipped, in a production build. */
+/**
+ * A section whose endpoint the backend has not shipped (it is in
+ * `MISSING_ENDPOINTS`): its title, if any, and one calm line — no
+ * illustration, no skeleton, nothing made up.
+ */
 export function SoonSection({ title, className }: { title?: string; className?: string }) {
   return (
     <section
       aria-label={title}
-      className={cx('rounded-xl border border-border bg-background', className)}
+      className={cx(
+        'flex flex-col gap-1.5 rounded-xl border border-border bg-background px-5 py-3.5',
+        className,
+      )}
     >
-      {title && <h2 className="px-5 pt-3.5 text-lg font-semibold text-primary">{title}</h2>}
-      <EmptyState
-        icon={Hourglass}
-        title={SOON}
-        description="Bu maʼlumot keyingi yangilanishda qoʻshiladi"
-        className="py-8"
-      />
+      {title && <h2 className="text-lg font-semibold text-primary">{title}</h2>}
+      <p className="flex items-center gap-2 text-sm text-secondary">
+        <Hourglass size={14} aria-hidden />
+        {SOON}
+      </p>
     </section>
   )
 }
