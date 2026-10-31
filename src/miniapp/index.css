@@ -1,0 +1,105 @@
+/*
+ * Mini App styles: the shared Tailwind setup, then the Mini App palette.
+ *
+ * The values are the `p3-*` variables of design/telegram-webapp.pen, written
+ * onto the shared variable names so the same Tailwind classes (bg-page,
+ * bg-background, text-primary, …) work in both apps:
+ *
+ *   p3-page → --page-bg      p3-card → --bg          p3-bg → --bar-bg (bars, sheets)
+ *   p3-surface → --surface, --hover, --skeleton, --neutral-soft
+ *   p3-border → --border     p3-text → --text        p3-text-2 → --text-secondary
+ *   p3-accent, p3-accent-soft, p3-on-accent, p3-link → same names
+ *   p3-success(-soft), p3-warning(-soft) → same names
+ *   p3-red → --danger        p3-red-soft → --danger-soft
+ *   p3-scrim → --overlay     p3-image-overlay → --image-overlay
+ */
+@import '../shared/theme/index.css';
+
+:root {
+  --page-bg: #f7f8fa;
+  --bg: #ffffff;
+  --bar-bg: #ffffff;
+  --surface: #f2f4f7;
+  --hover: #f2f4f7;
+  --skeleton: #f2f4f7;
+  --neutral-soft: #f2f4f7;
+  --border: #e5e7eb;
+  --overlay: #00000066;
+  --image-overlay: #000000a6;
+
+  --text: #0b1220;
+  --text-secondary: #6b7280;
+
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --on-accent: #ffffff;
+  --link: #2563eb;
+
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+
+  /* Toast shadow from the design (0 4 12 #00000022). */
+  --shadow-lg: 0 4px 12px #00000022;
+
+  /*
+   * Safe areas. telegram/viewport.ts overwrites these inline with Telegram's
+   * safeAreaInset + contentSafeAreaInset; outside Telegram the device's own.
+   */
+  --tg-safe-top: env(safe-area-inset-top, 0px);
+  --tg-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tg-safe-left: env(safe-area-inset-left, 0px);
+  --tg-safe-right: env(safe-area-inset-right, 0px);
+}
+
+:root[data-theme='dark'] {
+  --page-bg: #000000;
+  --bg: #0e1013;
+  --bar-bg: #000000;
+  --surface: #16181d;
+  --hover: #16181d;
+  --skeleton: #16181d;
+  --neutral-soft: #16181d;
+  --border: #23262d;
+  --overlay: #00000099;
+  --image-overlay: #000000a6;
+
+  --text: #f5f7fa;
+  --text-secondary: #9ca3af;
+
+  --accent: #2563eb;
+  --accent-soft: #172554;
+  --on-accent: #ffffff;
+  --link: #60a5fa;
+
+  --success: #22c55e;
+  --success-soft: #14532d;
+  --warning: #f59e0b;
+  --warning-soft: #422006;
+  --danger: #ef4444;
+  --danger-soft: #450a0a;
+}
+
+@theme inline {
+  /* Header, bottom navigation, bottom bars and sheets (p3-bg). */
+  --color-bar: var(--bar-bg);
+  --color-image-overlay: var(--image-overlay);
+}
+
+@theme {
+  /* Screen and sheet titles (design: 18 bold) — not in the shared scale. */
+  --text-title: 18px;
+  --text-title--line-height: 1.3;
+  /* Bottom sheet top corners. */
+  --radius-sheet: 20px;
+}
+
+@layer base {
+  body {
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}

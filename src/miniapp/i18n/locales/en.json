@@ -2,5 +2,49 @@
   "app": {
     "name": "MiniPolya",
     "tagline": "Book a football pitch in Tashkent"
+  },
+  "common": {
+    "retry": "Try again",
+    "loading": "Loading",
+    "soon": "Coming soon",
+    "back": "Back"
+  },
+  "states": {
+    "errorTitle": "Something went wrong",
+    "errorNetwork": "Couldn't load the data. Check your internet connection and try again.",
+    "errorServer": "The server didn't respond. Please try again in a moment."
+  },
+  "money": {
+    "unit": "UZS"
+  },
+  "format": {
+    "longDate": "{{day}} {{month}} {{year}}"
+  },
+  "months": {
+    "jan": "January",
+    "feb": "February",
+    "mar": "March",
+    "apr": "April",
+    "may": "May",
+    "jun": "June",
+    "jul": "July",
+    "aug": "August",
+    "sep": "September",
+    "oct": "October",
+    "nov": "November",
+    "dec": "December"
+  },
+  "auth": {
+    "errorSession": "Your session has ended. Tap “Try again” or reopen the app.",
+    "noTelegramTitle": "Open it in Telegram",
+    "noTelegramText": "MiniPolya runs inside Telegram. Open the bot and launch the app.",
+    "noTelegramDev": "Development mode: the backend has no login without Telegram (dev login) yet — request R19, docs/backend-requests.md. For now, open the app inside Telegram through a tunnel."
+  },
+  "blocked": {
+    "title": "Your account is blocked",
+    "reason": "Reason: {{reason}}",
+    "date": "Decision date: {{date}}",
+    "questions": "If you have questions, write to us",
+    "support": "Contact support"
   }
 }

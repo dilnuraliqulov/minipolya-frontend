@@ -7,7 +7,7 @@ const SIDES = ['top', 'bottom', 'left', 'right'] as const
  * safe areas in CSS variables: `--tg-safe-top|bottom|left|right` = the
  * device's inset plus Telegram's own controls (contentSafeAreaInset).
  * Outside Telegram the variables stay unset and the CSS falls back to
- * `env(safe-area-inset-*)` (see ../tokens.css). Returns a cleanup.
+ * `env(safe-area-inset-*)` (see ../index.css). Returns a cleanup.
  */
 export function initViewport(): () => void {
   const webApp = getTelegramWebApp()

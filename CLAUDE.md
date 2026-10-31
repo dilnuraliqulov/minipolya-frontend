@@ -417,7 +417,7 @@ to a translation key.
 
 **Look.** Light and dark from the shared tokens; the Mini App palette from
 `design/telegram-webapp.pen` (`p3-*` variables) overrides the shared variable
-names in `src/miniapp/tokens.css`, so the same Tailwind names
+names in `src/miniapp/index.css`, so the same Tailwind names
 (`bg-page`, `bg-background`, `text-primary` …) work. Touch targets ≥ 44px.
 Respect Telegram's safe areas (`--tg-safe-*` CSS variables set by
 `telegram/viewport.ts`). Use the components in `src/miniapp/components/`;

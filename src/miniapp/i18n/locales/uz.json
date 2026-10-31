@@ -2,5 +2,49 @@
   "app": {
     "name": "MiniPolya",
     "tagline": "Toshkentda futbol maydonini band qiling"
+  },
+  "common": {
+    "retry": "Qayta urinish",
+    "loading": "Yuklanmoqda",
+    "soon": "Tez orada",
+    "back": "Orqaga"
+  },
+  "states": {
+    "errorTitle": "Xatolik yuz berdi",
+    "errorNetwork": "Maʼlumotlarni yuklab boʻlmadi. Internet aloqasini tekshirib, qayta urinib koʻring.",
+    "errorServer": "Server javob bermadi. Birozdan soʻng qayta urinib koʻring."
+  },
+  "money": {
+    "unit": "soʻm"
+  },
+  "format": {
+    "longDate": "{{day}}-{{month}}, {{year}}"
+  },
+  "months": {
+    "jan": "yanvar",
+    "feb": "fevral",
+    "mar": "mart",
+    "apr": "aprel",
+    "may": "may",
+    "jun": "iyun",
+    "jul": "iyul",
+    "aug": "avgust",
+    "sep": "sentabr",
+    "oct": "oktabr",
+    "nov": "noyabr",
+    "dec": "dekabr"
+  },
+  "auth": {
+    "errorSession": "Sessiya tugadi. «Qayta urinish»ni bosing yoki ilovani qayta oching.",
+    "noTelegramTitle": "Telegram orqali oching",
+    "noTelegramText": "MiniPolya Telegram ichida ishlaydi. Botni oching va ilovani ishga tushiring.",
+    "noTelegramDev": "Dasturlash rejimi: backendda Telegramʼsiz kirish (dev-login) hali yoʻq — soʻrov R19, docs/backend-requests.md. Hozircha ilovani tunnel orqali Telegram ichida oching."
+  },
+  "blocked": {
+    "title": "Hisobingiz bloklangan",
+    "reason": "Sabab: {{reason}}",
+    "date": "Qaror sanasi: {{date}}",
+    "questions": "Savollar boʻlsa, bizga yozing",
+    "support": "Qoʻllab-quvvatlash bilan bogʻlanish"
   }
 }
