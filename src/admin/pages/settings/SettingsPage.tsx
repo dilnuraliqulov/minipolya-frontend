@@ -33,19 +33,15 @@ const settingsKeys = {
 const HISTORY_PAGE_SIZE = 10
 
 /**
- * The form keeps the values as typed: the commission in whole percent, the
- * card fee in percent with up to two decimals ("1.5"), the fees and the
- * rounding step in whole so'm.
+ * The form keeps the values as typed: the card fee in percent with up to two
+ * decimals ("1.5"), the fees and the rounding step in whole so'm.
  */
 type Draft = Record<SettingsField, string>
 
 const TIYIN_PER_SOM = 100
-/** The example booking price for the commission preview. */
-const EXAMPLE_BOOKING = 200_000 * TIYIN_PER_SOM
 
 function toDraft(settings: PlatformSettings): Draft {
   return {
-    bookingCommissionPercent: String(settings.bookingCommissionPercent),
     teamGamePlatformFee: String(Math.round(settings.teamGamePlatformFee / TIYIN_PER_SOM)),
     casualGameServiceFee: String(Math.round(settings.casualGameServiceFee / TIYIN_PER_SOM)),
     cardFeeBps: bpsToPercent(settings.cardFeeBps),
@@ -53,10 +49,9 @@ function toDraft(settings: PlatformSettings): Draft {
   }
 }
 
-/** The draft as the API wants it: percent as is, the card fee in basis points, so'm → tiyin. */
+/** The draft as the API wants it: the card fee in basis points, so'm → tiyin. */
 function fromDraft(draft: Draft): Record<SettingsField, number> {
   return {
-    bookingCommissionPercent: Number(draft.bookingCommissionPercent),
     teamGamePlatformFee: Number(draft.teamGamePlatformFee) * TIYIN_PER_SOM,
     casualGameServiceFee: Number(draft.casualGameServiceFee) * TIYIN_PER_SOM,
     cardFeeBps: percentToBps(draft.cardFeeBps),
@@ -65,7 +60,6 @@ function fromDraft(draft: Draft): Record<SettingsField, number> {
 }
 
 const FIELDS: SettingsField[] = [
-  'bookingCommissionPercent',
   'teamGamePlatformFee',
   'casualGameServiceFee',
   'cardFeeBps',
@@ -74,13 +68,11 @@ const FIELDS: SettingsField[] = [
 
 /**
  * The backend validates in the service and names the field first:
- * "bookingCommissionPercent must be between 0 and 50", "teamGamePlatformFee
- * must not be negative", "cardFeeBps must be between 0 and 1000",
+ * "teamGamePlatformFee must not be negative", "cardFeeBps must be between 0 and 1000",
  * "paymentRoundingStep must be between 1 and 1000000". Messages for other
  * fields stay page-level.
  */
 const FIELD_ERRORS: Record<SettingsField, string> = {
-  bookingCommissionPercent: 'Komissiya 0 dan 50 gacha boʻlishi kerak',
   teamGamePlatformFee: 'Haq manfiy boʻlishi mumkin emas',
   casualGameServiceFee: 'Haq manfiy boʻlishi mumkin emas',
   cardFeeBps: 'Komissiya 0 dan 10% gacha boʻlishi kerak',
@@ -121,7 +113,7 @@ function SettingRow({
 function SettingsSkeleton() {
   return (
     <div aria-busy className={`${CARD} flex flex-col`}>
-      {[0, 1, 2, 3, 4].map((i) => (
+      {[0, 1, 2, 3].map((i) => (
         <div key={i} className="flex flex-col gap-3 border-b border-border p-5 last:border-b-0">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-3 w-72" />
@@ -279,25 +271,6 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
   return (
     <>
       <div className={`${CARD} flex flex-col`}>
-        <SettingRow
-          title="Oddiy bronlar"
-          description="Har bir bron toʻlovidan platforma oladigan komissiya"
-          preview={
-            filled('bookingCommissionPercent')
-              ? `${formatSom(EXAMPLE_BOOKING)}lik brondan: ${formatSom((EXAMPLE_BOOKING * values.bookingCommissionPercent) / 100)}`
-              : null
-          }
-        >
-          <NumberField
-            label="Komissiya"
-            suffix="%"
-            maxLength={3}
-            value={draft.bookingCommissionPercent}
-            onChange={set('bookingCommissionPercent')}
-            helper="0 dan 50 gacha, butun son"
-            error={errors.bookingCommissionPercent}
-          />
-        </SettingRow>
         <SettingRow
           title="Jamoa vs jamoa oʻyinlari"
           description="Har bir jamoadan olinadigan platforma haqi"

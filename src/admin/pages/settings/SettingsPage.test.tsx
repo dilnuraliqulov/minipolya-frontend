@@ -5,7 +5,6 @@ import { mockBackend, page, renderAt, signIn, stats, useAdminTestSetup } from '.
 
 const settings = {
   id: 's1',
-  bookingCommissionPercent: 10,
   teamGamePlatformFee: 2_500_000,
   casualGameServiceFee: 500_000,
   cardFeeBps: 150,
@@ -51,14 +50,21 @@ function field(name: string) {
 describe('Sozlamalar', () => {
   useAdminTestSetup()
 
-  it('shows the five settings in percent and so’m with a preview under each', async () => {
+  it('shows the four settings in percent and so’m with a preview under each', async () => {
     mockBackend({ ...base })
     signIn()
     renderAt('/sozlamalar')
-    expect(await screen.findByLabelText('Komissiya')).toHaveValue('10')
-    expect(field('Platforma haqi')).toHaveValue('25 000')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25 000')
     expect(field('Xizmat haqi')).toHaveValue('5 000')
-    expect(screen.getByText("200 000 so'mlik brondan: 20 000 so'm")).toBeInTheDocument()
+    // The platform takes nothing from ordinary bookings: no commission row.
+    expect(screen.queryByText('Oddiy bronlar')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Komissiya')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+      'Jamoa vs jamoa oʻyinlari',
+      'Doʻstlar bilan oʻyinlar',
+      'Karta komissiyasi',
+      'Narxni yaxlitlash',
+    ])
     expect(screen.getByText("Har bir jamoadan: 25 000 so'm")).toBeInTheDocument()
     expect(screen.getByText("Har bir oʻyinchidan: 5 000 so'm")).toBeInTheDocument()
     // The card fee in percent (150 bps), the rounding step in so'm (10 000 tiyin).
@@ -75,7 +81,9 @@ describe('Sozlamalar', () => {
     signIn()
     renderAt('/sozlamalar')
     const table = await screen.findByRole('table')
+    // An old entry for the commission that no longer exists still reads.
     expect(await within(table).findByText('5% → 10%')).toBeInTheDocument()
+    expect(within(table).getByText('Oddiy bronlar komissiyasi')).toBeInTheDocument()
     expect(within(table).getByText("20 000 so'm → 25 000 so'm")).toBeInTheDocument()
     expect(within(table).getByText('Jamoa vs jamoa: platforma haqi')).toBeInTheDocument()
     expect(within(table).getByText('Karta komissiyasi')).toBeInTheDocument()
@@ -168,24 +176,26 @@ describe('Sozlamalar', () => {
     mockBackend({ ...base })
     signIn()
     renderAt('/sozlamalar')
-    fireEvent.change(await screen.findByLabelText('Komissiya'), { target: { value: '15' } })
+    fireEvent.change(await screen.findByLabelText('Platforma haqi'), {
+      target: { value: '15 000' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Bekor qilish' }))
-    expect(field('Komissiya')).toHaveValue('10')
+    expect(field('Platforma haqi')).toHaveValue('25 000')
     expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument()
   })
 
   it('shows the backend validation error on its field', async () => {
     mockBackend({
       ...base,
-      'PUT /api/admin/settings': [400, 'bookingCommissionPercent must be between 0 and 50'],
+      'PUT /api/admin/settings': [400, 'casualGameServiceFee must not be negative'],
     })
     signIn()
     renderAt('/sozlamalar')
-    fireEvent.change(await screen.findByLabelText('Komissiya'), { target: { value: '60' } })
+    fireEvent.change(await screen.findByLabelText('Xizmat haqi'), { target: { value: '6 000' } })
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
-    expect(await screen.findByText('Komissiya 0 dan 50 gacha boʻlishi kerak')).toBeInTheDocument()
-    expect(field('Komissiya')).toHaveAttribute('aria-invalid', 'true')
+    expect(await screen.findByText('Haq manfiy boʻlishi mumkin emas')).toBeInTheDocument()
+    expect(field('Xizmat haqi')).toHaveAttribute('aria-invalid', 'true')
     // The draft is kept so the admin can correct it.
     expect(screen.getByText('Saqlanmagan oʻzgarishlar bor')).toBeInTheDocument()
   })
@@ -214,6 +224,6 @@ describe('Sozlamalar', () => {
     const alert = await screen.findByRole('alert', {}, { timeout: 4000 })
     fail = false
     fireEvent.click(within(alert).getByRole('button', { name: 'Qayta urinish' }))
-    expect(await screen.findByLabelText('Komissiya')).toHaveValue('10')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25 000')
   })
 })

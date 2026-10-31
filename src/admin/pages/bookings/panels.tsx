@@ -111,8 +111,8 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
               </PanelRow>
               <PanelRow label="Narx">
                 {formatSom(b.price)}
-                {b.netPrice !== undefined && b.netPrice !== b.price && (
-                  <span className="text-secondary"> · egasiga {formatSom(b.netPrice)}</span>
+                {b.ownerPrice !== undefined && b.ownerPrice !== b.price && (
+                  <span className="text-secondary"> · egasiga {formatSom(b.ownerPrice)}</span>
                 )}
               </PanelRow>
               <PanelRow label="Holat">
@@ -207,11 +207,11 @@ function TeamCard({ team }: { team: AdminGameTeam }) {
       <dl className="grid grid-cols-3 gap-2 rounded-md bg-surface px-3 py-2 text-xs">
         <div>
           <dt className="text-secondary">Platforma haqi</dt>
-          <dd className="font-medium text-primary">{formatSom(team.feeAmount)}</dd>
+          <dd className="font-medium text-primary">{formatSom(team.platformFee ?? 0)}</dd>
         </div>
         <div>
           <dt className="text-secondary">Oldindan</dt>
-          <dd className="font-medium text-primary">{formatSom(team.advanceAmount)}</dd>
+          <dd className="font-medium text-primary">{formatSom(team.ownerAdvance ?? 0)}</dd>
         </div>
         <div>
           <dt className="text-secondary">Qoldiq</dt>

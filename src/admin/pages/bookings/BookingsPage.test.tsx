@@ -31,15 +31,17 @@ const booking: AdminBooking = {
   startsAt: '2026-10-22T15:00:00Z',
   endsAt: '2026-10-22T17:00:00Z',
   durationHours: 2,
-  // Card price; the owner's net price is 200 000 so'm.
-  price: 20_310_000,
-  netPrice: 20_000_000,
-  cardFee: 310_000,
-  paidAmount: 20_000_000,
+  // The owner's price is 150 000 so'm; the player pays 155 000: 55 000 in the
+  // app, 100 000 in cash.
+  price: 15_500_000,
+  ownerPrice: 15_000_000,
+  paidAmount: 15_500_000,
   remainingAmount: 0,
   paymentStatus: 'paid',
-  paidInApp: 5_000_000,
-  cashReceived: 15_000_000,
+  paidInApp: 5_500_000,
+  ownerReceives: 15_417_500,
+  atmosFee: 82_500,
+  cashReceived: 10_000_000,
   cashReceivedAt: '2026-10-22T15:10:00Z',
   isWalkin: false,
   createdAt: '2026-10-20T09:02:00Z',
@@ -56,10 +58,11 @@ const walkIn: AdminBooking = {
   source: 'manual',
   status: 'cancelled_by_owner',
   price: 20_000_000,
-  netPrice: 20_000_000,
-  cardFee: 0,
+  ownerPrice: 20_000_000,
   paidAmount: 0,
   paidInApp: 0,
+  ownerReceives: 0,
+  atmosFee: 0,
   cashReceived: undefined,
   remainingAmount: 20_000_000,
   cancellationReason: 'Maydonda taʼmirlash ishlari',
@@ -84,8 +87,12 @@ const teamGame: AdminGameDetail = {
     teamName: side === 'a' ? 'Chilonzor Lions' : 'Yunusobod Tigers',
     leaderId: side === 'a' ? 'u1' : 'u2',
     leaderName: side === 'a' ? 'Bekzod Rahmatov' : 'Jasur Nazarov',
-    feeAmount: 2_500_000,
-    advanceAmount: 2_500_000,
+    price: 5_100_000,
+    platformFee: 2_500_000,
+    ownerAdvance: 2_500_000,
+    ownerRemainder: 7_500_000,
+    ownerReceives: 9_850_000,
+    atmosFee: 150_000,
     remainderAmount: 0,
     remainderStatus: 'paid' as const,
     paidInApp: 10_000_000,
@@ -155,9 +162,9 @@ describe('Bronlar', () => {
     const row = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
     expect(within(row).getByText(/Pa 22 okt · 20:00–22:00/)).toBeInTheDocument()
     expect(within(row).getByText('Chilonzor Arena')).toBeInTheDocument()
-    // The card price, and what was paid against the owner's net price.
-    expect(within(row).getByText('203 100')).toBeInTheDocument()
-    expect(within(row).getByText('200 000 / 200 000')).toBeInTheDocument()
+    // The player's price, and what was paid of it.
+    expect(within(row).getByText('155 000')).toBeInTheDocument()
+    expect(within(row).getByText('155 000 / 155 000')).toBeInTheDocument()
     expect(within(row).getByText('Yakunlangan')).toBeInTheDocument()
     const walkInRow = within(table).getByText('Anvar aka').closest('tr')!
     expect(within(walkInRow).getByText('Qoʻlda')).toBeInTheDocument()
@@ -200,10 +207,10 @@ describe('Bronlar', () => {
     fireEvent.click(await screen.findByText('Sardor Aliyev'))
     expect(router.state.location.search).toBe('?bron=b1')
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
-    expect(await within(panel).findByText(/egasiga 200 000 so'm/)).toBeInTheDocument()
+    expect(await within(panel).findByText(/egasiga 150 000 so'm/)).toBeInTheDocument()
     const payment = await within(panel).findByRole('region', { name: 'Toʻlov' })
-    expect(within(payment).getByText("50 000 so'm")).toBeInTheDocument()
-    expect(within(payment).getByText("150 000 so'm")).toBeInTheDocument()
+    expect(within(payment).getByText("55 000 so'm")).toBeInTheDocument()
+    expect(within(payment).getByText("100 000 so'm")).toBeInTheDocument()
     expect(within(payment).getByText('Egasi qabul qildi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Chilonzor Arena' })).toHaveAttribute(
       'href',

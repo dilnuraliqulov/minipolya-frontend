@@ -11,10 +11,14 @@ export interface StadiumListFields {
   photoUrl?: string
   /** One of `DISTRICTS`. */
   district?: string
-  /** Base price, tiyin, net — what the owner set. */
+  /** Tiyin — the base hourly price, the owner's own, as they set it. */
   pricePerHour?: number
-  /** The same hour by card, tiyin. */
-  price?: number
+  /** Tiyin — what players see and pay for that hour. */
+  playerPrice?: number
+  /** Tiyin — what the owner receives of that hour paid by card, after ATMOS. */
+  ownerReceives?: number
+  /** Tiyin — what ATMOS takes of that hour paid by card. */
+  atmosFee?: number
   /** The owner's ATMOS contract (R11); approval needs `signed`. */
   ownerContractStatus?: ContractStatus
 }
@@ -29,10 +33,14 @@ export interface PricingRule {
   /** `LocalTime`, "18:00:00". */
   startTime: string
   endTime: string
-  /** Tiyin, net. */
+  /** Tiyin — the owner's own price for the hour. */
   pricePerHour: number
-  /** Tiyin, by card. */
-  price?: number
+  /** Tiyin — what players pay for that hour. */
+  playerPrice?: number
+  /** Tiyin — what the owner receives of it by card, after ATMOS. */
+  ownerReceives?: number
+  /** Tiyin — what ATMOS takes of it. */
+  atmosFee?: number
 }
 
 export interface Amenities {
@@ -58,8 +66,10 @@ export interface StadiumDetailFields extends StadiumListFields {
   openTime?: string
   closeTime?: string
   amenities?: Amenities
-  /** Tiyin; absent ⇒ players pay in full. */
+  /** Tiyin — the owner's own minimum deposit; absent ⇒ players pay in full. */
   minBookingAmount?: number
+  /** Tiyin — that deposit as players pay it. */
+  playerMinBookingAmount?: number
   cancellationHours?: number
   pricingRules?: PricingRule[]
 }

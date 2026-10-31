@@ -31,7 +31,7 @@ const pending: StadiumRow = {
   district: 'Chilonzor',
   photoUrl: 'https://cdn.example/s1.jpg',
   pricePerHour: 20_000_000,
-  price: 20_310_000,
+  playerPrice: 20_310_000,
   ownerContractStatus: 'signed',
   ownerName: 'Jamshid Karimov',
   ownerId: 'o1',

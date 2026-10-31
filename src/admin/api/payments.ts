@@ -27,12 +27,15 @@ export interface AdminPayment {
   amount: number
   ownerAmount: number
   platformAmount: number
-  /** What the card fee and the price rounding added to the net. */
-  cardFee?: number
+  /** What ATMOS was expected to take (on old rows: what the card fee and rounding added). */
+  atmosFee?: number
   /** What ATMOS reports having taken; absent until it does. */
   providerCommission?: number
-  /** The booking commission in force when the payment was taken. */
-  commissionPercent: number
+  /**
+   * The booking commission stored on the payment. Bookings have none any more;
+   * only old payments carry one above 0.
+   */
+  commissionPercent?: number
   /** `card` | `cash`. */
   method: string
   /** `atmos` | `payme` | `click` | `cash`. */
