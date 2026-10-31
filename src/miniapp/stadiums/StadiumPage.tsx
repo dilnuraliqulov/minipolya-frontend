@@ -1,18 +1,33 @@
 import { ChevronRight, Heart, Info, MapPinOff, MessageSquare, Star } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { errorMessage } from '../api/errors'
 import { isAvailable } from '../api/missing'
-import { STADIUM_DETAIL_RATING, type StadiumDetail } from '../api/stadiums'
-import { Card, EmptyState, ErrorState, Header, Screen, SkeletonList, useToast } from '../components'
+import { STADIUM_DETAIL_RATING, type StadiumDetail, type TimeSlot } from '../api/stadiums'
+import {
+  BottomBar,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Header,
+  Screen,
+  SkeletonList,
+  useToast,
+} from '../components'
+import { formatMoney } from '../format'
+import { useProfileGate } from '../profile/useProfileGate'
 import { useGoBack } from '../lib/useGoBack'
 import { openExternalLink } from '../telegram'
+import { bookingDates, slotLabel, tashkentToday } from './dates'
 import { Gallery } from './Gallery'
 import { AMENITY_KEYS, formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
 import { mapLink } from './mapLink'
 import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
 import { ReviewCard } from './ReviewCard'
+import { DateStrip, SlotList } from './SlotPicker'
 import { StadiumMap } from './StadiumMap'
 
 /** Maydon: photos, info, amenities, map, cancellation rule, reviews, favourite. */
@@ -54,12 +69,63 @@ export function StadiumPage() {
     )
   }
 
-  const stadium = detail.data
+  return <StadiumContent stadium={detail.data} header={header} />
+}
+
+/** The page once loaded: one date, at most one chosen hour, and the booking bar. */
+function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: ReactNode }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const gate = useProfileGate()
+  const [today] = useState(() => tashkentToday())
+  const [date, setDate] = useState(today)
+  const [selected, setSelected] = useState<TimeSlot | null>(null)
+  const lastDate = bookingDates(today).at(-1)?.iso ?? today
+
+  const changeDate = (iso: string) => {
+    setDate(iso)
+    setSelected(null)
+  }
+  const book = (slot: TimeSlot) => {
+    const query = new URLSearchParams({
+      stadium: stadium.id,
+      date,
+      start: slot.startTime.slice(0, 5),
+    })
+    void gate.require(() => navigate(`/checkout?${query.toString()}`))
+  }
+
+  const footer = (
+    <BottomBar>
+      {selected?.pricePerHour !== undefined ? (
+        <Button haptic onClick={() => book(selected)}>
+          {t('slots.book', {
+            time: slotLabel(selected),
+            price: formatMoney(selected.pricePerHour),
+          })}
+        </Button>
+      ) : (
+        <Button variant="secondary" disabled>
+          {t('slots.choose')}
+        </Button>
+      )}
+    </BottomBar>
+  )
+
   return (
-    <Screen header={header} padded={false}>
+    <Screen header={header} padded={false} footer={footer}>
       <Gallery photos={stadium.photos} name={stadium.name} />
       <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
         <StadiumInfo stadium={stadium} />
+        <DateStrip today={today} value={date} onChange={changeDate} />
+        <SlotList
+          stadiumId={stadium.id}
+          date={date}
+          selected={selected}
+          onSelect={setSelected}
+          onDateChange={changeDate}
+          lastDate={lastDate}
+        />
         <Amenities stadium={stadium} />
         <Address stadium={stadium} />
         <Card className="flex gap-3 px-4 py-3">
@@ -70,6 +136,7 @@ export function StadiumPage() {
         </Card>
         <ReviewsPreview stadium={stadium} />
       </div>
+      {gate.sheet}
     </Screen>
   )
 }

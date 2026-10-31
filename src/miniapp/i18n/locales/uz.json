@@ -19,7 +19,8 @@
     "unit": "soʻm"
   },
   "format": {
-    "longDate": "{{day}}-{{month}}, {{year}}"
+    "longDate": "{{day}}-{{month}}, {{year}}",
+    "dayTitle": "{{weekday}}, {{day}}-{{month}}"
   },
   "months": {
     "jan": "yanvar",
@@ -160,5 +161,44 @@
     "photoAlt": "{{name}}, {{n}}-rasm",
     "notFoundTitle": "Maydon topilmadi",
     "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan."
+  },
+  "weekdays": {
+    "short": {
+      "mon": "Dush",
+      "tue": "Sesh",
+      "wed": "Chor",
+      "thu": "Pay",
+      "fri": "Jum",
+      "sat": "Shan",
+      "sun": "Yak"
+    },
+    "long": {
+      "mon": "Dushanba",
+      "tue": "Seshanba",
+      "wed": "Chorshanba",
+      "thu": "Payshanba",
+      "fri": "Juma",
+      "sat": "Shanba",
+      "sun": "Yakshanba"
+    }
+  },
+  "slots": {
+    "date": "Sana",
+    "time": "Vaqt",
+    "today": "Bugun",
+    "tomorrow": "Ertaga",
+    "unavailable": "Boʻsh emas",
+    "booked": "Band",
+    "closed": "Yopiq",
+    "waitingGame": "Raqib qidirilmoqda",
+    "waitingHint": "«Raqib qidirilmoqda» vaqtni band qilsangiz, oʻsha oʻyin bekor qilinadi va jamoaga pul qaytariladi.",
+    "emptyTitle": "Bu kunda boʻsh vaqt yoʻq",
+    "emptyText": "Barcha soatlar band qilingan. Boshqa kunni tanlang.",
+    "seeDay": "{{day}}ni koʻrish",
+    "choose": "Vaqtni tanlang",
+    "book": "Band qilish · {{time}} · {{price}}"
+  },
+  "checkout": {
+    "title": "Bronni tasdiqlash"
   }
 }

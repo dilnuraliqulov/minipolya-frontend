@@ -11,6 +11,7 @@ export const routes: RouteObject[] = [
   { path: '/', element: <StadiumsPage /> },
   { path: '/stadiums/:id', element: <StadiumPage /> },
   { path: '/stadiums/:id/reviews', element: <ReviewsPage /> },
+  { path: '/checkout', element: <SoonScreen titleKey="checkout.title" /> },
   { path: '/team', element: <SoonTab titleKey="tabs.team" /> },
   { path: '/games', element: <SoonTab titleKey="tabs.games" /> },
   { path: '/profile', element: <ProfilePage /> },

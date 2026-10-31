@@ -9,6 +9,7 @@ import {
 
 export const stadiumKey = (id: string) => ['stadium', id] as const
 export const FAVORITES_KEY = ['favorites'] as const
+export const availabilityKey = (id: string, date: string) => ['availability', id, date] as const
 
 export function useStadium(id: string) {
   return useQuery({ queryKey: stadiumKey(id), queryFn: () => getStadium(id) })

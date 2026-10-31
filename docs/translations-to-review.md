@@ -22,6 +22,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `states.errorServer` | Server javob bermadi. Birozdan soʻng qayta urinib koʻring. | Сервер не ответил. Попробуйте ещё раз чуть позже. | The server didn't respond. Please try again in a moment. |
 | `money.unit` | soʻm | сум | UZS |
 | `format.longDate` | {{day}}-{{month}}, {{year}} | {{day}} {{month}} {{year}} | {{day}} {{month}} {{year}} |
+| `format.dayTitle` | {{weekday}}, {{day}}-{{month}} | {{weekday}}, {{day}} {{month}} | {{weekday}}, {{day}} {{month}} |
 | `months.jan` | yanvar | января | January |
 | `months.feb` | fevral | февраля | February |
 | `months.mar` | mart | марта | March |
@@ -138,3 +139,32 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.photoAlt` | {{name}}, {{n}}-rasm | {{name}}, фото {{n}} | {{name}}, photo {{n}} |
 | `stadium.notFoundTitle` | Maydon topilmadi | Поле не найдено | Pitch not found |
 | `stadium.notFoundText` | Bu maydon endi mavjud emas yoki yopilgan. | Этого поля больше нет или оно закрыто. | This pitch no longer exists or has been closed. |
+| `weekdays.short.mon` | Dush | Пн | Mon |
+| `weekdays.short.tue` | Sesh | Вт | Tue |
+| `weekdays.short.wed` | Chor | Ср | Wed |
+| `weekdays.short.thu` | Pay | Чт | Thu |
+| `weekdays.short.fri` | Jum | Пт | Fri |
+| `weekdays.short.sat` | Shan | Сб | Sat |
+| `weekdays.short.sun` | Yak | Вс | Sun |
+| `weekdays.long.mon` | Dushanba | Понедельник | Monday |
+| `weekdays.long.tue` | Seshanba | Вторник | Tuesday |
+| `weekdays.long.wed` | Chorshanba | Среда | Wednesday |
+| `weekdays.long.thu` | Payshanba | Четверг | Thursday |
+| `weekdays.long.fri` | Juma | Пятница | Friday |
+| `weekdays.long.sat` | Shanba | Суббота | Saturday |
+| `weekdays.long.sun` | Yakshanba | Воскресенье | Sunday |
+| `slots.date` | Sana | Дата | Date |
+| `slots.time` | Vaqt | Время | Time |
+| `slots.today` | Bugun | Сегодня | Today |
+| `slots.tomorrow` | Ertaga | Завтра | Tomorrow |
+| `slots.unavailable` | Boʻsh emas | Недоступно | Not available |
+| `slots.booked` | Band | Занято | Booked |
+| `slots.closed` | Yopiq | Закрыто | Closed |
+| `slots.waitingGame` | Raqib qidirilmoqda | Ищут соперника | Looking for an opponent |
+| `slots.waitingHint` | «Raqib qidirilmoqda» vaqtni band qilsangiz, oʻsha oʻyin bekor qilinadi va jamoaga pul qaytariladi. | Если забронировать время «Ищут соперника», та игра отменится, а команде вернут деньги. | If you book a “Looking for an opponent” hour, that game is cancelled and the team gets its money back. |
+| `slots.emptyTitle` | Bu kunda boʻsh vaqt yoʻq | В этот день нет свободного времени | No free hours on this day |
+| `slots.emptyText` | Barcha soatlar band qilingan. Boshqa kunni tanlang. | Все часы заняты. Выберите другой день. | Every hour is taken. Choose another day. |
+| `slots.seeDay` | {{day}}ni koʻrish | Смотреть: {{day}} | See {{day}} |
+| `slots.choose` | Vaqtni tanlang | Выберите время | Choose a time |
+| `slots.book` | Band qilish · {{time}} · {{price}} | Забронировать · {{time}} · {{price}} | Book · {{time}} · {{price}} |
+| `checkout.title` | Bronni tasdiqlash | Подтверждение брони | Confirm booking |

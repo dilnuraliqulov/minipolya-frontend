@@ -19,7 +19,8 @@
     "unit": "UZS"
   },
   "format": {
-    "longDate": "{{day}} {{month}} {{year}}"
+    "longDate": "{{day}} {{month}} {{year}}",
+    "dayTitle": "{{weekday}}, {{day}} {{month}}"
   },
   "months": {
     "jan": "January",
@@ -160,5 +161,44 @@
     "photoAlt": "{{name}}, photo {{n}}",
     "notFoundTitle": "Pitch not found",
     "notFoundText": "This pitch no longer exists or has been closed."
+  },
+  "weekdays": {
+    "short": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "long": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    }
+  },
+  "slots": {
+    "date": "Date",
+    "time": "Time",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "unavailable": "Not available",
+    "booked": "Booked",
+    "closed": "Closed",
+    "waitingGame": "Looking for an opponent",
+    "waitingHint": "If you book a “Looking for an opponent” hour, that game is cancelled and the team gets its money back.",
+    "emptyTitle": "No free hours on this day",
+    "emptyText": "Every hour is taken. Choose another day.",
+    "seeDay": "See {{day}}",
+    "choose": "Choose a time",
+    "book": "Book · {{time}} · {{price}}"
+  },
+  "checkout": {
+    "title": "Confirm booking"
   }
 }
