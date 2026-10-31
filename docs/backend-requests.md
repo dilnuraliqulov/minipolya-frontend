@@ -69,8 +69,66 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 `src/admin/api/missing.ts` lists the endpoints of open entries that a screen
 waits on; the panel shows "Tez orada" for those until they ship. R18 is a
 correction to fields that already exist, so nothing waits on it there.
-`src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21).
+`src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21, R23).
 R22 changes a default the frontend already reads, so nothing waits on it there.
+
+### R23 — Stadium list and detail fields the player screens need
+
+**What's needed**
+The Mini App's Bosh sahifa, stadium page and Sevimlilar are built from
+`GET /api/stadiums`, `GET /api/stadiums/{id}` and the availability endpoint.
+Several things the design shows are not in them:
+
+1. **District filter.** `GET /api/stadiums` takes `q`, `format`, `maxPrice`
+   only — no `district`, although stadiums have one (§1.9). The client must
+   not filter a page itself.
+2. **A cover photo on list items.** `StadiumResponse` deliberately has no
+   `photos`, so the list cards and Sevimlilar cards cannot show a photo.
+3. **`isFavorited` on list items** (for a logged-in caller), so a list card
+   can show and toggle the heart without loading each detail.
+4. **The rating on the detail.** `StadiumDetailResponse` has no
+   `averageRating` / `reviewCount` (the list has them), so the stadium page
+   cannot show "4.8 (128)" when opened from a deep link or Sevimlilar.
+5. **Why a slot is unavailable.** `TimeSlot` has only `available`; the
+   design shows "Band" (booked) and "Yopiq" (closed) differently.
+
+**Which screen needs it**
+Mini App player: Bosh sahifa (filters, cards), Maydon (rating, slots),
+Sevimlilar (cards).
+
+**Proposed endpoint**
+`GET /api/stadiums` — public · paged — one new optional query parameter:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `district` | string | no | one of the twelve exact district strings (§1.9); unknown → 400 `"Unknown district"` |
+
+`StadiumResponse` (public list and `GET /api/favorites`) gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `coverPhotoUrl` | string? | the photo with the lowest `position`; absent when none |
+| `isFavorited` | boolean? | only for an authenticated caller, as on the detail |
+
+`StadiumDetailResponse` gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `averageRating` | number? | same as on the list; absent with no reviews |
+| `reviewCount` | number? | |
+
+`TimeSlot` gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `unavailableReason` | `"booked"` \| `"closed"`? | only when `available` is false |
+
+Error cases — 400 `"Unknown district"` for the new parameter; nothing else new.
+
+**Priority**
+Medium — without them the district filter is disabled ("Tez orada"), cards
+have no photo or heart (Sevimlilar excepted), the stadium page shows the
+review count without an average, and an unavailable hour reads "Boʻsh emas".
 
 ### R22 — New users start in Uzbek, not in their Telegram language
 

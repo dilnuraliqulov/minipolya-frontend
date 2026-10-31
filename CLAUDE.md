@@ -478,6 +478,16 @@ are fine.
 phone) is shown **before the first booking**, not on app start, and is
 never pre-filled from Telegram. Gate a flow with `useProfileGate()`.
 
+**One slot per booking.** The player selects exactly **one** one-hour slot
+from `GET /api/stadiums/{id}/availability`; tapping another slot moves the
+selection to it. The summary shows that slot's time and its `pricePerHour`
+straight from the response ("20:00–21:00 · 135 000 soʻm") — never a sum of
+slot prices, never "3 soat". To book another hour the player makes another
+booking. This overrides the multi-slot selection drawn in the design
+(`Maydon / 3 soat tanlangan`). Unavailable slots (`available: false`, no
+price) are disabled; the date strip runs from today (Tashkent) to 28 days
+ahead, the backend's 4-week window (`app.booking.max-weeks-ahead`).
+
 ## Secrets
 
 **Everything starting with `VITE_` is inlined into the public bundle.** Anyone
