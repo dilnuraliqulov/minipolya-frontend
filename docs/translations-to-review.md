@@ -168,3 +168,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `slots.choose` | Vaqtni tanlang | Выберите время | Choose a time |
 | `slots.book` | Band qilish · {{time}} · {{price}} | Забронировать · {{time}} · {{price}} | Book · {{time}} · {{price}} |
 | `checkout.title` | Bronni tasdiqlash | Подтверждение брони | Confirm booking |
+| `favorites.emptyTitle` | Sevimli maydonlaringiz yoʻq | У вас нет избранных полей | No favourite pitches yet |
+| `favorites.emptyText` | Maydon sahifasidagi yurakchani bosib, uni shu yerga saqlang. | Нажмите на сердечко на странице поля, чтобы сохранить его здесь. | Tap the heart on a pitch’s page to save it here. |
+| `favorites.find` | Maydon topish | Найти поле | Find a pitch |

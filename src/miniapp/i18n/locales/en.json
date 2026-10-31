@@ -200,5 +200,10 @@
   },
   "checkout": {
     "title": "Confirm booking"
+  },
+  "favorites": {
+    "emptyTitle": "No favourite pitches yet",
+    "emptyText": "Tap the heart on a pitch’s page to save it here.",
+    "find": "Find a pitch"
   }
 }

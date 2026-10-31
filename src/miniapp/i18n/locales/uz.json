@@ -200,5 +200,10 @@
   },
   "checkout": {
     "title": "Bronni tasdiqlash"
+  },
+  "favorites": {
+    "emptyTitle": "Sevimli maydonlaringiz yoʻq",
+    "emptyText": "Maydon sahifasidagi yurakchani bosib, uni shu yerga saqlang.",
+    "find": "Maydon topish"
   }
 }
