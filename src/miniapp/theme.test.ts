@@ -66,14 +66,47 @@ describe('Mini App theme', () => {
     expect(getThemePreference()).toBe('system')
   })
 
-  it("paints Telegram's header and background in our palette", () => {
-    document.documentElement.style.setProperty('--bg', '#ffffff')
-    document.documentElement.style.setProperty('--page-bg', '#f7f8fa')
-    const fake = installFakeTelegram()
-    cleanup = initMiniAppTheme()
-    expect(fake.webApp.setHeaderColor).toHaveBeenCalledWith('#ffffff')
-    expect(fake.webApp.setBackgroundColor).toHaveBeenCalledWith('#f7f8fa')
-    document.documentElement.removeAttribute('style')
+  describe("Telegram's chrome", () => {
+    beforeEach(() => {
+      document.documentElement.style.setProperty('--bar-bg', '#ffffff')
+      document.documentElement.style.setProperty('--page-bg', '#f7f8fa')
+    })
+    afterEach(() => {
+      document.documentElement.removeAttribute('style')
+    })
+
+    it('paints header/background/bottom bar from tokens', () => {
+      const fake = installFakeTelegram()
+      cleanup = initMiniAppTheme()
+      expect(fake.webApp.setHeaderColor).toHaveBeenCalledWith('#ffffff')
+      expect(fake.webApp.setBackgroundColor).toHaveBeenCalledWith('#f7f8fa')
+      expect(fake.webApp.setBottomBarColor).toHaveBeenCalledWith('#ffffff')
+    })
+
+    it('repaints on themeChanged', () => {
+      const fake = installFakeTelegram()
+      cleanup = initMiniAppTheme()
+      document.documentElement.style.setProperty('--bar-bg', '#000000')
+      fake.emit('themeChanged')
+      expect(fake.webApp.setHeaderColor).toHaveBeenLastCalledWith('#000000')
+      expect(fake.webApp.setBottomBarColor).toHaveBeenLastCalledWith('#000000')
+    })
+
+    it('repaints when Mavzu changes', () => {
+      const fake = installFakeTelegram()
+      cleanup = initMiniAppTheme()
+      vi.mocked(fake.webApp.setHeaderColor).mockClear()
+      setThemePreference('dark')
+      expect(fake.webApp.setHeaderColor).toHaveBeenCalledTimes(1)
+      expect(fake.webApp.setBackgroundColor).toHaveBeenCalled()
+    })
+
+    it('skips setBottomBarColor before 7.10', () => {
+      const fake = installFakeTelegram({ version: '7.9' })
+      cleanup = initMiniAppTheme()
+      expect(fake.webApp.setHeaderColor).toHaveBeenCalledWith('#ffffff')
+      expect(fake.webApp.setBottomBarColor).not.toHaveBeenCalled()
+    })
   })
 
   it("falls back to the computer's setting outside Telegram", () => {

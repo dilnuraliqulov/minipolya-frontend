@@ -55,10 +55,13 @@ function paintTelegramChrome(): void {
   const webApp = getTelegramWebApp()
   if (!webApp) return
   const style = getComputedStyle(document.documentElement)
-  const header = style.getPropertyValue('--bg').trim()
+  const bar = style.getPropertyValue('--bar-bg').trim()
   const background = style.getPropertyValue('--page-bg').trim()
-  if (header) webApp.setHeaderColor(header)
+  if (bar) webApp.setHeaderColor(bar)
   if (background) webApp.setBackgroundColor(background)
+  if (bar && webApp.setBottomBarColor && webApp.isVersionAtLeast('7.10')) {
+    webApp.setBottomBarColor(bar)
+  }
 }
 
 /** Call once before the first render. Returns a cleanup function. */
