@@ -31,16 +31,33 @@ export function SkeletonListItem() {
   )
 }
 
+/** Skeleton / Stadium Compact: photo, name, meta, and the price row with its button. */
+export function SkeletonStadiumCompact() {
+  return (
+    <div className="flex flex-col gap-2.5 rounded-3xl border border-border bg-background p-2.5">
+      <Bar className="h-37.5 w-full rounded-xl" />
+      <Bar className="h-4 w-45" />
+      <Bar className="h-3 w-50" />
+      <div className="flex items-center justify-between">
+        <Bar className="h-4 w-30" />
+        <Bar className="h-10 w-28 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
 /** Every screen's loading state: skeleton cards, announced as "Yuklanmoqda". */
 export function SkeletonList({
   count = 3,
   variant = 'block',
 }: {
   count?: number
-  variant?: 'block' | 'item'
+  variant?: 'block' | 'item' | 'stadium'
 }) {
   const { t } = useTranslation()
-  const Item = variant === 'block' ? SkeletonBlock : SkeletonListItem
+  const Item = { block: SkeletonBlock, item: SkeletonListItem, stadium: SkeletonStadiumCompact }[
+    variant
+  ]
   return (
     <div role="status" aria-label={t('common.loading')} className="flex flex-col gap-3">
       {Array.from({ length: count }, (_, i) => (

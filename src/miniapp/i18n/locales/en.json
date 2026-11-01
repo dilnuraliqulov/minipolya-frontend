@@ -115,6 +115,7 @@
     "allFormats": "All",
     "allStadiums": "All pitches",
     "perHour": "UZS/hour",
+    "perHourShort": "/hour",
     "book": "Book",
     "more": "Show more",
     "emptyTitle": "No pitches yet",

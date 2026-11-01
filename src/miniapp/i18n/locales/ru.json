@@ -115,6 +115,7 @@
     "allFormats": "Все",
     "allStadiums": "Все поля",
     "perHour": "сум/час",
+    "perHourShort": "/час",
     "book": "Забронировать",
     "more": "Показать ещё",
     "emptyTitle": "Пока нет полей",

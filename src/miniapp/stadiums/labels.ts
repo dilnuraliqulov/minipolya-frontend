@@ -21,6 +21,14 @@ export function isKnownSurface(value: string): value is keyof typeof SURFACE_KEY
   return Object.hasOwn(SURFACE_KEYS, value)
 }
 
+/** The translated surface name; an unknown value shows as it is. */
+export function surfaceLabel(
+  value: string,
+  t: (key: (typeof SURFACE_KEYS)[keyof typeof SURFACE_KEYS]) => string,
+): string {
+  return isKnownSurface(value) ? t(SURFACE_KEYS[value]) : value
+}
+
 /** The amenities the API reports, in the design's order, with their labels. */
 export const AMENITY_KEYS = {
   lighting: 'stadium.amenity.lighting',

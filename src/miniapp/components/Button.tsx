@@ -21,6 +21,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean
   /** Full width by default, as in the design. */
   block?: boolean
+  /** `compact`: 40px tall with 14px text (the stadium card's Band qilish). */
+  size?: 'default' | 'compact'
 }
 
 /** Button / Primary · Secondary · Danger · Ghost · Danger Outline (48px, radius 12). */
@@ -30,6 +32,7 @@ export function Button({
   haptic = false,
   loading = false,
   block = true,
+  size = 'default',
   disabled,
   className,
   children,
@@ -48,7 +51,10 @@ export function Button({
       aria-busy={loading || undefined}
       onClick={handleClick}
       className={cx(
-        'inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-md font-semibold',
+        'inline-flex items-center justify-center gap-2 font-semibold',
+        size === 'compact'
+          ? 'h-10 rounded-lg px-3.5 text-base'
+          : 'min-h-12 rounded-xl px-4 text-md',
         'transition-opacity active:opacity-80 disabled:opacity-50',
         block && 'w-full',
         VARIANTS[variant],

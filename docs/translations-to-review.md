@@ -97,6 +97,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadiums.allFormats` | Hammasi | Все | All |
 | `stadiums.allStadiums` | Barcha maydonlar | Все поля | All pitches |
 | `stadiums.perHour` | soʻm/soat | сум/час | UZS/hour |
+| `stadiums.perHourShort` | /soat | /час | /hour |
 | `stadiums.book` | Band qilish | Забронировать | Book |
 | `stadiums.more` | Yana koʻrsatish | Показать ещё | Show more |
 | `stadiums.emptyTitle` | Hozircha maydonlar yoʻq | Пока нет полей | No pitches yet |

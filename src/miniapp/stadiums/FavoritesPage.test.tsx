@@ -19,7 +19,7 @@ describe('Sevimlilar', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Sevimlilar' })).toBeInTheDocument()
     const card = await screen.findByRole('article', { name: 'Yunusobod Sport Park' })
     expect(within(card).getAllByText(/\d{3} \d{3}/)).toHaveLength(1)
-    expect(within(card).getByText('125 000')).toBeInTheDocument()
+    expect(within(card).getByText('125 000 soʻm')).toBeInTheDocument()
   })
 
   it('removes a stadium with the heart', async () => {

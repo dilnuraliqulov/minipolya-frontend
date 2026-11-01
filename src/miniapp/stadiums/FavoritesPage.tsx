@@ -13,7 +13,7 @@ import {
 } from '../components'
 import { useGoBack } from '../lib/useGoBack'
 import { useFavorites, useToggleFavorite } from './queries'
-import { StadiumCard } from './StadiumCard'
+import { StadiumCardCompact } from './StadiumCardCompact'
 
 /** Profil → Sevimlilar: GET /api/favorites, most recently saved first. */
 export function FavoritesPage() {
@@ -28,7 +28,7 @@ export function FavoritesPage() {
   return (
     <Screen header={<Header title={t('profile.favorites')} onBack={goBack} />}>
       {favorites.isPending ? (
-        <SkeletonList />
+        <SkeletonList variant="stadium" />
       ) : favorites.isError ? (
         <ErrorState onRetry={() => void favorites.refetch()} />
       ) : stadiums.length === 0 ? (
@@ -44,7 +44,7 @@ export function FavoritesPage() {
       ) : (
         <>
           {stadiums.map((stadium) => (
-            <StadiumCard
+            <StadiumCardCompact
               key={stadium.id}
               stadium={stadium}
               onOpen={() => navigate(`/stadiums/${stadium.id}`)}
