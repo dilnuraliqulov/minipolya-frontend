@@ -71,8 +71,10 @@ waits on; the panel shows "Tez orada" for those until they ship.
 `src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists
 hold only the entries of requests that are still open.
 
-Both entries below are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
-requests neither and shows no "Yaqin atrofda" or "Boʻsh maydonlar" section yet.
+R24, R25 and R27–R31 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
+requests neither R24 nor R25 and shows no "Yaqin atrofda" or "Boʻsh maydonlar"
+section yet. R27–R31 are the booking flow (checkout, Oʻyinlarim, booking detail):
+the screens show "Tez orada" or hide the field until they ship.
 
 ### R24 — Sort the stadium list by distance or rating
 
@@ -175,6 +177,165 @@ which of the two it was).
 
 **Priority**
 Low — hardening for shared dev networks; nothing in the frontend waits on it.
+
+### R27 — Quote before paying for a booking
+
+**What's needed**
+Checkout must show the price, the deposit a `MINIMUM` payment charges, the
+remainder and the cancellation deadline **before** the booking exists. Today
+they only arrive on the `BookingResponse` after `POST /api/bookings` has already
+charged the card. The client must not compute them (deposit = capped minimum,
+promotions, deadline).
+
+**Which screen needs it**
+Mini App player — checkout ("Bronni tasdiqlash"), the payment-option choice
+and the amount shown on the pay button.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/quote` — logged-in user
+
+Request — path `id`, query:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, in the bookable window, same rules as `POST /api/bookings` |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | yes | uppercase; `MINIMUM` on a stadium with no minimum is 400 |
+
+Response — `data`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number | **tiyin**; the player price D for that hour, promotions applied |
+| `deposit` | number | **tiyin**; what `paymentOption` charges now (`price` for `FULL`) |
+| `remainder` | number | **tiyin**; `price - deposit` as the backend would book it |
+| `cancellationDeadline` | timestamp (UTC) | last moment a cancellation still refunds |
+
+Error cases — 400 same messages as `POST /api/bookings` (`"Booking must start
+on the hour"`, `"Cannot book more than 4 weeks ahead"`, `"This stadium requires
+full payment; it has no minimum booking amount"`, closed, outside hours); 404
+`"Stadium not available"`; 409 `"Slot is already booked"`.
+
+**Priority**
+Medium — checkout works from the availability price; the deposit and deadline
+lines wait on it.
+
+### R28 — Pay a pending booking whose payment was declined
+
+**What's needed**
+A declined card leaves the booking `pending` / `unpaid` until the 10-minute
+hold expires, but there is no way to pay it afterwards: `pay-remainder` needs a
+`partially_paid` booking, and re-posting `POST /api/bookings` is a 409 on the
+held slot.
+
+**Which screen needs it**
+Mini App player — booking detail ("Toʻlash" in the pending banner) and the
+"try another card" step after a decline.
+
+**Proposed endpoint**
+`POST /api/bookings/{id}/pay` — logged-in user (the booking's owner)
+
+Request — path `id`, body:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `cardId` | UUID | yes | an active card of the caller |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | uppercase; absent keeps the option chosen at creation; same rule as creation |
+
+Response — `BookingResponse`, `message` as for creation (`paid` /
+`partially_paid` / `unpaid` outcome; a decline is still **200**).
+
+Error cases — 400 `"Booking is not awaiting payment"` (not `pending`, already
+paid, or the hold expired); 403 `"This booking does not belong to you"`; 404
+`"Booking not found"` / `"Card not found"`.
+
+**Priority**
+Medium — without it a declined payment can only be retried by waiting for the
+hold to expire and booking again.
+
+### R29 — Upcoming and past filter on the booking list
+
+**What's needed**
+`GET /api/bookings` returns every booking in one fixed order, so the client
+cannot show "Kelgusi" and "Oʻtgan" separately. Splitting one page in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App player — Oʻyinlarim, the Kelgusi / Oʻtgan segmented control.
+
+**Proposed endpoint**
+`GET /api/bookings` — logged-in user, new optional parameter.
+
+Request — in addition to `page`, `size`:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `when` | string | no | `upcoming` or `past`; anything else is 400. Absent keeps today's order |
+
+Response — the existing page payload. `upcoming`: bookings that have not ended
+yet, soonest first; `past`: ended bookings, most recent first.
+
+Error cases — 400 `"Invalid when"` for an unknown value.
+
+**Priority**
+Medium — the list works unsplit; the segmented control stays disabled until it
+ships.
+
+### R30 — Cash taken on a booking, on the player response
+
+**What's needed**
+`paidAmount` mixes card and cash, so the client cannot tell the player how much
+was paid in the app and how much in cash, nor explain why a cancellation refund
+(card money only) is smaller than `paidAmount`.
+
+**Which screen needs it**
+Mini App player — booking detail, the Toʻlov card.
+
+**Proposed endpoint**
+`GET /api/bookings`, `GET /api/bookings/{id}` and the other player
+`BookingResponse` endpoints — logged-in user, new response field.
+
+Request — unchanged.
+
+Response — `BookingResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `paidInCash` | number | optional; **tiyin** taken in cash by the owner; omitted when 0 |
+
+Error cases — none new.
+
+**Priority**
+Low — the Toʻlov card shows `paidAmount` without the split.
+
+### R31 — Stadium photo, district and format on a booking
+
+**What's needed**
+A booking carries only `stadiumId` and `stadiumName`. The Oʻyinlarim list would
+need one `GET /api/stadiums/{id}` per card to show a photo, the district and
+the format.
+
+**Which screen needs it**
+Mini App player — Oʻyinlarim booking cards and the booking detail head.
+
+**Proposed endpoint**
+`GET /api/bookings` and `GET /api/bookings/{id}` — logged-in user, new
+response fields.
+
+Request — unchanged.
+
+Response — `BookingResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `stadiumCoverPhotoUrl` | string | optional; the stadium's first photo, as `coverPhotoUrl` on `StadiumResponse` |
+| `stadiumDistrict` | string | optional; one of the twelve district strings |
+| `stadiumFormat` | string | `5x5` \| `7x7` \| `9x9` \| `11x11` |
+
+Error cases — none new.
+
+**Priority**
+Low — the list shows the logo mark instead of a photo; the detail page fetches
+the stadium.
 
 ---
 

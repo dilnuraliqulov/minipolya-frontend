@@ -181,3 +181,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `favorites.emptyTitle` | Sevimli maydonlaringiz yoʻq | У вас нет избранных полей | No favourite pitches yet |
 | `favorites.emptyText` | Maydon sahifasidagi yurakchani bosib, uni shu yerga saqlang. | Нажмите на сердечко на странице поля, чтобы сохранить его здесь. | Tap the heart on a pitch’s page to save it here. |
 | `favorites.find` | Maydon topish | Найти поле | Find a pitch |
+| `bookings.status.pending` | Kutilmoqda | Ожидает оплаты | Pending |
+| `bookings.status.confirmed` | Tasdiqlangan | Подтверждена | Confirmed |
+| `bookings.status.completed` | Oʻtkazilgan | Состоялась | Completed |
+| `bookings.status.expired` | Muddati oʻtgan | Истекла | Expired |
+| `bookings.status.cancelled` | Bekor qilingan | Отменена | Cancelled |

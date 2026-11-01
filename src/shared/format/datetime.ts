@@ -77,3 +77,31 @@ export function formatDateTime(value: string | Date): string {
 export function formatTimeRange(start: string | Date, end: string | Date): string {
   return `${formatTime(start)}–${formatTime(end)}`
 }
+
+/**
+ * A Tashkent wall-clock date and time → the ISO UTC instant, for request
+ * bodies: `("2026-11-06", "20:00")` → `"2026-11-06T15:00:00.000Z"`. The offset
+ * comes from `Intl`, not a hard-coded +5.
+ */
+export function tashkentToUtc(date: string, time: string): string {
+  const [y, mo, d] = date.split('-').map(Number)
+  const [h, mi] = time.split(':').map(Number)
+  if (
+    y === undefined ||
+    mo === undefined ||
+    d === undefined ||
+    h === undefined ||
+    mi === undefined ||
+    [y, mo, d, h, mi].some(Number.isNaN)
+  ) {
+    throw new RangeError(`Invalid Tashkent date or time: ${date} ${time}`)
+  }
+  const wall = Date.UTC(y, mo - 1, d, h, mi)
+  const offsetAt = (instant: number) => {
+    const p = toTashkentParts(new Date(instant))
+    return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute) - instant
+  }
+  let instant = wall - offsetAt(wall)
+  instant = wall - offsetAt(instant)
+  return new Date(instant).toISOString()
+}

@@ -217,5 +217,14 @@
     "emptyTitle": "Sevimli maydonlaringiz yoʻq",
     "emptyText": "Maydon sahifasidagi yurakchani bosib, uni shu yerga saqlang.",
     "find": "Maydon topish"
+  },
+  "bookings": {
+    "status": {
+      "pending": "Kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "completed": "Oʻtkazilgan",
+      "expired": "Muddati oʻtgan",
+      "cancelled": "Bekor qilingan"
+    }
   }
 }

@@ -30,4 +30,8 @@ export const API_MESSAGES = {
   accountBlocked: 'Account is blocked',
   /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium whose owner has no signed ATMOS contract. */
   contractNotSigned: "The owner's ATMOS contract is not signed",
+  /** 400 from `POST /api/reviews` when the caller already reviewed this stadium. */
+  alreadyReviewed: 'You have already reviewed this stadium',
+  /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
+  reviewNotPlayed: 'You can only review a stadium you have played at',
 } as const
