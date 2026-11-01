@@ -268,9 +268,12 @@ function MyPayment({ team, children }: { team: GameTeam; children?: ReactNode })
           <dt className="text-secondary">{t('game.remainder')}</dt>
           <dd className="flex items-center gap-2 text-primary">
             {formatMoney(team.remainderAmount)}
-            <Badge tone={paid ? 'success' : 'warning'}>
-              {paid ? t('game.remainderPaid') : t('game.remainderUnpaid')}
-            </Badge>
+            {/* Nothing owed (the advance covered it): no status badge. */}
+            {(paid || team.remainderAmount > 0) && (
+              <Badge tone={paid ? 'success' : 'warning'}>
+                {paid ? t('game.remainderPaid') : t('game.remainderUnpaid')}
+              </Badge>
+            )}
           </dd>
         </div>
       </dl>

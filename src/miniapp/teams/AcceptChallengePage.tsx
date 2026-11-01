@@ -200,7 +200,9 @@ function AcceptForm({
             <dd className="text-primary">{formatMoney(challenge.remainderAmount)}</dd>
           </div>
         </dl>
-        <p className="text-sm text-secondary">{t('accept.remainderNote')}</p>
+        {challenge.remainderAmount > 0 && (
+          <p className="text-sm text-secondary">{t('accept.remainderNote')}</p>
+        )}
       </Card>
 
       <p className="flex gap-2 text-sm text-secondary">

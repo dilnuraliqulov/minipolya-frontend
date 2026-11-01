@@ -135,6 +135,15 @@ describe('Oʻyin — a team game', () => {
     expect(api.calls('DELETE /api/games/g1')).toHaveLength(1)
   })
 
+  it('shows no unpaid badge or pay button when nothing is owed', async () => {
+    stub({ ...confirmed, teams: [{ ...teamA, remainderAmount: 0 }, teamB] })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(within(pay).getByText('0 soʻm')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻlanmagan')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).not.toBeInTheDocument()
+  })
+
   it('a waiting game shows the opponent placeholder and no chat', async () => {
     stub({ ...confirmed, status: 'open', teams: [teamA] })
     renderApp('/games/g1')
