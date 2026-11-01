@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import '../i18n'
 import { makeStadium } from '../test/stadiums'
@@ -43,6 +43,33 @@ describe('StadiumCardCompact', () => {
     expect(heart).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(heart)
     expect(onToggle).toHaveBeenCalledTimes(1)
+  })
+
+  it('heart taps never open the stadium, even while pending', () => {
+    const onToggle = vi.fn()
+    const { onOpen } = renderCard({ favorite: { favorited: false, onToggle } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sevimlilarga qoʻshish' }))
+    expect(onOpen).not.toHaveBeenCalled()
+    cleanup()
+    const pending = renderCard({ favorite: { favorited: false, onToggle, pending: true } })
+    const heart = screen.getByRole('button', { name: 'Sevimlilarga qoʻshish' })
+    fireEvent.click(heart.querySelector('span')!)
+    fireEvent.click(heart.querySelector('svg')!)
+    expect(pending.onOpen).not.toHaveBeenCalled()
+    expect(onToggle).toHaveBeenCalledTimes(1)
+  })
+
+  it('heart sits 10px from the photo corner in a 44px hit area', () => {
+    renderCard({ favorite: { favorited: false, onToggle: () => {} } })
+    const heart = screen.getByRole('button', { name: 'Sevimlilarga qoʻshish' })
+    expect(heart).toHaveClass('top-1.5', 'right-1.5', 'size-11')
+  })
+
+  it('a broken photo falls back to the mark placeholder', () => {
+    const { container } = render(<StadiumCardCompact stadium={makeStadium()} onOpen={() => {}} />)
+    fireEvent.error(container.querySelector('img')!)
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('svg.opacity-40')).not.toBeNull()
   })
 
   it('no photo shows the mark placeholder', () => {
