@@ -22,6 +22,7 @@ import {
 } from '../components'
 import { TabScreen } from '../layout/TabScreen'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
+import { useMe } from '../profile/queries'
 import { useSplashDone } from '../splash'
 import { FiltersSheet } from './FiltersSheet'
 import { formatLabel } from './labels'
@@ -34,6 +35,7 @@ export function StadiumsPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const toggle = useToggleFavorite()
+  const firstName = useMe().data?.firstName
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<StadiumFilters>(NO_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -60,7 +62,7 @@ export function StadiumsPage() {
   const chooseFormat = (format: StadiumFormat | null) => setFilters((f) => ({ ...f, format }))
 
   return (
-    <TabScreen title={t('tabs.stadiums')}>
+    <TabScreen title={firstName ? t('home.greeting', { name: firstName }) : t('app.name')}>
       <div className="flex gap-2">
         <SearchField value={search} onChange={setSearch} placeholder={t('stadiums.search')} />
         <button

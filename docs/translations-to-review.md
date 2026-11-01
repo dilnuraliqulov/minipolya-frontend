@@ -12,6 +12,7 @@ Placeholders such as `{{count}}` must stay as they are.
 |---|---|---|---|
 | `app.name` | MiniPolya | MiniPolya | MiniPolya |
 | `app.tagline` | Toshkentda futbol maydonini band qiling | Бронируйте футбольные поля в Ташкенте | Book a football pitch in Tashkent |
+| `home.greeting` | Salom, {{name}} | Привет, {{name}} | Hi, {{name}} |
 | `common.retry` | Qayta urinish | Повторить | Try again |
 | `common.loading` | Yuklanmoqda | Загрузка | Loading |
 | `common.soon` | Tez orada | Скоро | Coming soon |

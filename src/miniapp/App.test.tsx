@@ -38,6 +38,6 @@ describe('Mini App shell', () => {
 
   it('sends unknown paths to the first tab', async () => {
     renderApp('/nowhere')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Maydonlar' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'MiniPolya' })).toBeInTheDocument()
   })
 })

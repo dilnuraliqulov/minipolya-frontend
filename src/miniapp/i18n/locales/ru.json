@@ -3,6 +3,9 @@
     "name": "MiniPolya",
     "tagline": "Бронируйте футбольные поля в Ташкенте"
   },
+  "home": {
+    "greeting": "Привет, {{name}}"
+  },
   "common": {
     "retry": "Повторить",
     "loading": "Загрузка",

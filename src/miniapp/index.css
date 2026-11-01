@@ -15,6 +15,12 @@
  */
 @import '../shared/theme/index.css';
 
+/*
+ * Telegram fullscreen (telegram/viewport.ts sets <html data-fullscreen>):
+ * our header moves into the Close / ⋯ row. Use as `tg-fullscreen:…`.
+ */
+@custom-variant tg-fullscreen (&:where(html[data-fullscreen=true] *));
+
 :root {
   --page-bg: #f7f8fa;
   --bg: #ffffff;

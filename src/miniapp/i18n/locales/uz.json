@@ -3,6 +3,9 @@
     "name": "MiniPolya",
     "tagline": "Toshkentda futbol maydonini band qiling"
   },
+  "home": {
+    "greeting": "Salom, {{name}}"
+  },
   "common": {
     "retry": "Qayta urinish",
     "loading": "Yuklanmoqda",

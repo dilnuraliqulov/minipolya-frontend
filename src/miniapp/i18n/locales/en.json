@@ -3,6 +3,9 @@
     "name": "MiniPolya",
     "tagline": "Book a football pitch in Tashkent"
   },
+  "home": {
+    "greeting": "Hi, {{name}}"
+  },
   "common": {
     "retry": "Try again",
     "loading": "Loading",
