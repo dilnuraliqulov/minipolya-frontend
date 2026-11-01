@@ -162,12 +162,14 @@ describe('Choosing a slot', () => {
     expect(await screen.findByRole('radio', { name: /^20:00/ })).toBeInTheDocument()
   })
 
-  it('"Band qilish" goes to checkout ("Tez orada") when the profile is complete', async () => {
+  it('"Band qilish" opens checkout when the profile is complete', async () => {
     stub()
     const { router } = renderApp(`/stadiums/${ID}`)
     fireEvent.click(await screen.findByRole('radio', { name: /^20:00/ }))
     fireEvent.click(screen.getByRole('button', { name: /Band qilish ·/ }))
-    expect(await screen.findByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Bron qilish' }),
+    ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/checkout')
     expect(Object.fromEntries(new URLSearchParams(router.state.location.search))).toEqual({
       stadium: ID,

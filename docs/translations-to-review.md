@@ -177,7 +177,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `slots.seeDay` | {{day}}ni koʻrish | Смотреть: {{day}} | See {{day}} |
 | `slots.choose` | Vaqtni tanlang | Выберите время | Choose a time |
 | `slots.book` | Band qilish · {{time}} · {{price}} | Забронировать · {{time}} · {{price}} | Book · {{time}} · {{price}} |
-| `checkout.title` | Bronni tasdiqlash | Подтверждение брони | Confirm booking |
+| `checkout.title` | Bron qilish | Бронирование | Booking |
 | `favorites.emptyTitle` | Sevimli maydonlaringiz yoʻq | У вас нет избранных полей | No favourite pitches yet |
 | `favorites.emptyText` | Maydon sahifasidagi yurakchani bosib, uni shu yerga saqlang. | Нажмите на сердечко на странице поля, чтобы сохранить его здесь. | Tap the heart on a pitch’s page to save it here. |
 | `favorites.find` | Maydon topish | Найти поле | Find a pitch |
@@ -217,3 +217,43 @@ Placeholders such as `{{count}}` must stay as they are.
 | `cards.deleteConfirm` | Oʻchirish | Удалить | Delete |
 | `cards.back` | Ortga | Назад | Back |
 | `cards.deleted` | Karta oʻchirildi | Карта удалена | Card deleted |
+| `checkout.date` | Sana | Дата | Date |
+| `checkout.time` | Vaqt | Время | Time |
+| `checkout.duration` | Davomiyligi | Длительность | Duration |
+| `checkout.oneHour` | 1 soat | 1 час | 1 hour |
+| `checkout.total` | Jami | Итого | Total |
+| `checkout.paymentType` | Toʻlov turi | Способ оплаты | Payment |
+| `checkout.deposit` | Oldindan toʻlov: {{amount}} | Предоплата: {{amount}} | Deposit: {{amount}} |
+| `checkout.full` | Toʻliq toʻlov: {{amount}} | Полная оплата: {{amount}} | Full payment: {{amount}} |
+| `checkout.remainderNote` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток оплатите позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
+| `checkout.fullOnly` | Bu maydon toʻliq toʻlovni talab qiladi. | Это поле требует полной оплаты. | This pitch requires full payment. |
+| `checkout.card` | Karta | Карта | Card |
+| `checkout.addCardFirst` | Toʻlash uchun avval karta qoʻshing | Чтобы оплатить, сначала добавьте карту | Add a card to pay |
+| `checkout.cancelNote` | Oʻyin boshlanishidan {{hours}} soat oldingacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi. | При отмене не позднее чем за {{hours}} ч до начала игры оплата вернётся полностью. Позже — не возвращается. | Cancel at least {{hours}} hours before the game and you get a full refund. After that, nothing is refunded. |
+| `checkout.pay` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
+| `checkout.paying` | Toʻlanmoqda… | Оплата… | Paying… |
+| `checkout.declinedTitle` | Toʻlov amalga oshmadi | Оплата не прошла | The payment did not go through |
+| `checkout.declinedText` | Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring. | Карта отклонена. Выберите другую карту или проверьте эту. | The card was declined. Choose another card or check this one. |
+| `checkout.hold` | Bron {{time}} davomida saqlanadi | Бронь сохраняется ещё {{time}} | The booking is held for {{time}} |
+| `checkout.holdExpired` | Bron muddati tugadi | Срок брони истёк | The hold has expired |
+| `checkout.retry` | Qayta urinish | Повторить | Try again |
+| `checkout.otherCard` | Boshqa karta | Другая карта | Another card |
+| `checkout.slotTakenTitle` | Bu vaqt band boʻlib qoldi | Это время уже заняли | This time was just taken |
+| `checkout.slotTakenText` | Kimdir sizdan oldin band qildi. Boshqa vaqtni tanlang. | Кто-то забронировал раньше вас. Выберите другое время. | Someone booked it before you. Choose another time. |
+| `checkout.chooseOther` | Boshqa vaqt tanlash | Выбрать другое время | Choose another time |
+| `checkout.myBookings` | Bronlarim | Мои брони | My bookings |
+| `checkout.checkingTitle` | Toʻlov tekshirilmoqda | Оплата проверяется | Checking the payment |
+| `checkout.checkingText` | Natijani Bronlarim boʻlimida koʻrasiz. | Результат появится в разделе «Мои брони». | You will see the result in My bookings. |
+| `checkout.viewBooking` | Bronni koʻrish | Открыть бронь | View the booking |
+| `checkout.badLinkTitle` | Vaqt tanlanmagan | Время не выбрано | No time chosen |
+| `checkout.badLinkText` | Maydon sahifasida boʻsh vaqtni tanlang. | Выберите свободное время на странице поля. | Choose a free time on the pitch page. |
+| `checkout.slotGoneTitle` | Bu vaqt endi boʻsh emas | Это время больше не свободно | This time is no longer free |
+| `checkout.chooseTime` | Vaqtni tanlash | Выбрать время | Choose a time |
+| `booked.headerTitle` | Bron | Бронь | Booking |
+| `booked.title` | Band qilindi! | Забронировано! | Booked! |
+| `booked.paid` | Toʻlandi: {{amount}} | Оплачено: {{amount}} | Paid: {{amount}} |
+| `booked.remaining` | Qolgani: {{amount}} | Осталось: {{amount}} | Left to pay: {{amount}} |
+| `booked.remainderNote` | Qolgan summani ilovada yoki maydonda naqd toʻlashingiz mumkin. | Остаток можно оплатить в приложении или наличными на поле. | You can pay the rest in the app or in cash at the pitch. |
+| `booked.deadline` | Bekor qilish muddati: {{date}}, {{time}} gacha | Отменить можно до {{date}}, {{time}} | Free cancellation until {{date}}, {{time}} |
+| `booked.toGames` | Oʻyinlarimga oʻtish | Перейти в «Мои игры» | Go to My games |
+| `booked.home` | Bosh sahifa | На главную | Home |

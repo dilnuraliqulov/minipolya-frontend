@@ -211,7 +211,39 @@
     "book": "Band qilish · {{time}} · {{price}}"
   },
   "checkout": {
-    "title": "Bronni tasdiqlash"
+    "title": "Bron qilish",
+    "date": "Sana",
+    "time": "Vaqt",
+    "duration": "Davomiyligi",
+    "oneHour": "1 soat",
+    "total": "Jami",
+    "paymentType": "Toʻlov turi",
+    "deposit": "Oldindan toʻlov: {{amount}}",
+    "full": "Toʻliq toʻlov: {{amount}}",
+    "remainderNote": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
+    "fullOnly": "Bu maydon toʻliq toʻlovni talab qiladi.",
+    "card": "Karta",
+    "addCardFirst": "Toʻlash uchun avval karta qoʻshing",
+    "cancelNote": "Oʻyin boshlanishidan {{hours}} soat oldingacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi.",
+    "pay": "Toʻlash · {{amount}}",
+    "paying": "Toʻlanmoqda…",
+    "declinedTitle": "Toʻlov amalga oshmadi",
+    "declinedText": "Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.",
+    "hold": "Bron {{time}} davomida saqlanadi",
+    "holdExpired": "Bron muddati tugadi",
+    "retry": "Qayta urinish",
+    "otherCard": "Boshqa karta",
+    "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
+    "slotTakenText": "Kimdir sizdan oldin band qildi. Boshqa vaqtni tanlang.",
+    "chooseOther": "Boshqa vaqt tanlash",
+    "myBookings": "Bronlarim",
+    "checkingTitle": "Toʻlov tekshirilmoqda",
+    "checkingText": "Natijani Bronlarim boʻlimida koʻrasiz.",
+    "viewBooking": "Bronni koʻrish",
+    "badLinkTitle": "Vaqt tanlanmagan",
+    "badLinkText": "Maydon sahifasida boʻsh vaqtni tanlang.",
+    "slotGoneTitle": "Bu vaqt endi boʻsh emas",
+    "chooseTime": "Vaqtni tanlash"
   },
   "favorites": {
     "emptyTitle": "Sevimli maydonlaringiz yoʻq",
@@ -259,5 +291,15 @@
       "expired": "Muddati oʻtgan",
       "cancelled": "Bekor qilingan"
     }
+  },
+  "booked": {
+    "headerTitle": "Bron",
+    "title": "Band qilindi!",
+    "paid": "Toʻlandi: {{amount}}",
+    "remaining": "Qolgani: {{amount}}",
+    "remainderNote": "Qolgan summani ilovada yoki maydonda naqd toʻlashingiz mumkin.",
+    "deadline": "Bekor qilish muddati: {{date}}, {{time}} gacha",
+    "toGames": "Oʻyinlarimga oʻtish",
+    "home": "Bosh sahifa"
   }
 }

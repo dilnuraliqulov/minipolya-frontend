@@ -1,5 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router'
 import { CardsPage } from './cards/CardsPage'
+import { BookedPage } from './booking/BookedPage'
+import { CheckoutPage } from './booking/CheckoutPage'
 import { SoonScreen, SoonTab } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
@@ -32,7 +34,15 @@ const screens: RouteObject[] = [
     path: '/checkout',
     element: (
       <SplashDone>
-        <SoonScreen titleKey="checkout.title" />
+        <CheckoutPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/checkout/done',
+    element: (
+      <SplashDone>
+        <BookedPage />
       </SplashDone>
     ),
   },

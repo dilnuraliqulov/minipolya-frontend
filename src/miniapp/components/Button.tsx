@@ -1,5 +1,6 @@
 import { LoaderCircle, type LucideIcon } from 'lucide-react'
 import type { ButtonHTMLAttributes, MouseEvent } from 'react'
+import { Link, type LinkProps } from 'react-router'
 import { haptic as feedback } from '../telegram'
 import { cx } from './cx'
 
@@ -23,6 +24,26 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   block?: boolean
   /** `compact`: 40px tall with 14px text (the stadium card's Band qilish). */
   size?: 'default' | 'compact'
+}
+
+function buttonClass(variant: ButtonVariant, size: 'default' | 'compact', block: boolean) {
+  return cx(
+    'inline-flex items-center justify-center gap-2 font-semibold',
+    size === 'compact' ? 'h-10 rounded-lg px-3.5 text-base' : 'min-h-12 rounded-xl px-4 text-md',
+    'transition-opacity active:opacity-80 disabled:opacity-50',
+    block && 'w-full',
+    VARIANTS[variant],
+  )
+}
+
+/** A router link that looks like a Button (navigation, not an action). */
+export function ButtonLink({
+  variant = 'primary',
+  block = true,
+  className,
+  ...rest
+}: LinkProps & { variant?: ButtonVariant; block?: boolean }) {
+  return <Link className={cx(buttonClass(variant, 'default', block), className)} {...rest} />
 }
 
 /** Button / Primary · Secondary · Danger · Ghost · Danger Outline (48px, radius 12). */
@@ -50,16 +71,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       onClick={handleClick}
-      className={cx(
-        'inline-flex items-center justify-center gap-2 font-semibold',
-        size === 'compact'
-          ? 'h-10 rounded-lg px-3.5 text-base'
-          : 'min-h-12 rounded-xl px-4 text-md',
-        'transition-opacity active:opacity-80 disabled:opacity-50',
-        block && 'w-full',
-        VARIANTS[variant],
-        className,
-      )}
+      className={cx(buttonClass(variant, size, block), className)}
       {...rest}
     >
       {loading ? (

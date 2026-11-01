@@ -1,7 +1,7 @@
 export { Badge } from './Badge'
 export type { BadgeTone } from './Badge'
 export { BottomSheet } from './BottomSheet'
-export { Button } from './Button'
+export { Button, ButtonLink } from './Button'
 export type { ButtonProps, ButtonVariant } from './Button'
 export { Card } from './Card'
 export { Chip } from './Chip'
