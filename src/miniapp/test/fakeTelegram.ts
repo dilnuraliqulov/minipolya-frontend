@@ -3,6 +3,17 @@ import type { TelegramWebApp } from '../telegram/webApp'
 
 type Handler = () => void
 
+/** Compares dotted versions numerically: '7.10' > '7.7'. */
+function compareVersions(a: string, b: string): number {
+  const left = a.split('.').map(Number)
+  const right = b.split('.').map(Number)
+  for (let i = 0; i < Math.max(left.length, right.length); i++) {
+    const diff = (left[i] ?? 0) - (right[i] ?? 0)
+    if (diff !== 0) return diff
+  }
+  return 0
+}
+
 /**
  * A stand-in for `window.Telegram.WebApp` in tests. `emit(event)` fires the
  * handlers registered with `onEvent`; `backButton.click()` fires BackButton's.
@@ -23,7 +34,11 @@ export function installFakeTelegram(overrides: Partial<TelegramWebApp> = {}) {
     expand: vi.fn(),
     setHeaderColor: vi.fn(),
     setBackgroundColor: vi.fn(),
-    isVersionAtLeast: (version: string) => Number(version) <= 8,
+    isFullscreen: false,
+    requestFullscreen: vi.fn(),
+    disableVerticalSwipes: vi.fn(),
+    setBottomBarColor: vi.fn(),
+    isVersionAtLeast: (wanted: string) => compareVersions(webApp.version, wanted) >= 0,
     onEvent: vi.fn((event: string, handler: Handler) => {
       if (!handlers.has(event)) handlers.set(event, new Set())
       handlers.get(event)!.add(handler)

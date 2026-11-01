@@ -46,13 +46,15 @@
   --shadow-lg: 0 4px 12px #00000022;
 
   /*
-   * Safe areas. telegram/viewport.ts overwrites these inline with Telegram's
-   * safeAreaInset + contentSafeAreaInset; outside Telegram the device's own.
+   * Safe areas. Inside Telegram, telegram/viewport.ts overwrites these inline:
+   * --tg-safe-* = the device's inset only; --tg-content-top = Telegram's own
+   * controls (close / menu) below it. Outside Telegram: the device's own, 0 for content.
    */
   --tg-safe-top: env(safe-area-inset-top, 0px);
   --tg-safe-bottom: env(safe-area-inset-bottom, 0px);
   --tg-safe-left: env(safe-area-inset-left, 0px);
   --tg-safe-right: env(safe-area-inset-right, 0px);
+  --tg-content-top: 0px;
 }
 
 :root[data-theme='dark'] {
