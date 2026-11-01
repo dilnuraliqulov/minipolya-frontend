@@ -30,4 +30,19 @@ describe('dev auth', () => {
     expect(JSON.parse(loginInit.body as string)).toEqual({ userId: 'u-1' })
     expect((loginInit.headers as Record<string, string>)['X-Dev-Login-Key']).toBe('k1')
   })
+
+  it('omits X-Dev-Login-Key when the key is unset or empty', async () => {
+    configureApiClient({ tokenStore: createMemoryTokenStore() })
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(200, [])))
+    vi.stubGlobal('fetch', fetchMock)
+    for (const value of ['', undefined]) {
+      vi.stubEnv('VITE_DEV_LOGIN_KEY', value as string)
+      await listDevUsers()
+    }
+    for (const call of fetchMock.mock.calls) {
+      const headers = (call[1] as RequestInit).headers as Record<string, string>
+      expect(headers).not.toHaveProperty('X-Dev-Login-Key')
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
 })

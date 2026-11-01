@@ -69,11 +69,11 @@ async function readEnvelope<T>(response: Response): Promise<ApiEnvelope<T> | nul
  * any non-2xx status, an envelope with `success: false`, or a network failure.
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
+  // Caller headers first, so they can add but never replace Accept / Authorization / Content-Type.
+  const headers: Record<string, string> = { ...options.headers, Accept: 'application/json' }
   const token = config.tokenStore.get()
   if (token) headers.Authorization = `Bearer ${token}`
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
-  Object.assign(headers, options.headers)
 
   // Outside the try: a configuration error must not look like a network failure.
   const url = buildUrl(path, options.query)

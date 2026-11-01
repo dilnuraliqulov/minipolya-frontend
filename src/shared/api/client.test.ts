@@ -180,6 +180,19 @@ describe('api client', () => {
     await expect(api.get('/x')).rejects.toMatchObject({ status: 502, message: 'Bad Gateway' })
   })
 
+  it('does not let a caller header replace the token', async () => {
+    tokenStore.set('real-token')
+    const fetchMock = respond(200, { success: true, data: {}, message: '' })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await api.get('/x', { headers: { Authorization: 'Bearer other', 'X-Extra': '1' } })
+
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    const headers = init.headers as Record<string, string>
+    expect(headers.Authorization).toBe('Bearer real-token')
+    expect(headers['X-Extra']).toBe('1')
+  })
+
   it('maps a network failure to status 0', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 

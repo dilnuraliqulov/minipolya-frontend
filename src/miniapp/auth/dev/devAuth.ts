@@ -11,7 +11,8 @@ export interface DevUser {
 }
 
 function devHeaders(): Record<string, string> {
-  return { 'X-Dev-Login-Key': import.meta.env.VITE_DEV_LOGIN_KEY ?? '' }
+  const key = import.meta.env.VITE_DEV_LOGIN_KEY
+  return key ? { 'X-Dev-Login-Key': key } : {}
 }
 
 export function listDevUsers(): Promise<DevUser[]> {
