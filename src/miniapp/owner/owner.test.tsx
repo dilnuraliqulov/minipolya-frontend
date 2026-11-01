@@ -1,6 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { OwnerStadium, OwnerStats, PricingRule, ScheduleDay } from '../api/owner'
+import { tashkentToUtc } from '../../shared/format'
 import { tashkentToday } from '../stadiums/dates'
 import { jsonResponse, makeUser, stubApi } from '../test/api'
 import { makeBooking } from '../test/bookings'
@@ -110,7 +111,11 @@ describe('Ega rejimi — Jadval', () => {
     const [body] = api.calls('POST /api/owner/stadiums/s1/bookings') as Array<
       Record<string, string>
     >
-    expect(body).toMatchObject({ clientName: 'Aziz', clientPhone: '+998901112233' })
+    expect(body).toMatchObject({
+      clientName: 'Aziz',
+      clientPhone: '+998901112233',
+      startsAt: tashkentToUtc(TODAY, '19:00'),
+    })
     expect(body?.paymentMethod).toBeUndefined()
   })
 
@@ -150,6 +155,70 @@ describe('Ega rejimi — Jadval', () => {
     const { router } = renderApp('/owner', { session })
     fireEvent.click(await screen.findByRole('button', { name: 'Yangi maydon qoʻshish' }))
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/owner/new'))
+  })
+})
+
+describe('Ega rejimi — Jadval details', () => {
+  it('an expired hold does not hide the live booking or the free hour', async () => {
+    const at = (h: string) => tashkentToUtc(TODAY, h)
+    stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [
+        {
+          ...day,
+          bookings: [
+            makeBooking({
+              id: 'x1',
+              status: 'expired',
+              startsAt: at('19:00'),
+              endsAt: at('20:00'),
+            }),
+            makeBooking({
+              id: 'x2',
+              status: 'confirmed',
+              clientName: 'Aziz',
+              startsAt: at('19:00'),
+              endsAt: at('20:00'),
+              ownerPrice: 15_000_000,
+              price: 15_500_000,
+            }),
+            makeBooking({
+              id: 'x3',
+              status: 'expired',
+              startsAt: at('20:00'),
+              endsAt: at('21:00'),
+            }),
+          ],
+        },
+      ],
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    expect(within(list).getByText('Aziz')).toBeInTheDocument()
+    expect(within(list).getByText('150 000 soʻm')).toBeInTheDocument()
+    expect(within(list).getAllByText('Boʻsh')).toHaveLength(2)
+  })
+
+  it('warns before a walk-in on an hour a team is waiting on', async () => {
+    stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [
+        {
+          ...day,
+          bookings: [],
+          waitingGames: [
+            {
+              gameId: 'g1',
+              teamName: 'Team Alpha',
+              startsAt: tashkentToUtc(TODAY, '20:00'),
+              endsAt: tashkentToUtc(TODAY, '21:00'),
+            },
+          ],
+        },
+      ],
+    })
+    renderApp('/owner', { session })
+    fireEvent.click(await screen.findByText('Jamoa kutmoqda'))
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    expect(within(sheet).getByRole('alert')).toHaveTextContent('ularning oʻyini bekor qilinadi')
   })
 })
 

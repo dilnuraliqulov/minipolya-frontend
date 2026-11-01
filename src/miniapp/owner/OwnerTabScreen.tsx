@@ -1,5 +1,6 @@
 import { CalendarDays, ChartColumn, CircleUser, LandPlot } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useSearchParams } from 'react-router'
 import { Header, Screen } from '../components'
 import { TabBar, type TabItem } from '../layout/TabBar'
 
@@ -20,10 +21,13 @@ export function OwnerTabScreen({
   action?: ReactNode
   children: ReactNode
 }) {
+  const [params] = useSearchParams()
+  const stadium = params.get('stadium')
+  const search = stadium ? `?` + new URLSearchParams({ stadium }).toString() : ''
   return (
     <Screen
       header={<Header title={title} brand action={action} />}
-      footer={<TabBar items={OWNER_TABS} labelKey="owner.tabsLabel" />}
+      footer={<TabBar items={OWNER_TABS} labelKey="owner.tabsLabel" search={search} />}
     >
       {children}
     </Screen>

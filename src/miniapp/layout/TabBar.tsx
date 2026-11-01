@@ -32,9 +32,12 @@ const PLAYER_TABS: TabItem[] = TABS.map(({ key, path }) => ({
 export function TabBar({
   items = PLAYER_TABS,
   labelKey = 'tabs.label',
+  search = '',
 }: {
   items?: TabItem[]
   labelKey?: ParseKeys
+  /** Kept on every tab link (owner mode keeps the chosen `?stadium=`). */
+  search?: string
 }) {
   const { t } = useTranslation()
   const root = items[0]?.path
@@ -47,7 +50,7 @@ export function TabBar({
         {items.map(({ path, labelKey: label, icon: Icon }) => (
           <li key={path} className="flex-1">
             <NavLink
-              to={path}
+              to={path + search}
               end={path === root}
               onClick={() => haptic.selection()}
               className={({ isActive }) =>

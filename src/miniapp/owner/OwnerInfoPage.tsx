@@ -72,12 +72,14 @@ function InfoForm({ stadium }: { stadium: OwnerStadium }) {
         label={t('owner.field.format')}
         value={format}
         onChange={setFormat}
+        placeholder="—"
         options={FORMATS.map((f) => ({ value: f, label: formatLabel(f) }))}
       />
       <SelectField
         label={t('owner.field.surface')}
         value={surface}
         onChange={setSurface}
+        placeholder="—"
         options={Object.entries(SURFACE_KEYS).map(([value, key]) => ({ value, label: t(key) }))}
       />
       <BottomBar>

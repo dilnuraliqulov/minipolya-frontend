@@ -11,6 +11,7 @@ import {
   OWNER_BOOKING_CASH,
   ownerCancelBooking,
   scheduleKey,
+  statsKey,
   type OwnerStadium,
 } from '../api/owner'
 import { getAvailability, type TimeSlot } from '../api/stadiums'
@@ -47,6 +48,8 @@ export function OwnerSchedulePage() {
 }
 
 const CANCELLABLE = new Set(['pending', 'confirmed'])
+/** The statuses that hold an hour (an expired hold or a cancellation frees it). */
+const OCCUPYING = new Set(['pending', 'confirmed', 'completed'])
 
 function Schedule({ stadium }: { stadium: OwnerStadium }) {
   const { t } = useTranslation()
@@ -65,10 +68,11 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
   const bookings = day?.bookings ?? []
   const atHour = (slot: TimeSlot) =>
     bookings.find(
-      (b) =>
-        formatTime(b.startsAt) === slot.startTime.slice(0, 5) && !b.status.startsWith('cancelled'),
+      (b) => formatTime(b.startsAt) === slot.startTime.slice(0, 5) && OCCUPYING.has(b.status),
     )
   const free = (availability.data?.slots ?? []).filter((s) => s.status === 'free')
+  // A walk-in on an hour a team is waiting on cancels that team's game (backend rule): flag it.
+  const waitingAt = new Set((day?.waitingGames ?? []).map((g) => formatTime(g.startsAt)))
 
   return (
     <>
@@ -95,8 +99,13 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
 
       {schedule.isPending || availability.isLoading ? (
         <SkeletonList count={4} variant="item" />
-      ) : schedule.isError ? (
-        <ErrorState onRetry={() => void schedule.refetch()} />
+      ) : schedule.isError || availability.isError ? (
+        <ErrorState
+          onRetry={() => {
+            if (schedule.isError) void schedule.refetch()
+            if (availability.isError) void availability.refetch()
+          }}
+        />
       ) : (
         <ul className="flex flex-col gap-2" aria-label={t('owner.tabs.schedule')}>
           {(day?.waitingGames ?? []).map((game) => (
@@ -121,7 +130,11 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
                     {booking ? (
                       <BookingRow booking={booking} onOpen={() => setOpen(booking)} />
                     ) : (
-                      <SlotRow slot={slot} onWalkIn={() => setWalkIn(slot.startTime.slice(0, 5))} />
+                      <SlotRow
+                        slot={slot}
+                        waiting={waitingAt.has(slot.startTime.slice(0, 5))}
+                        onWalkIn={() => setWalkIn(slot.startTime.slice(0, 5))}
+                      />
                     )}
                   </li>
                 )
@@ -150,6 +163,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
           stadium={stadium}
           date={date}
           free={free}
+          waitingAt={waitingAt}
           initial={walkIn || free[0]?.startTime.slice(0, 5) || ''}
           onClose={() => setWalkIn(null)}
         />
@@ -174,12 +188,22 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
         <span className="w-full truncate text-base font-medium text-primary">{who}</span>
         <BookingStatusBadge status={booking.status} />
       </span>
-      <span className="text-sm font-semibold text-primary">{formatMoney(booking.price)}</span>
+      <span className="text-sm font-semibold text-primary">
+        {formatMoney(booking.ownerPrice ?? booking.price)}
+      </span>
     </button>
   )
 }
 
-function SlotRow({ slot, onWalkIn }: { slot: TimeSlot; onWalkIn: () => void }) {
+function SlotRow({
+  slot,
+  waiting,
+  onWalkIn,
+}: {
+  slot: TimeSlot
+  waiting: boolean
+  onWalkIn: () => void
+}) {
   const { t } = useTranslation()
   const free = slot.status === 'free'
   const label =
@@ -199,7 +223,9 @@ function SlotRow({ slot, onWalkIn }: { slot: TimeSlot; onWalkIn: () => void }) {
       )}
     >
       <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
-      <span className="flex-1 text-sm text-secondary">{label}</span>
+      <span className="flex-1 text-sm text-secondary">
+        {waiting && free ? t('owner.schedule.waitingShort') : label}
+      </span>
       {free && <Plus size={18} className="text-link" aria-hidden />}
     </button>
   )
@@ -230,10 +256,14 @@ function OwnerBookingSheet({
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
       void queryClient.invalidateQueries({ queryKey: availabilityKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
     },
   })
   const rows: Array<[string, number | undefined]> = [
-    [t('owner.booking.price'), booking.price],
+    [t('owner.booking.price'), booking.ownerPrice ?? booking.price],
+    ...(booking.ownerPrice !== undefined && booking.ownerPrice !== booking.price
+      ? ([[t('owner.booking.playerPays'), booking.price]] as Array<[string, number]>)
+      : []),
     [t('owner.booking.paidInApp'), booking.paidInApp],
     [t('owner.booking.remaining'), booking.remainingAmount],
     [t('owner.booking.receives'), booking.ownerReceives],
@@ -321,12 +351,14 @@ function WalkInSheet({
   stadium,
   date,
   free,
+  waitingAt,
   initial,
   onClose,
 }: {
   stadium: OwnerStadium
   date: string
   free: TimeSlot[]
+  waitingAt: Set<string>
   initial: string
   onClose: () => void
 }) {
@@ -348,6 +380,7 @@ function WalkInSheet({
       toast.show(t('owner.schedule.walkInDone'), 'success')
       void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
       void queryClient.invalidateQueries({ queryKey: availabilityKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
       onClose()
     },
   })
@@ -378,6 +411,11 @@ function WalkInSheet({
           onChange={setHour}
           options={free.map((s) => ({ value: s.startTime.slice(0, 5), label: slotLabel(s) }))}
         />
+      )}
+      {waitingAt.has(hour) && (
+        <p role="alert" className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
+          {t('owner.schedule.waitingWarning')}
+        </p>
       )}
       <Input
         label={t('owner.field.clientName')}

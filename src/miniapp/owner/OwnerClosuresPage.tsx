@@ -55,6 +55,9 @@ function Closures({ stadium }: { stadium: OwnerStadium }) {
     onSuccess: () => {
       toast.show(t('owner.closures.removed'), 'success')
       void queryClient.invalidateQueries({ queryKey: closuresKey(stadium.id) })
+      // A closure changes which hours are free on Jadval and for players.
+      void queryClient.invalidateQueries({ queryKey: ['availability', stadium.id] })
+      void queryClient.invalidateQueries({ queryKey: ['owner', 'schedule', stadium.id] })
     },
     onError: (error) => toast.show(errorMessage(error), 'danger'),
   })
@@ -121,6 +124,8 @@ function AddClosureSheet({ stadiumId, onClose }: { stadiumId: string; onClose: (
     onSuccess: () => {
       toast.show(t('owner.closures.added'), 'success')
       void queryClient.invalidateQueries({ queryKey: closuresKey(stadiumId) })
+      void queryClient.invalidateQueries({ queryKey: ['availability', stadiumId] })
+      void queryClient.invalidateQueries({ queryKey: ['owner', 'schedule', stadiumId] })
       onClose()
     },
   })

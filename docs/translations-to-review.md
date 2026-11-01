@@ -541,3 +541,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.unclearTitle` | Natijani tekshiring | Проверьте результат | Check the result |
 | `errors.paymentConfirming` | Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi. | Оплата ещё подтверждается — не платите повторно, результат скоро появится. | The payment is still being confirmed — do not pay again; the result shows soon. |
 | `errors.paymentUnclear` | Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring. | Оплата не подтвердилась. Если деньги списались, они вернутся полностью — проверьте «Мои игры». | The payment was not confirmed. If money was taken, it comes back in full — check My games. |
+| `owner.booking.playerPays` | Oʻyinchi toʻlaydi | Игрок платит | The player pays |
+| `owner.schedule.waitingWarning` | Bu soatda jamoa raqib kutmoqda. Qoʻlda band qilsangiz, ularning oʻyini bekor qilinadi va pul qaytariladi. | В этот час команда ждёт соперника. Ручная бронь отменит их игру и вернёт деньги. | A team is waiting for an opponent at this hour. A walk-in cancels their game and refunds them. |
+| `owner.schedule.waitingShort` | Jamoa kutmoqda | Команда ждёт | A team is waiting |
+| `owner.wizard.onTheHour` | Vaqt butun soatda boʻlishi kerak (masalan, 08:00). | Время должно быть ровно в начале часа (например, 08:00). | Times must be on the hour (e.g. 08:00). |
+| `owner.field.hoursUnit` | {{count}} soat | {{count}} ч | {{count}} h |

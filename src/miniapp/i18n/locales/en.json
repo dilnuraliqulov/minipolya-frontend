@@ -552,7 +552,8 @@
       "clientName": "Client name",
       "clientPhone": "Client phone",
       "time": "Time",
-      "cashPaid": "Paid in cash"
+      "cashPaid": "Paid in cash",
+      "hoursUnit": "{{count}} h"
     },
     "prices": {
       "title": "Prices",
@@ -580,7 +581,9 @@
       "empty": "No bookings for this day.",
       "walkInTitle": "Walk-in booking",
       "walkInDone": "Booking added",
-      "noFreeHour": "No free hour on this day."
+      "noFreeHour": "No free hour on this day.",
+      "waitingWarning": "A team is waiting for an opponent at this hour. A walk-in cancels their game and refunds them.",
+      "waitingShort": "A team is waiting"
     },
     "booking": {
       "title": "Booking details",
@@ -595,7 +598,8 @@
       "cancel": "Cancel the booking",
       "cancelTitle": "Cancel this booking?",
       "cancelText": "The player gets back everything paid by card.",
-      "cancelled": "Booking cancelled"
+      "cancelled": "Booking cancelled",
+      "playerPays": "The player pays"
     },
     "report": {
       "today": "Today",
@@ -629,7 +633,8 @@
       "hoursError": "Closing time must be after opening time.",
       "sentTitle": "The pitch was sent for review",
       "sentText": "Once an admin approves it, players can see and book it.",
-      "toStadium": "Go to my pitch"
+      "toStadium": "Go to my pitch",
+      "onTheHour": "Times must be on the hour (e.g. 08:00)."
     }
   }
 }

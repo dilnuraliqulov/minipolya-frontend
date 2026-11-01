@@ -176,7 +176,7 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
       actions={
         <Button
           haptic
-          disabled={som <= 0 || from >= to}
+          disabled={som <= 0 || from >= to || !from.endsWith(':00') || !to.endsWith(':00')}
           loading={add.isPending}
           onClick={() => add.mutate()}
         >
@@ -210,7 +210,7 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
         label={t('owner.field.price')}
         inputMode="numeric"
         value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^\d ]/g, ''))}
+        onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 9))}
       />
       {add.isError && (
         <p role="alert" className="text-sm text-danger">

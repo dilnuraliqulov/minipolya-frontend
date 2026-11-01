@@ -552,7 +552,8 @@
       "clientName": "Mijoz ismi",
       "clientPhone": "Mijoz telefoni",
       "time": "Vaqt",
-      "cashPaid": "Naqd toʻlandi"
+      "cashPaid": "Naqd toʻlandi",
+      "hoursUnit": "{{count}} soat"
     },
     "prices": {
       "title": "Narxlar",
@@ -580,7 +581,9 @@
       "empty": "Bu kunga bronlar yoʻq.",
       "walkInTitle": "Qoʻlda band qilish",
       "walkInDone": "Bron qoʻshildi",
-      "noFreeHour": "Bu kunda boʻsh soat yoʻq."
+      "noFreeHour": "Bu kunda boʻsh soat yoʻq.",
+      "waitingWarning": "Bu soatda jamoa raqib kutmoqda. Qoʻlda band qilsangiz, ularning oʻyini bekor qilinadi va pul qaytariladi.",
+      "waitingShort": "Jamoa kutmoqda"
     },
     "booking": {
       "title": "Bron tafsilotlari",
@@ -595,7 +598,8 @@
       "cancel": "Bronni bekor qilish",
       "cancelTitle": "Bronni bekor qilasizmi?",
       "cancelText": "Oʻyinchiga karta orqali toʻlagan hamma pul qaytariladi.",
-      "cancelled": "Bron bekor qilindi"
+      "cancelled": "Bron bekor qilindi",
+      "playerPays": "Oʻyinchi toʻlaydi"
     },
     "report": {
       "today": "Bugun",
@@ -629,7 +633,8 @@
       "hoursError": "Yopilish vaqti ochilishdan keyin boʻlishi kerak.",
       "sentTitle": "Maydon tekshiruvga yuborildi",
       "sentText": "Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi.",
-      "toStadium": "Maydonimga oʻtish"
+      "toStadium": "Maydonimga oʻtish",
+      "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00)."
     }
   }
 }

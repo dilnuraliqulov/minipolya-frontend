@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CircleCheck, Info } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
 import { somToTiyin } from '../../shared/format'
 import { errorMessage } from '../api/errors'
 import { createStadium, OWNER_STADIUMS_KEY } from '../api/owner'
@@ -24,6 +23,11 @@ import { SelectField } from './SelectField'
 
 const STEPS = ['basics', 'place', 'hours', 'price', 'review'] as const
 const digits = (value: string) => Number(value.replace(/\D/g, '') || '0')
+/** Up to 999 999 999 soʻm — far above any real hourly price, safely inside the tiyin range. */
+const MONEY_DIGITS = 9
+const moneyInput = (value: string) => value.replace(/\D/g, '').slice(0, MONEY_DIGITS)
+/** Bookings start on the hour, so opening hours must too. */
+const onTheHour = (time: string) => time.endsWith(':00')
 
 /**
  * Maydon qoʻshish: five steps, then POST /api/owner/stadiums. The stadium is
@@ -31,7 +35,6 @@ const digits = (value: string) => Number(value.replace(/\D/g, '') || '0')
  */
 export function AddStadiumPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const goBack = useGoBack('/owner/stadium')
   const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
@@ -59,7 +62,7 @@ export function AddStadiumPage() {
         closeTime: `${close}:00`,
         pricePerHour: somToTiyin(digits(price)),
         ...(minimum.trim() ? { minBookingAmount: somToTiyin(digits(minimum)) } : {}),
-        cancellationHours: digits(cancelHours),
+        ...(cancelHours.trim() ? { cancellationHours: digits(cancelHours) } : {}),
       }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: OWNER_STADIUMS_KEY }),
   })
@@ -96,7 +99,7 @@ export function AddStadiumPage() {
   const valid = {
     basics: name.trim().length > 0,
     place: address.trim().length > 0,
-    hours: open < close,
+    hours: open < close && onTheHour(open) && onTheHour(close),
     price: digits(price) > 0,
     review: true,
   }[current]
@@ -185,7 +188,13 @@ export function AddStadiumPage() {
             step={3600}
             value={close}
             onChange={(e) => setClose(e.target.value)}
-            error={open >= close ? t('owner.wizard.hoursError') : undefined}
+            error={
+              open >= close
+                ? t('owner.wizard.hoursError')
+                : !onTheHour(open) || !onTheHour(close)
+                  ? t('owner.wizard.onTheHour')
+                  : undefined
+            }
           />
         </div>
       )}
@@ -196,14 +205,14 @@ export function AddStadiumPage() {
             inputMode="numeric"
             value={price}
             hint={t('owner.field.priceHint')}
-            onChange={(e) => setPrice(e.target.value.replace(/[^\d ]/g, ''))}
+            onChange={(e) => setPrice(moneyInput(e.target.value))}
           />
           <Input
             label={t('owner.field.minimum')}
             inputMode="numeric"
             value={minimum}
             hint={t('owner.field.minimumHint')}
-            onChange={(e) => setMinimum(e.target.value.replace(/[^\d ]/g, ''))}
+            onChange={(e) => setMinimum(moneyInput(e.target.value))}
           />
           <Input
             label={t('owner.field.cancelHours')}
@@ -226,7 +235,14 @@ export function AddStadiumPage() {
                 ...(minimum.trim()
                   ? [[t('owner.field.minimum'), formatMoney(somToTiyin(digits(minimum)))] as const]
                   : []),
-                [t('owner.field.cancelHours'), cancelHours],
+                ...(cancelHours.trim()
+                  ? [
+                      [
+                        t('owner.field.cancelHours'),
+                        t('owner.field.hoursUnit', { count: digits(cancelHours) }),
+                      ] as const,
+                    ]
+                  : []),
               ] as Array<readonly [string, string]>
             ).map(([label, value]) => (
               <div key={label} className="flex justify-between gap-3">
@@ -252,7 +268,7 @@ export function AddStadiumPage() {
         </Button>
       )}
       {step === 0 && (
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" onClick={goBack}>
           {t('owner.cancel')}
         </Button>
       )}
