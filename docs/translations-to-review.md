@@ -344,3 +344,36 @@ Placeholders such as `{{count}}` must stay as they are.
 | `team.nameHint` | 3–24 belgi. Keyin oʻzgartirish mumkin. | 3–24 символа. | 3–24 characters. |
 | `team.created` | Jamoa yaratildi | Команда создана | Team created |
 | `team.notFoundTitle` | Jamoa topilmadi | Команда не найдена | Team not found |
+| `game.title` | Oʻyin | Игра | Game |
+| `game.vs` | vs | vs | vs |
+| `game.waitingOpponent` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
+| `game.waitingText` | Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz. | Как только соперник примет вызов, поле будет забронировано, и мы сообщим. | As soon as an opponent accepts, the pitch is booked and we will let you know. |
+| `game.chat` | Chat | Чат | Chat |
+| `game.chatText` | Ikkala jamoa sardorlari bilan yozishma | Переписка капитанов обеих команд | Messages between both captains |
+| `game.teams` | Jamoalar | Команды | Teams |
+| `game.captain` | Sardor: {{name}} | Капитан: {{name}} | Captain: {{name}} |
+| `game.myPayment` | Jamoangiz toʻlovi | Оплата вашей команды | Your team's payment |
+| `game.joinPrice` | Qoʻshilishda toʻlov | Оплата при вступлении | Paid on joining |
+| `game.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
+| `game.remainder` | Qolgan summa | Остаток | Left to pay |
+| `game.remainderPaid` | Toʻlangan | Оплачено | Paid |
+| `game.remainderUnpaid` | Toʻlanmagan | Не оплачено | Unpaid |
+| `game.payRest` | Qolganini toʻlash | Доплатить | Pay the rest |
+| `game.cashNote` | yoki maydonda naqd toʻlashingiz mumkin | или оплатите наличными на поле | or pay in cash at the pitch |
+| `game.restPaid` | Qolgan summa toʻlandi | Остаток оплачен | The rest is paid |
+| `game.declined` | Karta rad etildi. Boshqa karta tanlang. | Карта отклонена. Выберите другую. | The card was declined. Choose another. |
+| `game.rules` | Bekor qilish shartlari | Условия отмены | Cancellation terms |
+| `game.deadline` | {{date}}, {{time}} gacha bekor qilsangiz, jamoangiz toʻlagani toʻliq qaytariladi. | При отмене до {{date}}, {{time}} оплата команды вернётся полностью. | Cancel before {{date}}, {{time}} and your team gets everything back. |
+| `game.refundNow` | Hozir bekor qilsangiz: {{amount}} qaytariladi | Если отменить сейчас: вернём {{amount}} | Cancel now: {{amount}} is refunded |
+| `game.noRefundNow` | Hozir bekor qilsangiz, toʻlov qaytarilmaydi | Если отменить сейчас, оплата не вернётся | Cancel now and nothing is refunded |
+| `game.cancel` | Oʻyinni bekor qilish | Отменить игру | Cancel the game |
+| `game.cancelTitle` | Oʻyinni bekor qilasizmi? | Отменить игру? | Cancel this game? |
+| `game.cancelConfirm` | Ha, bekor qilish | Да, отменить | Yes, cancel |
+| `game.cancelKeep` | Yoʻq, qoldirish | Нет, оставить | No, keep it |
+| `game.cancelled` | Oʻyin bekor qilindi | Игра отменена | Game cancelled |
+| `game.notFoundTitle` | Oʻyin topilmadi | Игра не найдена | Game not found |
+| `game.notFoundText` | Bu oʻyin mavjud emas. | Такой игры нет. | This game does not exist. |
+| `game.payTitle` | Qolganini toʻlash | Доплата | Pay the rest |
+| `game.payButton` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
+| `errors.cardDeclined` | Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring. | Карта отклонена. Выберите другую карту или проверьте эту. | The card was declined. Choose another card or check this one. |
+| `errors.tooLate` | Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi. | До игры меньше 3 часов — присоединиться уже нельзя. | The game starts in less than 3 hours — it can no longer be joined. |

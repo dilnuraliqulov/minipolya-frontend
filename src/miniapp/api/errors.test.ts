@@ -21,6 +21,22 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
       new ApiError('You can only review a stadium you have played at', 400),
       'errors.reviewNotPlayed',
     ],
+    [
+      new ApiError('Card payment was declined; the game is still looking for an opponent', 400),
+      'errors.cardDeclined',
+    ],
+    [
+      new ApiError('Card payment was declined; the game was not created', 400),
+      'errors.cardDeclined',
+    ],
+    [
+      new ApiError('Card payment was declined; the remainder is still owed', 400),
+      'errors.cardDeclined',
+    ],
+    [
+      new ApiError("O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi", 400),
+      'errors.tooLate',
+    ],
     [new ApiError('Juda koʻp', 429, 'TOO_MANY_ATTEMPTS'), 'errors.tooMany'],
   ] as const)('%s → %s', (error, key) => {
     expect(errorMessageKey(error)).toBe(key)

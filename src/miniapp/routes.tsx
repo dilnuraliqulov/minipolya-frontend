@@ -4,6 +4,7 @@ import { BookedPage } from './booking/BookedPage'
 import { CheckoutPage } from './booking/CheckoutPage'
 import { BookingPage } from './bookings/BookingPage'
 import { BookingsPage } from './bookings/BookingsPage'
+import { GamePage } from './games/GamePage'
 import { SoonScreen } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
@@ -55,6 +56,14 @@ const screens: RouteObject[] = [
     element: (
       <SplashDone>
         <BookingPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games/:id',
+    element: (
+      <SplashDone>
+        <GamePage />
       </SplashDone>
     ),
   },

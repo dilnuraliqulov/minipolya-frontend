@@ -75,7 +75,9 @@
     "tooMany": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
     "unknown": "Nimadir xato ketdi. Qayta urinib koʻring.",
     "alreadyReviewed": "Siz bu maydonni allaqachon baholagansiz.",
-    "reviewNotPlayed": "Faqat oʻynagan maydoningizni baholashingiz mumkin."
+    "reviewNotPlayed": "Faqat oʻynagan maydoningizni baholashingiz mumkin.",
+    "cardDeclined": "Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.",
+    "tooLate": "Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -398,5 +400,38 @@
     "nameHint": "3–24 belgi. Keyin oʻzgartirish mumkin.",
     "created": "Jamoa yaratildi",
     "notFoundTitle": "Jamoa topilmadi"
+  },
+  "game": {
+    "title": "Oʻyin",
+    "vs": "vs",
+    "waitingOpponent": "Raqib kutilmoqda",
+    "waitingText": "Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz.",
+    "chat": "Chat",
+    "chatText": "Ikkala jamoa sardorlari bilan yozishma",
+    "teams": "Jamoalar",
+    "captain": "Sardor: {{name}}",
+    "myPayment": "Jamoangiz toʻlovi",
+    "joinPrice": "Qoʻshilishda toʻlov",
+    "paidInApp": "Ilovada toʻlangan",
+    "remainder": "Qolgan summa",
+    "remainderPaid": "Toʻlangan",
+    "remainderUnpaid": "Toʻlanmagan",
+    "payRest": "Qolganini toʻlash",
+    "cashNote": "yoki maydonda naqd toʻlashingiz mumkin",
+    "restPaid": "Qolgan summa toʻlandi",
+    "declined": "Karta rad etildi. Boshqa karta tanlang.",
+    "rules": "Bekor qilish shartlari",
+    "deadline": "{{date}}, {{time}} gacha bekor qilsangiz, jamoangiz toʻlagani toʻliq qaytariladi.",
+    "refundNow": "Hozir bekor qilsangiz: {{amount}} qaytariladi",
+    "noRefundNow": "Hozir bekor qilsangiz, toʻlov qaytarilmaydi",
+    "cancel": "Oʻyinni bekor qilish",
+    "cancelTitle": "Oʻyinni bekor qilasizmi?",
+    "cancelConfirm": "Ha, bekor qilish",
+    "cancelKeep": "Yoʻq, qoldirish",
+    "cancelled": "Oʻyin bekor qilindi",
+    "notFoundTitle": "Oʻyin topilmadi",
+    "notFoundText": "Bu oʻyin mavjud emas.",
+    "payTitle": "Qolganini toʻlash",
+    "payButton": "Toʻlash · {{amount}}"
   }
 }

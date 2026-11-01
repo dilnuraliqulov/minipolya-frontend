@@ -22,6 +22,8 @@ export type ErrorMessageKey =
   | 'errors.tooMany'
   | 'errors.alreadyReviewed'
   | 'errors.reviewNotPlayed'
+  | 'errors.cardDeclined'
+  | 'errors.tooLate'
   | 'errors.unknown'
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {
@@ -37,6 +39,14 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       // POST /api/reviews: two 400s the review form tells apart.
       if (error.message === API_MESSAGES.alreadyReviewed) return 'errors.alreadyReviewed'
       if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
+      // Team games: a declined card and the 3-hour cut-off are 400s too.
+      if (
+        error.message === API_MESSAGES.joinDeclined ||
+        error.message === API_MESSAGES.createGameDeclined ||
+        error.message === API_MESSAGES.gameRemainderDeclined
+      )
+        return 'errors.cardDeclined'
+      if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
       return 'errors.invalid'
     case 401:
       return 'errors.session'
