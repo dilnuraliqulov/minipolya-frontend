@@ -5,7 +5,9 @@ import {
   BOOKING_STADIUM_FIELDS,
   BOOKINGS_WHEN,
 } from './bookings'
+import { TEAM_GAME_QUOTE } from './games'
 import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
+import { TEAM_INVITE } from './teams'
 
 /**
  * THE list of endpoints (and fields) the Mini App needs that the backend has
@@ -19,7 +21,8 @@ import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
  * Open: R24 (list sorted by distance/rating), R25 (list filtered to stadiums
  * free on a date), R27 (booking quote), R28 (pay a pending booking), R29
  * (upcoming/past filter on the booking list), R30 (cash paid on a booking) and
- * R31 (stadium photo, district and format on a booking). R20, R21 and R23
+ * R31 (stadium photo, district and format on a booking), R32 (team invite
+ * link) and R33 (team game quote). R20, R21 and R23
  * shipped in backend `4d5faf0`.
  */
 export const MISSING_ENDPOINTS: Record<string, string> = {
@@ -30,6 +33,8 @@ export const MISSING_ENDPOINTS: Record<string, string> = {
   [BOOKINGS_WHEN]: 'R29',
   [BOOKING_CASH_PAID]: 'R30',
   [BOOKING_STADIUM_FIELDS]: 'R31',
+  [TEAM_INVITE]: 'R32',
+  [TEAM_GAME_QUOTE]: 'R33',
 }
 
 export type Availability = 'available' | 'soon'

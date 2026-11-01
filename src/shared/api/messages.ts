@@ -34,4 +34,12 @@ export const API_MESSAGES = {
   alreadyReviewed: 'You have already reviewed this stadium',
   /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
   reviewNotPlayed: 'You can only review a stadium you have played at',
+  /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
+  joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
+  /** 400 from `POST /api/games/{id}/join` when the joining team's card is declined. */
+  joinDeclined: 'Card payment was declined; the game is still looking for an opponent',
+  /** 400 from `POST /api/games` (team game) when the hold is declined. */
+  createGameDeclined: 'Card payment was declined; the game was not created',
+  /** 400 from `POST /api/games/{id}/pay-remainder` when the card is declined. */
+  gameRemainderDeclined: 'Card payment was declined; the remainder is still owed',
 } as const
