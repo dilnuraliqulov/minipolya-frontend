@@ -5,20 +5,91 @@ import { ProfilePage } from './profile/ProfilePage'
 import { FavoritesPage } from './stadiums/FavoritesPage'
 import { ReviewsPage } from './stadiums/ReviewsPage'
 import { StadiumPage } from './stadiums/StadiumPage'
+import { SplashDone } from './splash'
 import { StadiumsPage } from './stadiums/StadiumsPage'
 
 /** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
 export const routes: RouteObject[] = [
   { path: '/', element: <StadiumsPage /> },
-  { path: '/stadiums/:id', element: <StadiumPage /> },
-  { path: '/stadiums/:id/reviews', element: <ReviewsPage /> },
-  { path: '/checkout', element: <SoonScreen titleKey="checkout.title" /> },
-  { path: '/team', element: <SoonTab titleKey="tabs.team" /> },
-  { path: '/games', element: <SoonTab titleKey="tabs.games" /> },
-  { path: '/profile', element: <ProfilePage /> },
-  { path: '/profile/personal', element: <PersonalPage /> },
-  { path: '/profile/cards', element: <SoonScreen titleKey="profile.cards" /> },
-  { path: '/profile/favorites', element: <FavoritesPage /> },
-  { path: '/owner', element: <SoonScreen titleKey="profile.ownerMode" /> },
+  {
+    path: '/stadiums/:id',
+    element: (
+      <SplashDone>
+        <StadiumPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/stadiums/:id/reviews',
+    element: (
+      <SplashDone>
+        <ReviewsPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/checkout',
+    element: (
+      <SplashDone>
+        <SoonScreen titleKey="checkout.title" />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/team',
+    element: (
+      <SplashDone>
+        <SoonTab titleKey="tabs.team" />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games',
+    element: (
+      <SplashDone>
+        <SoonTab titleKey="tabs.games" />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <SplashDone>
+        <ProfilePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/personal',
+    element: (
+      <SplashDone>
+        <PersonalPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/cards',
+    element: (
+      <SplashDone>
+        <SoonScreen titleKey="profile.cards" />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/favorites',
+    element: (
+      <SplashDone>
+        <FavoritesPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/owner',
+    element: (
+      <SplashDone>
+        <SoonScreen titleKey="profile.ownerMode" />
+      </SplashDone>
+    ),
+  },
   { path: '*', element: <Navigate to="/" replace /> },
 ]

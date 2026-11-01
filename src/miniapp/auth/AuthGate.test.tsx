@@ -1,9 +1,10 @@
 import { QueryClient } from '@tanstack/react-query'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createMemoryTokenStore } from '../../shared/api'
+import { configureApiClient, createMemoryTokenStore } from '../../shared/api'
 import '../i18n'
-import { makeUser } from '../test/api'
+import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
+import { jsonResponse, makeUser } from '../test/api'
 import { AuthGate } from './AuthGate'
 import { SessionProvider } from './SessionProvider'
 import { createSession, type Session, type SessionState } from './session'
@@ -44,6 +45,38 @@ function renderGate(session: Session) {
     </SessionProvider>,
   )
 }
+
+describe('AuthGate and the splash', () => {
+  afterEach(() => {
+    removeFakeTelegram()
+    vi.unstubAllGlobals()
+    document.getElementById('splash')?.remove()
+  })
+
+  it('hides the splash on a login error', async () => {
+    installFakeTelegram()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(500, null, 'Server error')))
+    const splash = document.createElement('div')
+    splash.id = 'splash'
+    document.body.appendChild(splash)
+
+    const queryClient = new QueryClient()
+    const tokenStore = createMemoryTokenStore()
+    configureApiClient({ tokenStore })
+    renderGate(createSession({ tokenStore, queryClient }))
+
+    expect(await screen.findByRole('button', { name: 'Qayta urinish' })).toBeInTheDocument()
+    await waitFor(() => expect(document.getElementById('splash')).toBeNull())
+  })
+
+  it('renders nothing while loading when a splash covers the screen', () => {
+    const splash = document.createElement('div')
+    splash.id = 'splash'
+    document.body.appendChild(splash)
+    renderGate(sessionIn({ status: 'loading' }))
+    expect(screen.queryByRole('status', { name: 'Yuklanmoqda' })).not.toBeInTheDocument()
+  })
+})
 
 describe('AuthGate', () => {
   it('starts the login on mount and shows a skeleton while it runs', () => {

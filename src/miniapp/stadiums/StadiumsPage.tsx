@@ -22,6 +22,7 @@ import {
 } from '../components'
 import { TabScreen } from '../layout/TabScreen'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
+import { useSplashDone } from '../splash'
 import { FiltersSheet } from './FiltersSheet'
 import { formatLabel } from './labels'
 import { STADIUM_LISTS_KEY, useToggleFavorite } from './queries'
@@ -45,6 +46,8 @@ export function StadiumsPage() {
     initialPageParam: 0,
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
   })
+
+  useSplashDone(!list.isPending)
 
   const stadiums = list.data?.pages.flatMap((page) => page.content) ?? []
   const sheetFiltered = filters.maxPrice !== null || filters.district !== null

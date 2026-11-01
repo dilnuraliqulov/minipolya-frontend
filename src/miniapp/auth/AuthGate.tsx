@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { BlockDetails } from '../api/blocked'
 import { Button, ErrorState, Header, Screen, SkeletonList, StateView } from '../components'
 import { formatLongDate } from '../format'
+import { hasSplash, useSplashDone } from '../splash'
 import { getTelegramWebApp } from '../telegram'
 import { useSession, useSessionState } from './sessionContext'
 
@@ -21,10 +22,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
     session.start()
   }, [session])
 
+  // The static splash covers the loading and ready phases; a full-screen
+  // state (error, blocked, no Telegram) takes over and lifts it.
+  useSplashDone(
+    state.status === 'error' || state.status === 'blocked' || state.status === 'no-telegram',
+  )
+
   switch (state.status) {
     case 'ready':
       return <>{children}</>
     case 'loading':
+      // The splash covers this; without one (tests, HMR) show the skeleton.
+      if (hasSplash()) return null
       return (
         <Screen header={<Header title={t('app.name')} />}>
           <SkeletonList />
