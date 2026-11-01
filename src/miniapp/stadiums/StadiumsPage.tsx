@@ -47,7 +47,8 @@ export function StadiumsPage() {
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
   })
 
-  useSplashDone(!list.isPending)
+  // A first load paused offline would otherwise leave the splash up forever.
+  useSplashDone(!list.isPending || list.fetchStatus === 'paused')
 
   const stadiums = list.data?.pages.flatMap((page) => page.content) ?? []
   const sheetFiltered = filters.maxPrice !== null || filters.district !== null

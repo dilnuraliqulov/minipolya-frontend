@@ -1,3 +1,4 @@
+import { onlineManager } from '@tanstack/react-query'
 import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, stubApi } from '../test/api'
@@ -202,5 +203,22 @@ describe('Bosh sahifa — the stadium list', () => {
     const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
     fireEvent.click(within(card).getByRole('button', { name: /Band qilish/ }))
     expect(router.state.location.pathname).toBe('/stadiums/018f3a2c-0000-7000-8000-0000000000a1')
+  })
+})
+
+describe('Bosh sahifa — the splash', () => {
+  afterEach(() => {
+    onlineManager.setOnline(true)
+    document.getElementById('splash')?.remove()
+  })
+
+  it('lifts the splash when the first load is paused offline', async () => {
+    stubApi({ [LIST]: page([]) })
+    onlineManager.setOnline(false)
+    const splash = document.createElement('div')
+    splash.id = 'splash'
+    document.body.appendChild(splash)
+    renderApp('/')
+    await vi.waitFor(() => expect(document.getElementById('splash')).toBeNull())
   })
 })
