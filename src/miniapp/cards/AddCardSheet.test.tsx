@@ -7,6 +7,7 @@ import { ToastProvider } from '../components/ToastProvider'
 import { jsonResponse, stubApi } from '../test/api'
 import { makeCard } from '../test/bookings'
 import { AddCardSheet } from './AddCardSheet'
+import { useCards } from './queries'
 
 const NUMBER = '8600123456789012'
 const BIND = { bindingId: 'b1', maskedPhone: '+998 •• ••• •• 67' }
@@ -192,6 +193,63 @@ describe('AddCardSheet', () => {
       await vi.advanceTimersByTimeAsync(60_000)
     })
     expect(screen.getByText('Kod muddati tugadi — yangi kod soʻrang')).toBeInTheDocument()
+  })
+
+  it('accepts pasted text with extra spaces in the number and the expiry', () => {
+    stubApi({})
+    setup()
+    fireEvent.change(screen.getByLabelText('Karta raqami'), {
+      target: { value: '8600  1234  5678  9012' },
+    })
+    expect(screen.getByLabelText('Karta raqami')).toHaveValue('8600 1234 5678 9012')
+    fireEvent.change(screen.getByLabelText('Amal qilish muddati (OO/YY)'), {
+      target: { value: '12 / 27' },
+    })
+    expect(screen.getByLabelText('Amal qilish muddati (OO/YY)')).toHaveValue('12/27')
+    expect(screen.getByRole('button', { name: 'Davom etish' })).toBeEnabled()
+  })
+
+  it('has no maxLength that would cut a pasted number or expiry', () => {
+    stubApi({})
+    setup()
+    expect(screen.getByLabelText('Karta raqami')).not.toHaveAttribute('maxlength')
+    expect(screen.getByLabelText('Amal qilish muddati (OO/YY)')).not.toHaveAttribute('maxlength')
+  })
+
+  it('refreshes the cards list even if the sheet was closed before confirm answered', async () => {
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const api = stubApi({
+      'GET /api/cards': [],
+      'POST /api/cards': BIND,
+      'POST /api/cards/confirm': async () => {
+        await gate
+        return saved
+      },
+    })
+    configureApiClient({ tokenStore: createMemoryTokenStore() })
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    function Probe() {
+      useCards()
+      return null
+    }
+    const tree = (open: boolean) => (
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <Probe />
+          <AddCardSheet open={open} onClose={() => {}} onSaved={() => {}} />
+        </ToastProvider>
+      </QueryClientProvider>
+    )
+    const view = render(tree(true))
+    await toCodeStep()
+    fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '111111' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
+    await vi.waitFor(() => expect(api.calls('POST /api/cards/confirm')).toHaveLength(1))
+    const before = api.calls('GET /api/cards').length
+    view.rerender(tree(false))
+    release()
+    await vi.waitFor(() => expect(api.calls('GET /api/cards').length).toBeGreaterThan(before))
   })
 
   it('never leaks the number, expiry or code', async () => {

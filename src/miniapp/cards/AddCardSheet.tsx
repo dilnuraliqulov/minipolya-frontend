@@ -77,14 +77,12 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
   const round = binding?.round
   useEffect(() => {
     if (round === undefined) return
+    // Count down from a deadline: background timers run late, the clock does not.
+    const deadline = Date.now() + RESEND_SECONDS * 1000
     const timer = setInterval(() => {
-      setSecondsLeft((left) => {
-        if (left <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return left - 1
-      })
+      const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+      setSecondsLeft(left)
+      if (left === 0) clearInterval(timer)
     }, 1000)
     return () => clearInterval(timer)
   }, [round])
@@ -119,11 +117,12 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     setProblem(null)
     try {
       const card = await confirmCard(binding.id, code)
+      // The card is saved whatever the sheet is doing: refresh the list even if it was closed.
+      void queryClient.invalidateQueries({ queryKey: CARDS_KEY })
       if (!mounted.current) return
       setNumber('')
       setExpiry('')
       setCode('')
-      void queryClient.invalidateQueries({ queryKey: CARDS_KEY })
       toast.show(t('cards.saved'), 'success')
       onSaved(card)
     } catch (error) {
@@ -185,7 +184,6 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
           onChange={(event) => setNumber(digitsOnly(event.target.value).slice(0, 16))}
           inputMode="numeric"
           autoComplete="cc-number"
-          maxLength={19}
           error={problem?.kind === 'number' ? t('cards.wrongNumber') : undefined}
         />
         <Input
@@ -194,7 +192,6 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
           onChange={(event) => setExpiry(formatExpiry(event.target.value))}
           inputMode="numeric"
           autoComplete="cc-exp"
-          maxLength={5}
         />
         {privacy}
       </BottomSheet>
