@@ -4,7 +4,7 @@ import { BookedPage } from './booking/BookedPage'
 import { CheckoutPage } from './booking/CheckoutPage'
 import { BookingPage } from './bookings/BookingPage'
 import { BookingsPage } from './bookings/BookingsPage'
-import { SoonScreen, SoonTab } from './layout/SoonScreen'
+import { SoonScreen } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { FavoritesPage } from './stadiums/FavoritesPage'
@@ -12,6 +12,8 @@ import { ReviewsPage } from './stadiums/ReviewsPage'
 import { StadiumPage } from './stadiums/StadiumPage'
 import { RouteError } from './RouteError'
 import { SplashDone } from './splash'
+import { TeamCreatePage } from './teams/TeamCreatePage'
+import { TeamPage } from './teams/TeamPage'
 import { StadiumsPage } from './stadiums/StadiumsPage'
 
 const screens: RouteObject[] = [
@@ -60,7 +62,15 @@ const screens: RouteObject[] = [
     path: '/team',
     element: (
       <SplashDone>
-        <SoonTab titleKey="tabs.team" />
+        <TeamPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/team/new',
+    element: (
+      <SplashDone>
+        <TeamCreatePage />
       </SplashDone>
     ),
   },

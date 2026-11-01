@@ -13,8 +13,10 @@ import { makeUser } from './api'
 
 /** A logged-in session for screen tests; its methods are spies. */
 export function readySession(user: User = makeUser()): Session {
+  // One state object: useSyncExternalStore needs a stable snapshot.
+  const state = { status: 'ready', user } as const
   return {
-    getState: () => ({ status: 'ready', user }),
+    getState: () => state,
     subscribe: () => () => {},
     start: vi.fn(),
     retry: vi.fn(),

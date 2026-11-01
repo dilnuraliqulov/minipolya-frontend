@@ -311,3 +311,36 @@ Placeholders such as `{{count}}` must stay as they are.
 | `games.status.confirmed` | Tasdiqlangan | Подтверждена | Confirmed |
 | `games.status.completed` | Oʻtkazilgan | Состоялась | Played |
 | `games.status.cancelled` | Bekor qilingan | Отменена | Cancelled |
+| `team.emptyTitle` | Sizda hali jamoa yoʻq | У вас пока нет команды | You have no team yet |
+| `team.emptyText` | Jamoa yarating va boshqa jamoalar bilan oʻynang. | Создайте команду и играйте с другими командами. | Create a team and play against other teams. |
+| `team.create` | Jamoa yaratish | Создать команду | Create a team |
+| `team.newTeam` | Yangi jamoa | Новая команда | New team |
+| `team.pick` | Jamoa | Команда | Team |
+| `team.members` | Aʼzolar | Участники | Members |
+| `team.memberCount` | {{count}} aʼzo | {{count}} уч. | {{count}} members |
+| `team.leader` | Sardor | Капитан | Captain |
+| `team.member` | Aʼzo | Участник | Member |
+| `team.anonymous` | Oʻyinchi | Игрок | Player |
+| `team.invite` | Taklif havolasini ulashish | Поделиться приглашением | Share the invite link |
+| `team.memberActions` | {{name}} — amallar | {{name}} — действия | {{name}} — actions |
+| `team.remove` | Jamoadan chiqarish | Исключить из команды | Remove from the team |
+| `team.removeTitle` | {{name}}ni jamoadan chiqarasizmi? | Исключить {{name}} из команды? | Remove {{name}} from the team? |
+| `team.removeConfirm` | Chiqarish | Исключить | Remove |
+| `team.removed` | Aʼzo chiqarildi | Участник исключён | Member removed |
+| `team.delete` | Jamoani oʻchirish | Удалить команду | Delete the team |
+| `team.deleteTitle` | Jamoani oʻchirasizmi? | Удалить команду? | Delete this team? |
+| `team.deleteText` | {{name}} va uning aʼzolari roʻyxati oʻchiriladi. | Команда {{name}} и её состав будут удалены. | {{name}} and its member list will be deleted. |
+| `team.deleteConfirm` | Oʻchirish | Удалить | Delete |
+| `team.deleted` | Jamoa oʻchirildi | Команда удалена | Team deleted |
+| `team.cancel` | Bekor qilish | Отмена | Cancel |
+| `team.challenges` | Raqib qidirayotgan jamoalar | Команды ищут соперника | Teams looking for an opponent |
+| `team.challengesEmpty` | Hozircha raqib qidirayotgan jamoa yoʻq. | Сейчас никто не ищет соперника. | No team is looking for an opponent right now. |
+| `team.payNow` | Jamoangiz toʻlaydi: {{amount}} | Ваша команда платит: {{amount}} | Your team pays: {{amount}} |
+| `team.accept` | Qabul qilish | Принять | Accept |
+| `team.more` | Yana koʻrsatish | Показать ещё | Show more |
+| `team.createTitle` | Jamoa yaratish | Создание команды | Create a team |
+| `team.createIntro` | Siz jamoa sardori boʻlasiz. Keyin doʻstlaringizni havola orqali taklif qilasiz. | Вы станете капитаном. Потом пригласите друзей по ссылке. | You will be the captain. Then invite friends with a link. |
+| `team.name` | Jamoa nomi | Название команды | Team name |
+| `team.nameHint` | 3–24 belgi. Keyin oʻzgartirish mumkin. | 3–24 символа. | 3–24 characters. |
+| `team.created` | Jamoa yaratildi | Команда создана | Team created |
+| `team.notFoundTitle` | Jamoa topilmadi | Команда не найдена | Team not found |

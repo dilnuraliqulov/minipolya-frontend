@@ -23,13 +23,12 @@ describe('Mini App shell', () => {
     expect(screen.getByRole('link', { name: 'Maydonlar' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows "Tez orada" on the tabs later parts build', async () => {
+  it('switches between the tabs', async () => {
     renderApp('/')
     await screen.findByRole('heading', { name: 'Hozircha maydonlar yoʻq' })
 
     fireEvent.click(screen.getByRole('link', { name: 'Jamoam' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Jamoam' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Jamoam' })).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(screen.getByRole('link', { name: 'Oʻyinlarim' }))
