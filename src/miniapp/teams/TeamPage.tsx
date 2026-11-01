@@ -11,6 +11,7 @@ import {
   removeTeamMember,
   TEAM_INVITE,
   teamKey,
+  type Team,
   type TeamDetail,
   type TeamMember,
 } from '../api/teams'
@@ -261,7 +262,8 @@ function DeleteTeamSheet({ team, onClose }: { team: TeamDetail; onClose: () => v
     mutationFn: () => deleteTeam(team.id),
     onSuccess: () => {
       toast.show(t('team.deleted'), 'success')
-      queryClient.removeQueries({ queryKey: teamKey(team.id) })
+      // Drop it from the list first, so the page moves on before anything refetches it.
+      queryClient.setQueryData<Team[]>(MY_TEAMS_KEY, (old) => old?.filter((x) => x.id !== team.id))
       void queryClient.invalidateQueries({ queryKey: MY_TEAMS_KEY })
       setSearch({}, { replace: true })
       onClose()

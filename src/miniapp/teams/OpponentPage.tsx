@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { tashkentToUtc } from '../../shared/format'
-import { errorMessageKey } from '../api/errors'
+import { errorMessageKey, isUnclearPaymentError } from '../api/errors'
 import { createTeamGame, MY_GAMES_KEY } from '../api/games'
 import { getAvailability } from '../api/stadiums'
 import { parseCheckoutParams, type CheckoutParams } from '../booking/checkoutParams'
 import { CardPicker } from '../cards/CardPicker'
+import { UnclearOutcome } from '../games/UnclearOutcome'
 import { useCardChoice } from '../cards/useCardChoice'
 import {
   BottomBar,
@@ -108,6 +109,8 @@ function Opponent({ params }: { params: CheckoutParams }) {
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
       navigate(`/games/${game.id}`, { replace: true })
     },
+    // The game may exist even when the answer did not arrive: show it in Oʻyinlarim.
+    onError: () => void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY }),
   })
   const header = (
     <Header
@@ -160,6 +163,13 @@ function Opponent({ params }: { params: CheckoutParams }) {
     )
   }
 
+  if (create.isError && isUnclearPaymentError(create.error)) {
+    return (
+      <Screen header={header}>
+        <UnclearOutcome error={create.error} />
+      </Screen>
+    )
+  }
   const team = led.teams.find((x) => x.id === teamId) ?? led.teams[0]
   const failure = create.isError ? errorMessageKey(create.error) : null
   const footer = (

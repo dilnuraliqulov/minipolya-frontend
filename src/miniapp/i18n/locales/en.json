@@ -77,7 +77,9 @@
     "alreadyReviewed": "You have already rated this pitch.",
     "reviewNotPlayed": "You can only rate a pitch you have played at.",
     "cardDeclined": "The card was declined. Choose another card or check this one.",
-    "tooLate": "The game starts in less than 3 hours — it can no longer be joined."
+    "tooLate": "The game starts in less than 3 hours — it can no longer be joined.",
+    "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
+    "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -399,7 +401,7 @@
     "accept": "Accept",
     "more": "Show more",
     "createTitle": "Create a team",
-    "createIntro": "You will be the captain. Then invite friends with a link.",
+    "createIntro": "You will be the team captain.",
     "name": "Team name",
     "nameHint": "3–24 characters.",
     "created": "Team created",
@@ -436,7 +438,10 @@
     "notFoundTitle": "Game not found",
     "notFoundText": "This game does not exist.",
     "payTitle": "Pay the rest",
-    "payButton": "Pay · {{amount}}"
+    "payButton": "Pay · {{amount}}",
+    "unclearTitle": "Check the result",
+    "unclearText": "No answer came back. The payment may have gone through — check My games instead of trying again.",
+    "toGames": "Go to My games"
   },
   "accept": {
     "title": "Accept the challenge",
@@ -480,5 +485,151 @@
     "emptyText": "Agree on the game with the other captain.",
     "closed": "Chat is open only for a confirmed game.",
     "you": "You"
+  },
+  "owner": {
+    "tabs": {
+      "schedule": "Schedule",
+      "stadium": "My pitch",
+      "report": "Report",
+      "profile": "Profile"
+    },
+    "tabsLabel": "Owner mode sections",
+    "pickStadium": "Pitch",
+    "noStadiumTitle": "You have no pitch yet",
+    "noStadiumText": "Add a pitch — players see it once an admin approves it.",
+    "addStadium": "Add a pitch",
+    "status": {
+      "pending": "Under review",
+      "approved": "Active",
+      "rejected": "Rejected",
+      "blocked": "Blocked"
+    },
+    "banner": {
+      "pending": "An admin is reviewing the pitch. Players see it once it is approved.",
+      "rejected": "The pitch was rejected.",
+      "blocked": "The pitch is blocked and hidden from players.",
+      "reason": "Reason: {{reason}}"
+    },
+    "section": {
+      "info": "Details",
+      "infoText": "Name, address, district, format, surface",
+      "photos": "Photos",
+      "hours": "Opening hours",
+      "prices": "Prices",
+      "pricesText": "Base price: {{price}}",
+      "terms": "Booking terms",
+      "closures": "Closed days",
+      "closuresText": "Planned closures"
+    },
+    "soonDetail": "Coming soon — the server does not give the owner this yet",
+    "save": "Save",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "remove": "Delete",
+    "removeItem": "{{item}} — delete",
+    "add": "Add",
+    "field": {
+      "name": "Pitch name",
+      "address": "Address",
+      "district": "District",
+      "format": "Format",
+      "surface": "Surface",
+      "phone": "Phone (optional)",
+      "description": "Description (optional)",
+      "open": "Opens",
+      "close": "Closes",
+      "price": "Price per hour (soʻm)",
+      "priceHint": "Players see a slightly higher price that covers the card payment.",
+      "minimum": "Deposit (soʻm, optional)",
+      "minimumHint": "Empty means full payment only. At least 500 soʻm.",
+      "cancelHours": "Free cancellation (hours)",
+      "day": "Day",
+      "from": "From",
+      "to": "To",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "reason": "Reason (optional)",
+      "clientName": "Client name",
+      "clientPhone": "Client phone",
+      "time": "Time",
+      "cashPaid": "Paid in cash"
+    },
+    "prices": {
+      "title": "Prices",
+      "empty": "No special rules — the base price applies.",
+      "add": "Add a price rule",
+      "player": "For players: {{price}}",
+      "added": "Price rule added",
+      "removed": "Price rule removed"
+    },
+    "closures": {
+      "title": "Closed days",
+      "empty": "No closures planned.",
+      "add": "Add a closure",
+      "allDay": "All day",
+      "added": "Closure added",
+      "removed": "Closure removed"
+    },
+    "schedule": {
+      "free": "Free",
+      "closed": "Closed",
+      "past": "Past",
+      "summary": "Booked: {{booked}}/{{total}} · Revenue: {{revenue}}",
+      "walkIn": "Add a walk-in",
+      "waitingGame": "{{team}} is waiting for an opponent",
+      "empty": "No bookings for this day.",
+      "walkInTitle": "Walk-in booking",
+      "walkInDone": "Booking added",
+      "noFreeHour": "No free hour on this day."
+    },
+    "booking": {
+      "title": "Booking details",
+      "player": "Player (app)",
+      "walkIn": "Walk-in",
+      "price": "Price",
+      "paidInApp": "Paid in the app",
+      "remaining": "To collect in cash",
+      "receives": "You receive",
+      "cash": "Cash received",
+      "call": "Call",
+      "cancel": "Cancel the booking",
+      "cancelTitle": "Cancel this booking?",
+      "cancelText": "The player gets back everything paid by card.",
+      "cancelled": "Booking cancelled"
+    },
+    "report": {
+      "today": "Today",
+      "week": "Week",
+      "month": "Month",
+      "periods": "Period",
+      "bookings": "Bookings",
+      "revenue": "Revenue",
+      "rating": "Rating",
+      "occupancy": "Occupancy",
+      "unpaid": "Unpaid remainders"
+    },
+    "profile": {
+      "playerMode": "Switch to player mode",
+      "playerModeText": "Book pitches and play team games",
+      "payouts": "Payouts",
+      "badge": "Pitch owner · {{count}} pitches"
+    },
+    "wizard": {
+      "title": "Add a pitch",
+      "step": "Step {{n}} of {{total}} · {{name}}",
+      "basics": "Basics",
+      "place": "Location",
+      "hours": "Opening hours",
+      "price": "Price and terms",
+      "review": "Review",
+      "next": "Next",
+      "back": "Back",
+      "submit": "Send for review",
+      "photosSoon": "Photo upload is coming soon — the pitch is sent without photos for now.",
+      "hoursError": "Closing time must be after opening time.",
+      "sentTitle": "The pitch was sent for review",
+      "sentText": "Once an admin approves it, players can see and book it.",
+      "toStadium": "Go to my pitch"
+    }
   }
 }

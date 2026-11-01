@@ -78,13 +78,15 @@ describe('Chat', () => {
   })
 
   it('is read-only when the game is not confirmed', async () => {
-    stubApi({
+    const api = stubApi({
       'GET /api/games/g1': { ...game, status: 'completed' },
-      'GET /api/games/g1/messages': page([]),
+      'GET /api/games/g1/messages': jsonResponse(400, null, 'Chat is closed for this game'),
     })
     renderApp('/games/g1/chat')
     expect(await screen.findByText('Chat faqat tasdiqlangan oʻyinda ochiq.')).toBeInTheDocument()
     expect(screen.getByLabelText('Xabar')).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Qayta urinish' })).not.toBeInTheDocument()
+    expect(api.calls('GET /api/games/g1/messages')).toHaveLength(0)
   })
 
   it('shows the error state and retries', async () => {

@@ -24,6 +24,8 @@ export type ErrorMessageKey =
   | 'errors.reviewNotPlayed'
   | 'errors.cardDeclined'
   | 'errors.tooLate'
+  | 'errors.paymentConfirming'
+  | 'errors.paymentUnclear'
   | 'errors.unknown'
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {
@@ -47,6 +49,13 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       )
         return 'errors.cardDeclined'
       if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
+      if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
+      if (
+        error.message === API_MESSAGES.joinPaymentUnconfirmed ||
+        error.message === API_MESSAGES.joinOtherTeamConfirming ||
+        error.message === API_MESSAGES.joinOtherTeamFailed
+      )
+        return 'errors.paymentUnclear'
       return 'errors.invalid'
     case 401:
       return 'errors.session'
@@ -66,4 +75,19 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
 /** The translated message for an error, in the current language. */
 export function errorMessage(error: unknown): string {
   return i18n.t(errorMessageKey(error))
+}
+
+/**
+ * A failed money request whose outcome the player cannot know from the answer:
+ * no answer, a server error, or a payment step still being settled. Never
+ * offer a retry for these — the charge may have gone through.
+ */
+export function isUnclearPaymentError(error: unknown): boolean {
+  const key = errorMessageKey(error)
+  return (
+    key === 'errors.network' ||
+    key === 'errors.server' ||
+    key === 'errors.paymentConfirming' ||
+    key === 'errors.paymentUnclear'
+  )
 }

@@ -434,6 +434,137 @@ a `remainder` payment of this booking is `processing`, with `code:
 **Priority**
 High — guards against charging a player twice.
 
+### R35 — The owner's own stadium detail
+
+**What's needed**
+`GET /api/owner/stadiums` returns `StadiumResponse` (no phone, description,
+opening hours, minimum booking amount, cancellation hours, photos or
+amenities). The public `GET /api/stadiums/{id}` has them but in **player**
+prices and only for approved stadiums. Owner mode cannot show or prefill its
+own settings.
+
+**Which screen needs it**
+Mini App owner mode — Maydonim: Maʼlumotlar, Ish vaqti, Narx/Bron shartlari,
+Rasmlar (also for a stadium still `pending`).
+
+**Proposed endpoint**
+`GET /api/owner/stadiums/{id}` — owner of that stadium.
+
+Response — `StadiumDetailResponse` in the owner's view, exactly as `PUT
+/api/owner/stadiums/{id}` already returns it (own `pricePerHour` /
+`minBookingAmount` with `playerPrice` / `playerMinBookingAmount`, `status`,
+`statusReason`, `openTime`, `closeTime`, `cancellationPolicy`, `photos`,
+`amenities`, `phone`, `description`), any status.
+
+Error cases — 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+**Priority**
+High — three of the six Maydonim sections wait for it.
+
+### R36 — Upload stadium photos
+
+**What's needed**
+`photos` on create/update are URL strings and there is no upload endpoint
+(api-reference Q5); a phone owner has no URL to give.
+
+**Which screen needs it**
+Mini App owner mode — Maydon qoʻshish step 3 "Rasmlar", Maydonim → Rasmlar.
+
+**Proposed endpoint**
+`POST /api/owner/stadiums/{id}/photos` — owner; `multipart/form-data`, field
+`file` (JPEG/PNG/WebP, ≤ 10 MB). Response — `PhotoResponse` `{ id, url,
+position }`. `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — `data: null`.
+
+Error cases — 400 `"Unsupported image type"`, 413 `"File too large"`; 403; 404.
+
+**Priority**
+Medium — stadiums can be created without photos; players see the logo instead.
+
+### R37 — The owner marks a booking's remainder as paid in cash
+
+**What's needed**
+`POST /api/bookings/{id}/cash` is documented in the backend `CLAUDE.md` but not
+mapped (api-reference Q6). The schedule's "Naqd olindi" cannot work for an
+ordinary booking (team games have `POST /api/games/{id}/cash`).
+
+**Which screen needs it**
+Mini App owner mode — Jadval booking sheet, Hisobot unpaid list.
+
+**Proposed endpoint**
+`POST /api/owner/bookings/{id}/cash` — owner of the stadium; no body. Records
+the booking's `remainingAmount` as cash; response `BookingResponse` (owner
+view), `message: "Cash recorded"`.
+
+Error cases — 400 `"Already paid"`; 400 `"This booking has no part payment to
+complete"`; 403 `"You do not own this stadium"`; 404 `"Booking not found"`.
+
+**Priority**
+High — every deposit booking ends with a cash remainder the owner must record.
+
+### R38 — Unpaid remainders and the app/cash split for the owner
+
+**What's needed**
+Hisobot shows "Toʻlanmagan qoldiqlar" and money received in the app vs in cash.
+`…/stats` returns only totals; filtering one page of bookings in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App owner mode — Hisobot.
+
+**Proposed endpoints**
+`GET /api/owner/dashboard/stadiums/{id}/bookings?unpaid=true` — owner; paged
+`BookingResponse` (owner view) with `remainingAmount > 0`, live bookings only,
+soonest first. `OwnerDashboardStatsResponse` gains, per period
+(`today`/`week`/`month`): `…PaidInApp`, `…PaidInCash`, `…Outstanding` (tiyin).
+
+Error cases — 403 `"You do not own this stadium"`.
+
+**Priority**
+Medium — the totals are shown meanwhile.
+
+### R39 — The owner's contract and payout status
+
+**What's needed**
+Owner Profil shows "Toʻlovlar: Shartnoma — Imzolangan" and support contact.
+Legal details and `atmosContractStatus` exist only under `/api/admin/**`.
+
+**Which screen needs it**
+Mini App owner mode — Profil.
+
+**Proposed endpoint**
+`GET /api/owner/legal-details` — owner; `{ legalType?, atmosContractStatus,
+ownerContractStatus }` (§1.9 values), read-only.
+
+Error cases — none beyond 401/403.
+
+**Priority**
+Low — informational.
+
+### R40 — Make team game charges safe to retry
+
+**What's needed**
+`POST /api/games` (team game) and `POST /api/games/{id}/pay-remainder` are not
+idempotent. If the answer is lost (timeout, 5xx), a retry creates a second
+waiting game with a second hold, or charges a remainder that is still
+`processing` again (`chargeForTeamGame` has no guard). The Mini App no longer
+offers a retry after such errors and sends the captain to Oʻyinlarim, but the
+server should make a retry harmless.
+
+**Which screen needs it**
+Mini App player — Raqib qidirish, game detail "Qolganini toʻlash".
+
+**Proposed change**
+- `POST /api/games` and `POST /api/games/{id}/pay-remainder` accept an
+  optional `Idempotency-Key` header (UUID); a repeated key within 24 h returns
+  the first result instead of acting again.
+- `pay-remainder` answers 409 `code: "PAYMENT_PROCESSING"` while a remainder
+  payment of that team is `processing` (same as R34 for bookings).
+- `POST /api/games` refuses a second waiting game of the same team on the same
+  hour: 409 `"Your team is already looking for an opponent at this time"`.
+
+**Priority**
+High — guards against double holds and double charges.
+
 ---
 
 ## Done

@@ -62,11 +62,8 @@ function GameCard({ game }: { game: Game }) {
   const { t } = useTranslation()
   const badge = gameStatusBadge(game.status)
   const typeKey = TYPE_KEYS[game.type as keyof typeof TYPE_KEYS]
-  return (
-    <Link
-      to={`/games/${game.id}`}
-      className="flex min-h-22 items-center gap-3 rounded-2xl border border-border bg-background p-3"
-    >
+  const body = (
+    <>
       <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-link">
         <Swords size={26} aria-hidden />
       </span>
@@ -79,7 +76,19 @@ function GameCard({ game }: { game: Game }) {
         </span>
         <Badge tone={badge.tone}>{badge.labelKey ? t(badge.labelKey) : badge.raw}</Badge>
       </span>
-      <ChevronRight size={20} className="shrink-0 text-secondary" aria-hidden />
+      {game.type === 'team_vs_team' && (
+        <ChevronRight size={20} className="shrink-0 text-secondary" aria-hidden />
+      )}
+    </>
+  )
+  const frame =
+    'flex min-h-22 items-center gap-3 rounded-2xl border border-border bg-background p-3'
+  // Only team games have a detail screen; friends games have no design yet.
+  return game.type === 'team_vs_team' ? (
+    <Link to={`/games/${game.id}`} className={frame}>
+      {body}
     </Link>
+  ) : (
+    <div className={frame}>{body}</div>
   )
 }

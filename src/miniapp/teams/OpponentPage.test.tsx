@@ -84,6 +84,17 @@ describe('Raqib qidirish', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Karta rad etildi')
   })
 
+  it('sends the captain to Oʻyinlarim after a server error instead of a retry', async () => {
+    stub({ 'POST /api/games': jsonResponse(500, null, 'Internal server error') })
+    renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: 'Raqib qidirishni boshlash' }))
+    expect(await screen.findByText('Natijani tekshiring')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Raqib qidirishni boshlash' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('explains a taken slot', async () => {
     stub({ 'POST /api/games': jsonResponse(409, null, 'That time slot is already booked') })
     renderApp(URL)

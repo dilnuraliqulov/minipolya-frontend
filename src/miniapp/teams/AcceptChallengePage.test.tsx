@@ -38,6 +38,12 @@ function stub(overrides: Record<string, unknown> = {}) {
   return stubApi({
     'GET /api/games/challenges': page([challenge]),
     'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions', memberCount: 3 }],
+    'GET /api/teams/t1': {
+      id: 't1',
+      name: 'Chilonzor Lions',
+      leaderId: '018f3a2c-0000-7000-8000-000000000001',
+      members: [],
+    },
     'GET /api/cards': [
       makeCard({ id: 'c1' }),
       makeCard({ id: 'c2', maskedNumber: '8600 •••• 5678' }),
@@ -95,6 +101,22 @@ describe('Raqibni qabul qilish', () => {
     await screen.findByRole('radio', { name: /•••• 1234/ })
     fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
     expect(await screen.findByText('Oʻyinga 3 soatdan kam qoldi')).toBeInTheDocument()
+  })
+
+  it('sends the captain to Oʻyinlarim instead of offering a retry when no answer came', async () => {
+    const api = stub({ [JOIN]: () => Promise.reject(new TypeError('Failed to fetch')) })
+    renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    expect(await screen.findByText('Natijani tekshiring')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Oʻyinlarimga oʻtish' })).toHaveAttribute(
+      'href',
+      '/games',
+    )
+    expect(
+      screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ }),
+    ).not.toBeInTheDocument()
+    expect(api.calls(JOIN)).toHaveLength(1)
   })
 
   it('says the challenge is gone when it is not on the board', async () => {

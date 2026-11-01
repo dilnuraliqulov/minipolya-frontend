@@ -37,6 +37,13 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
       new ApiError("O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi", 400),
       'errors.tooLate',
     ],
+    [
+      new ApiError(
+        'The card payment is still being confirmed; the remainder will be marked paid once it is',
+        400,
+      ),
+      'errors.paymentConfirming',
+    ],
     [new ApiError('Juda koʻp', 429, 'TOO_MANY_ATTEMPTS'), 'errors.tooMany'],
   ] as const)('%s → %s', (error, key) => {
     expect(errorMessageKey(error)).toBe(key)

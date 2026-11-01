@@ -135,6 +135,50 @@ describe('Oʻyin — a team game', () => {
     expect(api.calls('DELETE /api/games/g1')).toHaveLength(1)
   })
 
+  it('closes the sheet and reloads the game when the payment is still being confirmed', async () => {
+    let gets = 0
+    stub(confirmed, {
+      'GET /api/games/g1': () => {
+        gets += 1
+        return confirmed
+      },
+      'POST /api/games/g1/pay-remainder': jsonResponse(
+        400,
+        null,
+        'The card payment is still being confirmed; the remainder will be marked paid once it is',
+      ),
+    })
+    renderApp('/games/g1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
+    fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
+    expect(await screen.findByText(/qayta toʻlamang/)).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await vi.waitFor(() => expect(gets).toBeGreaterThan(1))
+  })
+
+  it('ignores my cancelled participant row and lets only an active leader cancel', async () => {
+    stub({
+      ...confirmed,
+      creatorId: ME,
+      teams: [{ ...teamA, leaderId: 'new-leader' }, teamB],
+      participants: [
+        {
+          id: 'p1',
+          gameId: 'g1',
+          userId: ME,
+          side: 'a',
+          status: 'cancelled',
+          joinedAt: '2026-11-01T10:00:00Z',
+        },
+      ],
+    })
+    renderApp('/games/g1')
+    await screen.findByText('Tasdiqlangan')
+    expect(screen.queryByRole('region', { name: 'Jamoangiz toʻlovi' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Oʻyinni bekor qilish' })).not.toBeInTheDocument()
+  })
+
   it('shows no unpaid badge or pay button when nothing is owed', async () => {
     stub({ ...confirmed, teams: [{ ...teamA, remainderAmount: 0 }, teamB] })
     renderApp('/games/g1')

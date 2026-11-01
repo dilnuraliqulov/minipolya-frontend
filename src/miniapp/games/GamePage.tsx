@@ -13,9 +13,10 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { formatTime } from '../../shared/format'
-import { errorMessage } from '../api/errors'
+import { errorMessage, errorMessageKey } from '../api/errors'
 import {
   cancelGame,
+  CHALLENGES_KEY,
   gameKey,
   MY_GAMES_KEY,
   payTeamRemainder,
@@ -91,13 +92,15 @@ function GameContent({ game }: { game: GameDetail }) {
   const me = useLoginUser()
   const [sheet, setSheet] = useState<'pay' | 'cancel' | null>(null)
   const teams = [...(game.teams ?? [])].sort((a, b) => a.side.localeCompare(b.side))
-  const mySide = game.participants?.find((p) => p.userId === me.id)?.side
+  // A team that walked out keeps its side on its participants' rows, marked cancelled.
+  const mySide = game.participants?.find(
+    (p) => p.userId === me.id && p.status !== 'cancelled',
+  )?.side
   const myTeam =
     teams.find((team) => team.leaderId === me.id) ?? teams.find((team) => team.side === mySide)
   const isLeader = myTeam?.leaderId === me.id
-  const canCancel =
-    CANCELLABLE.has(game.status) &&
-    (game.creatorId === me.id || teams.some((x) => x.leaderId === me.id))
+  // The backend lets only a leader of a team still in the game cancel it.
+  const canCancel = CANCELLABLE.has(game.status) && teams.some((x) => x.leaderId === me.id)
   const badge = gameStatusBadge(game.status)
   const [a, b] = teams
 
@@ -321,6 +324,15 @@ function PayTeamRemainderSheet({
       toast.show(t('game.restPaid'), 'success')
       onClose()
     },
+    onError: (error) => {
+      // Only a decline is safe to try again with another card. Anything else
+      // (still confirming, already paid, no answer) may have moved money: close,
+      // say so, and reload the game instead of leaving the pay button live.
+      if (errorMessageKey(error) === 'errors.cardDeclined') return
+      toast.show(errorMessage(error), 'danger')
+      void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
+      onClose()
+    },
   })
   return (
     <BottomSheet
@@ -353,7 +365,11 @@ function PayTeamRemainderSheet({
               key={c.id}
               card={c}
               selected={c.id === card?.id}
-              invalid={pay.isError && c.id === card?.id}
+              invalid={
+                pay.isError &&
+                c.id === card?.id &&
+                errorMessageKey(pay.error) === 'errors.cardDeclined'
+              }
               onSelect={() => setCardId(c.id)}
             />
           ))}
@@ -388,6 +404,7 @@ function CancelGameSheet({
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
+      void queryClient.invalidateQueries({ queryKey: CHALLENGES_KEY })
       onClose()
     },
   })

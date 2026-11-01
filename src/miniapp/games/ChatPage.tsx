@@ -5,11 +5,18 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { formatTime } from '../../shared/format'
 import { errorMessage } from '../api/errors'
-import { getMessages, MESSAGE_MAX, messagesKey, sendMessage, type GameMessage } from '../api/games'
+import {
+  gameKey,
+  getGame,
+  getMessages,
+  MESSAGE_MAX,
+  messagesKey,
+  sendMessage,
+  type GameMessage,
+} from '../api/games'
 import { useLoginUser } from '../auth/sessionContext'
 import { cx, EmptyState, ErrorState, Header, Screen, SkeletonList, useToast } from '../components'
 import { useGoBack } from '../lib/useGoBack'
-import { useGame } from './queries'
 
 /** How often an open chat asks for new messages (no push channel exists). */
 const REFRESH_MS = 5000
@@ -22,11 +29,18 @@ export function ChatPage() {
   const me = useLoginUser()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const game = useGame(id)
+  // The game is re-read too: chat closes the moment the game stops being confirmed.
+  const game = useQuery({
+    queryKey: gameKey(id),
+    queryFn: () => getGame(id),
+    refetchInterval: REFRESH_MS,
+  })
   const open = game.data?.status === 'confirmed'
+  // The API refuses messages (400) for a game that is not confirmed: do not ask.
   const messages = useQuery({
     queryKey: messagesKey(id),
     queryFn: () => getMessages(id),
+    enabled: open,
     refetchInterval: open ? REFRESH_MS : false,
   })
   const [text, setText] = useState('')
@@ -50,13 +64,10 @@ export function ChatPage() {
   const subtitle = teams
     .map((x) => x.teamName)
     .filter(Boolean)
-    .join(' vs ')
+    .join(` ${t('game.vs')} `)
   const trimmed = text.trim()
   const footer = (
     <div className="sticky bottom-0 flex flex-col gap-2 border-t border-border bg-bar px-4 pt-3 pb-[max(12px,var(--tg-safe-bottom))]">
-      {game.data && !open && (
-        <p className="text-center text-xs text-secondary">{t('chat.closed')}</p>
-      )}
       <form
         className="flex items-center gap-2"
         onSubmit={(event) => {
@@ -88,7 +99,13 @@ export function ChatPage() {
   return (
     <Screen header={<Header title={t('chat.title')} onBack={goBack} />} footer={footer}>
       {subtitle && <p className="text-center text-sm text-secondary">{subtitle}</p>}
-      {messages.isPending ? (
+      {game.isPending ? (
+        <SkeletonList count={4} variant="item" />
+      ) : game.isError ? (
+        <ErrorState onRetry={() => void game.refetch()} />
+      ) : !open ? (
+        <EmptyState icon={MessageCircle} title={t('chat.closed')} />
+      ) : messages.isPending ? (
         <SkeletonList count={4} variant="item" />
       ) : messages.isError ? (
         <ErrorState onRetry={() => void messages.refetch()} />

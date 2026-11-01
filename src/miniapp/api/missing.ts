@@ -6,6 +6,13 @@ import {
   BOOKINGS_WHEN,
 } from './bookings'
 import { TEAM_GAME_QUOTE } from './games'
+import {
+  OWNER_BOOKING_CASH,
+  OWNER_LEGAL,
+  OWNER_STADIUM_DETAIL,
+  OWNER_UNPAID,
+  STADIUM_PHOTO_UPLOAD,
+} from './owner'
 import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
 import { TEAM_INVITE } from './teams'
 
@@ -22,7 +29,9 @@ import { TEAM_INVITE } from './teams'
  * free on a date), R27 (booking quote), R28 (pay a pending booking), R29
  * (upcoming/past filter on the booking list), R30 (cash paid on a booking) and
  * R31 (stadium photo, district and format on a booking), R32 (team invite
- * link) and R33 (team game quote). R20, R21 and R23
+ * link), R33 (team game quote), R34 (server guard, nothing to gate), R35 (owner
+ * stadium detail), R36 (photo upload), R37 (owner marks cash), R38 (unpaid
+ * remainders) and R39 (owner contract status). R20, R21 and R23
  * shipped in backend `4d5faf0`.
  */
 export const MISSING_ENDPOINTS: Record<string, string> = {
@@ -35,6 +44,11 @@ export const MISSING_ENDPOINTS: Record<string, string> = {
   [BOOKING_STADIUM_FIELDS]: 'R31',
   [TEAM_INVITE]: 'R32',
   [TEAM_GAME_QUOTE]: 'R33',
+  [OWNER_STADIUM_DETAIL]: 'R35',
+  [STADIUM_PHOTO_UPLOAD]: 'R36',
+  [OWNER_BOOKING_CASH]: 'R37',
+  [OWNER_UNPAID]: 'R38',
+  [OWNER_LEGAL]: 'R39',
 }
 
 export type Availability = 'available' | 'soon'

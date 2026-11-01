@@ -3,10 +3,11 @@ import { CalendarDays, CalendarX, CircleAlert, Clock, Info, MapPin, SearchX } fr
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
-import { errorMessageKey } from '../api/errors'
+import { errorMessageKey, isUnclearPaymentError } from '../api/errors'
 import { acceptChallenge, CHALLENGES_KEY, MY_GAMES_KEY, type Challenge } from '../api/games'
 import { bookingWhen } from '../bookings/when'
 import { CardPicker } from '../cards/CardPicker'
+import { UnclearOutcome } from '../games/UnclearOutcome'
 import { useCardChoice } from '../cards/useCardChoice'
 import {
   BottomBar,
@@ -22,7 +23,7 @@ import {
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { formatLabel } from '../stadiums/labels'
-import { useChallenges, useMyTeams } from './queries'
+import { useChallenges, useLedTeams } from './queries'
 import { TeamAvatar } from './TeamAvatar'
 
 /**
@@ -35,23 +36,22 @@ export function AcceptChallengePage() {
   const [search] = useSearchParams()
   const goBack = useGoBack('/team')
   const board = useChallenges()
-  const teams = useMyTeams()
+  const led = useLedTeams()
   const header = <Header title={t('accept.title')} onBack={goBack} />
 
-  if (board.isPending || teams.isPending) {
+  if (board.isPending || led.isPending) {
     return (
       <Screen header={header}>
         <SkeletonList count={3} />
       </Screen>
     )
   }
-  if (board.isError || teams.isError) {
+  if (board.isError) {
     return (
       <Screen header={header} className="justify-center">
         <ErrorState
           onRetry={() => {
-            if (board.isError) void board.refetch()
-            if (teams.isError) void teams.refetch()
+            void board.refetch()
           }}
         />
       </Screen>
@@ -60,7 +60,8 @@ export function AcceptChallengePage() {
   const challenge = board.data.pages
     .flatMap((page) => page.content)
     .find((c) => c.gameId === gameId)
-  const team = teams.data.find((x) => x.id === search.get('team'))
+  // Only a team this player captains can accept.
+  const team = led.teams.find((x) => x.id === search.get('team'))
   if (!challenge || !team) {
     return (
       <Screen header={header}>
@@ -116,10 +117,10 @@ function AcceptForm({
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
       navigate(`/games/${challenge.gameId}`, { replace: true })
     },
-    onError: (error) => {
-      if (isApiError(error) && error.status === 409) {
-        void queryClient.invalidateQueries({ queryKey: CHALLENGES_KEY })
-      }
+    // Any failure may have changed the board (a capture that failed cancels the game).
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: CHALLENGES_KEY })
+      void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
     },
   })
   const header = (
@@ -136,6 +137,13 @@ function AcceptForm({
     return (
       <Screen header={header}>
         <Gone icon={CalendarX} title={t('accept.slotTakenTitle')} text={t('accept.goneText')} />
+      </Screen>
+    )
+  }
+  if (accept.isError && isUnclearPaymentError(accept.error)) {
+    return (
+      <Screen header={header}>
+        <UnclearOutcome error={accept.error} />
       </Screen>
     )
   }

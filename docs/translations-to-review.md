@@ -339,9 +339,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `team.accept` | Qabul qilish | Принять | Accept |
 | `team.more` | Yana koʻrsatish | Показать ещё | Show more |
 | `team.createTitle` | Jamoa yaratish | Создание команды | Create a team |
-| `team.createIntro` | Siz jamoa sardori boʻlasiz. Keyin doʻstlaringizni havola orqali taklif qilasiz. | Вы станете капитаном. Потом пригласите друзей по ссылке. | You will be the captain. Then invite friends with a link. |
+| `team.createIntro` | Siz jamoa sardori boʻlasiz. | Вы станете капитаном команды. | You will be the team captain. |
 | `team.name` | Jamoa nomi | Название команды | Team name |
-| `team.nameHint` | 3–24 belgi. Keyin oʻzgartirish mumkin. | 3–24 символа. | 3–24 characters. |
+| `team.nameHint` | 3–24 belgi. | 3–24 символа. | 3–24 characters. |
 | `team.created` | Jamoa yaratildi | Команда создана | Team created |
 | `team.notFoundTitle` | Jamoa topilmadi | Команда не найдена | Team not found |
 | `game.title` | Oʻyin | Игра | Game |
@@ -416,3 +416,128 @@ Placeholders such as `{{count}}` must stay as they are.
 | `chat.emptyText` | Raqib jamoa sardori bilan oʻyinni kelishib oling. | Договоритесь об игре с капитаном соперников. | Agree on the game with the other captain. |
 | `chat.closed` | Chat faqat tasdiqlangan oʻyinda ochiq. | Чат открыт только для подтверждённой игры. | Chat is open only for a confirmed game. |
 | `chat.you` | Siz | Вы | You |
+| `owner.tabs.schedule` | Jadval | Расписание | Schedule |
+| `owner.tabs.stadium` | Maydonim | Моё поле | My pitch |
+| `owner.tabs.report` | Hisobot | Отчёт | Report |
+| `owner.tabs.profile` | Profil | Профиль | Profile |
+| `owner.tabsLabel` | Ega rejimi boʻlimlari | Разделы режима владельца | Owner mode sections |
+| `owner.pickStadium` | Maydon | Поле | Pitch |
+| `owner.noStadiumTitle` | Sizda hali maydon yoʻq | У вас пока нет поля | You have no pitch yet |
+| `owner.noStadiumText` | Maydon qoʻshing — admin tekshirgach, oʻyinchilar uni koʻradi. | Добавьте поле — после проверки админом его увидят игроки. | Add a pitch — players see it once an admin approves it. |
+| `owner.addStadium` | Yangi maydon qoʻshish | Добавить поле | Add a pitch |
+| `owner.status.pending` | Koʻrib chiqilmoqda | На проверке | Under review |
+| `owner.status.approved` | Faol | Активно | Active |
+| `owner.status.rejected` | Rad etildi | Отклонено | Rejected |
+| `owner.status.blocked` | Bloklangan | Заблокировано | Blocked |
+| `owner.banner.pending` | Maydon admin tomonidan koʻrib chiqilmoqda. Tasdiqlangach, oʻyinchilar uni koʻradi. | Поле проверяет администратор. После одобрения его увидят игроки. | An admin is reviewing the pitch. Players see it once it is approved. |
+| `owner.banner.rejected` | Maydon rad etildi. | Поле отклонено. | The pitch was rejected. |
+| `owner.banner.blocked` | Maydon bloklangan va oʻyinchilarga koʻrinmaydi. | Поле заблокировано и не видно игрокам. | The pitch is blocked and hidden from players. |
+| `owner.banner.reason` | Sabab: {{reason}} | Причина: {{reason}} | Reason: {{reason}} |
+| `owner.section.info` | Maʼlumotlar | Данные | Details |
+| `owner.section.infoText` | Nomi, manzili, tumani, format, qoplama | Название, адрес, район, формат, покрытие | Name, address, district, format, surface |
+| `owner.section.photos` | Rasmlar | Фото | Photos |
+| `owner.section.hours` | Ish vaqti | Часы работы | Opening hours |
+| `owner.section.prices` | Narxlar | Цены | Prices |
+| `owner.section.pricesText` | Asosiy narx: {{price}} | Базовая цена: {{price}} | Base price: {{price}} |
+| `owner.section.terms` | Bron shartlari | Условия брони | Booking terms |
+| `owner.section.closures` | Yopiq kunlar | Закрытые дни | Closed days |
+| `owner.section.closuresText` | Rejalashtirilgan yopilishlar | Запланированные закрытия | Planned closures |
+| `owner.soonDetail` | Tez orada — server bu maʼlumotni egaga hali bermaydi | Скоро — сервер пока не отдаёт эти данные владельцу | Coming soon — the server does not give the owner this yet |
+| `owner.save` | Saqlash | Сохранить | Save |
+| `owner.saved` | Saqlandi | Сохранено | Saved |
+| `owner.cancel` | Bekor qilish | Отмена | Cancel |
+| `owner.remove` | Oʻchirish | Удалить | Delete |
+| `owner.removeItem` | {{item}} — oʻchirish | {{item}} — удалить | {{item}} — delete |
+| `owner.add` | Qoʻshish | Добавить | Add |
+| `owner.field.name` | Maydon nomi | Название поля | Pitch name |
+| `owner.field.address` | Manzil | Адрес | Address |
+| `owner.field.district` | Tuman | Район | District |
+| `owner.field.format` | Format | Формат | Format |
+| `owner.field.surface` | Qoplama | Покрытие | Surface |
+| `owner.field.phone` | Telefon (ixtiyoriy) | Телефон (необязательно) | Phone (optional) |
+| `owner.field.description` | Tavsif (ixtiyoriy) | Описание (необязательно) | Description (optional) |
+| `owner.field.open` | Ochilish | Открытие | Opens |
+| `owner.field.close` | Yopilish | Закрытие | Closes |
+| `owner.field.price` | Soatlik narx (soʻm) | Цена за час (сум) | Price per hour (soʻm) |
+| `owner.field.priceHint` | Oʻyinchilar uchun narx karta toʻlovi bilan biroz yuqoriroq koʻrinadi. | Игроки увидят цену немного выше — с учётом оплаты картой. | Players see a slightly higher price that covers the card payment. |
+| `owner.field.minimum` | Oldindan toʻlov (soʻm, ixtiyoriy) | Предоплата (сум, необязательно) | Deposit (soʻm, optional) |
+| `owner.field.minimumHint` | Boʻsh qolsa — faqat toʻliq toʻlov. Kamida 500 soʻm. | Пусто — только полная оплата. Минимум 500 сум. | Empty means full payment only. At least 500 soʻm. |
+| `owner.field.cancelHours` | Bepul bekor qilish (soat) | Бесплатная отмена (часов) | Free cancellation (hours) |
+| `owner.field.day` | Kun | День | Day |
+| `owner.field.from` | Dan | С | From |
+| `owner.field.to` | Gacha | До | To |
+| `owner.field.startDate` | Boshlanish sanasi | Дата начала | Start date |
+| `owner.field.endDate` | Tugash sanasi | Дата окончания | End date |
+| `owner.field.reason` | Sabab (ixtiyoriy) | Причина (необязательно) | Reason (optional) |
+| `owner.field.clientName` | Mijoz ismi | Имя клиента | Client name |
+| `owner.field.clientPhone` | Mijoz telefoni | Телефон клиента | Client phone |
+| `owner.field.time` | Vaqt | Время | Time |
+| `owner.field.cashPaid` | Naqd toʻlandi | Оплачено наличными | Paid in cash |
+| `owner.prices.title` | Narxlar | Цены | Prices |
+| `owner.prices.empty` | Alohida narx qoidalari yoʻq — asosiy narx amal qiladi. | Отдельных правил нет — действует базовая цена. | No special rules — the base price applies. |
+| `owner.prices.add` | Narx qoidasi qoʻshish | Добавить правило цены | Add a price rule |
+| `owner.prices.player` | Oʻyinchiga: {{price}} | Для игрока: {{price}} | For players: {{price}} |
+| `owner.prices.added` | Narx qoidasi qoʻshildi | Правило добавлено | Price rule added |
+| `owner.prices.removed` | Narx qoidasi oʻchirildi | Правило удалено | Price rule removed |
+| `owner.closures.title` | Yopiq kunlar | Закрытые дни | Closed days |
+| `owner.closures.empty` | Rejalashtirilgan yopilish yoʻq. | Закрытий не запланировано. | No closures planned. |
+| `owner.closures.add` | Yopiq kun qoʻshish | Добавить закрытие | Add a closure |
+| `owner.closures.allDay` | Butun kun | Весь день | All day |
+| `owner.closures.added` | Yopiq kun qoʻshildi | Закрытие добавлено | Closure added |
+| `owner.closures.removed` | Yopiq kun oʻchirildi | Закрытие удалено | Closure removed |
+| `owner.schedule.free` | Boʻsh | Свободно | Free |
+| `owner.schedule.closed` | Yopiq | Закрыто | Closed |
+| `owner.schedule.past` | Oʻtgan | Прошло | Past |
+| `owner.schedule.summary` | Band: {{booked}}/{{total}} · Tushum: {{revenue}} | Занято: {{booked}}/{{total}} · Выручка: {{revenue}} | Booked: {{booked}}/{{total}} · Revenue: {{revenue}} |
+| `owner.schedule.walkIn` | Qoʻlda band qilish | Забронировать вручную | Add a walk-in |
+| `owner.schedule.waitingGame` | {{team}} raqib kutmoqda | {{team}} ждёт соперника | {{team}} is waiting for an opponent |
+| `owner.schedule.empty` | Bu kunga bronlar yoʻq. | На этот день броней нет. | No bookings for this day. |
+| `owner.schedule.walkInTitle` | Qoʻlda band qilish | Ручная бронь | Walk-in booking |
+| `owner.schedule.walkInDone` | Bron qoʻshildi | Бронь добавлена | Booking added |
+| `owner.schedule.noFreeHour` | Bu kunda boʻsh soat yoʻq. | В этот день свободных часов нет. | No free hour on this day. |
+| `owner.booking.title` | Bron tafsilotlari | Детали брони | Booking details |
+| `owner.booking.player` | Oʻyinchi (ilova) | Игрок (приложение) | Player (app) |
+| `owner.booking.walkIn` | Qoʻlda | Вручную | Walk-in |
+| `owner.booking.price` | Narx | Цена | Price |
+| `owner.booking.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
+| `owner.booking.remaining` | Naqd olinadi | Получить наличными | To collect in cash |
+| `owner.booking.receives` | Sizga tushadi | Вы получите | You receive |
+| `owner.booking.cash` | Naqd olindi | Наличные получены | Cash received |
+| `owner.booking.call` | Qoʻngʻiroq | Позвонить | Call |
+| `owner.booking.cancel` | Bronni bekor qilish | Отменить бронь | Cancel the booking |
+| `owner.booking.cancelTitle` | Bronni bekor qilasizmi? | Отменить бронь? | Cancel this booking? |
+| `owner.booking.cancelText` | Oʻyinchiga karta orqali toʻlagan hamma pul qaytariladi. | Игроку вернутся все деньги, оплаченные картой. | The player gets back everything paid by card. |
+| `owner.booking.cancelled` | Bron bekor qilindi | Бронь отменена | Booking cancelled |
+| `owner.report.today` | Bugun | Сегодня | Today |
+| `owner.report.week` | Hafta | Неделя | Week |
+| `owner.report.month` | Oy | Месяц | Month |
+| `owner.report.periods` | Davr | Период | Period |
+| `owner.report.bookings` | Bronlar | Брони | Bookings |
+| `owner.report.revenue` | Tushum | Выручка | Revenue |
+| `owner.report.rating` | Reyting | Рейтинг | Rating |
+| `owner.report.occupancy` | Bandlik | Загрузка | Occupancy |
+| `owner.report.unpaid` | Toʻlanmagan qoldiqlar | Неоплаченные остатки | Unpaid remainders |
+| `owner.profile.playerMode` | Oʻyinchi rejimiga oʻtish | Перейти в режим игрока | Switch to player mode |
+| `owner.profile.playerModeText` | Maydon band qilish va jamoa oʻyinlari | Бронирование полей и командные игры | Book pitches and play team games |
+| `owner.profile.payouts` | Toʻlovlar | Выплаты | Payouts |
+| `owner.profile.badge` | Maydon egasi · {{count}} maydon | Владелец · полей: {{count}} | Pitch owner · {{count}} pitches |
+| `owner.wizard.title` | Maydon qoʻshish | Добавление поля | Add a pitch |
+| `owner.wizard.step` | {{n}}-qadam / {{total}} · {{name}} | Шаг {{n}} из {{total}} · {{name}} | Step {{n}} of {{total}} · {{name}} |
+| `owner.wizard.basics` | Asosiy | Основное | Basics |
+| `owner.wizard.place` | Manzil | Адрес | Location |
+| `owner.wizard.hours` | Ish vaqti | Часы работы | Opening hours |
+| `owner.wizard.price` | Narx va shartlar | Цена и условия | Price and terms |
+| `owner.wizard.review` | Koʻrib chiqish | Проверка | Review |
+| `owner.wizard.next` | Davom etish | Далее | Next |
+| `owner.wizard.back` | Ortga | Назад | Back |
+| `owner.wizard.submit` | Tekshiruvga yuborish | Отправить на проверку | Send for review |
+| `owner.wizard.photosSoon` | Rasmlarni yuklash tez orada — hozircha maydon rasmlarsiz yuboriladi. | Загрузка фото скоро — пока поле отправляется без фото. | Photo upload is coming soon — the pitch is sent without photos for now. |
+| `owner.wizard.hoursError` | Yopilish vaqti ochilishdan keyin boʻlishi kerak. | Время закрытия должно быть позже открытия. | Closing time must be after opening time. |
+| `owner.wizard.sentTitle` | Maydon tekshiruvga yuborildi | Поле отправлено на проверку | The pitch was sent for review |
+| `owner.wizard.sentText` | Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi. | После одобрения админом игроки смогут его увидеть и забронировать. | Once an admin approves it, players can see and book it. |
+| `owner.wizard.toStadium` | Maydonimga oʻtish | Перейти к полю | Go to my pitch |
+| `game.toGames` | Oʻyinlarimga oʻtish | Перейти в «Мои игры» | Go to My games |
+| `game.unclearText` | Javob kelmadi. Toʻlov oʻtgan boʻlishi mumkin — Oʻyinlarim boʻlimida tekshiring, qayta urinmang. | Ответ не пришёл. Оплата могла пройти — проверьте «Мои игры», не повторяйте. | No answer came back. The payment may have gone through — check My games instead of trying again. |
+| `game.unclearTitle` | Natijani tekshiring | Проверьте результат | Check the result |
+| `errors.paymentConfirming` | Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi. | Оплата ещё подтверждается — не платите повторно, результат скоро появится. | The payment is still being confirmed — do not pay again; the result shows soon. |
+| `errors.paymentUnclear` | Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring. | Оплата не подтвердилась. Если деньги списались, они вернутся полностью — проверьте «Мои игры». | The payment was not confirmed. If money was taken, it comes back in full — check My games. |
