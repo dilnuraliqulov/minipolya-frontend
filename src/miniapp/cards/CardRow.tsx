@@ -36,7 +36,9 @@ function Details({ card }: { card: SavedCard }) {
   return (
     <span className="flex min-w-0 flex-1 flex-col gap-1 text-left">
       <span className="text-md font-semibold text-primary">{`•••• ${lastFour(card.maskedNumber)}`}</span>
-      <span className="text-sm text-secondary">{`${type} · ${card.expiry}`}</span>
+      <span className="text-sm text-secondary">
+        {card.expiry ? `${type} · ${card.expiry}` : type}
+      </span>
     </span>
   )
 }

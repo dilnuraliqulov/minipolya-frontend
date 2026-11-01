@@ -62,6 +62,17 @@ describe('Maydon — the stadium page', () => {
     ).toBeInTheDocument()
   })
 
+  it('shows the mark instead of a photo that fails to load', async () => {
+    stub()
+    renderApp(`/stadiums/${ID}`)
+    await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' })
+    const first = document.querySelector('img[loading="eager"]')
+    expect(first).not.toBeNull()
+    fireEvent.error(first as Element)
+    expect(document.querySelector('img[loading="eager"]')).toBeNull()
+    expect(screen.getAllByRole('img').length).toBeGreaterThan(0)
+  })
+
   it('states the rule with the hours this stadium sets', async () => {
     stub({ [DETAIL]: makeDetail({ cancellationPolicy: { cancellationHours: 6 } }) })
     renderApp(`/stadiums/${ID}`)

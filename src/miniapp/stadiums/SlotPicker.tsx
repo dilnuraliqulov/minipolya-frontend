@@ -126,7 +126,7 @@ function SlotRow({
       )}
     >
       <span className="flex flex-col gap-2">
-        <span className="text-md font-semibold">{label}</span>
+        <span className="text-md font-semibold whitespace-nowrap">{label}</span>
         {slot.hasWaitingGame && (
           <span className="self-start rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-warning">
             {t('slots.waitingGame')}
@@ -135,11 +135,13 @@ function SlotRow({
       </span>
       <span className="flex-1" />
       {slot.originalPrice !== undefined && (
-        <span className={cx('text-sm line-through', !checked && 'text-secondary')}>
+        <span
+          className={cx('text-sm whitespace-nowrap line-through', !checked && 'text-secondary')}
+        >
           {formatSomParts(slot.originalPrice).amount}
         </span>
       )}
-      <span className="text-md font-medium">{formatMoney(price)}</span>
+      <span className="text-md font-medium whitespace-nowrap">{formatMoney(price)}</span>
       {slot.discountPercent !== undefined && (
         <span
           className={cx(

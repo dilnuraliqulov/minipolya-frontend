@@ -35,6 +35,13 @@ describe('Kartalarim', () => {
     expect(screen.getByText(/faqat toʻlov tokeni saqlanadi/)).toBeInTheDocument()
   })
 
+  it('shows only the type when the provider reports no expiry', async () => {
+    stubApi({ [CARDS]: [{ ...humo, expiry: null }] })
+    renderApp('/profile/cards')
+    expect(await screen.findByText('Humo')).toBeInTheDocument()
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument()
+  })
+
   it('shows a skeleton while loading', () => {
     stubApi({ [CARDS]: new Promise(() => {}) as unknown as object })
     renderApp('/profile/cards')

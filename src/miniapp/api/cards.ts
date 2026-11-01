@@ -6,8 +6,8 @@ export interface SavedCard {
   /** `"8600 •••• 1234"` */
   maskedNumber: string
   cardType: string
-  /** `MM/YY` */
-  expiry: string
+  /** MM/YY as the provider reports it; `null` when it reports none (the dev fake provider). */
+  expiry?: string | null
   isActive: boolean
   createdAt: string
 }

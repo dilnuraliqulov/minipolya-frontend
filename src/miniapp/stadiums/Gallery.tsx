@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Photo } from '../api/stadiums'
-import { cx } from '../components'
+import { cx, LogoMark } from '../components'
 
 /** The design's Gallery: swipeable photos (240px), a "1/5" counter and dots. */
 export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
   const { t } = useTranslation()
   const [index, setIndex] = useState(0)
+  const [failed, setFailed] = useState<ReadonlySet<string>>(new Set())
   const sorted = [...photos].sort((a, b) => a.position - b.position)
   if (sorted.length === 0) return null
 
@@ -19,15 +20,27 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
           setIndex(Math.round(el.scrollLeft / Math.max(el.clientWidth, 1)))
         }}
       >
-        {sorted.map((photo, i) => (
-          <img
-            key={photo.id}
-            src={photo.url}
-            alt={t('stadium.photoAlt', { name, n: i + 1 })}
-            className="size-full shrink-0 snap-center object-cover"
-            loading={i === 0 ? 'eager' : 'lazy'}
-          />
-        ))}
+        {sorted.map((photo, i) =>
+          failed.has(photo.id) ? (
+            <div
+              key={photo.id}
+              role="img"
+              aria-label={t('stadium.photoAlt', { name, n: i + 1 })}
+              className="flex size-full shrink-0 snap-center items-center justify-center text-secondary"
+            >
+              <LogoMark size={48} className="opacity-40" />
+            </div>
+          ) : (
+            <img
+              key={photo.id}
+              src={photo.url}
+              alt={t('stadium.photoAlt', { name, n: i + 1 })}
+              className="size-full shrink-0 snap-center object-cover"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              onError={() => setFailed((prev) => new Set(prev).add(photo.id))}
+            />
+          ),
+        )}
       </div>
       {sorted.length > 1 && (
         <>
