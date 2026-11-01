@@ -355,5 +355,13 @@
     "comment": "Izoh (ixtiyoriy)",
     "submit": "Yuborish",
     "thanks": "Rahmat! Bahoyingiz qabul qilindi"
+  },
+  "games": {
+    "status": {
+      "open": "Raqib kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "completed": "Oʻtkazilgan",
+      "cancelled": "Bekor qilingan"
+    }
   }
 }

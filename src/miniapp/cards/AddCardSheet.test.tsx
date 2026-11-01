@@ -169,7 +169,7 @@ describe('AddCardSheet', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(30_000)
     })
-    const resend = screen.getByRole('button', { name: 'Kodni qayta yuborish' })
+    const resend = screen.getByRole('button', { name: 'Yangi kod yuborish' })
     expect(resend).toBeEnabled()
     fireEvent.click(resend)
     await vi.waitFor(() => expect(api.calls('POST /api/cards')).toHaveLength(2))

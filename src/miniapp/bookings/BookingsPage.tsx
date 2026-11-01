@@ -35,7 +35,7 @@ export function BookingsPage() {
               aria-selected={false}
               disabled={!split}
               className={cx(
-                'flex min-h-10 flex-1 items-center justify-center rounded-lg text-base font-medium text-secondary',
+                'flex min-h-11 flex-1 items-center justify-center rounded-lg text-base font-medium text-secondary',
                 'disabled:opacity-60',
               )}
             >

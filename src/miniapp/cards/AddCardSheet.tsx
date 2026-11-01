@@ -118,6 +118,11 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     try {
       const card = await confirmCard(binding.id, code)
       // The card is saved whatever the sheet is doing: refresh the list even if it was closed.
+      // Put the card in the list at once, so a screen that selects it can pay with it
+      // before the refetch lands; then refetch for the server's own list.
+      queryClient.setQueryData<SavedCard[]>(CARDS_KEY, (old) =>
+        old ? [...old.filter((c) => c.id !== card.id), card] : [card],
+      )
       void queryClient.invalidateQueries({ queryKey: CARDS_KEY })
       if (!mounted.current) return
       setNumber('')
@@ -268,9 +273,11 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
           {t('cards.codeExpired')}
         </p>
       )}
-      <Button variant="ghost" disabled={!expired || busy} onClick={() => void requestCode()}>
-        {expired ? t('cards.resend') : t('cards.resendIn', { time: clock(secondsLeft) })}
-      </Button>
+      {!expired && (
+        <Button variant="ghost" disabled>
+          {t('cards.resendIn', { time: clock(secondsLeft) })}
+        </Button>
+      )}
       {privacy}
     </BottomSheet>
   )

@@ -307,3 +307,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `review.thanks` | Rahmat! Bahoyingiz qabul qilindi | Спасибо! Оценка принята | Thank you! Your rating was received |
 | `errors.alreadyReviewed` | Siz bu maydonni allaqachon baholagansiz. | Вы уже оценили это поле. | You have already rated this pitch. |
 | `errors.reviewNotPlayed` | Faqat oʻynagan maydoningizni baholashingiz mumkin. | Оценить можно только поле, где вы играли. | You can only rate a pitch you have played at. |
+| `games.status.open` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
+| `games.status.confirmed` | Tasdiqlangan | Подтверждена | Confirmed |
+| `games.status.completed` | Oʻtkazilgan | Состоялась | Played |
+| `games.status.cancelled` | Bekor qilingan | Отменена | Cancelled |

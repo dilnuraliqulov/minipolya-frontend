@@ -7,6 +7,7 @@ import { CardRow } from '../cards/CardRow'
 import { useCards } from '../cards/queries'
 import { BottomSheet, Button, ErrorState, SkeletonList, useToast } from '../components'
 import { formatMoney } from '../format'
+import type { PaymentState } from '../payment/machine'
 import { usePayment } from '../payment/usePayment'
 
 /** "Qolganini toʻlash": a saved card and the pay-remainder call, through the payment machine. */
@@ -18,7 +19,8 @@ export function PayRemainderSheet({
 }: {
   open: boolean
   booking: Booking
-  onClose: () => void
+  /** The payment state the sheet closed in ("checking" = still being settled). */
+  onClose: (outcome: PaymentState['kind']) => void
   onPaid: () => void
 }) {
   if (!open) return null
@@ -31,7 +33,8 @@ function OpenPayRemainder({
   onPaid,
 }: {
   booking: Booking
-  onClose: () => void
+  /** The payment state the sheet closed in ("checking" = still being settled). */
+  onClose: (outcome: PaymentState['kind']) => void
   onPaid: () => void
 }) {
   const { t } = useTranslation()
@@ -73,11 +76,11 @@ function OpenPayRemainder({
         open={!adding}
         title={t('booking.payRestTitle')}
         onClose={() => {
-          if (!paying) onClose()
+          if (!paying) onClose(state.kind)
         }}
         actions={
           state.kind === 'checking' ? (
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="secondary" onClick={() => onClose(state.kind)}>
               {t('cards.back')}
             </Button>
           ) : (

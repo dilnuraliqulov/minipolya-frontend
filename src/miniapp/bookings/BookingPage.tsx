@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, Clock, MapPin, Phone, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -6,6 +6,7 @@ import { useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { formatTime } from '../../shared/format'
 import { BOOKINGS_KEY, bookingKey, type Booking } from '../api/bookings'
+import { getMyPayments } from '../api/payments'
 import type { StadiumDetail } from '../api/stadiums'
 import {
   Button,
@@ -85,7 +86,18 @@ function BookingContent({ booking }: { booking: Booking }) {
     void queryClient.invalidateQueries({ queryKey: bookingKey(booking.id) })
     void queryClient.invalidateQueries({ queryKey: BOOKINGS_KEY })
   }
-  const canPayRest = booking.paymentStatus === 'partially_paid' && LIVE.has(booking.status)
+  const owesRest = booking.paymentStatus === 'partially_paid' && LIVE.has(booking.status)
+  // A remainder charge still being settled must not be paid a second time.
+  const [settling, setSettling] = useState(false)
+  const payments = useQuery({
+    queryKey: ['payments', 'my'],
+    queryFn: () => getMyPayments(0),
+    enabled: owesRest,
+  })
+  const processing = payments.data?.content.some(
+    (p) => p.bookingId === booking.id && p.paymentType === 'remainder' && p.status === 'processing',
+  )
+  const canPayRest = owesRest && !settling && !processing && !payments.isPending
   const canCancel = CANCELLABLE.has(booking.status)
 
   return (
@@ -97,6 +109,11 @@ function BookingContent({ booking }: { booking: Booking }) {
       <Details booking={booking} stadium={stadium} />
 
       <PaymentSummary booking={booking}>
+        {owesRest && (settling || processing) && (
+          <p className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
+            {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
+          </p>
+        )}
         {canPayRest && (
           <>
             <Button haptic onClick={() => setSheet('pay')}>
@@ -154,7 +171,12 @@ function BookingContent({ booking }: { booking: Booking }) {
       <PayRemainderSheet
         open={sheet === 'pay'}
         booking={booking}
-        onClose={() => setSheet(null)}
+        onClose={(outcome) => {
+          setSheet(null)
+          if (outcome === 'checking') setSettling(true)
+          refresh()
+          void queryClient.invalidateQueries({ queryKey: ['payments', 'my'] })
+        }}
         onPaid={() => {
           setSheet(null)
           refresh()

@@ -45,6 +45,8 @@ function OpenReviewSheet({ booking, onClose }: { booking: Booking; onClose: () =
       void queryClient.invalidateQueries({ queryKey: ['reviews', booking.stadiumId] })
       onClose()
     },
+    // "Already reviewed" means our list is stale: refresh it so the section shows the review.
+    onError: () => void queryClient.invalidateQueries({ queryKey: MY_REVIEWS_KEY }),
   })
 
   return (

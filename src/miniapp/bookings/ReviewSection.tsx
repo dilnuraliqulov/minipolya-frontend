@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Booking } from '../api/bookings'
 import { getMyReviews, MY_REVIEWS_KEY } from '../api/reviews'
-import { Button, Card } from '../components'
+import { Button, Card, ErrorState } from '../components'
 import { Stars } from '../stadiums/ReviewCard'
 import { ReviewSheet } from './ReviewSheet'
 
@@ -17,7 +17,14 @@ export function ReviewSection({ booking }: { booking: Booking }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const mine = useQuery({ queryKey: MY_REVIEWS_KEY, queryFn: getMyReviews })
-  if (mine.isPending || mine.isError) return null
+  if (mine.isPending) return null
+  if (mine.isError) {
+    return (
+      <Card className="p-2">
+        <ErrorState onRetry={() => void mine.refetch()} />
+      </Card>
+    )
+  }
   const review =
     mine.data.content.find((r) => r.bookingId === booking.id) ??
     mine.data.content.find((r) => r.stadiumId === booking.stadiumId)

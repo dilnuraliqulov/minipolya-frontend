@@ -115,6 +115,19 @@ describe('Booking detail', () => {
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
   })
 
+  it('does not offer pay-the-rest again while a remainder payment is processing', async () => {
+    stub(partial, {
+      'GET /api/payments/my': page([
+        makePayment({ bookingId: 'b1', paymentType: 'remainder', status: 'processing' }),
+      ]),
+    })
+    renderApp('/bookings/b1')
+    expect(await screen.findByText(/Toʻlov tekshirilmoqda/)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('has no pay-the-rest button when paid in full', async () => {
     stub(makeBooking({ id: 'b1', stadiumId: STADIUM_ID }))
     renderApp('/bookings/b1')

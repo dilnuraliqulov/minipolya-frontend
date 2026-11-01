@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { tashkentToUtc } from '../../shared/format'
@@ -81,21 +81,35 @@ function Checkout({ params }: { params: CheckoutParams }) {
   const { t } = useTranslation()
   const goBack = useGoBack()
   const detail = useStadium(params.stadiumId)
+  // Background refetches must never swap the form out mid-payment: availability
+  // is read once here, and once the form has shown, its stadium and hour stay.
   const availability = useQuery({
     queryKey: availabilityKey(params.stadiumId, params.date),
     queryFn: () => getAvailability(params.stadiumId, params.date),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   })
   const cards = useCards()
+  const frozen = useRef<{ stadium: StadiumDetail; slot: TimeSlot } | null>(null)
   const header = <Header title={t('checkout.title')} onBack={goBack} />
 
-  if (detail.isPending || availability.isPending || cards.isPending) {
+  if (!frozen.current && detail.data && availability.data) {
+    const found = availability.data.slots.find(
+      (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
+    )
+    if (found?.pricePerHour !== undefined) frozen.current = { stadium: detail.data, slot: found }
+  }
+  const ready = frozen.current !== null && cards.data !== undefined
+
+  if (!ready && (detail.isPending || availability.isPending || cards.isPending)) {
     return (
       <Screen header={header}>
         <SkeletonList count={3} />
       </Screen>
     )
   }
-  if (detail.isError || availability.isError || cards.isError) {
+  if (!ready && (detail.isError || availability.isError || cards.isError)) {
     return (
       <Screen header={header} className="justify-center">
         <ErrorState
@@ -108,11 +122,7 @@ function Checkout({ params }: { params: CheckoutParams }) {
       </Screen>
     )
   }
-
-  const slot = availability.data.slots.find(
-    (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
-  )
-  if (!slot || slot.pricePerHour === undefined) {
+  if (!frozen.current || !cards.data) {
     return (
       <Screen header={header}>
         <ChooseTime
@@ -124,12 +134,13 @@ function Checkout({ params }: { params: CheckoutParams }) {
       </Screen>
     )
   }
+  const { stadium, slot } = frozen.current
   return (
     <CheckoutForm
       params={params}
-      stadium={detail.data}
+      stadium={stadium}
       slot={slot}
-      price={slot.pricePerHour}
+      price={slot.pricePerHour ?? 0}
       cards={cards.data}
     />
   )
@@ -166,6 +177,13 @@ function CheckoutForm({
   const paying = state.kind === 'paying'
 
   useEffect(() => {
+    // The hold (or the unsettled payment) now occupies the hour: drop the cached
+    // "free" so the stadium page shows the truth when the player goes back.
+    if (state.kind === 'declined' || state.kind === 'checking') {
+      void queryClient.invalidateQueries({
+        queryKey: availabilityKey(params.stadiumId, params.date),
+      })
+    }
     if (state.kind !== 'success') return
     void queryClient.invalidateQueries({ queryKey: BOOKINGS_KEY })
     void queryClient.invalidateQueries({

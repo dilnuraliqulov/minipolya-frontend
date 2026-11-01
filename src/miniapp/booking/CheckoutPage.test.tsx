@@ -119,6 +119,51 @@ describe('Checkout', () => {
     await vi.waitFor(() => expect(api.calls(BOOK)).toHaveLength(1))
   })
 
+  it('keeps the form while paying even if a background refetch fails', async () => {
+    let release: (value: unknown) => void = () => {}
+    let cardsFail = false
+    stub({
+      [BOOK]: () => new Promise((resolve) => (release = resolve)),
+      [CARDS]: () => (cardsFail ? jsonResponse(500, null, 'Internal server error') : cards),
+    })
+    const { router, queryClient } = renderApp(URL)
+    fireEvent.click(await payButton())
+    await screen.findByRole('button', { name: /Toʻlanmoqda…/ })
+    cardsFail = true
+    await queryClient.invalidateQueries()
+    expect(screen.getByRole('button', { name: /Toʻlanmoqda…/ })).toBeInTheDocument()
+    expect(screen.queryByText('Qayta urinish')).not.toBeInTheDocument()
+    release(makeBooking())
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
+  })
+
+  it('pays with a just-added card before the card list refetch lands', async () => {
+    const added = makeCard({ id: 'c9', maskedNumber: '8600 •••• 9012' })
+    let calls = 0
+    const api = stub({
+      [CARDS]: () => (calls++ === 0 ? cards : new Promise(() => {})),
+      'POST /api/cards': { bindingId: 'b1', maskedPhone: '********9999' },
+      'POST /api/cards/confirm': added,
+      [BOOK]: makeBooking(),
+    })
+    renderApp(URL)
+    fireEvent.click(await screen.findByRole('button', { name: /Karta qoʻshish/ }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('Karta raqami'), {
+      target: { value: '8600123456789012' },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Amal qilish muddati/), {
+      target: { value: '1227' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Davom etish' }))
+    fireEvent.change(await screen.findByLabelText('SMS kod'), { target: { value: '111111' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
+    expect(await screen.findByRole('radio', { name: /•••• 9012/ })).toBeChecked()
+    fireEvent.click(await payButton())
+    await vi.waitFor(() => expect(api.calls(BOOK)).toHaveLength(1))
+    expect(api.calls(BOOK)[0]).toMatchObject({ cardId: 'c9' })
+  })
+
   it('ignores Back while paying', async () => {
     const telegram = installFakeTelegram()
     let release: (value: unknown) => void = () => {}

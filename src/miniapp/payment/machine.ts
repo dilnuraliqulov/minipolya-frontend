@@ -45,9 +45,7 @@ export function canRetry(state: PaymentState): boolean {
 async function paymentRowStatus(booking: Booking, type: PaymentType): Promise<string | undefined> {
   try {
     const { content } = await getMyPayments(0)
-    return content.find(
-      (p) => p.bookingId === booking.id && (type === 'booking' || p.paymentType === 'remainder'),
-    )?.status
+    return content.find((p) => p.bookingId === booking.id && p.paymentType === type)?.status
   } catch {
     return undefined
   }

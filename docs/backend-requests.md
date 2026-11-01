@@ -337,6 +337,103 @@ Error cases — none new.
 Low — the list shows the logo mark instead of a photo; the detail page fetches
 the stadium.
 
+### R32 — Invite players to a team by link
+
+**What's needed**
+`POST /api/teams/{id}/members` takes a `userId`, but a leader has no way to
+learn another player's id: there is no user search and no invite. The design
+has "Taklif havolasini ulashish" (share an invite link) on Jamoam; the player
+who opens the link should join the team.
+
+**Which screen needs it**
+Mini App player — Jamoam (sardor), "Taklif havolasini ulashish"; joining from
+the link (start parameter `team_<code>`, routed in Part 4).
+
+**Proposed endpoints**
+`POST /api/teams/{id}/invite` — logged-in user, leader only: returns a link.
+
+| Field | Type | Notes |
+|---|---|---|
+| `code` | string | opaque, unguessable; valid until the team is deleted or the leader makes a new one |
+| `inviteLink` | string | `https://t.me/<bot>/<app>?startapp=team_<code>` |
+
+`POST /api/teams/join` — logged-in user.
+
+Request:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `code` | string | yes | `@NotBlank` |
+
+Response — `TeamDetailResponse` of the joined team, `message: "Joined team"`.
+
+Error cases — 403 `"Only the team leader can perform this action"` (invite);
+404 `"Invite not found"` (unknown or replaced code); 400 `"User is already a
+member of this team"`.
+
+**Priority**
+High — without it a team can never have members other than its leader.
+
+### R33 — A team game's price before it is created
+
+**What's needed**
+"Raqib qidirish" shows what the leader's team pays now and its remainder
+before the game exists. Only the created game carries them
+(`GameDetailResponse.teams[].price` / `remainderAmount`); computing them in the
+client would re-implement the team-game split (`TeamGameSplit`).
+
+**Which screen needs it**
+Mini App player — Raqib qidirish (find an opponent) form.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/team-game-quote` — logged-in user.
+
+Request:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, a free slot |
+
+Response:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number **(tiyin)** | what each team pays in the app on joining (player price) |
+| `remainderAmount` | number **(tiyin)** | what each team owes afterwards, the same in the app or in cash |
+| `totalPrice` | number **(tiyin)** | both teams together |
+| `cancellationDeadline` | timestamp (UTC) | when free cancellation ends |
+
+Error cases — 400 when `startsAt` is not a bookable hour; 404 `"Stadium not
+found"`.
+
+**Priority**
+Medium — the form shows the slot's price only and the team sees its exact
+figures on the game page right after starting.
+
+### R34 — Refuse a second remainder charge while one is processing
+
+**What's needed**
+`POST /api/bookings/{id}/pay-remainder` refuses only when the booking is
+already `paid`. If the first charge is still `processing` (the provider has not
+answered), the booking stays `partially_paid` and a second call charges the
+card again; both can settle. The Mini App hides the button while it sees a
+`processing` remainder row, but the server should guarantee it.
+
+**Which screen needs it**
+Mini App player — booking detail, "Qolganini ilovada toʻlash" (and any other
+client calling the endpoint).
+
+**Proposed endpoint**
+`POST /api/bookings/{id}/pay-remainder` — unchanged request and response; one
+new error case.
+
+Error cases — 409 `"A payment for this booking is still being processed"` while
+a `remainder` payment of this booking is `processing`, with `code:
+"PAYMENT_PROCESSING"` so clients need not match the prose.
+
+**Priority**
+High — guards against charging a player twice.
+
 ---
 
 ## Done

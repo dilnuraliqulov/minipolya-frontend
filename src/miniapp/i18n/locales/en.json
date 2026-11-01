@@ -355,5 +355,13 @@
     "comment": "Comment (optional)",
     "submit": "Send",
     "thanks": "Thank you! Your rating was received"
+  },
+  "games": {
+    "status": {
+      "open": "Waiting for an opponent",
+      "confirmed": "Confirmed",
+      "completed": "Played",
+      "cancelled": "Cancelled"
+    }
   }
 }
