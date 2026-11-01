@@ -451,5 +451,24 @@
     "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
     "tooLateTitle": "Oʻyinga 3 soatdan kam qoldi",
     "backToTeam": "Jamoamga qaytish"
+  },
+  "choice": {
+    "title": "Qanday band qilasiz?",
+    "self": "Oʻzim band qilaman",
+    "selfText": "Oddiy bron · {{price}}",
+    "opponent": "Raqib jamoa qidiraman",
+    "opponentText": "Jamoa vs jamoa · narxni ikki jamoa boʻlishadi",
+    "note": "«Raqib jamoa qidiraman» faqat jamoa sardorlariga koʻrinadi.",
+    "back": "Ortga"
+  },
+  "opponent": {
+    "title": "Raqib qidirish",
+    "whichTeam": "Qaysi jamoa bilan?",
+    "slotPrice": "Maydon narxi",
+    "quoteSoon": "Jamoangiz toʻlaydigan summa oʻyin yaratilgach koʻrinadi (tez orada — oldindan).",
+    "rules": "Raqib topilguncha kartangizda summa band qilinadi, maydon esa band qilinmaydi. Raqib topilmasa, pul toʻliq qaytariladi.",
+    "submit": "Raqib qidirishni boshlash",
+    "started": "Raqib qidirish boshlandi",
+    "noLedTeam": "Raqib qidirish uchun jamoa sardori boʻlishingiz kerak."
   }
 }

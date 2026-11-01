@@ -14,6 +14,7 @@ import { StadiumPage } from './stadiums/StadiumPage'
 import { RouteError } from './RouteError'
 import { SplashDone } from './splash'
 import { AcceptChallengePage } from './teams/AcceptChallengePage'
+import { OpponentPage } from './teams/OpponentPage'
 import { TeamCreatePage } from './teams/TeamCreatePage'
 import { TeamPage } from './teams/TeamPage'
 import { StadiumsPage } from './stadiums/StadiumsPage'
@@ -81,6 +82,14 @@ const screens: RouteObject[] = [
     element: (
       <SplashDone>
         <AcceptChallengePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/opponent',
+    element: (
+      <SplashDone>
+        <OpponentPage />
       </SplashDone>
     ),
   },

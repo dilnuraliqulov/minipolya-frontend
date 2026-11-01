@@ -451,5 +451,24 @@
     "slotTakenTitle": "This time was just taken",
     "tooLateTitle": "Less than 3 hours to the game",
     "backToTeam": "Back to my team"
+  },
+  "choice": {
+    "title": "How do you want to book?",
+    "self": "Book it myself",
+    "selfText": "A regular booking · {{price}}",
+    "opponent": "Find an opposing team",
+    "opponentText": "Team vs team · two teams share the price",
+    "note": "\"Find an opposing team\" is shown to team captains only.",
+    "back": "Back"
+  },
+  "opponent": {
+    "title": "Find an opponent",
+    "whichTeam": "With which team?",
+    "slotPrice": "Pitch price",
+    "quoteSoon": "Your team's amount shows once the game is created (coming soon — beforehand).",
+    "rules": "Until an opponent is found, the amount is held on your card and the pitch is not booked. If nobody accepts, you get everything back.",
+    "submit": "Start looking for an opponent",
+    "started": "Looking for an opponent",
+    "noLedTeam": "Only a team captain can look for an opponent."
   }
 }

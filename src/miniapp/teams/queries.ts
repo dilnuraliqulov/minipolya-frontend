@@ -1,6 +1,7 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query'
 import { CHALLENGES_KEY, getChallenges } from '../api/games'
-import { getMyTeams, getTeam, MY_TEAMS_KEY, teamKey } from '../api/teams'
+import { getMyTeams, getTeam, MY_TEAMS_KEY, teamKey, type TeamDetail } from '../api/teams'
+import { useLoginUser } from '../auth/sessionContext'
 
 export function useMyTeams() {
   return useQuery({ queryKey: MY_TEAMS_KEY, queryFn: getMyTeams })
@@ -23,4 +24,24 @@ export function useChallenges(enabled = true) {
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
     enabled,
   })
+}
+
+/**
+ * The teams the player captains. `GET /api/teams/me` has no leader id, so each team's
+ * detail is read (a player is in a handful of teams). A failed read counts as
+ * "not a captain" — the team flows simply stay hidden.
+ */
+export function useLedTeams(): { isPending: boolean; teams: TeamDetail[] } {
+  const me = useLoginUser()
+  const mine = useMyTeams()
+  const details = useQueries({
+    queries: (mine.data ?? []).map((team) => ({
+      queryKey: teamKey(team.id),
+      queryFn: () => getTeam(team.id),
+    })),
+  })
+  return {
+    isPending: mine.isPending || details.some((d) => d.isPending),
+    teams: details.flatMap((d) => (d.data && d.data.leaderId === me.id ? [d.data] : [])),
+  }
 }

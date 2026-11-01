@@ -20,7 +20,9 @@ import { formatMoney } from '../format'
 import { useProfileGate } from '../profile/useProfileGate'
 import { useGoBack } from '../lib/useGoBack'
 import { openExternalLink } from '../telegram'
-import { bookingDates, isInBookingWindow, slotLabel, tashkentToday } from './dates'
+import { BookingChoiceSheet } from '../teams/BookingChoiceSheet'
+import { useLedTeams } from '../teams/queries'
+import { bookingDates, dayTitle, isInBookingWindow, slotLabel, tashkentToday } from './dates'
 import { Gallery } from './Gallery'
 import { AMENITY_KEYS, formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
 import { mapLink } from './mapLink'
@@ -90,13 +92,18 @@ function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: R
     setDate(iso)
     setSelected(null)
   }
+  const led = useLedTeams()
+  const [choosing, setChoosing] = useState<{ query: string; slot: TimeSlot } | null>(null)
   const book = (slot: TimeSlot) => {
     const query = new URLSearchParams({
       stadium: stadium.id,
       date,
       start: slot.startTime.slice(0, 5),
-    })
-    void gate.require(() => navigate(`/checkout?${query.toString()}`))
+    }).toString()
+    // A captain may book alone or look for an opposing team; everyone else books.
+    void gate.require(() =>
+      led.teams.length > 0 ? setChoosing({ query, slot }) : navigate(`/checkout?${query}`),
+    )
   }
 
   const footer = (
@@ -131,6 +138,16 @@ function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: R
           lastDate={lastDate}
         />
         <Amenities stadium={stadium} />
+        {choosing && (
+          <BookingChoiceSheet
+            open
+            subtitle={`${stadium.name} · ${dayTitle(date)}, ${slotLabel(choosing.slot)}`}
+            priceText={formatMoney(choosing.slot.pricePerHour ?? 0)}
+            onClose={() => setChoosing(null)}
+            onSelf={() => navigate(`/checkout?${choosing.query}`)}
+            onOpponent={() => navigate(`/opponent?${choosing.query}`)}
+          />
+        )}
         <Address stadium={stadium} />
         <Card className="flex gap-3 px-4 py-3">
           <Info size={16} className="mt-0.5 shrink-0 text-link" aria-hidden />

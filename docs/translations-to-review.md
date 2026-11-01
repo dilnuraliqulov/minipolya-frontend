@@ -393,3 +393,18 @@ Placeholders such as `{{count}}` must stay as they are.
 | `accept.slotTakenTitle` | Bu vaqt band boʻlib qoldi | Это время уже заняли | This time was just taken |
 | `accept.tooLateTitle` | Oʻyinga 3 soatdan kam qoldi | До игры меньше 3 часов | Less than 3 hours to the game |
 | `accept.backToTeam` | Jamoamga qaytish | Вернуться в команду | Back to my team |
+| `choice.title` | Qanday band qilasiz? | Как бронируете? | How do you want to book? |
+| `choice.self` | Oʻzim band qilaman | Забронирую сам | Book it myself |
+| `choice.selfText` | Oddiy bron · {{price}} | Обычная бронь · {{price}} | A regular booking · {{price}} |
+| `choice.opponent` | Raqib jamoa qidiraman | Найду команду-соперника | Find an opposing team |
+| `choice.opponentText` | Jamoa vs jamoa · narxni ikki jamoa boʻlishadi | Команда на команду · цену делят две команды | Team vs team · two teams share the price |
+| `choice.note` | «Raqib jamoa qidiraman» faqat jamoa sardorlariga koʻrinadi. | «Найти соперника» видят только капитаны. | "Find an opposing team" is shown to team captains only. |
+| `choice.back` | Ortga | Назад | Back |
+| `opponent.title` | Raqib qidirish | Поиск соперника | Find an opponent |
+| `opponent.whichTeam` | Qaysi jamoa bilan? | Какой командой? | With which team? |
+| `opponent.slotPrice` | Maydon narxi | Цена поля | Pitch price |
+| `opponent.quoteSoon` | Jamoangiz toʻlaydigan summa oʻyin yaratilgach koʻrinadi (tez orada — oldindan). | Сумма для вашей команды появится после создания игры (скоро — заранее). | Your team's amount shows once the game is created (coming soon — beforehand). |
+| `opponent.rules` | Raqib topilguncha kartangizda summa band qilinadi, maydon esa band qilinmaydi. Raqib topilmasa, pul toʻliq qaytariladi. | Пока соперник не найден, сумма удерживается на карте, а поле не бронируется. Если соперник не найдётся, деньги вернутся полностью. | Until an opponent is found, the amount is held on your card and the pitch is not booked. If nobody accepts, you get everything back. |
+| `opponent.submit` | Raqib qidirishni boshlash | Начать поиск соперника | Start looking for an opponent |
+| `opponent.started` | Raqib qidirish boshlandi | Поиск соперника начат | Looking for an opponent |
+| `opponent.noLedTeam` | Raqib qidirish uchun jamoa sardori boʻlishingiz kerak. | Искать соперника может только капитан команды. | Only a team captain can look for an opponent. |
