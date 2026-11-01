@@ -377,3 +377,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.payButton` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
 | `errors.cardDeclined` | Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring. | Карта отклонена. Выберите другую карту или проверьте эту. | The card was declined. Choose another card or check this one. |
 | `errors.tooLate` | Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi. | До игры меньше 3 часов — присоединиться уже нельзя. | The game starts in less than 3 hours — it can no longer be joined. |
+| `games.section` | Oʻyinlar | Игры | Games |
+| `games.teamGame` | Jamoa vs jamoa | Команда на команду | Team vs team |
+| `games.friendsGame` | Doʻstlar oʻyini | Игра с друзьями | Friends game |
+| `games.openGame` | Ochiq oʻyin | Открытая игра | Open game |

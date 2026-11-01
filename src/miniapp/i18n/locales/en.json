@@ -364,7 +364,11 @@
       "confirmed": "Confirmed",
       "completed": "Played",
       "cancelled": "Cancelled"
-    }
+    },
+    "section": "Games",
+    "teamGame": "Team vs team",
+    "friendsGame": "Friends game",
+    "openGame": "Open game"
   },
   "team": {
     "emptyTitle": "You have no team yet",

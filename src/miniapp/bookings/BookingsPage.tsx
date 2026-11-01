@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router'
 import { BOOKINGS_WHEN } from '../api/bookings'
 import { isAvailable } from '../api/missing'
 import { Button, cx, EmptyState, ErrorState, SkeletonList } from '../components'
+import { MyGames } from '../games/MyGames'
 import { TabScreen } from '../layout/TabScreen'
 import { BookingCard } from './BookingCard'
 import { useBookings } from './queries'
 
 /**
  * Oʻyinlarim — the player's bookings. Kelgusi / Oʻtgan wait for the server
- * filter (R29); meanwhile one list in the server's order. Games are not here yet.
+ * filter (R29); meanwhile one list in the server's order. Games come first, from
+ * their own endpoint (no client merge).
  */
 export function BookingsPage() {
   const { t } = useTranslation()
@@ -45,6 +47,8 @@ export function BookingsPage() {
         </div>
         {!split && <p className="px-1 text-xs text-secondary">{t('bookings.filterSoon')}</p>}
       </div>
+
+      <MyGames />
 
       {list.isPending ? (
         <SkeletonList count={4} variant="item" />

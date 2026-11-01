@@ -364,7 +364,11 @@
       "confirmed": "Подтверждена",
       "completed": "Состоялась",
       "cancelled": "Отменена"
-    }
+    },
+    "section": "Игры",
+    "teamGame": "Команда на команду",
+    "friendsGame": "Игра с друзьями",
+    "openGame": "Открытая игра"
   },
   "team": {
     "emptyTitle": "У вас пока нет команды",

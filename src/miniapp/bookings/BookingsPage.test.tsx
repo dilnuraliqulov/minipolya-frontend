@@ -33,7 +33,7 @@ const cancelled = makeBooking({
 
 describe('Oʻyinlarim — bookings', () => {
   it('lists the bookings in server order with date, time and status', async () => {
-    stubApi({ [LIST]: page([confirmed, pending, cancelled]) })
+    stubApi({ 'GET /api/games/my': page([]), [LIST]: page([confirmed, pending, cancelled]) })
     renderApp('/games')
     expect(await screen.findByRole('heading', { level: 1, name: 'Oʻyinlarim' })).toBeInTheDocument()
     const list = await screen.findByRole('list', { name: 'Bronlar' })
@@ -52,7 +52,7 @@ describe('Oʻyinlarim — bookings', () => {
   })
 
   it('shows Kelgusi / Oʻtgan as coming soon and never asks for ?when', async () => {
-    const api = stubApi({ [LIST]: page([confirmed]) })
+    const api = stubApi({ 'GET /api/games/my': page([]), [LIST]: page([confirmed]) })
     renderApp('/games')
     await screen.findByText('Bunyodkor Arena')
     expect(screen.getByRole('tab', { name: 'Kelgusi' })).toBeDisabled()
@@ -62,7 +62,7 @@ describe('Oʻyinlarim — bookings', () => {
   })
 
   it('opens a booking', async () => {
-    stubApi({ [LIST]: page([confirmed]) })
+    stubApi({ 'GET /api/games/my': page([]), [LIST]: page([confirmed]) })
     renderApp('/games')
     expect(await screen.findByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
       'href',
@@ -72,6 +72,7 @@ describe('Oʻyinlarim — bookings', () => {
 
   it('loads the next page', async () => {
     const api = stubApi({
+      'GET /api/games/my': page([]),
       [LIST]: (() => {
         let n = 0
         return () => (n++ === 0 ? page([confirmed], 0, 2) : page([pending], 1, 2))
@@ -84,14 +85,41 @@ describe('Oʻyinlarim — bookings', () => {
     expect(screen.queryByRole('button', { name: 'Yana koʻrsatish' })).not.toBeInTheDocument()
   })
 
+  it('lists the games first, from their own endpoint', async () => {
+    stubApi({
+      'GET /api/games/my': page([
+        {
+          id: 'g1',
+          type: 'team_vs_team',
+          status: 'open',
+          stadiumName: 'Bunyodkor Arena',
+          startsAt: '2026-11-06T15:00:00Z',
+          endsAt: '2026-11-06T16:00:00Z',
+          isPublic: true,
+        },
+      ]),
+      [LIST]: page([confirmed]),
+    })
+    renderApp('/games')
+    const games = await screen.findByRole('list', { name: 'Oʻyinlar' })
+    expect(within(games).getByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
+      'href',
+      '/games/g1',
+    )
+    expect(within(games).getByText('Raqib kutilmoqda')).toBeInTheDocument()
+    expect(
+      within(games).getByText('Jamoa vs jamoa · Juma, 6-noyabr · 20:00–21:00'),
+    ).toBeInTheDocument()
+  })
+
   it('shows a skeleton while loading', () => {
-    stubApi({ [LIST]: new Promise(() => {}) as unknown as object })
+    stubApi({ 'GET /api/games/my': page([]), [LIST]: new Promise(() => {}) as unknown as object })
     renderApp('/games')
     expect(screen.getByRole('status', { name: 'Yuklanmoqda' })).toBeInTheDocument()
   })
 
   it('has an empty state that leads to the pitches', async () => {
-    stubApi({ [LIST]: page([]) })
+    stubApi({ 'GET /api/games/my': page([]), [LIST]: page([]) })
     const { router } = renderApp('/games')
     expect(await screen.findByText('Hali bronlar yoʻq')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Maydon topish' }))
@@ -101,6 +129,7 @@ describe('Oʻyinlarim — bookings', () => {
   it('shows the error state and retries', async () => {
     let fail = true
     stubApi({
+      'GET /api/games/my': page([]),
       [LIST]: () => (fail ? jsonResponse(500, null, 'Internal server error') : page([confirmed])),
     })
     renderApp('/games')

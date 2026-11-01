@@ -364,7 +364,11 @@
       "confirmed": "Tasdiqlangan",
       "completed": "Oʻtkazilgan",
       "cancelled": "Bekor qilingan"
-    }
+    },
+    "section": "Oʻyinlar",
+    "teamGame": "Jamoa vs jamoa",
+    "friendsGame": "Doʻstlar oʻyini",
+    "openGame": "Ochiq oʻyin"
   },
   "team": {
     "emptyTitle": "Sizda hali jamoa yoʻq",
