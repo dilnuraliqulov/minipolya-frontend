@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { tashkentToUtc } from '../../shared/format'
@@ -91,16 +91,18 @@ function Checkout({ params }: { params: CheckoutParams }) {
     refetchOnReconnect: false,
   })
   const cards = useCards()
-  const frozen = useRef<{ stadium: StadiumDetail; slot: TimeSlot } | null>(null)
+  const [frozen, setFrozen] = useState<{ stadium: StadiumDetail; slot: TimeSlot } | null>(null)
   const header = <Header title={t('checkout.title')} onBack={goBack} />
 
-  if (!frozen.current && detail.data && availability.data) {
-    const found = availability.data.slots.find(
-      (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
-    )
-    if (found?.pricePerHour !== undefined) frozen.current = { stadium: detail.data, slot: found }
-  }
-  const ready = frozen.current !== null && cards.data !== undefined
+  const found = availability.data?.slots.find(
+    (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
+  )
+  const candidate =
+    detail.data && found?.pricePerHour !== undefined ? { stadium: detail.data, slot: found } : null
+  // Stored once (React's "adjust state while rendering" pattern) and never replaced.
+  if (!frozen && candidate) setFrozen(candidate)
+  const shown = frozen ?? candidate
+  const ready = shown !== null && cards.data !== undefined
 
   if (!ready && (detail.isPending || availability.isPending || cards.isPending)) {
     return (
@@ -122,7 +124,7 @@ function Checkout({ params }: { params: CheckoutParams }) {
       </Screen>
     )
   }
-  if (!frozen.current || !cards.data) {
+  if (!shown || !cards.data) {
     return (
       <Screen header={header}>
         <ChooseTime
@@ -134,7 +136,7 @@ function Checkout({ params }: { params: CheckoutParams }) {
       </Screen>
     )
   }
-  const { stadium, slot } = frozen.current
+  const { stadium, slot } = shown
   return (
     <CheckoutForm
       params={params}
