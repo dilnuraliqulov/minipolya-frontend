@@ -114,6 +114,7 @@
     "filters": "Filtrlar",
     "allFormats": "Hammasi",
     "format": "Format",
+    "allTitle": "Barcha maydonlar",
     "allCount": "Barcha maydonlar · {{count}}",
     "bannerText": "Toʻlov xavfsiz · Bekor qilish shartlari aniq",
     "bannerClose": "Yopish",

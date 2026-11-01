@@ -114,6 +114,7 @@
     "filters": "Фильтры",
     "allFormats": "Все",
     "format": "Формат",
+    "allTitle": "Все поля",
     "allCount": "Все поля · {{count}}",
     "bannerText": "Оплата безопасна · Условия отмены понятны",
     "bannerClose": "Закрыть",

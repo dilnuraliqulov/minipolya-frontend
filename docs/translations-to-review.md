@@ -96,6 +96,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadiums.filters` | Filtrlar | Фильтры | Filters |
 | `stadiums.allFormats` | Hammasi | Все | All |
 | `stadiums.format` | Format | Формат | Format |
+| `stadiums.allTitle` | Barcha maydonlar | Все поля | All pitches |
 | `stadiums.allCount` | Barcha maydonlar · {{count}} | Все поля · {{count}} | All pitches · {{count}} |
 | `stadiums.bannerText` | Toʻlov xavfsiz · Bekor qilish shartlari aniq | Оплата безопасна · Условия отмены понятны | Secure payment · Clear cancellation terms |
 | `stadiums.bannerClose` | Yopish | Закрыть | Close |

@@ -50,7 +50,7 @@ export function StadiumsPage() {
   const sheetFiltered =
     filters.format !== null || filters.maxPrice !== null || filters.district !== null
   const searching = q.trim() !== '' || sheetFiltered
-  const total = list.data?.pages[0]?.totalElements ?? 0
+  const total = list.data?.pages[0]?.totalElements
   const clearAll = () => {
     setSearch('')
     setFilters(NO_FILTERS)
@@ -86,7 +86,7 @@ export function StadiumsPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-title font-bold text-primary">
-          {t('stadiums.allCount', { count: total })}
+          {total === undefined ? t('stadiums.allTitle') : t('stadiums.allCount', { count: total })}
         </h2>
         {list.isPending ? (
           <SkeletonList variant="stadium" />

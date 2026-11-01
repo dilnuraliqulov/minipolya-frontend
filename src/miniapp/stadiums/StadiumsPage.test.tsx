@@ -52,6 +52,15 @@ describe('Bosh sahifa — the stadium list', () => {
     expect(screen.queryByRole('button', { name: '7×7' })).not.toBeInTheDocument()
   })
 
+  it('shows no count in the header until the server answers', async () => {
+    stubApi({ [LIST]: page([makeStadium()], { totalElements: 12 }) })
+    renderApp('/')
+    const title = screen.getByRole('heading', { level: 2, name: 'Barcha maydonlar' })
+    expect(title).not.toHaveTextContent('·')
+    await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Barcha maydonlar · 12')
+  })
+
   it('banner dismissal is remembered', async () => {
     stubApi({ [LIST]: page([makeStadium()]) })
     const first = renderApp('/')

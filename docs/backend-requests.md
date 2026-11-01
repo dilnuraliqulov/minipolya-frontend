@@ -68,8 +68,8 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 
 `src/admin/api/missing.ts` lists the endpoints of open entries that a screen
 waits on; the panel shows "Tez orada" for those until they ship.
-`src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists are
-empty while there is no open request.
+`src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists
+hold only the entries of requests that are still open.
 
 Both entries below are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
 requests neither and shows no "Yaqin atrofda" or "Boʻsh maydonlar" section yet.

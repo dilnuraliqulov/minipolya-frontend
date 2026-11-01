@@ -114,6 +114,7 @@
     "filters": "Filters",
     "allFormats": "All",
     "format": "Format",
+    "allTitle": "All pitches",
     "allCount": "All pitches · {{count}}",
     "bannerText": "Secure payment · Clear cancellation terms",
     "bannerClose": "Close",
