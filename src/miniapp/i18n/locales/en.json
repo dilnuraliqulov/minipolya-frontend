@@ -437,5 +437,19 @@
     "notFoundText": "This game does not exist.",
     "payTitle": "Pay the rest",
     "payButton": "Pay · {{amount}}"
+  },
+  "accept": {
+    "title": "Accept the challenge",
+    "payNow": "Your team pays now",
+    "remainder": "Left to pay",
+    "remainderNote": "Pay the rest later in the app or in cash at the pitch.",
+    "rule": "A challenge cannot be accepted less than 3 hours before the game.",
+    "submit": "Pay and accept · {{amount}}",
+    "done": "Challenge accepted — the pitch is booked",
+    "goneTitle": "This challenge is no longer available",
+    "goneText": "Another team accepted it or it was cancelled.",
+    "slotTakenTitle": "This time was just taken",
+    "tooLateTitle": "Less than 3 hours to the game",
+    "backToTeam": "Back to my team"
   }
 }

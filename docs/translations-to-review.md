@@ -381,3 +381,15 @@ Placeholders such as `{{count}}` must stay as they are.
 | `games.teamGame` | Jamoa vs jamoa | Команда на команду | Team vs team |
 | `games.friendsGame` | Doʻstlar oʻyini | Игра с друзьями | Friends game |
 | `games.openGame` | Ochiq oʻyin | Открытая игра | Open game |
+| `accept.title` | Raqibni qabul qilish | Принять вызов | Accept the challenge |
+| `accept.payNow` | Jamoangiz hozir toʻlaydi | Ваша команда платит сейчас | Your team pays now |
+| `accept.remainder` | Qolgan summa | Остаток | Left to pay |
+| `accept.remainderNote` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток — позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
+| `accept.rule` | Oʻyin boshlanishiga 3 soatdan kam qolganda qabul qilib boʻlmaydi. | Меньше чем за 3 часа до игры принять вызов нельзя. | A challenge cannot be accepted less than 3 hours before the game. |
+| `accept.submit` | Toʻlash va qabul qilish · {{amount}} | Оплатить и принять · {{amount}} | Pay and accept · {{amount}} |
+| `accept.done` | Raqib qabul qilindi — maydon band qilindi | Вызов принят — поле забронировано | Challenge accepted — the pitch is booked |
+| `accept.goneTitle` | Bu chaqiriq endi mavjud emas | Этот вызов больше недоступен | This challenge is no longer available |
+| `accept.goneText` | Boshqa jamoa qabul qilgan yoki chaqiriq bekor qilingan. | Его уже приняли или отменили. | Another team accepted it or it was cancelled. |
+| `accept.slotTakenTitle` | Bu vaqt band boʻlib qoldi | Это время уже заняли | This time was just taken |
+| `accept.tooLateTitle` | Oʻyinga 3 soatdan kam qoldi | До игры меньше 3 часов | Less than 3 hours to the game |
+| `accept.backToTeam` | Jamoamga qaytish | Вернуться в команду | Back to my team |

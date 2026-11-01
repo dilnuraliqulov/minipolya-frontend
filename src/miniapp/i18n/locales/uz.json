@@ -437,5 +437,19 @@
     "notFoundText": "Bu oʻyin mavjud emas.",
     "payTitle": "Qolganini toʻlash",
     "payButton": "Toʻlash · {{amount}}"
+  },
+  "accept": {
+    "title": "Raqibni qabul qilish",
+    "payNow": "Jamoangiz hozir toʻlaydi",
+    "remainder": "Qolgan summa",
+    "remainderNote": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
+    "rule": "Oʻyin boshlanishiga 3 soatdan kam qolganda qabul qilib boʻlmaydi.",
+    "submit": "Toʻlash va qabul qilish · {{amount}}",
+    "done": "Raqib qabul qilindi — maydon band qilindi",
+    "goneTitle": "Bu chaqiriq endi mavjud emas",
+    "goneText": "Boshqa jamoa qabul qilgan yoki chaqiriq bekor qilingan.",
+    "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
+    "tooLateTitle": "Oʻyinga 3 soatdan kam qoldi",
+    "backToTeam": "Jamoamga qaytish"
   }
 }
