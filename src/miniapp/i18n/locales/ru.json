@@ -116,6 +116,7 @@
     "format": "Формат",
     "allTitle": "Все поля",
     "allCount": "Все поля · {{count}}",
+    "foundCount": "Найдено полей · {{count}}",
     "bannerText": "Оплата безопасна · Условия отмены понятны",
     "bannerClose": "Закрыть",
     "perHour": "сум/час",

@@ -116,6 +116,7 @@
     "format": "Format",
     "allTitle": "All pitches",
     "allCount": "All pitches · {{count}}",
+    "foundCount": "Pitches found · {{count}}",
     "bannerText": "Secure payment · Clear cancellation terms",
     "bannerClose": "Close",
     "perHour": "UZS/hour",

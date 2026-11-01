@@ -116,6 +116,7 @@
     "format": "Format",
     "allTitle": "Barcha maydonlar",
     "allCount": "Barcha maydonlar · {{count}}",
+    "foundCount": "Topilgan maydonlar · {{count}}",
     "bannerText": "Toʻlov xavfsiz · Bekor qilish shartlari aniq",
     "bannerClose": "Yopish",
     "perHour": "soʻm/soat",

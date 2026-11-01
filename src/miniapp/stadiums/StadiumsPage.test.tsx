@@ -120,6 +120,19 @@ describe('Bosh sahifa — the stadium list', () => {
     )
   })
 
+  it('labels the count "Topilgan maydonlar" while searching', async () => {
+    stubApi({ [LIST]: page([makeStadium()]) })
+    renderApp('/')
+    await screen.findByRole('article')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Barcha maydonlar · 1')
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' }), {
+      target: { value: 'Olmazor' },
+    })
+    await vi.waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Topilgan maydonlar · 1'),
+    )
+  })
+
   it('format filter lives in the sheet', async () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')

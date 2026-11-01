@@ -98,6 +98,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadiums.format` | Format | Формат | Format |
 | `stadiums.allTitle` | Barcha maydonlar | Все поля | All pitches |
 | `stadiums.allCount` | Barcha maydonlar · {{count}} | Все поля · {{count}} | All pitches · {{count}} |
+| `stadiums.foundCount` | Topilgan maydonlar · {{count}} | Найдено полей · {{count}} | Pitches found · {{count}} |
 | `stadiums.bannerText` | Toʻlov xavfsiz · Bekor qilish shartlari aniq | Оплата безопасна · Условия отмены понятны | Secure payment · Clear cancellation terms |
 | `stadiums.bannerClose` | Yopish | Закрыть | Close |
 | `stadiums.perHour` | soʻm/soat | сум/час | UZS/hour |

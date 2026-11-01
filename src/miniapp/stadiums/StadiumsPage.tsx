@@ -86,7 +86,9 @@ export function StadiumsPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-title font-bold text-primary">
-          {total === undefined ? t('stadiums.allTitle') : t('stadiums.allCount', { count: total })}
+          {total === undefined
+            ? t('stadiums.allTitle')
+            : t(searching ? 'stadiums.foundCount' : 'stadiums.allCount', { count: total })}
         </h2>
         {list.isPending ? (
           <SkeletonList variant="stadium" />
