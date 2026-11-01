@@ -1,15 +1,21 @@
 import { onlineManager } from '@tanstack/react-query'
 import { fireEvent, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, stubApi } from '../test/api'
 import { renderApp } from '../test/renderApp'
 import { makeStadium, page } from '../test/stadiums'
+import { nextDate, tashkentToday } from './dates'
+
+beforeEach(() => {
+  localStorage.clear()
+})
 
 afterEach(() => {
   vi.unstubAllGlobals()
 })
 
 const LIST = 'GET /api/stadiums'
+const BANNER = 'Toʻlov xavfsiz · Bekor qilish shartlari aniq'
 
 describe('Bosh sahifa — the stadium list', () => {
   it('loads the first page and shows each card with ONE price per hour', async () => {
@@ -19,14 +25,69 @@ describe('Bosh sahifa — the stadium list', () => {
     expect(screen.getByRole('status', { name: 'Yuklanmoqda' })).toBeInTheDocument()
     const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
     expect(within(card).getByText('4.8')).toBeInTheDocument()
-    expect(within(card).getByText('(128)')).toBeInTheDocument()
-    expect(within(card).getByText('Chilonzor · 7×7')).toBeInTheDocument()
-    expect(within(card).getByText('155 000')).toBeInTheDocument()
-    expect(within(card).getByText('soʻm/soat')).toBeInTheDocument()
+    expect(within(card).getByText('Chilonzor · 7×7 · Sunʼiy gazon')).toBeInTheDocument()
+    expect(within(card).getByText('155 000 soʻm')).toBeInTheDocument()
+    expect(within(card).getByText('/soat')).toBeInTheDocument()
     // One price, nothing else that looks like money.
     expect(within(card).getAllByText(/\d{3} \d{3}/)).toHaveLength(1)
     expect(within(card).queryByText(/komissiya|karta toʻlovi|xizmat haqi/i)).not.toBeInTheDocument()
     expect(api.queries(LIST)).toEqual([{ page: '0', size: '20' }])
+  })
+
+  it('renders search, date strip, banner, count header and compact cards', async () => {
+    stubApi({ [LIST]: page([makeStadium()], { totalElements: 12 }) })
+    renderApp('/')
+    await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+
+    expect(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Filtrlar' })).toBeInTheDocument()
+    const strip = screen.getByRole('radiogroup', { name: 'Sana' })
+    expect(within(strip).getByRole('radio', { name: /Bugun/ })).toBeChecked()
+    expect(within(strip).getByRole('radio', { name: /Ertaga/ })).not.toBeChecked()
+    expect(screen.getByText(BANNER)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Barcha maydonlar · 12' }),
+    ).toBeInTheDocument()
+    // The format chips live in the Filters sheet now.
+    expect(screen.queryByRole('button', { name: '7×7' })).not.toBeInTheDocument()
+  })
+
+  it('banner dismissal is remembered', async () => {
+    stubApi({ [LIST]: page([makeStadium()]) })
+    const first = renderApp('/')
+    await screen.findByRole('article')
+    fireEvent.click(screen.getByRole('button', { name: 'Yopish' }))
+    expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+    expect(localStorage.getItem('minipolya-miniapp-banner-hidden')).toBe('1')
+    first.unmount()
+
+    renderApp('/')
+    await screen.findByRole('article')
+    expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+  })
+
+  it('opening a card carries the chosen date', async () => {
+    stubApi({ [LIST]: page([makeStadium()]) })
+    const { router } = renderApp('/')
+    const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    fireEvent.click(screen.getByRole('radio', { name: /Ertaga/ }))
+    fireEvent.click(within(card).getByRole('button', { name: 'Band qilish' }))
+    expect(router.state.location.pathname).toBe('/stadiums/018f3a2c-0000-7000-8000-0000000000a1')
+    expect(router.state.location.search).toBe(`?date=${nextDate(tashkentToday())}`)
+  })
+
+  it('requests nothing for nearby/free-on-date', async () => {
+    const api = stubApi({ [LIST]: page([makeStadium()]) })
+    renderApp('/')
+    await screen.findByRole('article')
+    fireEvent.click(screen.getByRole('radio', { name: /Ertaga/ }))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(api.queries(LIST).length).toBeGreaterThan(0)
+    for (const query of api.queries(LIST)) {
+      expect(query).not.toHaveProperty('sort')
+      expect(query).not.toHaveProperty('date')
+      expect(query).not.toHaveProperty('freeOnly')
+    }
   })
 
   it('hides the rating when the stadium has no reviews', async () => {
@@ -35,7 +96,7 @@ describe('Bosh sahifa — the stadium list', () => {
     })
     renderApp('/')
     const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
-    expect(within(card).queryByText(/\(\d+\)/)).not.toBeInTheDocument()
+    expect(within(card).queryByText('4.8')).not.toBeInTheDocument()
   })
 
   it('searches with q, after the user stops typing', async () => {
@@ -50,18 +111,30 @@ describe('Bosh sahifa — the stadium list', () => {
     )
   })
 
-  it('filters by format with the chips; "Hammasi" removes it', async () => {
+  it('format filter lives in the sheet', async () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article')
 
-    fireEvent.click(screen.getByRole('button', { name: '7×7' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
+    let sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
+    expect(within(sheet).getByRole('button', { name: 'Hammasi' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    fireEvent.click(within(sheet).getByRole('button', { name: '7×7' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Qoʻllash' }))
     await vi.waitFor(() =>
       expect(api.queries(LIST).at(-1)).toEqual({ format: '7x7', page: '0', size: '20' }),
     )
-    expect(screen.getByRole('button', { name: '7×7' })).toHaveAttribute('aria-pressed', 'true')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hammasi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
+    sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
+    expect(within(sheet).getByRole('button', { name: '7×7' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Filtrlarni tozalash' }))
     await vi.waitFor(() => expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20' }))
   })
 
@@ -203,6 +276,7 @@ describe('Bosh sahifa — the stadium list', () => {
     const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
     fireEvent.click(within(card).getByRole('button', { name: /Band qilish/ }))
     expect(router.state.location.pathname).toBe('/stadiums/018f3a2c-0000-7000-8000-0000000000a1')
+    expect(router.state.location.search).toBe(`?date=${tashkentToday()}`)
   })
 })
 

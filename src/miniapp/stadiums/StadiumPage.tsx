@@ -1,7 +1,7 @@
 import { ChevronRight, Heart, Info, MapPinOff, MessageSquare, Star } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { errorMessage } from '../api/errors'
 import type { StadiumDetail, TimeSlot } from '../api/stadiums'
@@ -20,7 +20,7 @@ import { formatMoney } from '../format'
 import { useProfileGate } from '../profile/useProfileGate'
 import { useGoBack } from '../lib/useGoBack'
 import { openExternalLink } from '../telegram'
-import { bookingDates, slotLabel, tashkentToday } from './dates'
+import { bookingDates, isInBookingWindow, slotLabel, tashkentToday } from './dates'
 import { Gallery } from './Gallery'
 import { AMENITY_KEYS, formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
 import { mapLink } from './mapLink'
@@ -76,8 +76,13 @@ function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: R
   const { t } = useTranslation()
   const navigate = useNavigate()
   const gate = useProfileGate()
+  const [searchParams] = useSearchParams()
   const [today] = useState(() => tashkentToday())
-  const [date, setDate] = useState(today)
+  // The day chosen on Bosh sahifa, when it is one of the strip's days.
+  const [date, setDate] = useState(() => {
+    const param = searchParams.get('date')
+    return param !== null && isInBookingWindow(param, today) ? param : today
+  })
   const [selected, setSelected] = useState<TimeSlot | null>(null)
   const lastDate = bookingDates(today).at(-1)?.iso ?? today
 

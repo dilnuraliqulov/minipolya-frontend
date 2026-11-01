@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import i18n from '../i18n'
-import { BOOKING_WINDOW_DAYS, bookingDates, dayTitle, slotLabel, tashkentToday } from './dates'
+import {
+  BOOKING_WINDOW_DAYS,
+  bookingDates,
+  dayTitle,
+  isInBookingWindow,
+  slotLabel,
+  tashkentToday,
+} from './dates'
 
 afterEach(async () => {
   await i18n.changeLanguage('uz')
@@ -25,6 +32,25 @@ describe('bookingDates — the date strip', () => {
   it('crosses months and years', () => {
     const dates = bookingDates('2026-12-20')
     expect(dates[12]?.iso).toBe('2027-01-01')
+  })
+})
+
+describe('isInBookingWindow', () => {
+  it.each([
+    ['2026-11-01', true],
+    ['2026-11-02', true],
+    ['2026-11-29', true],
+    ['2026-11-30', false],
+    ['2026-10-31', false],
+    ['2026-12-11', false],
+    ['garbage', false],
+    ['', false],
+    [null, false],
+    ['2026-11-1', false],
+    ['2026-11-05T00:00', false],
+    ['2026-02-30', false],
+  ])('%s → %s (today 2026-11-01)', (iso, expected) => {
+    expect(isInBookingWindow(iso, '2026-11-01')).toBe(expected)
   })
 })
 

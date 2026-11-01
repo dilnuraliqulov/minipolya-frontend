@@ -1,3 +1,5 @@
+import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
+
 /**
  * THE list of endpoints (and fields) the Mini App needs that the backend has
  * not shipped yet, each with its request in docs/backend-requests.md.
@@ -7,10 +9,13 @@
  * When the backend ships one, delete its line: the real call takes over.
  * Keys are the constants next to the API functions (e.g. `'GET /api/foo'`).
  *
- * Empty while no request is open (R20, R21 and R23 shipped in backend
- * `4d5faf0`).
+ * Open: R24 (list sorted by distance/rating) and R25 (list filtered to
+ * stadiums free on a date). R20, R21 and R23 shipped in backend `4d5faf0`.
  */
-export const MISSING_ENDPOINTS: Record<string, string> = {}
+export const MISSING_ENDPOINTS: Record<string, string> = {
+  [STADIUMS_NEARBY]: 'R24',
+  [STADIUMS_FREE_ON_DATE]: 'R25',
+}
 
 export type Availability = 'available' | 'soon'
 

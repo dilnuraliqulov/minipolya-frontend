@@ -79,6 +79,9 @@ export function makeReview(overrides: Partial<Review> = {}): Review {
   }
 }
 
-export function page<T>(content: T[], { page = 0, totalPages = 1 } = {}): Page<T> {
-  return { content, page, size: 20, totalElements: content.length, totalPages }
+export function page<T>(
+  content: T[],
+  { page = 0, totalPages = 1, totalElements = content.length } = {},
+): Page<T> {
+  return { content, page, size: 20, totalElements, totalPages }
 }

@@ -4,6 +4,7 @@ import { jsonResponse, stubApi } from '../test/api'
 import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
 import { makeDetail, makeReview, page } from '../test/stadiums'
+import { nextDate, tashkentToday } from './dates'
 
 // Leaflet needs a real layout; the map itself is checked by eye.
 vi.mock('./StadiumMap', () => ({ StadiumMap: () => <div data-testid="map" /> }))
@@ -151,6 +152,35 @@ describe('Maydon — the stadium page', () => {
     expect(await screen.findByRole('heading', { name: 'Maydon topilmadi' })).toBeInTheDocument()
   })
 })
+
+describe('Maydon — the date from Bosh sahifa', () => {
+  const today = tashkentToday()
+
+  it('starts on ?date= inside the window', async () => {
+    const tomorrow = nextDate(today)
+    const api = stub()
+    renderApp(`/stadiums/${ID}?date=${tomorrow}`)
+    expect(await screen.findByRole('radio', { name: /Ertaga/ })).toBeChecked()
+    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toEqual([{ date: tomorrow }]))
+  })
+
+  it.each([
+    ['garbage', 'garbage'],
+    ['today+40', bookingDatesFrom(today, 40)],
+    ['yesterday', bookingDatesFrom(today, -1)],
+  ])('falls back to today for ?date=%s', async (_, param) => {
+    const api = stub()
+    renderApp(`/stadiums/${ID}?date=${param}`)
+    expect(await screen.findByRole('radio', { name: /Bugun/ })).toBeChecked()
+    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toEqual([{ date: today }]))
+  })
+})
+
+/** `iso` moved by `days` calendar days (test-only helper). */
+function bookingDatesFrom(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number]
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
+}
 
 describe('Sharhlar — all reviews', () => {
   it('lists the reviews and loads more', async () => {

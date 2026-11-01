@@ -134,6 +134,11 @@ export interface Review {
   createdAt: string
 }
 
+/** R24: `sort=distance|rating` with `lat`, `lng` ("Yaqin atrofda"). Not shipped; nothing calls it. */
+export const STADIUMS_NEARBY = 'GET /api/stadiums?sort=distance'
+/** R25: `date` + `freeOnly=true`, only stadiums with a free hour that day. Not shipped; nothing calls it. */
+export const STADIUMS_FREE_ON_DATE = 'GET /api/stadiums?date'
+
 export const PAGE_SIZE = 20
 
 export interface StadiumFilters {

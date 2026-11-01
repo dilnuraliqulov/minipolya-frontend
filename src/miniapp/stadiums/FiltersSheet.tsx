@@ -1,18 +1,25 @@
 import { Check, MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { somToTiyin, formatSomParts } from '../../shared/format'
-import { DISTRICTS, type District, type StadiumFilters } from '../api/stadiums'
-import { BottomSheet, Button, Card, Input, ListRow, cx } from '../components'
+import {
+  DISTRICTS,
+  FORMATS,
+  type District,
+  type StadiumFilters,
+  type StadiumFormat,
+} from '../api/stadiums'
+import { BottomSheet, Button, Card, Chip, Input, ListRow, cx } from '../components'
 import { haptic } from '../telegram'
+import { formatLabel } from './labels'
 
-type AppliedFilters = Pick<StadiumFilters, 'maxPrice' | 'district'>
+export type AppliedFilters = Pick<StadiumFilters, 'format' | 'maxPrice' | 'district'>
 
 /**
- * "Filtrlar": the price limit (maxPrice, the player price per hour) and the
- * district. "Tuman" opens "Tumanni tanlang" — the twelve districts the
- * backend accepts, plus "Barcha tumanlar"; choosing one returns here. Nothing
- * is sent until "Qoʻllash".
+ * "Filtrlar": the format, the price limit (maxPrice, the player price per
+ * hour) and the district. "Tuman" opens "Tumanni tanlang" — the twelve
+ * districts the backend accepts, plus "Barcha tumanlar"; choosing one returns
+ * here. Nothing is sent until "Qoʻllash".
  */
 export function FiltersSheet({
   open,
@@ -29,6 +36,8 @@ export function FiltersSheet({
   const [price, setPrice] = useState(
     filters.maxPrice === null ? '' : formatSomParts(filters.maxPrice).amount.replace(/\s/g, ''),
   )
+  const formatId = useId()
+  const [format, setFormat] = useState<StadiumFormat | null>(filters.format)
   const [district, setDistrict] = useState<District | null>(filters.district)
   const [choosingDistrict, setChoosingDistrict] = useState(false)
   const digits = price.replace(/\D/g, '')
@@ -57,17 +66,35 @@ export function FiltersSheet({
           <Button
             haptic
             onClick={() =>
-              onApply({ maxPrice: digits ? somToTiyin(Number(digits)) : null, district })
+              onApply({ format, maxPrice: digits ? somToTiyin(Number(digits)) : null, district })
             }
           >
             {t('stadiums.apply')}
           </Button>
-          <Button variant="ghost" onClick={() => onApply({ maxPrice: null, district: null })}>
+          <Button
+            variant="ghost"
+            onClick={() => onApply({ format: null, maxPrice: null, district: null })}
+          >
             {t('stadiums.resetFilters')}
           </Button>
         </>
       }
     >
+      <div role="group" aria-labelledby={formatId} className="flex flex-col gap-1.5">
+        <p id={formatId} className="text-sm font-medium text-secondary">
+          {t('stadiums.format')}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Chip selected={format === null} onClick={() => setFormat(null)}>
+            {t('stadiums.allFormats')}
+          </Chip>
+          {FORMATS.map((option) => (
+            <Chip key={option} selected={format === option} onClick={() => setFormat(option)}>
+              {formatLabel(option)}
+            </Chip>
+          ))}
+        </div>
+      </div>
       <Input
         label={t('stadiums.maxPrice')}
         inputMode="numeric"

@@ -71,7 +71,80 @@ waits on; the panel shows "Tez orada" for those until they ship.
 `src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists are
 empty while there is no open request.
 
-None right now.
+Both entries below are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
+requests neither and shows no "Yaqin atrofda" or "Boʻsh maydonlar" section yet.
+
+### R24 — Sort the stadium list by distance or rating
+
+**What's needed**
+`GET /api/stadiums` has a fixed order and no sort parameter, so the client
+cannot show the nearest or best-rated pitches first. Sorting one page in the
+client would be wrong, so a server-side sort is needed.
+
+**Which screen needs it**
+Mini App player — Bosh sahifa, the "Yaqin atrofda" (nearby) section.
+
+**Proposed endpoint**
+`GET /api/stadiums` — public (same access as today), new optional parameters.
+
+Request — in addition to the existing `q`, `format`, `maxPrice`, `district`,
+`page`, `size`:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `sort` | string | no | `distance` or `rating`; anything else is 400. Default stays today's fixed order |
+| `lat` | number | only with `sort=distance` | -90 to 90 |
+| `lng` | number | only with `sort=distance` | -180 to 180 |
+
+Response — the existing page payload, same fields, ordered by the chosen sort
+(`distance`: nearest first; `rating`: highest `averageRating` first, stadiums
+without reviews last).
+
+| Field | Type | Notes |
+|---|---|---|
+| `distanceMeters` | integer | optional; on each stadium, only with `sort=distance` |
+
+Error cases — 400 when `sort` is not `distance` or `rating`; 400 for
+`sort=distance` without `lat` and `lng`, or with out-of-range values.
+
+**Priority**
+Medium — blocks the "Yaqin atrofda" section; Bosh sahifa works without it.
+
+### R25 — Only stadiums with a free hour on a date
+
+**What's needed**
+The date strip on Bosh sahifa picks a day, but the list cannot be narrowed to
+stadiums that have a free hour that day. Checking availability stadium by
+stadium from the client would be one request per card.
+
+**Which screen needs it**
+Mini App player — Bosh sahifa, the "Boʻsh maydonlar · N" section.
+
+**Proposed endpoint**
+`GET /api/stadiums` — public (same access as today), new optional parameters.
+
+Request — in addition to the existing ones:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `date` | string | no | `yyyy-MM-dd` (Tashkent day), today to `app.booking.max-weeks-ahead` weeks ahead; otherwise 400 |
+| `freeOnly` | boolean | no | `true` returns only stadiums with at least one bookable hour on `date`; requires `date` |
+
+Response — the existing page payload. `totalElements` is the number of
+stadiums that have a free hour on `date`, so the client can show "Boʻsh
+maydonlar · N" without counting a page.
+
+| Field | Type | Notes |
+|---|---|---|
+| `content[]` | stadium | same fields as today; `pricePerHour` unchanged |
+| `totalElements` | integer | stadiums with a free hour on `date` |
+
+Error cases — 400 when `date` is malformed, in the past or beyond the booking
+window; 400 for `freeOnly=true` without `date`.
+
+**Priority**
+Medium — blocks the "Boʻsh maydonlar · N" section; the chosen date already
+travels to the stadium page.
 
 ---
 

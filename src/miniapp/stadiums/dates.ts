@@ -41,6 +41,16 @@ export function bookingDates(today: string): StripDate[] {
   return Array.from({ length: BOOKING_WINDOW_DAYS + 1 }, (_, i) => addDays(today, i))
 }
 
+/**
+ * Whether `iso` is one of the strip's days (today … 28 days ahead) — for a
+ * date that arrives from outside, such as `?date=` on the stadium page.
+ * Anything else (malformed, past, too far ahead, null) is false.
+ */
+export function isInBookingWindow(iso: string | null, today: string): boolean {
+  if (iso === null || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false
+  return bookingDates(today).some((date) => date.iso === iso)
+}
+
 export const WEEKDAY_SHORT_KEYS = [
   'weekdays.short.mon',
   'weekdays.short.tue',
