@@ -408,3 +408,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `opponent.submit` | Raqib qidirishni boshlash | Начать поиск соперника | Start looking for an opponent |
 | `opponent.started` | Raqib qidirish boshlandi | Поиск соперника начат | Looking for an opponent |
 | `opponent.noLedTeam` | Raqib qidirish uchun jamoa sardori boʻlishingiz kerak. | Искать соперника может только капитан команды. | Only a team captain can look for an opponent. |
+| `chat.title` | Chat | Чат | Chat |
+| `chat.placeholder` | Xabar yozing… | Напишите сообщение… | Write a message… |
+| `chat.input` | Xabar | Сообщение | Message |
+| `chat.send` | Yuborish | Отправить | Send |
+| `chat.emptyTitle` | Hali xabarlar yoʻq | Сообщений пока нет | No messages yet |
+| `chat.emptyText` | Raqib jamoa sardori bilan oʻyinni kelishib oling. | Договоритесь об игре с капитаном соперников. | Agree on the game with the other captain. |
+| `chat.closed` | Chat faqat tasdiqlangan oʻyinda ochiq. | Чат открыт только для подтверждённой игры. | Chat is open only for a confirmed game. |
+| `chat.you` | Siz | Вы | You |

@@ -4,6 +4,7 @@ import { BookedPage } from './booking/BookedPage'
 import { CheckoutPage } from './booking/CheckoutPage'
 import { BookingPage } from './bookings/BookingPage'
 import { BookingsPage } from './bookings/BookingsPage'
+import { ChatPage } from './games/ChatPage'
 import { GamePage } from './games/GamePage'
 import { SoonScreen } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
@@ -66,6 +67,14 @@ const screens: RouteObject[] = [
     element: (
       <SplashDone>
         <GamePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games/:id/chat',
+    element: (
+      <SplashDone>
+        <ChatPage />
       </SplashDone>
     ),
   },

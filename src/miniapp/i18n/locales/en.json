@@ -470,5 +470,15 @@
     "submit": "Start looking for an opponent",
     "started": "Looking for an opponent",
     "noLedTeam": "Only a team captain can look for an opponent."
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Write a message…",
+    "input": "Message",
+    "send": "Send",
+    "emptyTitle": "No messages yet",
+    "emptyText": "Agree on the game with the other captain.",
+    "closed": "Chat is open only for a confirmed game.",
+    "you": "You"
   }
 }

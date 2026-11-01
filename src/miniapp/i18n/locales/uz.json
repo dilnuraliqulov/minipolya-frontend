@@ -470,5 +470,15 @@
     "submit": "Raqib qidirishni boshlash",
     "started": "Raqib qidirish boshlandi",
     "noLedTeam": "Raqib qidirish uchun jamoa sardori boʻlishingiz kerak."
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Xabar yozing…",
+    "input": "Xabar",
+    "send": "Yuborish",
+    "emptyTitle": "Hali xabarlar yoʻq",
+    "emptyText": "Raqib jamoa sardori bilan oʻyinni kelishib oling.",
+    "closed": "Chat faqat tasdiqlangan oʻyinda ochiq.",
+    "you": "Siz"
   }
 }
