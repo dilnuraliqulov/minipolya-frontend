@@ -186,3 +186,34 @@ Placeholders such as `{{count}}` must stay as they are.
 | `bookings.status.completed` | Oʻtkazilgan | Состоялась | Completed |
 | `bookings.status.expired` | Muddati oʻtgan | Истекла | Expired |
 | `bookings.status.cancelled` | Bekor qilingan | Отменена | Cancelled |
+| `cards.add` | Karta qoʻshish | Добавить карту | Add card |
+| `cards.addTitle` | Karta qoʻshish | Добавление карты | Add card |
+| `cards.number` | Karta raqami | Номер карты | Card number |
+| `cards.expiry` | Amal qilish muddati (OO/YY) | Срок действия (ММ/ГГ) | Expiry date (MM/YY) |
+| `cards.next` | Davom etish | Продолжить | Continue |
+| `cards.step1` | 1-qadam / 2 · Karta maʼlumotlari | Шаг 1 из 2 · Данные карты | Step 1 of 2 · Card details |
+| `cards.step2` | 2-qadam / 2 · Tasdiqlash | Шаг 2 из 2 · Подтверждение | Step 2 of 2 · Confirmation |
+| `cards.smsTitle` | SMS kodni kiriting | Введите SMS-код | Enter the SMS code |
+| `cards.smsLabel` | SMS kod | SMS-код | SMS code |
+| `cards.codeSent` | Kod {{phone}} raqamiga yuborildi | Код отправлен на номер {{phone}} | The code was sent to {{phone}} |
+| `cards.confirm` | Tasdiqlash | Подтвердить | Confirm |
+| `cards.resend` | Kodni qayta yuborish | Отправить код ещё раз | Resend the code |
+| `cards.resendIn` | Kodni qayta yuborish ({{time}}) | Отправить код ещё раз ({{time}}) | Resend the code ({{time}}) |
+| `cards.newCode` | Yangi kod yuborish | Отправить новый код | Send a new code |
+| `cards.privacy` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi. | Данные карты не хранятся в MiniPolya. | Card details are not stored in MiniPolya. |
+| `cards.footer` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi — faqat toʻlov tokeni saqlanadi. | Данные карты не хранятся в MiniPolya — сохраняется только платёжный токен. | Card details are not stored in MiniPolya — only a payment token is kept. |
+| `cards.wrongNumber` | Karta raqami yoki amal qilish muddati notoʻgʻri | Неверный номер карты или срок действия | The card number or expiry date is wrong |
+| `cards.wrongCode` | Kod notoʻgʻri. Qaytadan kiriting. | Неверный код. Введите ещё раз. | Wrong code. Enter it again. |
+| `cards.codeExpired` | Kod muddati tugadi — yangi kod soʻrang | Срок действия кода истёк — запросите новый | The code has expired — request a new one |
+| `cards.noInternet` | Internet aloqasi yoʻq | Нет подключения к интернету | No internet connection |
+| `cards.noInternetHint` | Ulanishni tekshiring, qayta urinib koʻring. | Проверьте соединение и попробуйте ещё раз. | Check your connection and try again. |
+| `cards.saved` | Karta qoʻshildi | Карта добавлена | Card added |
+| `cards.emptyTitle` | Saqlangan kartalar yoʻq | Нет сохранённых карт | No saved cards |
+| `cards.emptyText` | Karta qoʻshsangiz, keyingi toʻlovlar tezroq boʻladi. | Добавьте карту, и следующие платежи пройдут быстрее. | Add a card and your next payments will be quicker. |
+| `cards.more` | Karta amallari | Действия с картой | Card actions |
+| `cards.delete` | Kartani oʻchirish | Удалить карту | Delete card |
+| `cards.deleteTitle` | Kartani oʻchirasizmi? | Удалить карту? | Delete this card? |
+| `cards.deleteText` | {{card}} roʻyxatdan oʻchiriladi. Keyin uni qayta qoʻshishingiz mumkin. | {{card}} будет удалена из списка. Позже вы сможете добавить её снова. | {{card}} will be removed from the list. You can add it again later. |
+| `cards.deleteConfirm` | Oʻchirish | Удалить | Delete |
+| `cards.back` | Ortga | Назад | Back |
+| `cards.deleted` | Karta oʻchirildi | Карта удалена | Card deleted |

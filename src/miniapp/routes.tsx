@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router'
+import { CardsPage } from './cards/CardsPage'
 import { SoonScreen, SoonTab } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
@@ -71,7 +72,7 @@ const screens: RouteObject[] = [
     path: '/profile/cards',
     element: (
       <SplashDone>
-        <SoonScreen titleKey="profile.cards" />
+        <CardsPage />
       </SplashDone>
     ),
   },

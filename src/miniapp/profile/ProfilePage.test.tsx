@@ -148,11 +148,13 @@ describe('Profil', () => {
     expect(screen.getByRole('button', { name: /Mavzu.*Qorongʻi/ })).toBeInTheDocument()
   })
 
-  it('opens Kartalarim and Sevimlilar as "Tez orada" for now', async () => {
-    stubApi({ 'GET /api/users/me': player })
+  it('opens Kartalarim', async () => {
+    stubApi({ 'GET /api/users/me': player, 'GET /api/cards': [] })
     renderApp('/profile')
     fireEvent.click(await screen.findByRole('button', { name: /Kartalarim/ }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Kartalarim' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Saqlangan kartalar yoʻq' }),
+    ).toBeInTheDocument()
   })
 })
