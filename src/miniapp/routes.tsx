@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from 'react-router'
 import { CardsPage } from './cards/CardsPage'
 import { BookedPage } from './booking/BookedPage'
 import { CheckoutPage } from './booking/CheckoutPage'
+import { BookingPage } from './bookings/BookingPage'
 import { BookingsPage } from './bookings/BookingsPage'
 import { SoonScreen, SoonTab } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
@@ -44,6 +45,14 @@ const screens: RouteObject[] = [
     element: (
       <SplashDone>
         <BookedPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/bookings/:id',
+    element: (
+      <SplashDone>
+        <BookingPage />
       </SplashDone>
     ),
   },

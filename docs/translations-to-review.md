@@ -265,3 +265,35 @@ Placeholders such as `{{count}}` must stay as they are.
 | `bookings.emptyText` | Maydon tanlab, birinchi bronni qiling. | Выберите поле и сделайте первую бронь. | Pick a pitch and make your first booking. |
 | `bookings.findPitch` | Maydon topish | Найти поле | Find a pitch |
 | `bookings.more` | Yana koʻrsatish | Показать ещё | Show more |
+| `booking.title` | Bron | Бронь | Booking |
+| `booking.hours` | {{count}} soat | {{count}} ч | {{count}} h |
+| `booking.openMap` | Xaritada ochish | Открыть на карте | Open the map |
+| `booking.call` | Qoʻngʻiroq | Позвонить | Call |
+| `booking.payment` | Toʻlov | Оплата | Payment |
+| `booking.price` | Narx | Цена | Price |
+| `booking.paid` | Toʻlangan | Оплачено | Paid |
+| `booking.remaining` | Qolgan summa | Остаток | Left to pay |
+| `booking.unpaid` | Toʻlanmagan | Не оплачено | Unpaid |
+| `booking.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
+| `booking.payRest` | Qolganini ilovada toʻlash | Доплатить в приложении | Pay the rest in the app |
+| `booking.cashNote` | yoki maydonda naqd toʻlashingiz mumkin | или оплатите наличными на поле | or pay in cash at the pitch |
+| `booking.payNow` | Toʻlash | Оплатить | Pay |
+| `booking.pendingBanner` | Toʻlovni {{time}} gacha yakunlang | Завершите оплату до {{time}} | Finish paying by {{time}} |
+| `booking.pendingLeft` | Bron yana {{left}} saqlanadi | Бронь сохраняется ещё {{left}} | Held for another {{left}} |
+| `booking.rules` | Bekor qilish shartlari | Условия отмены | Cancellation terms |
+| `booking.rulesDeadline` | {{date}}, {{time}} gacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi. | При отмене до {{date}}, {{time}} оплата вернётся полностью. Позже — не возвращается. | Cancel before {{date}}, {{time}} for a full refund. After that, nothing is refunded. |
+| `booking.refundNow` | Hozir bekor qilsangiz: {{amount}} qaytariladi | Если отменить сейчас: вернём {{amount}} | Cancel now: {{amount}} is refunded |
+| `booking.noRefundNow` | Hozir bekor qilsangiz, toʻlov qaytarilmaydi | Если отменить сейчас, оплата не вернётся | Cancel now and nothing is refunded |
+| `booking.cancel` | Bronni bekor qilish | Отменить бронь | Cancel the booking |
+| `booking.cancelTitle` | Bronni bekor qilasizmi? | Отменить бронь? | Cancel this booking? |
+| `booking.cancelConfirm` | Ha, bekor qilish | Да, отменить | Yes, cancel |
+| `booking.cancelKeep` | Yoʻq, qoldirish | Нет, оставить | No, keep it |
+| `booking.cancelled` | Bron bekor qilindi | Бронь отменена | Booking cancelled |
+| `booking.cancelledRefund` | Bron bekor qilindi · {{amount}} qaytarildi | Бронь отменена · возвращено {{amount}} | Booking cancelled · {{amount}} refunded |
+| `booking.cancelledAt` | Bekor qilingan: {{date}}, {{time}} | Отменена: {{date}}, {{time}} | Cancelled: {{date}}, {{time}} |
+| `booking.cancelReason` | Sabab: {{reason}} | Причина: {{reason}} | Reason: {{reason}} |
+| `booking.payRestTitle` | Qolganini toʻlash | Доплата | Pay the rest |
+| `booking.payRestButton` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
+| `booking.restPaid` | Toʻlov qabul qilindi | Оплата принята | Payment received |
+| `booking.notFoundTitle` | Bron topilmadi | Бронь не найдена | Booking not found |
+| `booking.notFoundText` | Bu bron mavjud emas yoki sizga tegishli emas. | Этой брони нет или она не ваша. | This booking does not exist or is not yours. |
