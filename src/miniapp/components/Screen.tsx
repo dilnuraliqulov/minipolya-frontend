@@ -59,7 +59,7 @@ export function Header({ title, brand = false, onBack, action }: HeaderProps) {
         <h1
           className={cx(
             'min-w-0 flex-1 truncate text-title font-bold text-primary',
-            'tg-fullscreen:flex-none tg-fullscreen:text-center tg-fullscreen:text-xl tg-fullscreen:font-semibold',
+            'tg-fullscreen:flex-initial tg-fullscreen:text-center tg-fullscreen:text-xl tg-fullscreen:font-semibold',
           )}
         >
           {title}

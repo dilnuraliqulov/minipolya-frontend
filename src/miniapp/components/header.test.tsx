@@ -53,6 +53,15 @@ describe('Header', () => {
     )
   })
 
+  it('fullscreen title shrinks and truncates between Close and ⋯', () => {
+    document.documentElement.dataset.fullscreen = 'true'
+    const { container } = render(<Header brand title="Salom, Muhammadjon Abdurahmonov" />)
+    const title = screen.getByRole('heading', { level: 1 })
+    expect(title).toHaveClass('truncate', 'min-w-0', 'tg-fullscreen:flex-initial')
+    expect(title.className).not.toMatch(/flex-none/)
+    expect(container.querySelector('header svg')).toHaveClass('shrink-0')
+  })
+
   it('hides its own back button in fullscreen', () => {
     render(<Header title="Maydon" onBack={() => {}} />)
     expect(screen.getByRole('button', { name: 'Orqaga' })).toHaveClass('tg-fullscreen:hidden')
