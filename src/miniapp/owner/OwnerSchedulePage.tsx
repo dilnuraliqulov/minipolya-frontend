@@ -1,0 +1,401 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Phone, Plus, Swords } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { formatTime, tashkentToUtc } from '../../shared/format'
+import type { Booking } from '../api/bookings'
+import { errorMessage } from '../api/errors'
+import { isAvailable } from '../api/missing'
+import {
+  createManualBooking,
+  OWNER_BOOKING_CASH,
+  ownerCancelBooking,
+  scheduleKey,
+  type OwnerStadium,
+} from '../api/owner'
+import { getAvailability, type TimeSlot } from '../api/stadiums'
+import { BookingStatusBadge } from '../bookings/BookingStatusBadge'
+import {
+  BottomSheet,
+  Button,
+  Card,
+  cx,
+  ErrorState,
+  Input,
+  SkeletonList,
+  useToast,
+} from '../components'
+import { formatMoney } from '../format'
+import { DateStrip } from '../stadiums/SlotPicker'
+import { availabilityKey } from '../stadiums/queries'
+import { slotLabel, tashkentToday } from '../stadiums/dates'
+import { OwnerTabScreen } from './OwnerTabScreen'
+import { useSchedule } from './queries'
+import { SelectField } from './SelectField'
+import { WithOwnerStadium } from './StadiumPicker'
+
+/** Jadval: one day of the owner's stadium — bookings, free hours, walk-ins. */
+export function OwnerSchedulePage() {
+  const { t } = useTranslation()
+  return (
+    <OwnerTabScreen title={t('owner.tabs.schedule')}>
+      <WithOwnerStadium>
+        {(stadium) => <Schedule key={stadium.id} stadium={stadium} />}
+      </WithOwnerStadium>
+    </OwnerTabScreen>
+  )
+}
+
+const CANCELLABLE = new Set(['pending', 'confirmed'])
+
+function Schedule({ stadium }: { stadium: OwnerStadium }) {
+  const { t } = useTranslation()
+  const [today] = useState(() => tashkentToday())
+  const [date, setDate] = useState(today)
+  const schedule = useSchedule(stadium.id, date)
+  // Free hours come from the public availability; a stadium players cannot see yet has none.
+  const availability = useQuery({
+    queryKey: availabilityKey(stadium.id, date),
+    queryFn: () => getAvailability(stadium.id, date),
+    enabled: stadium.status === 'approved',
+  })
+  const [open, setOpen] = useState<Booking | null>(null)
+  const [walkIn, setWalkIn] = useState<string | null>(null)
+  const day = schedule.data?.[0]
+  const bookings = day?.bookings ?? []
+  const atHour = (slot: TimeSlot) =>
+    bookings.find(
+      (b) =>
+        formatTime(b.startsAt) === slot.startTime.slice(0, 5) && !b.status.startsWith('cancelled'),
+    )
+  const free = (availability.data?.slots ?? []).filter((s) => s.status === 'free')
+
+  return (
+    <>
+      <DateStrip today={today} value={date} onChange={setDate} />
+      {day && (
+        <p className="text-sm text-secondary">
+          {t('owner.schedule.summary', {
+            booked: day.bookedSlots,
+            total: day.totalSlots,
+            revenue: formatMoney(day.revenue),
+          })}
+        </p>
+      )}
+      {stadium.status === 'approved' && (
+        <Button
+          variant="secondary"
+          icon={Plus}
+          disabled={free.length === 0}
+          onClick={() => setWalkIn('')}
+        >
+          {t('owner.schedule.walkIn')}
+        </Button>
+      )}
+
+      {schedule.isPending || availability.isLoading ? (
+        <SkeletonList count={4} variant="item" />
+      ) : schedule.isError ? (
+        <ErrorState onRetry={() => void schedule.refetch()} />
+      ) : (
+        <ul className="flex flex-col gap-2" aria-label={t('owner.tabs.schedule')}>
+          {(day?.waitingGames ?? []).map((game) => (
+            <li
+              key={game.gameId}
+              className="flex items-center gap-3 rounded-xl bg-warning-soft p-3 text-sm text-warning"
+            >
+              <Swords size={18} aria-hidden />
+              {`${formatTime(game.startsAt)}–${formatTime(game.endsAt)} · ${t(
+                'owner.schedule.waitingGame',
+                {
+                  team: game.teamName ?? t('team.anonymous'),
+                },
+              )}`}
+            </li>
+          ))}
+          {availability.data
+            ? availability.data.slots.map((slot) => {
+                const booking = atHour(slot)
+                return (
+                  <li key={slot.startTime}>
+                    {booking ? (
+                      <BookingRow booking={booking} onOpen={() => setOpen(booking)} />
+                    ) : (
+                      <SlotRow slot={slot} onWalkIn={() => setWalkIn(slot.startTime.slice(0, 5))} />
+                    )}
+                  </li>
+                )
+              })
+            : bookings.map((booking) => (
+                <li key={booking.id}>
+                  <BookingRow booking={booking} onOpen={() => setOpen(booking)} />
+                </li>
+              ))}
+          {!availability.data && bookings.length === 0 && (
+            <li className="py-6 text-center text-sm text-secondary">{t('owner.schedule.empty')}</li>
+          )}
+        </ul>
+      )}
+
+      {open && (
+        <OwnerBookingSheet
+          booking={open}
+          stadium={stadium}
+          date={date}
+          onClose={() => setOpen(null)}
+        />
+      )}
+      {walkIn !== null && (
+        <WalkInSheet
+          stadium={stadium}
+          date={date}
+          free={free}
+          initial={walkIn || free[0]?.startTime.slice(0, 5) || ''}
+          onClose={() => setWalkIn(null)}
+        />
+      )}
+    </>
+  )
+}
+
+function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void }) {
+  const { t } = useTranslation()
+  const who = booking.clientName ?? t('owner.booking.player')
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border bg-background p-3 text-left"
+    >
+      <span className="w-12 shrink-0 text-sm font-semibold text-primary">
+        {formatTime(booking.startsAt)}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+        <span className="w-full truncate text-base font-medium text-primary">{who}</span>
+        <BookingStatusBadge status={booking.status} />
+      </span>
+      <span className="text-sm font-semibold text-primary">{formatMoney(booking.price)}</span>
+    </button>
+  )
+}
+
+function SlotRow({ slot, onWalkIn }: { slot: TimeSlot; onWalkIn: () => void }) {
+  const { t } = useTranslation()
+  const free = slot.status === 'free'
+  const label =
+    slot.status === 'closed'
+      ? t('owner.schedule.closed')
+      : slot.status === 'past'
+        ? t('owner.schedule.past')
+        : t('owner.schedule.free')
+  return (
+    <button
+      type="button"
+      disabled={!free}
+      onClick={onWalkIn}
+      className={cx(
+        'flex min-h-12 w-full items-center gap-3 rounded-xl border border-dashed border-border px-3 text-left',
+        !free && 'opacity-55',
+      )}
+    >
+      <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
+      <span className="flex-1 text-sm text-secondary">{label}</span>
+      {free && <Plus size={18} className="text-link" aria-hidden />}
+    </button>
+  )
+}
+
+function OwnerBookingSheet({
+  booking,
+  stadium,
+  date,
+  onClose,
+}: {
+  booking: Booking
+  stadium: OwnerStadium
+  date: string
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [confirming, setConfirming] = useState(false)
+  const cancel = useMutation({
+    mutationFn: () => ownerCancelBooking(booking.id),
+    onSuccess: () => {
+      toast.show(t('owner.booking.cancelled'), 'success')
+      onClose()
+    },
+    onError: (error) => toast.show(errorMessage(error), 'danger'),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: availabilityKey(stadium.id, date) })
+    },
+  })
+  const rows: Array<[string, number | undefined]> = [
+    [t('owner.booking.price'), booking.price],
+    [t('owner.booking.paidInApp'), booking.paidInApp],
+    [t('owner.booking.remaining'), booking.remainingAmount],
+    [t('owner.booking.receives'), booking.ownerReceives],
+  ]
+  return (
+    <BottomSheet
+      open
+      title={confirming ? t('owner.booking.cancelTitle') : t('owner.booking.title')}
+      subtitle={confirming ? t('owner.booking.cancelText') : undefined}
+      onClose={() => {
+        if (!cancel.isPending) onClose()
+      }}
+      actions={
+        confirming ? (
+          <>
+            <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate()}>
+              {t('owner.booking.cancel')}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={cancel.isPending}
+              onClick={() => setConfirming(false)}
+            >
+              {t('owner.cancel')}
+            </Button>
+          </>
+        ) : undefined
+      }
+    >
+      {!confirming && (
+        <>
+          <Card className="flex flex-col gap-2 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-md font-semibold text-primary">
+                {booking.clientName ?? t('owner.booking.player')}
+              </span>
+              <BookingStatusBadge status={booking.status} />
+            </div>
+            <span className="text-sm text-secondary">
+              {`${formatTime(booking.startsAt)}–${formatTime(booking.endsAt)}`}
+              {booking.isWalkin ? ` · ${t('owner.booking.walkIn')}` : ''}
+            </span>
+            {booking.clientPhone && (
+              <a
+                href={`tel:${booking.clientPhone}`}
+                className="flex min-h-11 items-center gap-2 text-base font-semibold text-link"
+              >
+                <Phone size={16} aria-hidden />
+                {booking.clientPhone}
+              </a>
+            )}
+          </Card>
+          <dl className="flex flex-col gap-2 text-base">
+            {rows
+              .filter(([, value]) => value !== undefined)
+              .map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-3">
+                  <dt className="text-secondary">{label}</dt>
+                  <dd className="text-primary">{formatMoney(value ?? 0)}</dd>
+                </div>
+              ))}
+          </dl>
+          {booking.remainingAmount > 0 && (
+            <>
+              <Button variant="secondary" disabled={!isAvailable(OWNER_BOOKING_CASH)}>
+                {t('owner.booking.cash')}
+              </Button>
+              {!isAvailable(OWNER_BOOKING_CASH) && (
+                <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
+              )}
+            </>
+          )}
+          {CANCELLABLE.has(booking.status) && (
+            <Button variant="danger-outline" onClick={() => setConfirming(true)}>
+              {t('owner.booking.cancel')}
+            </Button>
+          )}
+        </>
+      )}
+    </BottomSheet>
+  )
+}
+
+function WalkInSheet({
+  stadium,
+  date,
+  free,
+  initial,
+  onClose,
+}: {
+  stadium: OwnerStadium
+  date: string
+  free: TimeSlot[]
+  initial: string
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [hour, setHour] = useState(initial)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const create = useMutation({
+    // No payment method → the API records cash for the owner's own price.
+    mutationFn: () =>
+      createManualBooking(stadium.id, {
+        clientName: name.trim(),
+        clientPhone: phone.trim(),
+        startsAt: tashkentToUtc(date, hour),
+      }),
+    onSuccess: () => {
+      toast.show(t('owner.schedule.walkInDone'), 'success')
+      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: availabilityKey(stadium.id, date) })
+      onClose()
+    },
+  })
+  return (
+    <BottomSheet
+      open
+      title={t('owner.schedule.walkInTitle')}
+      onClose={() => {
+        if (!create.isPending) onClose()
+      }}
+      actions={
+        <Button
+          haptic
+          disabled={!hour || !name.trim() || !phone.trim()}
+          loading={create.isPending}
+          onClick={() => create.mutate()}
+        >
+          {t('owner.save')}
+        </Button>
+      }
+    >
+      {free.length === 0 ? (
+        <p className="text-sm text-secondary">{t('owner.schedule.noFreeHour')}</p>
+      ) : (
+        <SelectField
+          label={t('owner.field.time')}
+          value={hour}
+          onChange={setHour}
+          options={free.map((s) => ({ value: s.startTime.slice(0, 5), label: slotLabel(s) }))}
+        />
+      )}
+      <Input
+        label={t('owner.field.clientName')}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        label={t('owner.field.clientPhone')}
+        type="tel"
+        inputMode="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      {create.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {errorMessage(create.error)}
+        </p>
+      )}
+    </BottomSheet>
+  )
+}

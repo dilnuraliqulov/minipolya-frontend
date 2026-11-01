@@ -65,8 +65,7 @@ describe('Profil', () => {
     renderApp('/profile')
     const toggle = await screen.findByRole('switch', { name: 'Ega rejimi' })
     fireEvent.click(toggle)
-    expect(await screen.findByRole('heading', { level: 1, name: 'Ega rejimi' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Jadval' })).toBeInTheDocument()
   })
 
   it('hides "Ega rejimi" for an owner without stadiums', async () => {

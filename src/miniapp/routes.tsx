@@ -6,12 +6,19 @@ import { BookingPage } from './bookings/BookingPage'
 import { BookingsPage } from './bookings/BookingsPage'
 import { ChatPage } from './games/ChatPage'
 import { GamePage } from './games/GamePage'
-import { SoonScreen } from './layout/SoonScreen'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { FavoritesPage } from './stadiums/FavoritesPage'
 import { ReviewsPage } from './stadiums/ReviewsPage'
 import { StadiumPage } from './stadiums/StadiumPage'
+import { AddStadiumPage } from './owner/AddStadiumPage'
+import { OwnerClosuresPage } from './owner/OwnerClosuresPage'
+import { OwnerInfoPage } from './owner/OwnerInfoPage'
+import { OwnerPricesPage } from './owner/OwnerPricesPage'
+import { OwnerProfilePage } from './owner/OwnerProfilePage'
+import { OwnerReportPage } from './owner/OwnerReportPage'
+import { OwnerSchedulePage } from './owner/OwnerSchedulePage'
+import { OwnerStadiumPage } from './owner/OwnerStadiumPage'
 import { RouteError } from './RouteError'
 import { SplashDone } from './splash'
 import { AcceptChallengePage } from './teams/AcceptChallengePage'
@@ -150,14 +157,18 @@ const screens: RouteObject[] = [
       </SplashDone>
     ),
   },
-  {
-    path: '/owner',
-    element: (
-      <SplashDone>
-        <SoonScreen titleKey="profile.ownerMode" />
-      </SplashDone>
-    ),
-  },
+  ...(
+    [
+      ['/owner', <OwnerSchedulePage />],
+      ['/owner/stadium', <OwnerStadiumPage />],
+      ['/owner/stadium/:id/info', <OwnerInfoPage />],
+      ['/owner/stadium/:id/prices', <OwnerPricesPage />],
+      ['/owner/stadium/:id/closures', <OwnerClosuresPage />],
+      ['/owner/report', <OwnerReportPage />],
+      ['/owner/profile', <OwnerProfilePage />],
+      ['/owner/new', <AddStadiumPage />],
+    ] as const
+  ).map(([path, page]) => ({ path, element: <SplashDone>{page}</SplashDone> })),
   { path: '*', element: <Navigate to="/" replace /> },
 ]
 

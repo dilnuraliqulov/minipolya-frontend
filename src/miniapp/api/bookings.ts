@@ -36,6 +36,12 @@ export interface Booking {
   paidAmount: number
   remainingAmount: number
   paymentStatus: PaymentStatus
+  /** Owner view only: the owner's own price (tiyin). */
+  ownerPrice?: number
+  /** Owner view only: card money paid in the app and kept (tiyin). */
+  paidInApp?: number
+  /** Owner view only: what the owner receives (tiyin). */
+  ownerReceives?: number
   clientName?: string
   clientPhone?: string
   isWalkin: boolean

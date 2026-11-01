@@ -42,7 +42,6 @@ export const API_MESSAGES = {
   createGameDeclined: 'Card payment was declined; the game was not created',
   /** 400 from `POST /api/games/{id}/pay-remainder` when the card is declined. */
   gameRemainderDeclined: 'Card payment was declined; the remainder is still owed',
-  /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
   /** 400s from `POST /api/games/{id}/join` when a payment step could not be confirmed (the game may be cancelled and refunded). */
   joinPaymentUnconfirmed:
     'The card payment could not be confirmed; the game is still looking for an opponent. If the money was taken it will be returned in full',
@@ -50,6 +49,7 @@ export const API_MESSAGES = {
     "The other team's payment is still being confirmed; try again in a few minutes",
   joinOtherTeamFailed:
     "The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full",
+  /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
   gameRemainderConfirming:
     'The card payment is still being confirmed; the remainder will be marked paid once it is',
 } as const
