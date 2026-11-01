@@ -29,6 +29,7 @@ import { CancelSheet } from './CancelSheet'
 import { PaymentSummary } from './PaymentSummary'
 import { PayRemainderSheet } from './PayRemainderSheet'
 import { RefundLine } from './RefundLine'
+import { ReviewSection } from './ReviewSection'
 import { useBooking } from './queries'
 import { bookingWhen } from './when'
 
@@ -125,6 +126,8 @@ function BookingContent({ booking }: { booking: Booking }) {
           )}
         </Card>
       )}
+
+      {booking.status === 'completed' && <ReviewSection booking={booking} />}
 
       {canCancel && (
         <section className="flex flex-col gap-3" aria-labelledby="booking-rules">

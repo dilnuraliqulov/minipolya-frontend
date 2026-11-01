@@ -16,6 +16,11 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
     [new ApiError('User not found', 404), 'errors.notFound'],
     [new ApiError('name: must be between 1 and 120 characters', 400), 'errors.invalid'],
     [new ApiError('Data conflict', 409), 'errors.conflict'],
+    [new ApiError('You have already reviewed this stadium', 400), 'errors.alreadyReviewed'],
+    [
+      new ApiError('You can only review a stadium you have played at', 400),
+      'errors.reviewNotPlayed',
+    ],
     [new ApiError('Juda koʻp', 429, 'TOO_MANY_ATTEMPTS'), 'errors.tooMany'],
   ] as const)('%s → %s', (error, key) => {
     expect(errorMessageKey(error)).toBe(key)

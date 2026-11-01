@@ -73,7 +73,9 @@
     "conflict": "Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.",
     "phoneTaken": "Bu raqam boshqa hisobga bogʻlangan. Boshqa raqam kiriting.",
     "tooMany": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
-    "unknown": "Nimadir xato ketdi. Qayta urinib koʻring."
+    "unknown": "Nimadir xato ketdi. Qayta urinib koʻring.",
+    "alreadyReviewed": "Siz bu maydonni allaqachon baholagansiz.",
+    "reviewNotPlayed": "Faqat oʻynagan maydoningizni baholashingiz mumkin."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -343,5 +345,15 @@
     "restPaid": "Toʻlov qabul qilindi",
     "notFoundTitle": "Bron topilmadi",
     "notFoundText": "Bu bron mavjud emas yoki sizga tegishli emas."
+  },
+  "review": {
+    "rate": "Oʻyinni baholang",
+    "rateText": "Fikringiz boshqa oʻyinchilarga maydon tanlashda yordam beradi.",
+    "yours": "Sizning bahoyingiz",
+    "sheetTitle": "Maydonni baholang",
+    "star": "{{count}} yulduz",
+    "comment": "Izoh (ixtiyoriy)",
+    "submit": "Yuborish",
+    "thanks": "Rahmat! Bahoyingiz qabul qilindi"
   }
 }

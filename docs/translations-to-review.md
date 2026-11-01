@@ -297,3 +297,13 @@ Placeholders such as `{{count}}` must stay as they are.
 | `booking.restPaid` | Toʻlov qabul qilindi | Оплата принята | Payment received |
 | `booking.notFoundTitle` | Bron topilmadi | Бронь не найдена | Booking not found |
 | `booking.notFoundText` | Bu bron mavjud emas yoki sizga tegishli emas. | Этой брони нет или она не ваша. | This booking does not exist or is not yours. |
+| `review.rate` | Oʻyinni baholang | Оцените игру | Rate the game |
+| `review.rateText` | Fikringiz boshqa oʻyinchilarga maydon tanlashda yordam beradi. | Ваш отзыв поможет другим игрокам выбрать поле. | Your review helps other players choose a pitch. |
+| `review.yours` | Sizning bahoyingiz | Ваша оценка | Your rating |
+| `review.sheetTitle` | Maydonni baholang | Оцените поле | Rate the pitch |
+| `review.star` | {{count}} yulduz | {{count}} из 5 | {{count}} of 5 |
+| `review.comment` | Izoh (ixtiyoriy) | Комментарий (необязательно) | Comment (optional) |
+| `review.submit` | Yuborish | Отправить | Send |
+| `review.thanks` | Rahmat! Bahoyingiz qabul qilindi | Спасибо! Оценка принята | Thank you! Your rating was received |
+| `errors.alreadyReviewed` | Siz bu maydonni allaqachon baholagansiz. | Вы уже оценили это поле. | You have already rated this pitch. |
+| `errors.reviewNotPlayed` | Faqat oʻynagan maydoningizni baholashingiz mumkin. | Оценить можно только поле, где вы играли. | You can only rate a pitch you have played at. |

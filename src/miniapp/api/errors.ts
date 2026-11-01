@@ -1,4 +1,4 @@
-import { API_CODES, isApiError } from '../../shared/api'
+import { API_CODES, API_MESSAGES, isApiError } from '../../shared/api'
 import i18n from '../i18n'
 import { isAccountBlocked } from './blocked'
 
@@ -20,6 +20,8 @@ export type ErrorMessageKey =
   | 'errors.conflict'
   | 'errors.phoneTaken'
   | 'errors.tooMany'
+  | 'errors.alreadyReviewed'
+  | 'errors.reviewNotPlayed'
   | 'errors.unknown'
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {
@@ -32,6 +34,9 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (error.status >= 500) return 'errors.server'
   switch (error.status) {
     case 400:
+      // POST /api/reviews: two 400s the review form tells apart.
+      if (error.message === API_MESSAGES.alreadyReviewed) return 'errors.alreadyReviewed'
+      if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
       return 'errors.invalid'
     case 401:
       return 'errors.session'

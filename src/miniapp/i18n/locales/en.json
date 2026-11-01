@@ -73,7 +73,9 @@
     "conflict": "The data has changed. Refresh and try again.",
     "phoneTaken": "This number is already linked to another account. Enter a different number.",
     "tooMany": "Too many attempts. Please try again later.",
-    "unknown": "Something went wrong. Please try again."
+    "unknown": "Something went wrong. Please try again.",
+    "alreadyReviewed": "You have already rated this pitch.",
+    "reviewNotPlayed": "You can only rate a pitch you have played at."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -343,5 +345,15 @@
     "restPaid": "Payment received",
     "notFoundTitle": "Booking not found",
     "notFoundText": "This booking does not exist or is not yours."
+  },
+  "review": {
+    "rate": "Rate the game",
+    "rateText": "Your review helps other players choose a pitch.",
+    "yours": "Your rating",
+    "sheetTitle": "Rate the pitch",
+    "star": "{{count}} of 5",
+    "comment": "Comment (optional)",
+    "submit": "Send",
+    "thanks": "Thank you! Your rating was received"
   }
 }
