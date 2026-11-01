@@ -45,13 +45,17 @@ admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
 │   ├── main.tsx      #   entry: viewport, theme, session (in-memory JWT), API client, Query, i18n
-│   ├── App.tsx, routes.tsx  # router; tabs later parts build are SoonTab ("Tez orada")
+│   ├── App.tsx, routes.tsx  # router; screens later parts build are SoonTab / SoonScreen ("Tez orada")
 │   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
 │   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
 │   ├── auth/dev/     #   dev-only user picker (dynamic import, absent from production builds)
+│   ├── booking/      #   checkout (/checkout) and Band qilindi (/checkout/done)
+│   ├── bookings/     #   Oʻyinlarim list, booking detail, pay the rest, cancel, review; status.ts = THE status → badge mapping
+│   ├── cards/        #   Kartalarim, AddCardSheet (number → SMS), CardRow
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
+│   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
 │   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
@@ -502,6 +506,19 @@ booking. This overrides the multi-slot selection drawn in the design
 (`Maydon / 3 soat tanlangan`). Unavailable slots (`available: false`, no
 price) are disabled; the date strip runs from today (Tashkent) to 28 days
 ahead, the backend's 4-week window (`app.booking.max-weeks-ahead`).
+
+**Paying.** `POST /api/bookings` creates and charges in one call, and
+`pay-remainder` charges a saved card; both go through `payment/machine.ts`
+(`usePayment`). A declined card is **HTTP 200** with `paymentStatus: unpaid`;
+the payment row in `GET /api/payments/my` tells `failed` (declined) from
+`processing` (polled 5 × 3 s, then "Toʻlov tekshirilmoqda" — never shown as
+a failure). Only a request that errored offers "Qayta urinish"; retrying a
+declined booking waits for R28. The hold countdown reads `expiresAt`.
+
+**Card data.** The card number, expiry and SMS code live only in
+`AddCardSheet`'s state and reach the API through plain calls — never
+`useMutation` (its variables sit in the mutation cache), a query key, a log
+or storage. A test walks the caches and spies on console and storage.
 
 ## Secrets
 
