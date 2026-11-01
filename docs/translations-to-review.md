@@ -257,3 +257,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `booked.deadline` | Bekor qilish muddati: {{date}}, {{time}} gacha | Отменить можно до {{date}}, {{time}} | Free cancellation until {{date}}, {{time}} |
 | `booked.toGames` | Oʻyinlarimga oʻtish | Перейти в «Мои игры» | Go to My games |
 | `booked.home` | Bosh sahifa | На главную | Home |
+| `bookings.upcoming` | Kelgusi | Предстоящие | Upcoming |
+| `bookings.past` | Oʻtgan | Прошедшие | Past |
+| `bookings.filterSoon` | Kelgusi va oʻtgan boʻyicha ajratish tez orada | Разделение на предстоящие и прошедшие — скоро | Splitting into upcoming and past is coming soon |
+| `bookings.listLabel` | Bronlar | Брони | Bookings |
+| `bookings.emptyTitle` | Hali bronlar yoʻq | Броней пока нет | No bookings yet |
+| `bookings.emptyText` | Maydon tanlab, birinchi bronni qiling. | Выберите поле и сделайте первую бронь. | Pick a pitch and make your first booking. |
+| `bookings.findPitch` | Maydon topish | Найти поле | Find a pitch |
+| `bookings.more` | Yana koʻrsatish | Показать ещё | Show more |

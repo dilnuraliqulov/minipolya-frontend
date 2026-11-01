@@ -290,7 +290,15 @@
       "completed": "Oʻtkazilgan",
       "expired": "Muddati oʻtgan",
       "cancelled": "Bekor qilingan"
-    }
+    },
+    "upcoming": "Kelgusi",
+    "past": "Oʻtgan",
+    "filterSoon": "Kelgusi va oʻtgan boʻyicha ajratish tez orada",
+    "listLabel": "Bronlar",
+    "emptyTitle": "Hali bronlar yoʻq",
+    "emptyText": "Maydon tanlab, birinchi bronni qiling.",
+    "findPitch": "Maydon topish",
+    "more": "Yana koʻrsatish"
   },
   "booked": {
     "headerTitle": "Bron",
