@@ -146,6 +146,36 @@ window; 400 for `freeOnly=true` without `date`.
 Medium — blocks the "Boʻsh maydonlar · N" section; the chosen date already
 travels to the stadium page.
 
+### R26 — Dev sign-in endpoints require a dev-only key
+
+**What's needed**
+The dev-only sign-in endpoints (R19: `GET /api/auth/dev/users`,
+`POST /api/auth/dev/login`) should require the header `X-Dev-Login-Key`, which
+must match a dev-only backend setting. Without it, a dev backend that is
+reachable on a network lets anyone sign in as any user.
+
+**Which screen needs it**
+None is blocked. The Mini App's dev user picker (browser testing, `npm run
+dev` only) already sends the header from `VITE_DEV_LOGIN_KEY` when it is set.
+
+**Proposed endpoint**
+Both R19 endpoints stay as they are — public, `dev` profile only — plus a check
+of the header.
+
+Request — header on both calls:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `X-Dev-Login-Key` | header | yes | equals the dev-only setting (a long random value in the dev profile's config); compared in constant time |
+
+Response — unchanged.
+
+Error cases — 403 when the header is missing or wrong (any message; no hint
+which of the two it was).
+
+**Priority**
+Low — hardening for shared dev networks; nothing in the frontend waits on it.
+
 ---
 
 ## Done

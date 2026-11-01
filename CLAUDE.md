@@ -49,10 +49,10 @@ src/
 │   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
 │   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
+│   ├── auth/dev/     #   dev-only user picker (dynamic import, absent from production builds)
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
-│   ├── auth/dev/     #   dev-only user picker (dynamic import, absent from production builds)
 │   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
 │   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, fullscreen, BackButton, haptics, start_param, invite links
