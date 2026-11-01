@@ -52,8 +52,10 @@ src/
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
+│   ├── auth/dev/     #   dev-only user picker (dynamic import, absent from production builds)
+│   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
-│   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, BackButton, haptics, start_param, invite links
+│   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, fullscreen, BackButton, haptics, start_param, invite links
 │   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
 │   ├── test/         #   test helpers: fake Telegram, renderApp, API responses
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
@@ -72,6 +74,7 @@ src/
 │   └── theme.ts      #   system setting on first visit, toggle, remembered
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
+│   ├── brand/        #   logoMark.ts, logo-mark.svg (LogoMark, LogoSpinner, favicon)
 │   ├── format/       #   formatSom, Tashkent date/time helpers
 │   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
 └── test/setup.ts     # Vitest setup
@@ -447,7 +450,10 @@ restyle per screen. Mini App-only Tailwind names: `bg-bar` (header, tab bar,
 bottom bars, sheets — `p3-bg`), `bg-image-overlay`, `text-title` (18px),
 `rounded-t-sheet` (20px). The phone status bar and home indicator in the
 design frames are device chrome — not rendered, the safe-area padding
-replaces them.
+replaces them. In Telegram fullscreen (`html[data-fullscreen]`) the header
+uses the `tg-fullscreen:` Tailwind variant and sits in Telegram's Close/⋯ row.
+The brand mark is `LogoMark`; the loading spinner is `LogoSpinner`. Telegram's
+header, background and bottom bar are painted from `--bar-bg` / `--page-bg`.
 
 **Every screen** has a loading state (skeleton), an empty state and an error
 state with "Qayta urinish" (`ScreenState` helpers in `components/`).
@@ -456,9 +462,18 @@ state with "Qayta urinish" (`ScreenState` helpers in `components/`).
 `index.html`) and the typed wrapper in `src/miniapp/telegram/` — no
 community SDK. Back navigation uses Telegram's BackButton (`useBackButton`);
 main actions give light haptic feedback (`haptic.light()` / the `Button`
-`haptic` prop). Deep links: `getStartParam()` reads `start_param`;
-`buildInviteLink(param)` builds
+`haptic` prop). Deep links: `getStartParam()` reads `start_param`, then the
+URL's `?startapp=` and `?tgWebAppStartParam=` (the bot opens the app as
+`MINIAPP_URL?startapp=<payload>`); `buildInviteLink(param)` builds
 `https://t.me/<VITE_TELEGRAM_BOT_USERNAME>/<VITE_TELEGRAM_APP_NAME>?startapp=<param>`.
+Fullscreen is requested on android/ios 8.0+, and `disableVerticalSwipes` from
+7.7. `--tg-safe-*` is the device inset only; `--tg-content-top` is the height
+of Telegram's Close/⋯ row — pad headers with both.
+
+**Dev sign-in.** In `npm run dev` only, a user picker (`src/miniapp/auth/dev/`)
+signs in through the backend's `dev`-profile endpoints (api-reference §2, R19)
+and sends `X-Dev-Login-Key` from `VITE_DEV_LOGIN_KEY` (`.env.local`). It is a
+DEV-only dynamic import and the key is verified absent from `dist`.
 
 **Theme.** Profil → Mavzu: "Tizim" follows Telegram's `colorScheme` (live,
 on `themeChanged`); "Yorugʻ" / "Qorongʻi" override it. The choice is a

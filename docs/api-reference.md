@@ -8,8 +8,8 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `4d5faf0` — _Document R18-R23 and one-hour bookings; update the Postman collection_, 2026-11-01 |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`) |
+| Commit | `ed403c7` (Telegram bot steps 1–6; was `4d5faf0` — _Document R18-R23 and one-hour bookings; update the Postman collection_, 2026-11-01) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**; bot notes in §2, §3 and Webhooks) |
 | Endpoints documented | **109** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
 
 ---
@@ -357,8 +357,9 @@ For testing the Mini App in a plain browser, without Telegram `initData`.
 `DevAuthController` exists **only under `SPRING_PROFILES_ACTIVE=dev`**: in
 every other profile both paths answer 404 `"Not found"`, and the backend
 refuses to start with `dev` together with `prod` or `atmos`
-(`DevProfileGuard`). Not counted in the endpoint total; the frontend does not
-use them yet.
+(`DevProfileGuard`). Not counted in the endpoint total. The frontend now uses
+them, in dev builds only (`src/miniapp/auth/dev/`), and sends `X-Dev-Login-Key`
+(from `VITE_DEV_LOGIN_KEY`); backend `ed403c7` does not check that header yet.
 
 - `GET /api/auth/dev/users` — public. The 50 newest users, not paged:
   `{ id: UUID, name: string, isOwner: boolean, isAdmin: boolean, isBlocked: boolean }[]`.
@@ -441,6 +442,10 @@ layer).
 Setting `firstName` or `lastName` rewrites `name` as `"<firstName> <lastName>"`.
 Audited `PROFILE_UPDATED` (the phone itself is never logged, only
 `phoneChanged`).
+
+Since `ed403c7` the bot can also set `phone`: a user who shares their contact
+with it is audited `PHONE_SHARED_VIA_BOT`. So `GET /api/users/me` may already
+carry a phone the user never typed in the Mini App.
 
 **Response** — the updated `UserResponse`.
 
@@ -1961,7 +1966,7 @@ called from the client.
 |---|---|---|
 | `POST /webhooks/payme` | Payme | mock — accepts any body, extracts `txnId`/`transactionId`/`providerTxnId`/`id` and `status`. **`TODO: Verify Payme request signature`** |
 | `POST /webhooks/click` | Click | mock — same shape. **`TODO: Verify Click request signature`** |
-| `POST /webhooks/telegram` | Telegram | placeholder — logs the update. **`TODO: Verify the Telegram secret token header`** |
+| `POST /webhooks/telegram` | Telegram | the bot's update handler; since `ed403c7` it is secret-checked. The bot opens the Mini App as `MINIAPP_URL?startapp=<payload>`, because Telegram passes no `start_param` to `web_app` buttons — the Mini App reads the payload from the URL |
 
 ---
 
