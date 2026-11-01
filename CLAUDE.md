@@ -54,11 +54,14 @@ src/
 │   ├── bookings/     #   Oʻyinlarim list, booking detail, pay the rest, cancel, review; status.ts = THE status → badge mapping
 │   ├── cards/        #   Kartalarim, AddCardSheet (number → SMS), CardRow
 │   ├── components/   #   shared Mini App UI from the design's Components frames
-│   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
+│   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
+│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen, SoonTab / SoonScreen
+│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, prices, closures), Hisobot, Profil, add-stadium wizard
 │   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
 │   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
+│   ├── teams/        #   Jamoam, create team, challenge board, accept a challenge, find an opponent, booking choice
 │   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, fullscreen, BackButton, haptics, start_param, invite links
 │   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
 │   ├── test/         #   test helpers: fake Telegram, renderApp, API responses
@@ -514,6 +517,15 @@ the payment row in `GET /api/payments/my` tells `failed` (declined) from
 `processing` (polled 5 × 3 s, then "Toʻlov tekshirilmoqda" — never shown as
 a failure). Only a request that errored offers "Qayta urinish"; retrying a
 declined booking waits for R28. The hold countdown reads `expiresAt`.
+
+**Unclear payment outcomes.** After a money request with no clear answer
+(no response, 5xx, a payment step still being confirmed —
+`isUnclearPaymentError` in `api/errors.ts`) the app never offers a retry: it
+shows `UnclearOutcome` ("Natijani tekshiring" → Oʻyinlarim) and refreshes the
+lists. Only a declined card may be retried with another card.
+
+**Owner mode** (`/owner/*`, entered from Profil → Ega rejimi) shows the
+**owner's own prices**; amounts the owner types are soʻm → `somToTiyin`.
 
 **Card data.** The card number, expiry and SMS code live only in
 `AddCardSheet`'s state and reach the API through plain calls — never
