@@ -34,6 +34,8 @@ export interface Session {
   handleAccountBlocked(error?: unknown): void
   /** Re-login when /users/me reports role flags that disagree with the token. */
   checkRoles(user: User): void
+  /** Takes a token obtained elsewhere (the dev picker) as the signed-in session. */
+  adopt(token: string, user: User): Promise<void>
 }
 
 export function createSession({
@@ -67,14 +69,18 @@ export function createSession({
     set({ status: 'error', reason: isApiError(error) && error.status === 401 ? 'session' : reason })
   }
 
+  const adopt = async (token: string, user: User): Promise<void> => {
+    tokenStore.set(token)
+    await setLanguage(user.language)
+    set({ status: 'ready', user })
+  }
+
   /** Posts initData; resolves with the token on success, throws otherwise. */
   const authenticate = async (): Promise<string> => {
     const initData = getInitData()
     if (!initData) throw new Error('no-telegram')
     const { token, user } = await loginWithTelegram(initData)
-    tokenStore.set(token)
-    await setLanguage(user.language)
-    set({ status: 'ready', user })
+    await adopt(token, user)
     return token
   }
 
@@ -122,6 +128,7 @@ export function createSession({
       relogin()
     },
     handleAccountBlocked: block,
+    adopt,
     checkRoles(user) {
       const token = tokenStore.get()
       const claims = token ? readJwtClaims(token) : null

@@ -31,6 +31,8 @@ export interface RequestOptions {
   /** `undefined` and `null` values are dropped. */
   query?: Record<string, QueryValue>
   signal?: AbortSignal
+  /** Extra headers, merged after the defaults. */
+  headers?: Record<string, string>
 }
 
 /**
@@ -71,6 +73,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const token = config.tokenStore.get()
   if (token) headers.Authorization = `Bearer ${token}`
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  Object.assign(headers, options.headers)
 
   // Outside the try: a configuration error must not look like a network failure.
   const url = buildUrl(path, options.query)

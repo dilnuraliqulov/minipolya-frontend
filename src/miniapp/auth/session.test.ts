@@ -40,6 +40,15 @@ afterEach(async () => {
 })
 
 describe('Mini App session', () => {
+  it('adopt sets ready, keeps the token and applies the language', async () => {
+    const token = fakeJwt({ isOwner: false })
+    await session.adopt(token, makeUser({ language: 'en' }))
+
+    expect(session.getState()).toMatchObject({ status: 'ready', user: { language: 'en' } })
+    expect(tokenStore.get()).toBe(token)
+    expect(i18n.language).toBe('en')
+  })
+
   it('posts the raw initData, keeps the JWT in memory and loads the profile language', async () => {
     const { webApp } = installFakeTelegram()
     const token = fakeJwt({ isOwner: false })

@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_TELEGRAM_APP_NAME?: string
   /** Mini App: a public support username, without @ (blocked screen). Optional. */
   readonly VITE_TELEGRAM_SUPPORT_USERNAME?: string
+  /** Dev builds only: the backend dev profile's key for the dev sign-in picker. */
+  readonly VITE_DEV_LOGIN_KEY?: string
 }
 
 interface ImportMeta {

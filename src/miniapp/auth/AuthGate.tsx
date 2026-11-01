@@ -1,5 +1,5 @@
 import { Ban, Send } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BlockDetails } from '../api/blocked'
 import { Button, ErrorState, Header, Screen, SkeletonList, StateView } from '../components'
@@ -7,6 +7,14 @@ import { formatLongDate } from '../format'
 import { hasSplash, useSplashDone } from '../splash'
 import { getTelegramWebApp } from '../telegram'
 import { useSession, useSessionState } from './sessionContext'
+
+/**
+ * Dev builds only: a user picker for testing in a plain browser. The condition
+ * is statically false in production, so the import (the picker, its API calls
+ * and VITE_DEV_LOGIN_KEY) is removed from the bundle. Its strings are not
+ * translated: it is a developer tool that never ships.
+ */
+const DevLoginPicker = import.meta.env.DEV ? lazy(() => import('./dev/DevLoginPicker')) : null
 
 /**
  * Logs in on mount and renders the app only once there is a JWT. Until then,
@@ -117,6 +125,11 @@ function NoTelegramScreen() {
           <p className="w-full rounded-lg bg-warning-soft p-3 text-sm text-warning">
             {t('auth.noTelegramDev')}
           </p>
+        )}
+        {DevLoginPicker && (
+          <Suspense fallback={null}>
+            <DevLoginPicker />
+          </Suspense>
         )}
       </StateView>
     </Screen>

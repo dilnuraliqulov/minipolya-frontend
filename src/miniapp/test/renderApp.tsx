@@ -21,6 +21,7 @@ export function readySession(user: User = makeUser()): Session {
     handleUnauthorized: vi.fn(),
     handleAccountBlocked: vi.fn(),
     checkRoles: vi.fn(),
+    adopt: vi.fn().mockResolvedValue(undefined),
   }
 }
 

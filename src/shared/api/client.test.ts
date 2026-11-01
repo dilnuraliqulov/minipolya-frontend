@@ -32,6 +32,17 @@ describe('api client', () => {
     vi.clearAllMocks()
   })
 
+  it('passes custom headers and keeps Authorization', async () => {
+    const fetchMock = respond(200, { success: true, data: {}, message: null })
+    vi.stubGlobal('fetch', fetchMock)
+    tokenStore.set('jwt-123')
+
+    await api.get('/api/x', { headers: { 'X-Custom': 'v' } })
+
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    expect(init.headers).toMatchObject({ Authorization: 'Bearer jwt-123', 'X-Custom': 'v' })
+  })
+
   it('unwraps data and sends the bearer token', async () => {
     const fetchMock = respond(200, { success: true, data: { id: 'a' }, message: null })
     vi.stubGlobal('fetch', fetchMock)
