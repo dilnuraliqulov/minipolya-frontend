@@ -5,11 +5,11 @@ import { ProfilePage } from './profile/ProfilePage'
 import { FavoritesPage } from './stadiums/FavoritesPage'
 import { ReviewsPage } from './stadiums/ReviewsPage'
 import { StadiumPage } from './stadiums/StadiumPage'
+import { RouteError } from './RouteError'
 import { SplashDone } from './splash'
 import { StadiumsPage } from './stadiums/StadiumsPage'
 
-/** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
-export const routes: RouteObject[] = [
+const screens: RouteObject[] = [
   { path: '/', element: <StadiumsPage /> },
   {
     path: '/stadiums/:id',
@@ -93,3 +93,6 @@ export const routes: RouteObject[] = [
   },
   { path: '*', element: <Navigate to="/" replace /> },
 ]
+
+/** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
+export const routes: RouteObject[] = [{ errorElement: <RouteError />, children: screens }]
