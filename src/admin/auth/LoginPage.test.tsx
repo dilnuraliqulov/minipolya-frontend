@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore, getTokenStore } from '../../shared/api'
@@ -146,13 +146,8 @@ describe('admin login page', () => {
       'Login yoki parol notoʻgʻri',
     ],
     [
-      'a locked account, with the minutes left',
-      () => loginFails(423, 'ACCOUNT_LOCKED', { minutesRemaining: 12 }),
-      'Juda koʻp urinish. 12 daqiqadan keyin qayta urinib koʻring',
-    ],
-    [
-      'too many attempts from this address',
-      () => loginFails(429, 'TOO_MANY_ATTEMPTS', { minutesRemaining: 7 }),
+      'too many attempts, without the minutes left',
+      () => loginFails(429, 'TOO_MANY_ATTEMPTS'),
       'Juda koʻp urinish. Birozdan keyin qayta urinib koʻring',
     ],
     [
@@ -184,5 +179,45 @@ describe('admin login page', () => {
     // The form keeps what was typed, ready for another try.
     expect(screen.getByLabelText('Login')).toHaveValue('aziz')
     expect(screen.getByRole('button', { name: 'Kirish' })).toBeEnabled()
+  })
+
+  describe('while locked out', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it.each([
+      ['a locked account', 423, 'ACCOUNT_LOCKED'],
+      ['too many attempts from this address', 429, 'TOO_MANY_ATTEMPTS'],
+    ])(
+      '%s: disables the form and counts down the minutes the backend sent',
+      async (_c, status, code) => {
+        const fetchMock = mockLogin(async () => loginFails(status, code, { minutesRemaining: 2 }))
+        await renderLogin()
+        fillIn()
+        pressEnter()
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+          'Juda koʻp urinish. 2:00 dan keyin qayta urinib koʻring',
+        )
+        expect(screen.getByLabelText('Login')).toBeDisabled()
+        expect(screen.getByLabelText('Parol')).toBeDisabled()
+        expect(screen.getByRole('button', { name: 'Kirish' })).toBeDisabled()
+        pressEnter()
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+
+        act(() => vi.advanceTimersByTime(61_000))
+        expect(screen.getByRole('alert')).toHaveTextContent('0:59 dan keyin')
+
+        act(() => vi.advanceTimersByTime(60_000))
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+        expect(screen.getByLabelText('Login')).toBeEnabled()
+        expect(screen.getByLabelText('Login')).toHaveValue('aziz')
+        expect(screen.getByRole('button', { name: 'Kirish' })).toBeEnabled()
+      },
+    )
   })
 })
