@@ -194,7 +194,7 @@ describe('Maydonlar — list', () => {
     expect(await screen.findByText('Chilonzor Arena', { selector: 'span' })).toBeInTheDocument()
     expect(lastList(requests).get('status')).toBe('pending')
     expect(screen.getByRole('tab', { name: /Kutilmoqda/ })).toHaveAttribute('aria-selected', 'true')
-    const table = within(screen.getByRole('table'))
+    const table = within(screen.getByRole('grid'))
     for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.getByText(header)).toBeInTheDocument()
     }
@@ -217,7 +217,7 @@ describe('Maydonlar — list', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Tasdiqlangan/ }))
     await waitFor(() => expect(lastList(requests).get('status')).toBe('approved'))
     expect(await screen.findByText('Uchtepa Futsal', { selector: 'span' })).toBeInTheDocument()
-    expect(within(screen.getByRole('table')).queryByText('ATMOS')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('grid')).queryByText('ATMOS')).not.toBeInTheDocument()
     expect(router.state.location.search).toBe('?holat=approved')
 
     fireEvent.click(screen.getByRole('tab', { name: /Barchasi/ }))
@@ -286,7 +286,7 @@ describe('Maydonlar — list', () => {
     signIn()
     renderAt('/maydonlar?tuman=Chilonzor')
     await screen.findByText('Chilonzor Arena', { selector: 'span' })
-    const table = within(screen.getByRole('table'))
+    const table = within(screen.getByRole('grid'))
     for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.queryByText(header)).not.toBeInTheDocument()
     }
@@ -308,7 +308,7 @@ describe('Maydonlar — list', () => {
     signIn()
     renderAt('/maydonlar?holat=rejected')
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument()
     expect(requests.some((r) => r.url.pathname === '/api/admin/stadiums')).toBe(false)
   })
 })

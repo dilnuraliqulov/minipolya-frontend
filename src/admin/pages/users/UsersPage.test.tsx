@@ -119,7 +119,7 @@ describe('Foydalanuvchilar — list', () => {
     backend()
     signIn()
     renderAt('/foydalanuvchilar')
-    const table = await screen.findByRole('table')
+    const table = await screen.findByRole('grid')
     expect(await within(table).findByText('Bekzod Rahmatov')).toBeInTheDocument()
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(

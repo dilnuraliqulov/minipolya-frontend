@@ -63,8 +63,74 @@ describe('DataTable', () => {
   })
 
   it('highlights the selected row', () => {
-    render(<DataTable columns={columns} rows={rows} rowKey={(r) => r.id} selectedKey="b" />)
+    render(
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        selectedKey="b"
+        onRowClick={vi.fn()}
+      />,
+    )
     expect(screen.getByText('Dilnoza').closest('tr')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Jamshid').closest('tr')).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('is a plain table without clickable rows: no grid role, no focusable rows', () => {
+    render(<DataTable columns={columns} rows={rows} rowKey={(r) => r.id} label="Roʻyxat" />)
+    expect(screen.getByRole('table', { name: 'Roʻyxat' })).toBeInTheDocument()
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument()
+    const row = screen.getByText('Jamshid').closest('tr')!
+    expect(row).not.toHaveAttribute('tabindex')
+    expect(row).not.toHaveAttribute('aria-selected')
+  })
+
+  it('with clickable rows it is a grid with one tab stop and arrow-key navigation', () => {
+    const onRowClick = vi.fn()
+    const many = [...rows, { id: 'c', name: 'Sardor' }]
+    render(
+      <DataTable
+        columns={columns}
+        rows={many}
+        rowKey={(r) => r.id}
+        onRowClick={onRowClick}
+        label="Roʻyxat"
+      />,
+    )
+    const grid = screen.getByRole('grid', { name: 'Roʻyxat' })
+    const [first, second, third] = many.map((r) => within(grid).getByText(r.name).closest('tr')!)
+    // One tab stop: the first row; the others are reached with the arrows.
+    expect(first).toHaveAttribute('tabindex', '0')
+    expect(second).toHaveAttribute('tabindex', '-1')
+    first!.focus()
+    fireEvent.keyDown(first!, { key: 'ArrowDown' })
+    expect(second).toHaveFocus()
+    expect(second).toHaveAttribute('tabindex', '0')
+    expect(first).toHaveAttribute('tabindex', '-1')
+    fireEvent.keyDown(second!, { key: 'End' })
+    expect(third).toHaveFocus()
+    fireEvent.keyDown(third!, { key: 'ArrowDown' })
+    expect(third).toHaveFocus()
+    fireEvent.keyDown(third!, { key: 'Home' })
+    expect(first).toHaveFocus()
+    fireEvent.keyDown(first!, { key: 'ArrowUp' })
+    expect(first).toHaveFocus()
+    fireEvent.keyDown(first!, { key: ' ' })
+    expect(onRowClick).toHaveBeenCalledWith(many[0])
+  })
+
+  it('puts the tab stop on the selected row', () => {
+    render(
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        selectedKey="b"
+        onRowClick={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Dilnoza').closest('tr')).toHaveAttribute('tabindex', '0')
+    expect(screen.getByText('Jamshid').closest('tr')).toHaveAttribute('tabindex', '-1')
   })
 
   it('shows loading, empty and error states', () => {

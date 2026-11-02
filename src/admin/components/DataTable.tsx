@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from 'lucide-react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from './cx'
 import { Skeleton } from './Skeleton'
 import { EmptyState, ErrorState } from './States'
@@ -37,6 +37,8 @@ export interface DataTableProps<T> {
   empty?: { title: string; description?: string }
   /** Skeleton rows while loading. */
   loadingRows?: number
+  /** Accessible name of the table. */
+  label?: string
 }
 
 function nextSort(current: SortState | null | undefined, key: string): SortState {
@@ -57,8 +59,26 @@ export function DataTable<T>({
   onRetry,
   empty = { title: 'Hech narsa topilmadi' },
   loadingRows = 5,
+  label,
 }: DataTableProps<T>) {
   const span = columns.length + (onRowClick ? 1 : 0)
+  // Clickable rows make the table a grid: one tab stop (the selected row, else
+  // the first), arrows / Home / End move between rows, Enter or Space opens.
+  const interactive = Boolean(onRowClick)
+  const [active, setActive] = useState<string>()
+  const keys = rows?.map(rowKey) ?? []
+  const tabStop =
+    active !== undefined && keys.includes(active)
+      ? active
+      : selectedKey !== undefined && keys.includes(selectedKey)
+        ? selectedKey
+        : keys[0]
+
+  const moveTo = (target: Element | null | undefined) => {
+    if (!(target instanceof HTMLTableRowElement) || !target.dataset.rowKey) return
+    setActive(target.dataset.rowKey)
+    target.focus()
+  }
 
   let body: ReactNode
   if (loading) {
@@ -93,10 +113,21 @@ export function DataTable<T>({
       const key = rowKey(row)
       const open = onRowClick ? () => onRowClick(row) : undefined
       const onKeyDown = open
-        ? (event: KeyboardEvent) => {
+        ? (event: KeyboardEvent<HTMLTableRowElement>) => {
+            const row = event.currentTarget
+            const body = row.parentElement
+            const target = {
+              ArrowDown: row.nextElementSibling,
+              ArrowUp: row.previousElementSibling,
+              Home: body?.firstElementChild,
+              End: body?.lastElementChild,
+            }[event.key]
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault()
               open()
+            } else if (target !== undefined) {
+              event.preventDefault()
+              moveTo(target)
             }
           }
         : undefined
@@ -105,8 +136,10 @@ export function DataTable<T>({
           key={key}
           onClick={open}
           onKeyDown={onKeyDown}
-          tabIndex={open ? 0 : undefined}
-          aria-selected={selectedKey === undefined ? undefined : selectedKey === key}
+          onFocus={open ? () => setActive(key) : undefined}
+          data-row-key={open ? key : undefined}
+          tabIndex={open ? (key === tabStop ? 0 : -1) : undefined}
+          aria-selected={open ? selectedKey === key : undefined}
           className={cx(
             'group h-14 border-b border-border text-base text-primary last:border-b-0',
             open && 'cursor-pointer outline-none hover:bg-hover focus-visible:bg-hover',
@@ -134,7 +167,12 @@ export function DataTable<T>({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-background">
-      <table className="w-full border-collapse" aria-busy={loading || undefined}>
+      <table
+        className="w-full border-collapse"
+        role={interactive ? 'grid' : undefined}
+        aria-label={label}
+        aria-busy={loading || undefined}
+      >
         <thead>
           <tr className="h-11 border-b border-border bg-surface text-left">
             {columns.map((column) => {

@@ -151,7 +151,7 @@ describe('Toʻlovlar', () => {
     expect(range.get('from')!.endsWith('-01')).toBe(true)
     expect(range.get('to')! >= range.get('from')!).toBe(true)
 
-    const table = screen.getByRole('table')
+    const table = screen.getByRole('grid')
     const refundRow = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
     expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger')
     expect(within(refundRow).getByText('Egaga: −190 000')).toBeInTheDocument()

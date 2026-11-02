@@ -465,6 +465,7 @@ export function PaymentsPage() {
 
       <div className="flex flex-col gap-2">
         <DataTable
+          label="Toʻlovlar"
           columns={COLUMNS}
           rows={list.data?.content}
           rowKey={(p) => p.id}

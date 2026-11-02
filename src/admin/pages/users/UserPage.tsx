@@ -98,6 +98,7 @@ function BookingsTab({ userId }: { userId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <DataTable
+        label="Bronlar"
         columns={BOOKING_COLUMNS}
         rows={data?.content}
         rowKey={(b) => b.id}
@@ -150,6 +151,7 @@ function StadiumsTab({ ownerId }: { ownerId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <DataTable
+        label="Maydonlar"
         columns={STADIUM_COLUMNS}
         rows={data?.content}
         rowKey={(s) => s.id}

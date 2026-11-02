@@ -201,6 +201,7 @@ function SettingsHistory() {
         Oʻzgarishlar tarixi
       </h2>
       <DataTable
+        label="Oʻzgarishlar tarixi"
         columns={HISTORY_COLUMNS}
         rows={data ? historyRows(data.content) : undefined}
         rowKey={(row) => row.key}

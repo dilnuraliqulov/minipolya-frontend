@@ -296,6 +296,7 @@ export function BookingsPage() {
           <div className="flex flex-col gap-2">
             {tab === 'bookings' ? (
               <DataTable
+                label="Bronlar"
                 columns={BOOKING_COLUMNS}
                 rows={bookings.data?.content}
                 rowKey={(b) => b.id}
@@ -308,6 +309,7 @@ export function BookingsPage() {
               />
             ) : (
               <DataTable
+                label="Oʻyinlar"
                 columns={GAME_COLUMNS}
                 rows={games.data?.content}
                 rowKey={(g) => g.id}
