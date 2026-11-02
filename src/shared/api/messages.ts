@@ -1,6 +1,6 @@
 /**
  * Machine-readable `code` values the client branches on. The backend sends a
- * `code` only on some errors so far (the admin auth ones); prefer it over
+ * `code` only on some errors so far (admin auth, blocked, phone taken); prefer it over
  * matching `message` wherever one exists.
  */
 export const API_CODES = {
@@ -12,8 +12,10 @@ export const API_CODES = {
   accountLocked: 'ACCOUNT_LOCKED',
   /** 429 from the admin login: too many attempts from this IP; `data.minutesRemaining`. */
   tooManyAttempts: 'TOO_MANY_ATTEMPTS',
-  /** 403 from the admin login: right password, but the account is blocked. */
+  /** 403 on any request, the Telegram login and the admin login: the account is blocked; `data: { reason?, blockedAt? }`. */
   accountBlocked: 'ACCOUNT_BLOCKED',
+  /** 409 from `PATCH /api/users/me`: the phone belongs to another account. */
+  phoneTaken: 'PHONE_TAKEN',
 } as const
 
 /**
@@ -28,4 +30,28 @@ export const API_MESSAGES = {
   accountBlocked: 'Account is blocked',
   /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium whose owner has no signed ATMOS contract. */
   contractNotSigned: "The owner's ATMOS contract is not signed",
+  /** 400 from `POST /api/reviews` when the caller already reviewed this stadium. */
+  alreadyReviewed: 'You have already reviewed this stadium',
+  /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
+  reviewNotPlayed: 'You can only review a stadium you have played at',
+  /** 400 from `POST` / `PUT /api/owner/stadiums` when `minBookingAmount` is under the 50 000-tiyin floor. */
+  minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
+  /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
+  joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
+  /** 400 from `POST /api/games/{id}/join` when the joining team's card is declined. */
+  joinDeclined: 'Card payment was declined; the game is still looking for an opponent',
+  /** 400 from `POST /api/games` (team game) when the hold is declined. */
+  createGameDeclined: 'Card payment was declined; the game was not created',
+  /** 400 from `POST /api/games/{id}/pay-remainder` when the card is declined. */
+  gameRemainderDeclined: 'Card payment was declined; the remainder is still owed',
+  /** 400s from `POST /api/games/{id}/join` when a payment step could not be confirmed (the game may be cancelled and refunded). */
+  joinPaymentUnconfirmed:
+    'The card payment could not be confirmed; the game is still looking for an opponent. If the money was taken it will be returned in full',
+  joinOtherTeamConfirming:
+    "The other team's payment is still being confirmed; try again in a few minutes",
+  joinOtherTeamFailed:
+    "The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full",
+  /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
+  gameRemainderConfirming:
+    'The card payment is still being confirmed; the remainder will be marked paid once it is',
 } as const

@@ -11,7 +11,7 @@ export function formatMoney(tiyin: number): string {
   return `${formatSomParts(tiyin).amount} ${i18n.t('money.unit')}`
 }
 
-const MONTH_KEYS = [
+export const MONTH_KEYS = [
   'months.jan',
   'months.feb',
   'months.mar',

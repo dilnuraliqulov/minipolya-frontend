@@ -1,10 +1,8 @@
 import { API_CODES, API_MESSAGES, isApiError } from '../../shared/api'
-import { isAvailable } from './missing'
 
-/** R21: the reason and date on the blocked 403. */
-export const BLOCK_DETAILS = '403 Account is blocked data.reason, data.blockedAt'
-
+/** `data` on the blocked 403 (`code: ACCOUNT_BLOCKED`); either may be absent. */
 export interface BlockDetails {
+  /** As the admin typed it. */
   reason?: string
   /** UTC */
   blockedAt?: string
@@ -19,9 +17,9 @@ export function isAccountBlocked(error: unknown): boolean {
   )
 }
 
-/** The reason and date, once R21 ships; empty until then. */
+/** Why and when, from the blocked 403's `data`; empty when the backend sent none. */
 export function readBlockDetails(error: unknown): BlockDetails {
-  if (!isAvailable(BLOCK_DETAILS) || !isApiError(error)) return {}
+  if (!isApiError(error)) return {}
   const data = error.data as Partial<Record<keyof BlockDetails, unknown>> | undefined
   return {
     reason: typeof data?.reason === 'string' ? data.reason : undefined,

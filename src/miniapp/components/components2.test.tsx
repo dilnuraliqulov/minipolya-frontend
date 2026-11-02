@@ -88,6 +88,17 @@ describe('BottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(2)
   })
 
+  it('is capped below the Telegram header row', () => {
+    render(
+      <BottomSheet open title="Tilni tanlang" onClose={() => {}}>
+        <p>content</p>
+      </BottomSheet>,
+    )
+    expect(screen.getByRole('dialog')).toHaveClass(
+      'max-h-[calc(100dvh-var(--tg-safe-top)-var(--tg-content-top)-8px)]',
+    )
+  })
+
   it("closes with Telegram's BackButton", () => {
     const fake = installFakeTelegram()
     const onClose = vi.fn()

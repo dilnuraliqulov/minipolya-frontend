@@ -7,8 +7,133 @@
     <title>MiniPolya</title>
     <!-- Telegram Mini App bridge: the Mini App only, never admin.html. -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Classic script: runs before the bundle so the splash and first paint use the chosen theme. -->
+    <script>
+      try {
+        var choice = localStorage.getItem('minipolya-miniapp-theme')
+        var tg = window.Telegram && window.Telegram.WebApp
+        var scheme =
+          choice === 'light' || choice === 'dark'
+            ? choice
+            : tg && tg.platform !== 'unknown'
+              ? tg.colorScheme
+              : null
+        if (scheme) document.documentElement.dataset.theme = scheme
+      } catch (e) {}
+    </script>
+    <style>
+      /* Splash: static, shown before the bundle loads. Hex values mirror src/miniapp/index.css. */
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: #f7f8fa;
+        color: #0b1220;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        opacity: 1;
+        transition: opacity 200ms ease;
+      }
+      #splash.splash-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #splash svg {
+        width: 96px;
+        height: 96px;
+        color: #2563eb;
+      }
+      #splash .splash-name {
+        font-size: 24px;
+        font-weight: 700;
+      }
+      #splash .splash-tagline {
+        font-size: 14px;
+        color: #6b7280;
+      }
+      #splash .splash-dots {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      #splash .splash-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #2563eb;
+        opacity: 0.4;
+      }
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme='light']) #splash {
+          background: #000000;
+          color: #f5f7fa;
+        }
+        html:not([data-theme='light']) #splash .splash-tagline {
+          color: #9ca3af;
+        }
+      }
+      html[data-theme='dark'] #splash {
+        background: #000000;
+        color: #f5f7fa;
+      }
+      html[data-theme='dark'] #splash .splash-tagline {
+        color: #9ca3af;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        #splash svg {
+          animation: splash-roll 1.2s ease-in-out infinite;
+        }
+        #splash .splash-dots span {
+          animation: splash-dot 1.2s ease-in-out infinite;
+        }
+        #splash .splash-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        #splash .splash-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+      }
+      @keyframes splash-roll {
+        0%,
+        100% {
+          transform: translateX(-6px) rotate(-6deg);
+        }
+        50% {
+          transform: translateX(6px) rotate(6deg);
+        }
+      }
+      @keyframes splash-dot {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" role="status" aria-label="MiniPolya">
+      <svg viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+        <path
+          fill-rule="evenodd"
+          d="M12 12h40a8 8 0 0 1 8 8v24a8 8 0 0 1-8 8h-40a8 8 0 0 1-8-8v-24a8 8 0 0 1 8-8z m1 5a4 4 0 0 0-4 4v22a4 4 0 0 0 4 4h38a4 4 0 0 0 4-4v-22a4 4 0 0 0-4-4z m16.5 0h5v6.5h-5z m0 23.5h5v6.5h-5z m2.5-14.5a6 6 0 1 1 0 12 6 6 0 1 1 0-12z"
+        />
+      </svg>
+      <div class="splash-name">MiniPolya</div>
+      <div class="splash-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="splash-tagline">Toshkent maydonlari — bir joyda</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/miniapp/main.tsx"></script>
   </body>

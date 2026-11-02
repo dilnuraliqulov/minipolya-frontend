@@ -14,9 +14,9 @@ export interface User {
   username?: string
   /** UTC */
   createdAt: string
-  /** R20 — set only by the user, never from Telegram. Not sent by the backend yet. */
+  /** Set only by the user (PATCH /api/users/me), never from Telegram; absent until then. */
   firstName?: string
-  /** R20 — same rule as `firstName`. */
+  /** Same rule as `firstName`. */
   lastName?: string
 }
 
@@ -27,8 +27,6 @@ export interface AuthResponse {
 
 export const AUTH_TELEGRAM = 'POST /api/auth/telegram'
 export const USERS_ME = 'GET /api/users/me'
-/** R20: PATCH /api/users/me accepting firstName, lastName and phone. */
-export const PROFILE_FIELDS = 'PATCH /api/users/me firstName, lastName, phone'
 
 export function loginWithTelegram(initData: string): Promise<AuthResponse> {
   return api.post<AuthResponse>('/api/auth/telegram', { initData })
@@ -48,7 +46,10 @@ export function updateMe(body: UpdateUserRequest): Promise<User> {
   return api.patch<User>('/api/users/me', body)
 }
 
-/** R20's requested contract — only call when `isAvailable(PROFILE_FIELDS)`. */
+/**
+ * The profile fields of PATCH /api/users/me. 400 on a bad value; 409
+ * `code: PHONE_TAKEN` when another account has the phone.
+ */
 export interface UpdateProfileRequest {
   firstName: string
   lastName: string

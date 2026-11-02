@@ -40,6 +40,15 @@ afterEach(async () => {
 })
 
 describe('Mini App session', () => {
+  it('adopt sets ready, keeps the token and applies the language', async () => {
+    const token = fakeJwt({ isOwner: false })
+    await session.adopt(token, makeUser({ language: 'en' }))
+
+    expect(session.getState()).toMatchObject({ status: 'ready', user: { language: 'en' } })
+    expect(tokenStore.get()).toBe(token)
+    expect(i18n.language).toBe('en')
+  })
+
   it('posts the raw initData, keeps the JWT in memory and loads the profile language', async () => {
     const { webApp } = installFakeTelegram()
     const token = fakeJwt({ isOwner: false })
@@ -59,6 +68,26 @@ describe('Mini App session', () => {
     expect(i18n.language).toBe('ru')
   })
 
+  it("uses the backend's saved language, never Telegram's language_code", async () => {
+    await i18n.changeLanguage('uz')
+    installFakeTelegram({
+      initDataUnsafe: { user: { language_code: 'ru' } } as never,
+      initData: 'user=%7B%22id%22%3A1%2C%22language_code%22%3A%22ru%22%7D&auth_date=1&hash=x',
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, { token: fakeJwt({}), user: makeUser({ language: 'uz' }) }),
+        ),
+    )
+    expect(i18n.language).toBe('uz')
+    session.start()
+    await settled()
+    expect(i18n.language).toBe('uz')
+  })
+
   it('stops with "no-telegram" when there is no initData (a plain browser)', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -75,14 +104,26 @@ describe('Mini App session', () => {
     expect(tokenStore.get()).toBeNull()
   })
 
-  it('also recognises the ACCOUNT_BLOCKED code', async () => {
+  it('also recognises the ACCOUNT_BLOCKED code, and keeps the reason and date it sends', async () => {
     installFakeTelegram()
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(jsonResponse(403, null, 'whatever', 'ACCOUNT_BLOCKED')),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(
+            403,
+            { reason: 'Qoidabuzarlik', blockedAt: '2026-10-31T05:00:00Z' },
+            'whatever',
+            'ACCOUNT_BLOCKED',
+          ),
+        ),
     )
     session.start()
-    expect(await settled()).toMatchObject({ status: 'blocked' })
+    expect(await settled()).toEqual({
+      status: 'blocked',
+      details: { reason: 'Qoidabuzarlik', blockedAt: '2026-10-31T05:00:00Z' },
+    })
   })
 
   it('shows an error when the login fails, and "Qayta urinish" logs in again', async () => {

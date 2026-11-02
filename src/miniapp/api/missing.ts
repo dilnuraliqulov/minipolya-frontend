@@ -1,3 +1,21 @@
+import {
+  BOOKING_CASH_PAID,
+  BOOKING_PAY,
+  BOOKING_QUOTE,
+  BOOKING_STADIUM_FIELDS,
+  BOOKINGS_WHEN,
+} from './bookings'
+import { TEAM_GAME_QUOTE } from './games'
+import {
+  OWNER_BOOKING_CASH,
+  OWNER_LEGAL,
+  OWNER_STADIUM_DETAIL,
+  OWNER_UNPAID,
+  STADIUM_PHOTO_UPLOAD,
+} from './owner'
+import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
+import { TEAM_INVITE } from './teams'
+
 /**
  * THE list of endpoints (and fields) the Mini App needs that the backend has
  * not shipped yet, each with its request in docs/backend-requests.md.
@@ -5,11 +23,32 @@
  * While an endpoint is listed, everything that needs it shows "Tez orada" or
  * is hidden, and nothing is requested. Nothing is ever filled in instead.
  * When the backend ships one, delete its line: the real call takes over.
- * Keys are the constants next to the API functions (e.g. `PROFILE_FIELDS`).
+ * Keys are the constants next to the API functions (e.g. `'GET /api/foo'`).
+ *
+ * Open: R24 (list sorted by distance/rating), R25 (list filtered to stadiums
+ * free on a date), R27 (booking quote), R28 (pay a pending booking), R29
+ * (upcoming/past filter on the booking list), R30 (cash paid on a booking) and
+ * R31 (stadium photo, district and format on a booking), R32 (team invite
+ * link), R33 (team game quote), R34 (server guard, nothing to gate), R35 (owner
+ * stadium detail), R36 (photo upload), R37 (owner marks cash), R38 (unpaid
+ * remainders) and R39 (owner contract status). R20, R21 and R23
+ * shipped in backend `4d5faf0`.
  */
 export const MISSING_ENDPOINTS: Record<string, string> = {
-  'PATCH /api/users/me firstName, lastName, phone': 'R20',
-  '403 Account is blocked data.reason, data.blockedAt': 'R21',
+  [STADIUMS_NEARBY]: 'R24',
+  [STADIUMS_FREE_ON_DATE]: 'R25',
+  [BOOKING_QUOTE]: 'R27',
+  [BOOKING_PAY]: 'R28',
+  [BOOKINGS_WHEN]: 'R29',
+  [BOOKING_CASH_PAID]: 'R30',
+  [BOOKING_STADIUM_FIELDS]: 'R31',
+  [TEAM_INVITE]: 'R32',
+  [TEAM_GAME_QUOTE]: 'R33',
+  [OWNER_STADIUM_DETAIL]: 'R35',
+  [STADIUM_PHOTO_UPLOAD]: 'R36',
+  [OWNER_BOOKING_CASH]: 'R37',
+  [OWNER_UNPAID]: 'R38',
+  [OWNER_LEGAL]: 'R39',
 }
 
 export type Availability = 'available' | 'soon'

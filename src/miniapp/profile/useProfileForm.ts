@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isAvailable } from '../api/missing'
-import { PROFILE_FIELDS, type User } from '../api/users'
+import { API_CODES, isApiError } from '../../shared/api'
+import { errorMessage } from '../api/errors'
+import type { User } from '../api/users'
 import { formatPhone, formatPhoneInput, isCompletePhone, toWirePhone } from './phone'
 import { useUpdateProfile } from './queries'
 
@@ -14,17 +15,17 @@ export interface ProfileFormErrors {
 /**
  * State for "Profilingizni toʻldiring" and Shaxsiy maʼlumotlar. Fields start
  * from what the USER entered (firstName, lastName, phone) — never from the
- * Telegram-filled `name`. Saving needs R20; until then `available` is false
- * and nothing is sent.
+ * Telegram-filled `name`. A phone another account already has (409
+ * `PHONE_TAKEN`) is shown under the phone field; other failures below the form.
  */
 export function useProfileForm(user: User | undefined, onSaved: (user: User) => void) {
   const { t } = useTranslation()
-  const available = isAvailable(PROFILE_FIELDS)
   const [firstName, setFirstName] = useState(user?.firstName ?? '')
   const [lastName, setLastName] = useState(user?.lastName ?? '')
   const [phone, setPhone] = useState(user?.phone ? formatPhone(user.phone) : '')
   const [errors, setErrors] = useState<ProfileFormErrors>({})
   const mutation = useUpdateProfile()
+  const phoneTaken = isApiError(mutation.error) && mutation.error.code === API_CODES.phoneTaken
 
   const validate = (): ProfileFormErrors => {
     const next: ProfileFormErrors = {}
@@ -36,7 +37,7 @@ export function useProfileForm(user: User | undefined, onSaved: (user: User) => 
   }
 
   const submit = () => {
-    if (!available || mutation.isPending) return
+    if (mutation.isPending) return
     const found = validate()
     setErrors(found)
     if (Object.keys(found).length > 0) return
@@ -47,19 +48,21 @@ export function useProfileForm(user: User | undefined, onSaved: (user: User) => 
   }
 
   return {
-    available,
     fields: {
       firstName,
       lastName,
       phone,
       setFirstName,
       setLastName,
-      setPhone: (value: string) => setPhone(formatPhoneInput(value)),
+      setPhone: (value: string) => {
+        if (phoneTaken) mutation.reset()
+        setPhone(formatPhoneInput(value))
+      },
     },
-    errors,
+    errors: phoneTaken ? { ...errors, phone: errorMessage(mutation.error) } : errors,
     submit,
     saving: mutation.isPending,
-    saveError: mutation.error,
+    saveError: phoneTaken ? null : mutation.error,
   }
 }
 

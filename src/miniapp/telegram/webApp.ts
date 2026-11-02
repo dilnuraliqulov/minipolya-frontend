@@ -16,7 +16,12 @@ export interface SafeAreaInset {
 }
 
 export type TelegramEvent =
-  'themeChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged' | 'viewportChanged'
+  | 'themeChanged'
+  | 'safeAreaChanged'
+  | 'contentSafeAreaChanged'
+  | 'viewportChanged'
+  | 'fullscreenChanged'
+  | 'fullscreenFailed'
 
 export interface TelegramWebApp {
   initData: string
@@ -28,14 +33,23 @@ export interface TelegramWebApp {
   /** Bot API 8.0+; undefined on older clients. */
   safeAreaInset?: SafeAreaInset
   contentSafeAreaInset?: SafeAreaInset
+  /** Bot API 8.0+. */
+  isFullscreen?: boolean
   ready(): void
   expand(): void
+  /** Bot API 8.0+. */
+  requestFullscreen?(): void
+  /** Bot API 7.7+. */
+  disableVerticalSwipes?(): void
+  /** Bot API 7.10+. */
+  setBottomBarColor?(color: string): void
   isVersionAtLeast(version: string): boolean
   setHeaderColor(color: string): void
   setBackgroundColor(color: string): void
   onEvent(event: TelegramEvent, handler: () => void): void
   offEvent(event: TelegramEvent, handler: () => void): void
   openTelegramLink(url: string): void
+  openLink(url: string): void
   BackButton: {
     isVisible: boolean
     show(): void
@@ -74,8 +88,14 @@ export function getInitData(): string | null {
  */
 export function getStartParam(): string | null {
   const webApp = getTelegramWebApp()
-  if (!webApp) return null
-  const fromUnsafe = webApp.initDataUnsafe?.start_param
-  if (fromUnsafe) return fromUnsafe
-  return new URLSearchParams(webApp.initData).get('start_param') || null
+  if (webApp) {
+    const fromUnsafe = webApp.initDataUnsafe?.start_param
+    if (fromUnsafe) return fromUnsafe
+    const fromInitData = new URLSearchParams(webApp.initData).get('start_param')
+    if (fromInitData) return fromInitData
+  }
+  // The bot opens MINIAPP_URL?startapp=<payload> (web_app buttons get no
+  // start_param); Telegram's own links use tgWebAppStartParam.
+  const query = new URLSearchParams(window.location.search)
+  return query.get('startapp') || query.get('tgWebAppStartParam') || null
 }

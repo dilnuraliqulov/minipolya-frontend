@@ -1,6 +1,6 @@
 /**
  * Uzbek mobile numbers in the profile form: the user types into
- * "+998 XX XXX XX XX"; the API takes `+998XXXXXXXXX` (request R20).
+ * "+998 XX XXX XX XX"; the API takes `+998XXXXXXXXX`.
  * Input formatting only — no business rule lives here.
  */
 

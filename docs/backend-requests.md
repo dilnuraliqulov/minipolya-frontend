@@ -67,11 +67,626 @@ Blocker / High / Medium / Low — plus one line on what it blocks or degrades.
 ## Open requests
 
 `src/admin/api/missing.ts` lists the endpoints of open entries that a screen
-waits on; the panel shows "Tez orada" for those until they ship. R18 is a
-correction to fields that already exist, so nothing waits on it there.
-`src/miniapp/api/missing.ts` is the same list for the Mini App (R20, R21).
+waits on; the panel shows "Tez orada" for those until they ship.
+`src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists
+hold only the entries of requests that are still open.
 
-### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod)
+R24, R25 and R27–R31 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
+requests neither R24 nor R25 and shows no "Yaqin atrofda" or "Boʻsh maydonlar"
+section yet. R27–R31 are the booking flow (checkout, Oʻyinlarim, booking detail):
+the screens show "Tez orada" or hide the field until they ship.
+
+### R24 — Sort the stadium list by distance or rating
+
+**What's needed**
+`GET /api/stadiums` has a fixed order and no sort parameter, so the client
+cannot show the nearest or best-rated pitches first. Sorting one page in the
+client would be wrong, so a server-side sort is needed.
+
+**Which screen needs it**
+Mini App player — Bosh sahifa, the "Yaqin atrofda" (nearby) section.
+
+**Proposed endpoint**
+`GET /api/stadiums` — public (same access as today), new optional parameters.
+
+Request — in addition to the existing `q`, `format`, `maxPrice`, `district`,
+`page`, `size`:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `sort` | string | no | `distance` or `rating`; anything else is 400. Default stays today's fixed order |
+| `lat` | number | only with `sort=distance` | -90 to 90 |
+| `lng` | number | only with `sort=distance` | -180 to 180 |
+
+Response — the existing page payload, same fields, ordered by the chosen sort
+(`distance`: nearest first; `rating`: highest `averageRating` first, stadiums
+without reviews last).
+
+| Field | Type | Notes |
+|---|---|---|
+| `distanceMeters` | integer | optional; on each stadium, only with `sort=distance` |
+
+Error cases — 400 when `sort` is not `distance` or `rating`; 400 for
+`sort=distance` without `lat` and `lng`, or with out-of-range values.
+
+**Priority**
+Medium — blocks the "Yaqin atrofda" section; Bosh sahifa works without it.
+
+### R25 — Only stadiums with a free hour on a date
+
+**What's needed**
+The date strip on Bosh sahifa picks a day, but the list cannot be narrowed to
+stadiums that have a free hour that day. Checking availability stadium by
+stadium from the client would be one request per card.
+
+**Which screen needs it**
+Mini App player — Bosh sahifa, the "Boʻsh maydonlar · N" section.
+
+**Proposed endpoint**
+`GET /api/stadiums` — public (same access as today), new optional parameters.
+
+Request — in addition to the existing ones:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `date` | string | no | `yyyy-MM-dd` (Tashkent day), today to `app.booking.max-weeks-ahead` weeks ahead; otherwise 400 |
+| `freeOnly` | boolean | no | `true` returns only stadiums with at least one bookable hour on `date`; requires `date` |
+
+Response — the existing page payload. `totalElements` is the number of
+stadiums that have a free hour on `date`, so the client can show "Boʻsh
+maydonlar · N" without counting a page.
+
+| Field | Type | Notes |
+|---|---|---|
+| `content[]` | stadium | same fields as today; `pricePerHour` unchanged |
+| `totalElements` | integer | stadiums with a free hour on `date` |
+
+Error cases — 400 when `date` is malformed, in the past or beyond the booking
+window; 400 for `freeOnly=true` without `date`.
+
+**Priority**
+Medium — blocks the "Boʻsh maydonlar · N" section; the chosen date already
+travels to the stadium page.
+
+### R26 — Dev sign-in endpoints require a dev-only key
+
+**What's needed**
+The dev-only sign-in endpoints (R19: `GET /api/auth/dev/users`,
+`POST /api/auth/dev/login`) should require the header `X-Dev-Login-Key`, which
+must match a dev-only backend setting. Without it, a dev backend that is
+reachable on a network lets anyone sign in as any user.
+
+**Which screen needs it**
+None is blocked. The Mini App's dev user picker (browser testing, `npm run
+dev` only) already sends the header from `VITE_DEV_LOGIN_KEY` when it is set.
+
+**Proposed endpoint**
+Both R19 endpoints stay as they are — public, `dev` profile only — plus a check
+of the header.
+
+Request — header on both calls:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `X-Dev-Login-Key` | header | yes | equals the dev-only setting (a long random value in the dev profile's config); compared in constant time |
+
+Response — unchanged.
+
+Error cases — 403 when the header is missing or wrong (any message; no hint
+which of the two it was).
+
+**Priority**
+Low — hardening for shared dev networks; nothing in the frontend waits on it.
+
+### R27 — Quote before paying for a booking
+
+**What's needed**
+Checkout must show the price, the deposit a `MINIMUM` payment charges, the
+remainder and the cancellation deadline **before** the booking exists. Today
+they only arrive on the `BookingResponse` after `POST /api/bookings` has already
+charged the card. The client must not compute them (deposit = capped minimum,
+promotions, deadline).
+
+**Which screen needs it**
+Mini App player — checkout ("Bronni tasdiqlash"), the payment-option choice
+and the amount shown on the pay button.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/quote` — logged-in user
+
+Request — path `id`, query:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, in the bookable window, same rules as `POST /api/bookings` |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | yes | uppercase; `MINIMUM` on a stadium with no minimum is 400 |
+
+Response — `data`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number | **tiyin**; the player price D for that hour, promotions applied |
+| `deposit` | number | **tiyin**; what `paymentOption` charges now (`price` for `FULL`) |
+| `remainder` | number | **tiyin**; `price - deposit` as the backend would book it |
+| `cancellationDeadline` | timestamp (UTC) | last moment a cancellation still refunds |
+
+Error cases — 400 same messages as `POST /api/bookings` (`"Booking must start
+on the hour"`, `"Cannot book more than 4 weeks ahead"`, `"This stadium requires
+full payment; it has no minimum booking amount"`, closed, outside hours); 404
+`"Stadium not available"`; 409 `"Slot is already booked"`.
+
+**Priority**
+Medium — checkout works from the availability price; the deposit and deadline
+lines wait on it.
+
+### R28 — Pay a pending booking whose payment was declined
+
+**What's needed**
+A declined card leaves the booking `pending` / `unpaid` until the 10-minute
+hold expires, but there is no way to pay it afterwards: `pay-remainder` needs a
+`partially_paid` booking, and re-posting `POST /api/bookings` is a 409 on the
+held slot.
+
+**Which screen needs it**
+Mini App player — booking detail ("Toʻlash" in the pending banner) and the
+"try another card" step after a decline.
+
+**Proposed endpoint**
+`POST /api/bookings/{id}/pay` — logged-in user (the booking's owner)
+
+Request — path `id`, body:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `cardId` | UUID | yes | an active card of the caller |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | uppercase; absent keeps the option chosen at creation; same rule as creation |
+
+Response — `BookingResponse`, `message` as for creation (`paid` /
+`partially_paid` / `unpaid` outcome; a decline is still **200**).
+
+Error cases — 400 `"Booking is not awaiting payment"` (not `pending`, already
+paid, or the hold expired); 403 `"This booking does not belong to you"`; 404
+`"Booking not found"` / `"Card not found"`.
+
+**Priority**
+Medium — without it a declined payment can only be retried by waiting for the
+hold to expire and booking again.
+
+### R29 — Upcoming and past filter on the booking list
+
+**What's needed**
+`GET /api/bookings` returns every booking in one fixed order, so the client
+cannot show "Kelgusi" and "Oʻtgan" separately. Splitting one page in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App player — Oʻyinlarim, the Kelgusi / Oʻtgan segmented control.
+
+**Proposed endpoint**
+`GET /api/bookings` — logged-in user, new optional parameter.
+
+Request — in addition to `page`, `size`:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `when` | string | no | `upcoming` or `past`; anything else is 400. Absent keeps today's order |
+
+Response — the existing page payload. `upcoming`: bookings that have not ended
+yet, soonest first; `past`: ended bookings, most recent first.
+
+Error cases — 400 `"Invalid when"` for an unknown value.
+
+**Priority**
+Medium — the list works unsplit; the segmented control stays disabled until it
+ships.
+
+### R30 — Cash taken on a booking, on the player response
+
+**What's needed**
+`paidAmount` mixes card and cash, so the client cannot tell the player how much
+was paid in the app and how much in cash, nor explain why a cancellation refund
+(card money only) is smaller than `paidAmount`.
+
+**Which screen needs it**
+Mini App player — booking detail, the Toʻlov card.
+
+**Proposed endpoint**
+`GET /api/bookings`, `GET /api/bookings/{id}` and the other player
+`BookingResponse` endpoints — logged-in user, new response field.
+
+Request — unchanged.
+
+Response — `BookingResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `paidInCash` | number | optional; **tiyin** taken in cash by the owner; omitted when 0 |
+
+Error cases — none new.
+
+**Priority**
+Low — the Toʻlov card shows `paidAmount` without the split.
+
+### R31 — Stadium photo, district and format on a booking
+
+**What's needed**
+A booking carries only `stadiumId` and `stadiumName`. The Oʻyinlarim list would
+need one `GET /api/stadiums/{id}` per card to show a photo, the district and
+the format.
+
+**Which screen needs it**
+Mini App player — Oʻyinlarim booking cards and the booking detail head.
+
+**Proposed endpoint**
+`GET /api/bookings` and `GET /api/bookings/{id}` — logged-in user, new
+response fields.
+
+Request — unchanged.
+
+Response — `BookingResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `stadiumCoverPhotoUrl` | string | optional; the stadium's first photo, as `coverPhotoUrl` on `StadiumResponse` |
+| `stadiumDistrict` | string | optional; one of the twelve district strings |
+| `stadiumFormat` | string | `5x5` \| `7x7` \| `9x9` \| `11x11` |
+
+Error cases — none new.
+
+**Priority**
+Low — the list shows the logo mark instead of a photo; the detail page fetches
+the stadium.
+
+### R32 — Invite players to a team by link
+
+**What's needed**
+`POST /api/teams/{id}/members` takes a `userId`, but a leader has no way to
+learn another player's id: there is no user search and no invite. The design
+has "Taklif havolasini ulashish" (share an invite link) on Jamoam; the player
+who opens the link should join the team.
+
+**Which screen needs it**
+Mini App player — Jamoam (sardor), "Taklif havolasini ulashish"; joining from
+the link (start parameter `team_<code>`, routed in Part 4).
+
+**Proposed endpoints**
+`POST /api/teams/{id}/invite` — logged-in user, leader only: returns a link.
+
+| Field | Type | Notes |
+|---|---|---|
+| `code` | string | opaque, unguessable; valid until the team is deleted or the leader makes a new one |
+| `inviteLink` | string | `https://t.me/<bot>/<app>?startapp=team_<code>` |
+
+`POST /api/teams/join` — logged-in user.
+
+Request:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `code` | string | yes | `@NotBlank` |
+
+Response — `TeamDetailResponse` of the joined team, `message: "Joined team"`.
+
+Error cases — 403 `"Only the team leader can perform this action"` (invite);
+404 `"Invite not found"` (unknown or replaced code); 400 `"User is already a
+member of this team"`.
+
+**Priority**
+High — without it a team can never have members other than its leader.
+
+### R33 — A team game's price before it is created
+
+**What's needed**
+"Raqib qidirish" shows what the leader's team pays now and its remainder
+before the game exists. Only the created game carries them
+(`GameDetailResponse.teams[].price` / `remainderAmount`); computing them in the
+client would re-implement the team-game split (`TeamGameSplit`).
+
+**Which screen needs it**
+Mini App player — Raqib qidirish (find an opponent) form.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/team-game-quote` — logged-in user.
+
+Request:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, a free slot |
+
+Response:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number **(tiyin)** | what each team pays in the app on joining (player price) |
+| `remainderAmount` | number **(tiyin)** | what each team owes afterwards, the same in the app or in cash |
+| `totalPrice` | number **(tiyin)** | both teams together |
+| `cancellationDeadline` | timestamp (UTC) | when free cancellation ends |
+
+Error cases — 400 when `startsAt` is not a bookable hour; 404 `"Stadium not
+found"`.
+
+**Priority**
+Medium — the form shows the slot's price only and the team sees its exact
+figures on the game page right after starting.
+
+### R34 — Refuse a second remainder charge while one is processing
+
+**What's needed**
+`POST /api/bookings/{id}/pay-remainder` refuses only when the booking is
+already `paid`. If the first charge is still `processing` (the provider has not
+answered), the booking stays `partially_paid` and a second call charges the
+card again; both can settle. The Mini App hides the button while it sees a
+`processing` remainder row, but the server should guarantee it.
+
+**Which screen needs it**
+Mini App player — booking detail, "Qolganini ilovada toʻlash" (and any other
+client calling the endpoint).
+
+**Proposed endpoint**
+`POST /api/bookings/{id}/pay-remainder` — unchanged request and response; one
+new error case.
+
+Error cases — 409 `"A payment for this booking is still being processed"` while
+a `remainder` payment of this booking is `processing`, with `code:
+"PAYMENT_PROCESSING"` so clients need not match the prose.
+
+**Priority**
+High — guards against charging a player twice.
+
+### R35 — The owner's own stadium detail
+
+**What's needed**
+`GET /api/owner/stadiums` returns `StadiumResponse` (no phone, description,
+opening hours, minimum booking amount, cancellation hours, photos or
+amenities). The public `GET /api/stadiums/{id}` has them but in **player**
+prices and only for approved stadiums. Owner mode cannot show or prefill its
+own settings.
+
+**Which screen needs it**
+Mini App owner mode — Maydonim: Maʼlumotlar, Ish vaqti, Narx/Bron shartlari,
+Rasmlar (also for a stadium still `pending`).
+
+**Proposed endpoint**
+`GET /api/owner/stadiums/{id}` — owner of that stadium.
+
+Response — `StadiumDetailResponse` in the owner's view, exactly as `PUT
+/api/owner/stadiums/{id}` already returns it (own `pricePerHour` /
+`minBookingAmount` with `playerPrice` / `playerMinBookingAmount`, `status`,
+`statusReason`, `openTime`, `closeTime`, `cancellationPolicy`, `photos`,
+`amenities`, `phone`, `description`), any status.
+
+Error cases — 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+**Priority**
+High — three of the six Maydonim sections wait for it.
+
+### R36 — Upload stadium photos
+
+**What's needed**
+`photos` on create/update are URL strings and there is no upload endpoint
+(api-reference Q5); a phone owner has no URL to give.
+
+**Which screen needs it**
+Mini App owner mode — Maydon qoʻshish step 3 "Rasmlar", Maydonim → Rasmlar.
+
+**Proposed endpoint**
+`POST /api/owner/stadiums/{id}/photos` — owner; `multipart/form-data`, field
+`file` (JPEG/PNG/WebP, ≤ 10 MB). Response — `PhotoResponse` `{ id, url,
+position }`. `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — `data: null`.
+
+Error cases — 400 `"Unsupported image type"`, 413 `"File too large"`; 403; 404.
+
+**Priority**
+Medium — stadiums can be created without photos; players see the logo instead.
+
+### R37 — The owner marks a booking's remainder as paid in cash
+
+**What's needed**
+`POST /api/bookings/{id}/cash` is documented in the backend `CLAUDE.md` but not
+mapped (api-reference Q6). The schedule's "Naqd olindi" cannot work for an
+ordinary booking (team games have `POST /api/games/{id}/cash`).
+
+**Which screen needs it**
+Mini App owner mode — Jadval booking sheet, Hisobot unpaid list.
+
+**Proposed endpoint**
+`POST /api/owner/bookings/{id}/cash` — owner of the stadium; no body. Records
+the booking's `remainingAmount` as cash; response `BookingResponse` (owner
+view), `message: "Cash recorded"`.
+
+Error cases — 400 `"Already paid"`; 400 `"This booking has no part payment to
+complete"`; 403 `"You do not own this stadium"`; 404 `"Booking not found"`.
+
+**Priority**
+High — every deposit booking ends with a cash remainder the owner must record.
+
+### R38 — Unpaid remainders and the app/cash split for the owner
+
+**What's needed**
+Hisobot shows "Toʻlanmagan qoldiqlar" and money received in the app vs in cash.
+`…/stats` returns only totals; filtering one page of bookings in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App owner mode — Hisobot.
+
+**Proposed endpoints**
+`GET /api/owner/dashboard/stadiums/{id}/bookings?unpaid=true` — owner; paged
+`BookingResponse` (owner view) with `remainingAmount > 0`, live bookings only,
+soonest first. `OwnerDashboardStatsResponse` gains, per period
+(`today`/`week`/`month`): `…PaidInApp`, `…PaidInCash`, `…Outstanding` (tiyin).
+
+Error cases — 403 `"You do not own this stadium"`.
+
+**Priority**
+Medium — the totals are shown meanwhile.
+
+### R39 — The owner's contract and payout status
+
+**What's needed**
+Owner Profil shows "Toʻlovlar: Shartnoma — Imzolangan" and support contact.
+Legal details and `atmosContractStatus` exist only under `/api/admin/**`.
+
+**Which screen needs it**
+Mini App owner mode — Profil.
+
+**Proposed endpoint**
+`GET /api/owner/legal-details` — owner; `{ legalType?, atmosContractStatus,
+ownerContractStatus }` (§1.9 values), read-only.
+
+Error cases — none beyond 401/403.
+
+**Priority**
+Low — informational.
+
+### R40 — Make team game charges safe to retry
+
+**What's needed**
+`POST /api/games` (team game) and `POST /api/games/{id}/pay-remainder` are not
+idempotent. If the answer is lost (timeout, 5xx), a retry creates a second
+waiting game with a second hold, or charges a remainder that is still
+`processing` again (`chargeForTeamGame` has no guard). The Mini App no longer
+offers a retry after such errors and sends the captain to Oʻyinlarim, but the
+server should make a retry harmless.
+
+**Which screen needs it**
+Mini App player — Raqib qidirish, game detail "Qolganini toʻlash".
+
+**Proposed change**
+- `POST /api/games` and `POST /api/games/{id}/pay-remainder` accept an
+  optional `Idempotency-Key` header (UUID); a repeated key within 24 h returns
+  the first result instead of acting again.
+- `pay-remainder` answers 409 `code: "PAYMENT_PROCESSING"` while a remainder
+  payment of that team is `processing` (same as R34 for bookings).
+- `POST /api/games` refuses a second waiting game of the same team on the same
+  hour: 409 `"Your team is already looking for an opponent at this time"`.
+
+**Priority**
+High — guards against double holds and double charges.
+
+### R41 — Let the owner turn the minimum booking amount off
+
+**What's needed**
+`PUT /api/owner/stadiums/{id}` applies only non-null fields, and a non-null
+`minBookingAmount` must be ≥ 50 000 tiyin. Once an owner sets a minimum, they
+cannot go back to "full payment only" (null); only an admin can, in the
+database.
+
+**Which screen needs it**
+Mini App owner mode — Narxlar → Oldindan toʻlov (it can set and change the
+minimum, not remove it).
+
+**Proposed change**
+`PUT /api/owner/stadiums/{id}` accepts `"clearMinBookingAmount": true`, which
+sets `minBookingAmount` to null (full payment only). Sending it together with
+`minBookingAmount` → 400 `"Send either minBookingAmount or clearMinBookingAmount"`.
+The audit entry records the change like any other field.
+
+**Priority**
+Medium — an owner who tries deposits is stuck with them.
+
+---
+
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R23 — Stadium list and detail fields the player screens need _(shipped in `c09bfb1`)_
+
+**What's needed**
+The Mini App's Bosh sahifa, stadium page and Sevimlilar are built from
+`GET /api/stadiums`, `GET /api/stadiums/{id}` and the availability endpoint.
+Several things the design shows are not in them:
+
+1. **District filter.** `GET /api/stadiums` takes `q`, `format`, `maxPrice`
+   only — no `district`, although stadiums have one (§1.9). The client must
+   not filter a page itself.
+2. **A cover photo on list items.** `StadiumResponse` deliberately has no
+   `photos`, so the list cards and Sevimlilar cards cannot show a photo.
+3. **`isFavorited` on list items** (for a logged-in caller), so a list card
+   can show and toggle the heart without loading each detail.
+4. **The rating on the detail.** `StadiumDetailResponse` has no
+   `averageRating` / `reviewCount` (the list has them), so the stadium page
+   cannot show "4.8 (128)" when opened from a deep link or Sevimlilar.
+5. **Why a slot is unavailable.** `TimeSlot` has only `available`; the
+   design shows "Band" (booked) and "Yopiq" (closed) differently.
+
+**Which screen needs it**
+Mini App player: Bosh sahifa (filters, cards), Maydon (rating, slots),
+Sevimlilar (cards).
+
+**Proposed endpoint**
+`GET /api/stadiums` — public · paged — one new optional query parameter:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `district` | string | no | one of the twelve exact district strings (§1.9); unknown → 400 `"Unknown district"` |
+
+`StadiumResponse` (public list and `GET /api/favorites`) gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `coverPhotoUrl` | string? | the photo with the lowest `position`; absent when none |
+| `isFavorited` | boolean? | only for an authenticated caller, as on the detail |
+
+`StadiumDetailResponse` gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `averageRating` | number? | same as on the list; absent with no reviews |
+| `reviewCount` | number? | |
+
+`TimeSlot` gains:
+
+| Field | Type | Notes |
+|---|---|---|
+| `unavailableReason` | `"booked"` \| `"closed"`? | only when `available` is false |
+
+Error cases — 400 `"Unknown district"` for the new parameter; nothing else new.
+
+**Priority**
+Medium — without them the district filter is disabled ("Tez orada"), cards
+have no photo or heart (Sevimlilar excepted), the stadium page shows the
+review count without an average, and an unavailable hour reads "Boʻsh emas".
+
+**Shipped as** — an unknown `district` is 400 `"Invalid district"` (not `"Unknown district"`). Instead of `unavailableReason`, every `TimeSlot` has a `status`: `free` | `booked` | `closed` | `past` (`available` is true exactly when it is `free`; precedence past → booked → closed). `reviewCount` on the detail is `0` with no reviews. `GET /api/favorites` returns the same card (`coverPhotoUrl`, `isFavorited: true`).
+
+### R22 — New users start in Uzbek, not in their Telegram language _(shipped in `9db7f62`)_
+
+**What's needed**
+The Mini App's language is the user's saved `language` (`UserResponse.language`),
+and a **new user must start in Uzbek (`uz`)**. Today
+`AuthService.createFromTelegram` sets it from Telegram's `language_code`
+(`resolveLanguage`: `ru` / `en` when Telegram says so, otherwise `uz`), so a
+player whose Telegram is in Russian starts in Russian. The frontend cannot
+correct this: it cannot tell a Telegram-copied `ru` from one the player chose,
+and must not override the saved value.
+
+**Which screen needs it**
+Mini App, every screen, a player's first launch.
+
+**Proposed endpoint**
+No new endpoint. In `POST /api/auth/telegram`, a user created on first login
+gets `language = "uz"` regardless of `language_code`. Existing users keep
+their saved value; `PATCH /api/users/me` `language` stays the only way to
+change it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `user.language` | `"uz"` | on the response that **creates** the user |
+
+Error cases — none new.
+
+**Priority**
+Medium — players with a Russian or English Telegram see the app in that
+language on first launch instead of Uzbek; they can switch in Profil → Til.
+
+**Shipped as** requested.
+
+### R19 — R-dev: dev-only login for local Mini App testing (dev profile only, refuses prod) _(shipped in `307b8c8`)_
 
 **What's needed**
 Outside Telegram there is no `initData`, so `POST /api/auth/telegram` cannot
@@ -120,7 +735,9 @@ must **refuse to start** if the `dev` profile is active together with `prod`
 High — without it every Mini App screen can only be checked inside Telegram
 through a tunnel; nothing else is blocked.
 
-### R20 — Player profile: first name, last name and phone, set only by the user
+**Shipped as** requested: `GET /api/auth/dev/users` (the 50 newest), `POST /api/auth/dev/login` `{ userId }`; only under the `dev` profile, and the backend refuses to start with `dev` plus `prod` or `atmos`. A blocked user gets 403 `ACCOUNT_BLOCKED` (R21). The Mini App does not use it yet.
+
+### R20 — Player profile: first name, last name and phone, set only by the user _(shipped in `005a8dd`)_
 
 **What's needed**
 The Mini App asks a player to fill in "Profilingizni toʻldiring" (first name,
@@ -167,7 +784,9 @@ are); 401; 404 `"User not found"`.
 High — blocks the profile setup before the first booking and editing the
 phone; the rest of Profil works today.
 
-### R21 — The reason a player's account was blocked
+**Shipped as** requested. Phones are unique: another account's phone is 409 `code: "PHONE_TAKEN"`, "Phone is already used by another account". Audited `PROFILE_UPDATED`.
+
+### R21 — The reason a player's account was blocked _(shipped in `6edd938`)_
 
 **What's needed**
 A blocked player gets 403 `"Account is blocked"` from every endpoint (from
@@ -193,7 +812,9 @@ Error cases — none new.
 **Priority**
 Medium — the blocked screen works without it but cannot tell the player why.
 
-### R18 — Booking amounts that add up in the owner's and admin's views, for every booking
+**Shipped as** requested — from `JwtAuthFilter`, `POST /api/auth/telegram` and `POST /api/auth/admin/login` alike; `data.reason` / `data.blockedAt` come from the latest `USER_BLOCKED` audit entry and either may be absent.
+
+### R18 — Booking amounts that add up in the owner's and admin's views, for every booking _(shipped in `6383d85`)_
 
 **What's needed**
 Since the one-player-price change (`057ac44`), a booking's `price` in the owner and
@@ -230,13 +851,7 @@ Error cases — none.
 Medium — game bookings and old bookings show paid and remaining amounts that
 don't match their price; new ordinary bookings are right.
 
----
-
-## Done
-
-In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
-where the backend differs from it — the backend is what counts, and
-`docs/api-reference.md` documents it.
+**Shipped as** the first option: `paidAmount + remainingAmount = price` for every booking in the player, owner and admin views (`net` bookings converted by `BookingResponseFactory`); `pricingModel` is not exposed.
 
 ### R15 — Bookings and games for the admin panel _(shipped in `642a274`)_
 

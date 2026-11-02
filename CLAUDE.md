@@ -45,15 +45,24 @@ admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
 │   ├── main.tsx      #   entry: viewport, theme, session (in-memory JWT), API client, Query, i18n
-│   ├── App.tsx, routes.tsx  # router; tabs later parts build are SoonTab ("Tez orada")
+│   ├── App.tsx, routes.tsx  # router; screens later parts build are SoonTab / SoonScreen ("Tez orada")
 │   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
 │   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
+│   ├── auth/dev/     #   dev-only user picker (dynamic import, absent from production builds)
+│   ├── booking/      #   checkout (/checkout) and Band qilindi (/checkout/done)
+│   ├── bookings/     #   Oʻyinlarim list, booking detail, pay the rest, cancel, review; status.ts = THE status → badge mapping
+│   ├── cards/        #   Kartalarim, AddCardSheet (number → SMS), CardRow
 │   ├── components/   #   shared Mini App UI from the design's Components frames
-│   ├── layout/       #   TabBar (4 tabs), TabScreen, SoonTab / SoonScreen
+│   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
+│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen, SoonTab / SoonScreen
+│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, prices, closures), Hisobot, Profil, add-stadium wizard
+│   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
+│   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
 │   ├── format.ts     #   formatMoney ("155 000 soʻm"), formatLongDate — in the current language
-│   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, BackButton, haptics, start_param, invite links
+│   ├── teams/        #   Jamoam, create team, challenge board, accept a challenge, find an opponent, booking choice
+│   ├── telegram/     #   typed WebApp wrapper: viewport/safe areas, fullscreen, BackButton, haptics, start_param, invite links
 │   ├── theme.ts      #   Tizim (Telegram's colorScheme, live) / Yorugʻ / Qorongʻi, remembered
 │   ├── test/         #   test helpers: fake Telegram, renderApp, API responses
 │   └── i18n/         #   i18next setup + locales/{uz,ru,en}.json
@@ -72,6 +81,7 @@ src/
 │   └── theme.ts      #   system setting on first visit, toggle, remembered
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
+│   ├── brand/        #   logoMark.ts, logo-mark.svg (LogoMark, LogoSpinner, favicon)
 │   ├── format/       #   formatSom, Tashkent date/time helpers
 │   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
 └── test/setup.ts     # Vitest setup
@@ -383,11 +393,20 @@ encrypted and the content is meaningless as bytes.
 layer **from the very first component** — no hard-coded strings, not even as a
 placeholder. Three languages: **uz (default)**, **ru**, **en**. The user's
 language comes from their backend profile (`user.language` on
-`GET /api/users/me`), not from the browser or Telegram.
+`GET /api/users/me` and on the login answer), never from the browser or
+Telegram's `language_code`. Uzbek is shown until the profile is known, and a
+new user starts in Uzbek — the backend creates every new user with
+`language: "uz"` (R22); the client never corrects the saved value.
 
 Translations live in `src/miniapp/i18n/locales/{uz,ru,en}.json`; keys are
-typed from `uz.json`, and a test fails if the three files' keys differ. Call
-`setLanguage(user.language)` once the profile is loaded.
+typed from `uz.json`, and a test fails if the three files' keys differ. The
+login and `useMe()` call `setLanguage(user.language)` whenever the profile
+loads. Profil → Til switches at once, saves with `PATCH /api/users/me`, and
+switches back with a message if the save fails (`useUpdateLanguage`).
+
+Screen titles and tab labels use the design's exact Uzbek names (Maydonlar,
+Jamoam, Oʻyinlarim, Profil, Shaxsiy maʼlumotlar, Kartalarim, Sevimlilar …),
+with `ʻ` U+02BB and `ʼ` U+02BC.
 
 **Admin panel:** Uzbek (Latin) only. No translation layer needed there.
 
@@ -438,7 +457,10 @@ restyle per screen. Mini App-only Tailwind names: `bg-bar` (header, tab bar,
 bottom bars, sheets — `p3-bg`), `bg-image-overlay`, `text-title` (18px),
 `rounded-t-sheet` (20px). The phone status bar and home indicator in the
 design frames are device chrome — not rendered, the safe-area padding
-replaces them.
+replaces them. In Telegram fullscreen (`html[data-fullscreen]`) the header
+uses the `tg-fullscreen:` Tailwind variant and sits in Telegram's Close/⋯ row.
+The brand mark is `LogoMark`; the loading spinner is `LogoSpinner`. Telegram's
+header, background and bottom bar are painted from `--bar-bg` / `--page-bg`.
 
 **Every screen** has a loading state (skeleton), an empty state and an error
 state with "Qayta urinish" (`ScreenState` helpers in `components/`).
@@ -447,9 +469,18 @@ state with "Qayta urinish" (`ScreenState` helpers in `components/`).
 `index.html`) and the typed wrapper in `src/miniapp/telegram/` — no
 community SDK. Back navigation uses Telegram's BackButton (`useBackButton`);
 main actions give light haptic feedback (`haptic.light()` / the `Button`
-`haptic` prop). Deep links: `getStartParam()` reads `start_param`;
-`buildInviteLink(param)` builds
+`haptic` prop). Deep links: `getStartParam()` reads `start_param`, then the
+URL's `?startapp=` and `?tgWebAppStartParam=` (the bot opens the app as
+`MINIAPP_URL?startapp=<payload>`); `buildInviteLink(param)` builds
 `https://t.me/<VITE_TELEGRAM_BOT_USERNAME>/<VITE_TELEGRAM_APP_NAME>?startapp=<param>`.
+Fullscreen is requested on android/ios 8.0+, and `disableVerticalSwipes` from
+7.7. `--tg-safe-*` is the device inset only; `--tg-content-top` is the height
+of Telegram's Close/⋯ row — pad headers with both.
+
+**Dev sign-in.** In `npm run dev` only, a user picker (`src/miniapp/auth/dev/`)
+signs in through the backend's `dev`-profile endpoints (api-reference §2, R19)
+and sends `X-Dev-Login-Key` from `VITE_DEV_LOGIN_KEY` (`.env.local`). It is a
+DEV-only dynamic import and the key is verified absent from `dist`.
 
 **Theme.** Profil → Mavzu: "Tizim" follows Telegram's `colorScheme` (live,
 on `themeChanged`); "Yorugʻ" / "Qorongʻi" override it. The choice is a
@@ -468,6 +499,38 @@ are fine.
 **Profile setup.** "Profilingizni toʻldiring" (first name, last name, +998
 phone) is shown **before the first booking**, not on app start, and is
 never pre-filled from Telegram. Gate a flow with `useProfileGate()`.
+
+**One slot per booking.** The player selects exactly **one** one-hour slot
+from `GET /api/stadiums/{id}/availability`; tapping another slot moves the
+selection to it. The summary shows that slot's time and its `pricePerHour`
+straight from the response ("20:00–21:00 · 135 000 soʻm") — never a sum of
+slot prices, never "3 soat". To book another hour the player makes another
+booking. This overrides the multi-slot selection drawn in the design
+(`Maydon / 3 soat tanlangan`). Unavailable slots (`available: false`, no
+price) are disabled; the date strip runs from today (Tashkent) to 28 days
+ahead, the backend's 4-week window (`app.booking.max-weeks-ahead`).
+
+**Paying.** `POST /api/bookings` creates and charges in one call, and
+`pay-remainder` charges a saved card; both go through `payment/machine.ts`
+(`usePayment`). A declined card is **HTTP 200** with `paymentStatus: unpaid`;
+the payment row in `GET /api/payments/my` tells `failed` (declined) from
+`processing` (polled 5 × 3 s, then "Toʻlov tekshirilmoqda" — never shown as
+a failure). Only a request that errored offers "Qayta urinish"; retrying a
+declined booking waits for R28. The hold countdown reads `expiresAt`.
+
+**Unclear payment outcomes.** After a money request with no clear answer
+(no response, 5xx, a payment step still being confirmed —
+`isUnclearPaymentError` in `api/errors.ts`) the app never offers a retry: it
+shows `UnclearOutcome` ("Natijani tekshiring" → Oʻyinlarim) and refreshes the
+lists. Only a declined card may be retried with another card.
+
+**Owner mode** (`/owner/*`, entered from Profil → Ega rejimi) shows the
+**owner's own prices**; amounts the owner types are soʻm → `somToTiyin`.
+
+**Card data.** The card number, expiry and SMS code live only in
+`AddCardSheet`'s state and reach the API through plain calls — never
+`useMutation` (its variables sit in the mutation cache), a query key, a log
+or storage. A test walks the caches and spies on console and storage.
 
 ## Secrets
 

@@ -1,17 +1,176 @@
 import { Navigate, type RouteObject } from 'react-router'
-import { SoonScreen, SoonTab } from './layout/SoonScreen'
+import { CardsPage } from './cards/CardsPage'
+import { BookedPage } from './booking/BookedPage'
+import { CheckoutPage } from './booking/CheckoutPage'
+import { BookingPage } from './bookings/BookingPage'
+import { BookingsPage } from './bookings/BookingsPage'
+import { ChatPage } from './games/ChatPage'
+import { GamePage } from './games/GamePage'
 import { PersonalPage } from './profile/PersonalPage'
 import { ProfilePage } from './profile/ProfilePage'
+import { FavoritesPage } from './stadiums/FavoritesPage'
+import { ReviewsPage } from './stadiums/ReviewsPage'
+import { StadiumPage } from './stadiums/StadiumPage'
+import { AddStadiumPage } from './owner/AddStadiumPage'
+import { OwnerClosuresPage } from './owner/OwnerClosuresPage'
+import { OwnerInfoPage } from './owner/OwnerInfoPage'
+import { OwnerPricesPage } from './owner/OwnerPricesPage'
+import { OwnerProfilePage } from './owner/OwnerProfilePage'
+import { OwnerReportPage } from './owner/OwnerReportPage'
+import { OwnerSchedulePage } from './owner/OwnerSchedulePage'
+import { OwnerStadiumPage } from './owner/OwnerStadiumPage'
+import { RouteError } from './RouteError'
+import { SplashDone } from './splash'
+import { AcceptChallengePage } from './teams/AcceptChallengePage'
+import { OpponentPage } from './teams/OpponentPage'
+import { TeamCreatePage } from './teams/TeamCreatePage'
+import { TeamPage } from './teams/TeamPage'
+import { StadiumsPage } from './stadiums/StadiumsPage'
 
-/** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
-export const routes: RouteObject[] = [
-  { path: '/', element: <SoonTab titleKey="tabs.stadiums" /> },
-  { path: '/team', element: <SoonTab titleKey="tabs.team" /> },
-  { path: '/games', element: <SoonTab titleKey="tabs.games" /> },
-  { path: '/profile', element: <ProfilePage /> },
-  { path: '/profile/personal', element: <PersonalPage /> },
-  { path: '/profile/cards', element: <SoonScreen titleKey="profile.cards" /> },
-  { path: '/profile/favorites', element: <SoonScreen titleKey="profile.favorites" /> },
-  { path: '/owner', element: <SoonScreen titleKey="profile.ownerMode" /> },
+const screens: RouteObject[] = [
+  { path: '/', element: <StadiumsPage /> },
+  {
+    path: '/stadiums/:id',
+    element: (
+      <SplashDone>
+        <StadiumPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/stadiums/:id/reviews',
+    element: (
+      <SplashDone>
+        <ReviewsPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/checkout',
+    element: (
+      <SplashDone>
+        <CheckoutPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/checkout/done',
+    element: (
+      <SplashDone>
+        <BookedPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/bookings/:id',
+    element: (
+      <SplashDone>
+        <BookingPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games/:id',
+    element: (
+      <SplashDone>
+        <GamePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games/:id/chat',
+    element: (
+      <SplashDone>
+        <ChatPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/team',
+    element: (
+      <SplashDone>
+        <TeamPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/challenges/:gameId',
+    element: (
+      <SplashDone>
+        <AcceptChallengePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/opponent',
+    element: (
+      <SplashDone>
+        <OpponentPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/team/new',
+    element: (
+      <SplashDone>
+        <TeamCreatePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/games',
+    element: (
+      <SplashDone>
+        <BookingsPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <SplashDone>
+        <ProfilePage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/personal',
+    element: (
+      <SplashDone>
+        <PersonalPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/cards',
+    element: (
+      <SplashDone>
+        <CardsPage />
+      </SplashDone>
+    ),
+  },
+  {
+    path: '/profile/favorites',
+    element: (
+      <SplashDone>
+        <FavoritesPage />
+      </SplashDone>
+    ),
+  },
+  ...(
+    [
+      ['/owner', <OwnerSchedulePage />],
+      ['/owner/stadium', <OwnerStadiumPage />],
+      ['/owner/stadium/:id/info', <OwnerInfoPage />],
+      ['/owner/stadium/:id/prices', <OwnerPricesPage />],
+      ['/owner/stadium/:id/closures', <OwnerClosuresPage />],
+      ['/owner/report', <OwnerReportPage />],
+      ['/owner/profile', <OwnerProfilePage />],
+      ['/owner/new', <AddStadiumPage />],
+    ] as const
+  ).map(([path, page]) => ({ path, element: <SplashDone>{page}</SplashDone> })),
   { path: '*', element: <Navigate to="/" replace /> },
 ]
+
+/** The Mini App's routes. Screens later parts build show "Tez orada" until then. */
+export const routes: RouteObject[] = [{ errorElement: <RouteError />, children: screens }]

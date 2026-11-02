@@ -46,7 +46,7 @@ function OpenSheet({ title, subtitle, onClose, children, actions }: BottomSheetP
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex max-h-[90dvh] flex-col gap-3 overflow-y-auto rounded-t-sheet bg-bar px-4 pt-2 pb-[max(16px,var(--tg-safe-bottom))]"
+        className="relative flex max-h-[calc(100dvh-var(--tg-safe-top)-var(--tg-content-top)-8px)] flex-col gap-3 overflow-y-auto rounded-t-sheet bg-bar px-4 pt-2 pb-[max(16px,var(--tg-safe-bottom))]"
       >
         <div className="flex justify-center pb-1">
           <span className="h-1 w-9 rounded-xs bg-border" />

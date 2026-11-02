@@ -35,22 +35,28 @@ type Reply = ((body: unknown) => unknown) | Response | object | string | number 
 /**
  * Stubs `fetch` with a table of `'METHOD /path'` → reply (data for a 200, a
  * Response, or a function of the JSON body). Unlisted requests answer 404.
- * Returns the mock; `calls(key)` lists the JSON bodies sent to one route.
+ * Returns the mock; `calls(key)` lists the JSON bodies sent to one route,
+ * `queries(key)` their query parameters.
  */
 export function stubApi(routes: Record<string, Reply>) {
-  const sent: Array<{ key: string; body: unknown }> = []
+  const sent: Array<{ key: string; body: unknown; query: URLSearchParams }> = []
   const mock = vi.fn(async (input: string, init?: RequestInit) => {
     const url = new URL(input)
     const key = `${init?.method ?? 'GET'} ${url.pathname}`
     const body = init?.body ? JSON.parse(init.body as string) : undefined
-    sent.push({ key, body })
+    sent.push({ key, body, query: url.searchParams })
     if (!(key in routes)) return jsonResponse(404, null, 'Not found')
     const route = routes[key]
-    const reply = typeof route === 'function' ? (route as (b: unknown) => unknown)(body) : route
+    const reply = await (typeof route === 'function'
+      ? (route as (b: unknown) => unknown)(body)
+      : route)
     return reply instanceof Response ? reply : jsonResponse(200, reply)
   })
   vi.stubGlobal('fetch', mock)
   return Object.assign(mock, {
     calls: (key: string) => sent.filter((call) => call.key === key).map((call) => call.body),
+    /** The query string of each request to one route, as plain objects. */
+    queries: (key: string) =>
+      sent.filter((call) => call.key === key).map((call) => Object.fromEntries(call.query)),
   })
 }

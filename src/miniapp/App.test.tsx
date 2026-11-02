@@ -1,8 +1,18 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { stubApi } from './test/api'
 import { renderApp } from './test/renderApp'
+import { page } from './test/stadiums'
 
 describe('Mini App shell', () => {
+  beforeEach(() => {
+    stubApi({ 'GET /api/stadiums': page([]) })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('opens on Maydonlar with the four tabs from the design', async () => {
     renderApp('/')
     const nav = await screen.findByRole('navigation')
@@ -13,13 +23,12 @@ describe('Mini App shell', () => {
     expect(screen.getByRole('link', { name: 'Maydonlar' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows "Tez orada" on the tabs later parts build', async () => {
+  it('switches between the tabs', async () => {
     renderApp('/')
-    expect(await screen.findByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Hozircha maydonlar yoʻq' })
 
     fireEvent.click(screen.getByRole('link', { name: 'Jamoam' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Jamoam' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Jamoam' })).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(screen.getByRole('link', { name: 'Oʻyinlarim' }))
@@ -28,6 +37,6 @@ describe('Mini App shell', () => {
 
   it('sends unknown paths to the first tab', async () => {
     renderApp('/nowhere')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Maydonlar' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'MiniPolya' })).toBeInTheDocument()
   })
 })

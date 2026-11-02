@@ -5,6 +5,7 @@ import {
   formatTime,
   formatTimeRange,
   parseUtc,
+  tashkentToUtc,
   toTashkentParts,
 } from './datetime'
 
@@ -41,5 +42,20 @@ describe('Tashkent date and time helpers', () => {
 
   it('rejects an invalid timestamp', () => {
     expect(() => parseUtc('not a date')).toThrow(RangeError)
+  })
+})
+
+describe('tashkentToUtc', () => {
+  it('turns a Tashkent date and time into ISO UTC', () => {
+    expect(tashkentToUtc('2026-11-06', '20:00')).toBe('2026-11-06T15:00:00.000Z')
+  })
+
+  it('rolls back to the previous UTC day at midnight', () => {
+    expect(tashkentToUtc('2026-11-07', '00:00')).toBe('2026-11-06T19:00:00.000Z')
+  })
+
+  it('round-trips through toTashkentParts', () => {
+    const p = toTashkentParts(tashkentToUtc('2026-11-06', '23:00'))
+    expect([p.day, p.month, p.hour]).toEqual([6, 11, 23])
   })
 })

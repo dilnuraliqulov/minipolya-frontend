@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `d2c55a2` — _Document the one-player-price rule; update the Postman collection_, 2026-10-31 |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives) |
-| Endpoints documented | **109** callable by the frontend, plus 3 webhooks |
+| Commit | `ed403c7` (Telegram bot steps 1–6; was `4d5faf0` — _Document R18-R23 and one-hour bookings; update the Postman collection_, 2026-11-01) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks) |
+| Endpoints documented | **109** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
 
 ---
 
@@ -66,8 +66,9 @@ Every endpoint — success or error — answers with the same wrapper
 | `INVALID_CREDENTIALS` | 401 | — | `POST /api/auth/admin/login` |
 | `ACCOUNT_LOCKED` | 423 | `{ minutesRemaining }` | `POST /api/auth/admin/login` |
 | `TOO_MANY_ATTEMPTS` | 429 | `{ minutesRemaining }` | `POST /api/auth/admin/login` |
-| `ACCOUNT_BLOCKED` | 403 | — | `POST /api/auth/admin/login` (the filter's blocked 403 has no code) |
+| `ACCOUNT_BLOCKED` | 403 | `{ reason?, blockedAt? }` | **any** authenticated request (`JwtAuthFilter`), `POST /api/auth/telegram`, `POST /api/auth/admin/login` — `data` from the latest `USER_BLOCKED` audit entry: the reason as the admin typed it (absent when none) and when (UTC); either may be absent |
 | `TOKEN_REVOKED` | 401 | — | **any** authenticated request (§1.5) |
+| `PHONE_TAKEN` | 409 | — | `PATCH /api/users/me` — the phone belongs to another account |
 
 Everywhere else the frontend still branches on the **HTTP status** plus, where
 it has to, the exact `message` string — see
@@ -170,7 +171,7 @@ These apply to every endpoint and are not repeated below.
 | 401 | `"Authentication required"` | no/invalid token on a protected endpoint |
 | 401 | `"Session ended because the password was changed; sign in again"`, `code: "TOKEN_REVOKED"` | token predates the user's last password change (§1.5) |
 | 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` or `/api/admin/**` |
-| 403 | `"Account is blocked"` | the user is blocked |
+| 403 | `"Account is blocked"`, `code: "ACCOUNT_BLOCKED"`, `data: { reason?, blockedAt? }` | the user is blocked (§1.2) |
 | 404 | `"<Thing> not found"` | `ResourceNotFoundException` |
 | 404 | `"Not found"` | no endpoint serves the path |
 | 405 | `"Method not allowed"` | the path exists but not with this method |
@@ -269,8 +270,8 @@ figure; the client only displays them.
   payment — full, deposit or remainder — is all the owner's; ATMOS takes its
   fee from it. Example (step 5 000 so'm): owner price 150 000 → the player
   pays **155 000** → the owner receives **152 675**.
-- **Booking:** `FULL` charges D (the sum of each hour's player price, so the
-  slot prices add up exactly); `MINIMUM` charges the deposit
+- **Booking:** `FULL` charges D (the slot's player price — a booking is
+  exactly one hour); `MINIMUM` charges the deposit
   **d = min(playerAmount(minBookingAmount), D)**. The rest **r = D − d** is the
   **same amount** whether paid in the app or taken by the owner in cash.
   A manual (walk-in) booking is the owner's own price, not converted.
@@ -283,7 +284,9 @@ figure; the client only displays them.
 - Cash goes to the owner in full. A full refund returns everything paid by card.
 - **Old bookings keep `pricing_model = net`** (changeset 040; also every game
   booking): their stored amounts and the old net accounting stay. The field is
-  not in any response; see [Q19](#11-questions-about-the-backend).
+  not in any response, and need not be: every booking view converts their
+  `paidAmount` / `remainingAmount` to player terms (R18), so `paidAmount +
+  remainingAmount = price` for every booking.
 
 **Fields per role** (all tiyin, optional):
 
@@ -332,20 +335,38 @@ finds or creates the user by `telegram_id`, and returns a JWT.
 | 401 | `"Telegram initData is missing user"` |
 | 401 | `"Telegram user has no id"` |
 | 401 | `"Malformed Telegram user payload"` |
-| 403 | `"Account is blocked"` |
+| 403 | `"Account is blocked"`, `code: "ACCOUNT_BLOCKED"`, `data: { reason?, blockedAt? }` (§1.2) |
 
 **Notes**
 
 - A first-time user is created with `name` from the Telegram first/last name,
-  **no phone** (`initData` carries none, so `phone` is absent on the response)
-  and `language` from Telegram's `language_code` when it is one of `uz`/`ru`/
-  `en`, otherwise `uz`.
+  **no phone** (`initData` carries none, so `phone` is absent on the response),
+  no `firstName` / `lastName` (only the user sets those, §3) and **`language:
+  "uz"` always** — Telegram's `language_code` is ignored (R22). Existing users
+  keep their saved language.
 - The client must **never** trust `initData` itself — only this endpoint's
   answer. Verification needs `BOT_TOKEN`, which lives only on the server.
 - There is **no refresh endpoint and no logout endpoint.** On a 401 the Mini
   App re-posts `initData`; the admin panel has to send the user back to login.
 - The admin panel does **not** use this endpoint: admins sign in with a
   username and password (next endpoint).
+
+### Dev-only sign-in — `dev` profile only (R19)
+
+For testing the Mini App in a plain browser, without Telegram `initData`.
+`DevAuthController` exists **only under `SPRING_PROFILES_ACTIVE=dev`**: in
+every other profile both paths answer 404 `"Not found"`, and the backend
+refuses to start with `dev` together with `prod` or `atmos`
+(`DevProfileGuard`). Not counted in the endpoint total. The frontend now uses
+them, in dev builds only (`src/miniapp/auth/dev/`), and sends `X-Dev-Login-Key`
+(from `VITE_DEV_LOGIN_KEY`); backend `ed403c7` does not check that header yet.
+
+- `GET /api/auth/dev/users` — public. The 50 newest users, not paged:
+  `{ id: UUID, name: string, isOwner: boolean, isAdmin: boolean, isBlocked: boolean }[]`.
+- `POST /api/auth/dev/login` — public. Body `{ "userId": "<uuid>" }` →
+  `AuthResponse` (`token`, `user`), the same as `POST /api/auth/telegram`.
+  Errors: 400 `"Invalid id"`; 404 `"User not found"`; 403 `ACCOUNT_BLOCKED`
+  as §1.2.
 
 ### `POST /api/auth/admin/login` — public
 
@@ -388,7 +409,9 @@ the defaults in `AppProperties.AdminLogin`.
 |---|---|---|
 | `id` | UUID | |
 | `phone` | string? | absent for a Telegram-created user who never set one |
-| `name` | string | |
+| `name` | string | Telegram's name until the user sets `firstName`/`lastName`, then `"<firstName> <lastName>"` |
+| `firstName` | string? | **only ever set by the user** (`PATCH /api/users/me`), never from Telegram; absent until then |
+| `lastName` | string? | same rule as `firstName` |
 | `telegramId` | number? | Telegram's own id, a `long`, **not** a UUID |
 | `language` | string | `uz` \| `ru` \| `en` |
 | `isOwner` | boolean | |
@@ -406,16 +429,28 @@ layer).
 
 ### `PATCH /api/users/me` — user
 
-**Body** — both fields optional; only non-null values are applied.
+**Body** — every field optional; only non-null values are applied.
 
 | Field | Type | Validation |
 |---|---|---|
 | `name` | string? | `@Size(min=1, max=120)` — `"name must be between 1 and 120 characters"` |
 | `language` | string? | `@Pattern(uz\|ru\|en)` — `"language must be one of: uz, ru, en"` |
+| `firstName` | string? | trimmed, 1–60 — 400 `"firstName must be between 1 and 60 characters"` |
+| `lastName` | string? | trimmed, 1–60 — 400 `"lastName must be between 1 and 60 characters"` |
+| `phone` | string? | `^\+998\d{9}$` — 400 `"phone must be in the format +998XXXXXXXXX"`; unique across accounts |
+
+Setting `firstName` or `lastName` rewrites `name` as `"<firstName> <lastName>"`.
+Audited `PROFILE_UPDATED` (the phone itself is never logged, only
+`phoneChanged`).
+
+Since `ed403c7` the bot can also set `phone`: a user who shares their contact
+with it is audited `PHONE_SHARED_VIA_BOT`. So `GET /api/users/me` may already
+carry a phone the user never typed in the Mini App.
 
 **Response** — the updated `UserResponse`.
 
-**Errors** — 400 (validation); 401; 404 `"User not found"`.
+**Errors** — 400 (validation, messages above); 409 `"Phone is already used by
+another account"`, `code: "PHONE_TAKEN"`; 401; 404 `"User not found"`.
 
 ---
 
@@ -438,12 +473,14 @@ layer).
 | `isActive` | boolean | |
 | `averageRating` | number? | absent when the stadium has no reviews |
 | `reviewCount` | number? | |
+| `coverPhotoUrl` | string? | the stadium's first photo (lowest `position`); absent when it has none |
+| `isFavorited` | boolean? | **player lists** (`GET /api/stadiums`, `GET /api/favorites`), for a signed-in caller only |
 
-No `photos` and no `amenities` — deliberately omitted to avoid a lazy load per
-row. Fetch the detail endpoint for those.
+No photo gallery and no `amenities` — fetch the detail endpoint for those.
+Rating, cover photo and favourite flag are loaded for the whole page at once.
 
 `StadiumDetailResponse` (`NON_NULL`) — everything above except
-`averageRating`/`reviewCount`, plus:
+`coverPhotoUrl`, plus:
 
 | Field | Type | Notes |
 |---|---|---|
@@ -455,6 +492,8 @@ row. Fetch the detail endpoint for those.
 | `playerMinBookingAmount` | number? **(tiyin)** | **owner/admin responses only**: the deposit as players see and pay it |
 | `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin detail only** (§10.9): what the owner receives of one hour at `playerPrice` paid by card, after ATMOS, and what ATMOS takes of it |
 | `isFavorited` | boolean? | only present for an authenticated caller |
+| `averageRating` | number? | as on the list; absent with no reviews |
+| `reviewCount` | number? | `0` when none |
 | `cancellationPolicy` | `{ cancellationHours: number }` | |
 | `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position` |
 | `amenities` | `AmenitiesResponse` | `parking`, `lighting`, `showers`, `lockerRoom`, `wifi`, `cafe`, `equipmentRental`, `tribune` — all boolean |
@@ -469,9 +508,13 @@ Approved, active stadiums only.
 | `q` | string | no | free text search |
 | `format` | string | no | `5x5` \| `7x7` \| `9x9` \| `11x11` |
 | `maxPrice` | number (tiyin) | no | upper bound on the **player** `pricePerHour` players see (converted to the largest fitting owner price) |
+| `district` | string | no | one of the twelve districts exactly as in §1.9; blank = none |
 | `page`, `size` | number | no | `0` / `20` |
 
-**Response** — paged `StadiumResponse`.
+**Response** — paged `StadiumResponse`, with `coverPhotoUrl` and, when a JWT
+is sent, `isFavorited`.
+
+**Errors** — 400 `"Invalid district"`.
 
 ### `GET /api/stadiums/{id}` — public
 
@@ -482,8 +525,8 @@ JWT is sent (the endpoint is public, so the field is simply absent otherwise).
 
 ### `GET /api/stadiums/{stadiumId}/availability` — public
 
-The hourly grid for one day: what is free, what each hour costs, and whether a
-team is waiting on it.
+The hourly grid for one day: **every** opening hour with its status, what a
+free hour costs, and whether a team is waiting on it.
 
 | Query | Type | Required | Notes |
 |---|---|---|---|
@@ -503,7 +546,8 @@ team is waiting on it.
 | Field | Type | Notes |
 |---|---|---|
 | `startTime`, `endTime` | time | one-hour slot, Tashkent local time |
-| `available` | boolean | |
+| `available` | boolean | true exactly when `status` is `free` |
+| `status` | string | `free`; `booked` (a pending or confirmed booking holds it); `closed` (a stadium closure); `past` (today, the hour has started). When several apply: `past`, then `booked`, then `closed` |
 | `pricePerHour` | number? **(tiyin)** | the one price the player pays for this hour (§1.10); absent when not available |
 | `originalPrice` | number? **(tiyin)** | the player price before the promotion; absent when there is none |
 | `discountPercent` | number? | absent when there is no promotion |
@@ -604,10 +648,10 @@ status, in the owner's own prices with `playerPrice` alongside; `statusReason` t
 | `source` | string | `app` \| `manual` \| `game` |
 | `status` | string | §1.9 |
 | `startsAt`, `endsAt` | timestamp (UTC) | |
-| `durationHours` | number | |
-| `price` | number **(tiyin)** | what the player pays for the whole booking — the player price **D**, the sum of its slots' player prices; the owner's own price on a manual booking (§1.10). The same in every view |
+| `durationHours` | number | `1` — a booking is exactly one hour; rows stored before that rule may be longer |
+| `price` | number **(tiyin)** | what the player pays for the booking — the player price **D**, the slot's player price; the owner's own price on a manual booking (§1.10). The same in every view |
 | `paidAmount` | number **(tiyin)** | what has been paid of `price`, card and cash |
-| `remainingAmount` | number **(tiyin)** | what is left — the **same amount** in the app or in cash. `paidAmount + remainingAmount = price` in the player's view, and in the owner's/admin's view of bookings priced under the player price (old `net` bookings and game bookings differ there: see [Q19](#11-questions-about-the-backend)) |
+| `remainingAmount` | number **(tiyin)** | what is left — the **same amount** in the app or in cash. **`paidAmount + remainingAmount = price` for every booking, in the player, owner and admin views alike** (R18: `net` bookings — made before changeset 040, and every game booking — are converted the one way for every view) |
 | `paymentStatus` | string | `unpaid` \| `partially_paid` \| `paid` |
 | `ownerPrice` | number? **(tiyin)** | **owner and admin views only**: the owner's own price for the booking |
 | `paidInApp` | number? **(tiyin)** | **owner and admin views only**: card money paid in the app and kept (`paid`/`captured`/`completed`, refunds excluded) |
@@ -634,7 +678,7 @@ Creates the booking **and charges the chosen saved card in the same call.**
 |---|---|---|---|
 | `stadiumId` | UUID | yes | `@NotNull` |
 | `startsAt` | timestamp (UTC) | yes | `@NotNull @Future`; must be **on the hour in Asia/Tashkent** |
-| `durationHours` | number | yes | `@NotNull @Min(1)` — `"durationHours must be at least 1"` |
+| `durationHours` | number | no | a booking is **exactly one hour**: absent or `1`; anything else is 400 `"A booking is exactly one hour"` |
 | `cardId` | UUID | yes | `@NotNull`; must be an **active card of the caller** |
 | `paymentOption` | `"MINIMUM"` \| `"FULL"` | yes | `@NotNull`, uppercase |
 
@@ -654,8 +698,8 @@ Creates the booking **and charges the chosen saved card in the same call.**
 
 | Status | `message` |
 |---|---|
-| 400 | `"durationHours: durationHours must be at least 1"`, `"startsAt: must be a future date"`, … |
-| 400 | `"Duration must be at least 1 hour"` |
+| 400 | `"startsAt: must be a future date"`, … |
+| 400 | `"A booking is exactly one hour"` (`durationHours` other than 1) |
 | 400 | `"Booking must start on the hour"` |
 | 400 | `"Stadium has no bookable hours"` (`closeTime <= openTime`) |
 | 400 | `"Booking must start at or after <openTime>"` |
@@ -667,13 +711,12 @@ Creates the booking **and charges the chosen saved card in the same call.**
 | 404 | `"Stadium not available"` (missing, not approved, or inactive) |
 | 404 | `"Card not found"` (unknown, not the caller's, or deactivated) |
 | 404 | `"User not found"` |
-| 409 | `"Slot is already booked"` (1-hour booking) |
-| 409 | `"One or more of the selected hours is already booked"` (multi-hour) |
+| 409 | `"Slot is already booked"` |
 
 **Notes**
 
-- Price = the sum of each hour's price from the pricing rules, with the best
-  active promotion applied per hour — identical to what availability showed.
+- Price = the slot's price from the pricing rules, with the best active
+  promotion for that hour applied — identical to what availability showed.
   **Never compute it in the client**; `price` on the response is authoritative.
 - What is charged (§1.10): `FULL` charges `price` (D); `MINIMUM` the deposit
   `min(minBookingAmount as players see it, D)` — the figure public stadium
@@ -757,7 +800,7 @@ the full price.
 | `clientName` | string | yes | `@NotBlank` |
 | `clientPhone` | string | yes | `@NotBlank` |
 | `startsAt` | timestamp (UTC) | yes | `@NotNull`; on the hour (Tashkent). **No `@Future`** — a past slot is accepted here |
-| `duration` | number | yes | `@NotNull @Min(1)` — note the name is `duration`, not `durationHours` |
+| `duration` | number | no | absent or `1`; anything else is 400 `"A booking is exactly one hour"` (note the name is `duration`, not `durationHours`) |
 | `notes` | string | no | |
 | `paymentMethod` | string | no | `"cash"` or null |
 
@@ -802,7 +845,7 @@ back and the game ends; the booking is released as `cancelled_opponent_left`.
 | `userName`, `stadiumName` | string |
 | `dayOfWeek` | number (0 = Monday) |
 | `startTime` | time |
-| `duration` | number (hours) |
+| `duration` | number (hours) — `1` for new series; an older row may say more and still generates one-hour bookings |
 | `isActive` | boolean |
 | `createdAt` | timestamp (UTC) |
 | `nextBookingDate` | date? — the next date this series will book |
@@ -816,11 +859,11 @@ back and the game ends; the booking is released as `cancelled_opponent_left`.
 | `stadiumId` | UUID | yes | `@NotNull` |
 | `dayOfWeek` | number | yes | `@Min(0) @Max(6)` — `"dayOfWeek must be 0 (Monday) to 6 (Sunday)"` |
 | `startTime` | time | yes | `@NotNull` |
-| `duration` | number | yes | `@NotNull @Min(1)` |
+| `duration` | number | no | absent or `1`; anything else is 400 `"A booking is exactly one hour"` |
 
 **Response** — `BookingSeriesResponse`, `message: "Recurring booking created"`.
 
-**Errors** — 400 `"Duration must be at least 1 hour"`, `"Booking must start on the hour"`, `"Requested time is outside the stadium's operating hours"`; 404 `"Stadium not found"`.
+**Errors** — 400 `"A booking is exactly one hour"`, `"Booking must start on the hour"`, `"Requested time is outside the stadium's operating hours"`; 404 `"Stadium not found"`.
 
 ### `GET /api/booking-series/my` — user
 
@@ -1038,7 +1081,7 @@ player pays for their share (§1.10). No `serviceFeePerPerson` and no
 | `title` | string | no | `@Size(max=200)` |
 | `maxPlayers` | number | yes | `@NotNull @Positive` |
 | `startsAt` | timestamp (UTC) | yes | `@NotNull @Future` |
-| `duration` | number | yes | `@NotNull @Min(1)` |
+| `duration` | number | no | a game is exactly one hour: absent or `1`; anything else is 400 `"A booking is exactly one hour"` |
 | `teamAId` | UUID | **required for `team_vs_team`** | caller must be that team's leader |
 | `cardId` | UUID | **required for `team_vs_team`** | ignored for other types |
 
@@ -1275,7 +1318,8 @@ Newest first. **Response** — paged `ReviewResponse`.
 #### `GET /api/favorites` — user · paged
 
 Most recently favourited first. **Response** — paged **`StadiumResponse`**
-(not a favourite wrapper).
+(not a favourite wrapper), the same card as the player list: player prices,
+rating, `coverPhotoUrl`, `isFavorited: true`.
 
 ### 10.3 Notifications
 
@@ -1877,7 +1921,7 @@ was done in, not the user's flags.
 |---|---|
 | Admin | `ADMIN_LOGIN_SUCCEEDED`, `ADMIN_LOGIN_FAILED`, `APPLICATION_APPROVED`, `APPLICATION_REJECTED`, `STADIUM_APPROVED`, `STADIUM_REJECTED` (pending → rejected; before changeset 038, pending → blocked), `STADIUM_BLOCKED`, `STADIUM_UNBLOCKED` (blocked → approved), `STADIUM_STATUS_CHANGED` (back to pending) — each with `status` and `statusReason` changes, `STADIUM_NOTE_ADDED` (entity `stadium`; records the note's id as `noteId`, never its text), `USER_BLOCKED`, `USER_UNBLOCKED`, `USER_ROLE_CHANGED`, `OWNER_LEGAL_DETAILS_CHANGED` (entity `user`), `REFUND_RETRIED`, `REFUND_MARKED_MANUAL` (entity `payment`, the refund row), `SETTINGS_CHANGED` |
 | Owner | `STADIUM_CREATED`, `STADIUM_UPDATED`, `PRICING_RULE_CREATED` / `_UPDATED` / `_DELETED`, `CLOSURE_CREATED` / `_DELETED`, `PROMOTION_CREATED` / `_DEACTIVATED`, `MANUAL_BOOKING_CREATED`, `CASH_RECEIVED`, `BOOKING_CANCELLED_BY_OWNER` |
-| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID` |
+| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID`, `PHONE_SHARED_VIA_BOT` (the player shared their phone through the Telegram bot) |
 | System | `BOOKING_CONFIRMED`, `BOOKING_EXPIRED`, `BOOKING_COMPLETED`, `BOOKING_CANCELLED_BY_OWNER` (by a stadium block), `GAME_CONFIRMED`, `GAME_AUTO_CANCELLED`, `PAYMENT_COMPLETED`, `PAYMENT_RELEASED`, `REFUND_CREATED`, `REFUND_FAILED` (ATMOS declined a refund; entity `payment` = the original; `reason` = its error), `PROMOTION_EXPIRED` |
 
 New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
@@ -1922,7 +1966,7 @@ called from the client.
 |---|---|---|
 | `POST /webhooks/payme` | Payme | mock — accepts any body, extracts `txnId`/`transactionId`/`providerTxnId`/`id` and `status`. **`TODO: Verify Payme request signature`** |
 | `POST /webhooks/click` | Click | mock — same shape. **`TODO: Verify Click request signature`** |
-| `POST /webhooks/telegram` | Telegram | placeholder — logs the update. **`TODO: Verify the Telegram secret token header`** |
+| `POST /webhooks/telegram` | Telegram | the bot's update handler; since `ed403c7` it is secret-checked. The bot opens the Mini App as `MINIAPP_URL?startapp=<payload>`, because Telegram passes no `start_param` to `web_app` buttons — the Mini App reads the payload from the URL |
 
 ---
 
@@ -1940,6 +1984,11 @@ answered.
 
 **`00d3bb7..d2c55a2` (one player price):** resolves nothing listed here;
 Q19 and Q20 are new.
+
+**`d2c55a2..4d5faf0`:** resolves Q19 (R18 — `paidAmount + remainingAmount =
+price` in every view). Also shipped: R19–R23 from `docs/backend-requests.md`
+(dev sign-in, profile fields, blocked reason, Uzbek by default, the player
+stadium list fields and slot `status`); a booking is now exactly one hour.
 
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and
@@ -2047,7 +2096,8 @@ leak; if it is public by design, it is worth saying so.
 `CreateManualBookingRequest.startsAt` is only `@NotNull`. An owner can
 therefore record a walk-in in the past. That may well be intentional
 (back-filling yesterday's walk-in), but it is undocumented, and the two DTOs
-also disagree on the field name for the length (`durationHours` vs `duration`).
+also disagree on the field name for the length (`durationHours` vs `duration`)
+— both now optional and only ever `1`.
 
 **Q15 — The challenge board has no `district`.**
 Stadiums have `district` since `9f4040a`, but `GameChallengeResponse` still
@@ -2071,7 +2121,7 @@ It reuses `OwnerRevenueResponse`, which is not `NON_NULL`, so `stadiumId` is
 an explicit `null` (unlike the usual omitted-when-null rule, §1.3). Type it
 `stadiumId?: string | null` or ignore it.
 
-**Q19 — The owner/admin view of `net` bookings mixes two currencies.**
+**Q19 — The owner/admin view of `net` bookings mixes two currencies.** _(Resolved in `6383d85`, request R18: `BookingResponseFactory` converts a `net` booking's amounts to player terms for every view, so `paidAmount + remainingAmount = price` everywhere.)_
 Bookings made before changeset 040, and every **game** booking, keep
 `pricing_model = net`. For them `BookingResponseFactory.forOwner` returns
 `price` as the player price (`playerAmount(ownerPrice)` — for a game booking

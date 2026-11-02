@@ -65,8 +65,7 @@ describe('Profil', () => {
     renderApp('/profile')
     const toggle = await screen.findByRole('switch', { name: 'Ega rejimi' })
     fireEvent.click(toggle)
-    expect(await screen.findByRole('heading', { level: 1, name: 'Ega rejimi' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Jadval' })).toBeInTheDocument()
   })
 
   it('hides "Ega rejimi" for an owner without stadiums', async () => {
@@ -95,7 +94,26 @@ describe('Profil', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('keeps the language and tells the user when saving it fails', async () => {
+  it('switches immediately, before the save answers', async () => {
+    let answer: (response: Response) => void = () => {}
+    const api = stubApi({
+      'GET /api/users/me': player,
+      'PATCH /api/users/me': () => new Promise<Response>((resolve) => (answer = resolve)),
+    })
+    renderApp('/profile')
+    fireEvent.click(await screen.findByRole('button', { name: /Til/ }))
+    fireEvent.click(screen.getByRole('radio', { name: 'English' }))
+
+    // Still waiting for the backend, already in English, sheet closed.
+    expect(await screen.findByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(api.calls('PATCH /api/users/me')).toEqual([{ language: 'en' }])
+
+    answer(jsonResponse(200, { ...player, language: 'en' }))
+    await vi.waitFor(() => expect(i18n.language).toBe('en'))
+  })
+
+  it('goes back to the saved language and says so when the save fails', async () => {
     stubApi({
       'GET /api/users/me': player,
       'PATCH /api/users/me': jsonResponse(500, null, 'Internal server error'),
@@ -107,6 +125,14 @@ describe('Profil', () => {
       await screen.findByText('Serverda xatolik. Birozdan soʻng qayta urinib koʻring.'),
     ).toBeInTheDocument()
     expect(i18n.language).toBe('uz')
+    expect(screen.getByRole('button', { name: /Til.*Oʻzbekcha/ })).toBeInTheDocument()
+  })
+
+  it('follows the language saved on the backend profile (user.language)', async () => {
+    stubApi({ 'GET /api/users/me': { ...player, language: 'ru' } })
+    renderApp('/profile')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Профиль' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Поля' })).toBeInTheDocument()
   })
 
   it('switches the theme from the Mavzu sheet', async () => {
@@ -121,11 +147,13 @@ describe('Profil', () => {
     expect(screen.getByRole('button', { name: /Mavzu.*Qorongʻi/ })).toBeInTheDocument()
   })
 
-  it('opens Kartalarim and Sevimlilar as "Tez orada" for now', async () => {
-    stubApi({ 'GET /api/users/me': player })
+  it('opens Kartalarim', async () => {
+    stubApi({ 'GET /api/users/me': player, 'GET /api/cards': [] })
     renderApp('/profile')
     fireEvent.click(await screen.findByRole('button', { name: /Kartalarim/ }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Kartalarim' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tez orada' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Saqlangan kartalar yoʻq' }),
+    ).toBeInTheDocument()
   })
 })
