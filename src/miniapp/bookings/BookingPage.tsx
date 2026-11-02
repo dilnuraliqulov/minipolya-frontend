@@ -32,7 +32,7 @@ import { PayRemainderSheet } from './PayRemainderSheet'
 import { RefundLine } from './RefundLine'
 import { ReviewSection } from './ReviewSection'
 import { useBooking } from './queries'
-import { bookingWhen } from './when'
+import { bookingWhen, isAhead } from './when'
 
 const CANCELLABLE = new Set(['pending', 'confirmed'])
 const LIVE = new Set(['confirmed', 'completed'])
@@ -152,7 +152,7 @@ function BookingContent({ booking }: { booking: Booking }) {
             {t('booking.rules')}
           </h3>
           <p className="text-sm text-secondary">
-            {booking.cancellationDeadline
+            {isAhead(booking.cancellationDeadline)
               ? t('booking.rulesDeadline', {
                   date: formatLongDate(booking.cancellationDeadline),
                   time: formatTime(booking.cancellationDeadline),

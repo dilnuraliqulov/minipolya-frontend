@@ -22,7 +22,7 @@ const teamA: GameTeam = {
   remainderAmount: 8_000_000,
   remainderStatus: 'unpaid',
   paidInApp: 8_800_000,
-  cancellationDeadline: '2026-11-05T15:00:00Z',
+  cancellationDeadline: '2099-11-05T15:00:00Z',
   refundIfCancelledNow: 8_800_000,
 }
 const teamB: GameTeam = {

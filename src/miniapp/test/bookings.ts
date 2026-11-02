@@ -19,7 +19,7 @@ export function makeBooking(overrides: Partial<Booking> = {}): Booking {
     paymentStatus: 'paid',
     isWalkin: false,
     cancellationPolicy: { cancellationHours: 24 },
-    cancellationDeadline: '2026-11-05T15:00:00Z',
+    cancellationDeadline: '2099-11-05T15:00:00Z',
     refundIfCancelledNow: 15_500_000,
     createdAt: '2026-11-01T10:00:00Z',
     ...overrides,

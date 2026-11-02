@@ -24,7 +24,7 @@ import {
   type GameTeam,
 } from '../api/games'
 import { useLoginUser } from '../auth/sessionContext'
-import { bookingWhen } from '../bookings/when'
+import { bookingWhen, isAhead } from '../bookings/when'
 import { CardRow } from '../cards/CardRow'
 import { useCards } from '../cards/queries'
 import {
@@ -179,7 +179,7 @@ function GameContent({ game }: { game: GameDetail }) {
           <h3 id="game-rules" className="text-lg font-semibold text-primary">
             {t('game.rules')}
           </h3>
-          {myTeam?.cancellationDeadline && (
+          {myTeam && isAhead(myTeam.cancellationDeadline) && (
             <p className="text-sm text-secondary">
               {t('game.deadline', {
                 date: formatLongDate(myTeam.cancellationDeadline),

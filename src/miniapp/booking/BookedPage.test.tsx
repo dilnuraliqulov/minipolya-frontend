@@ -42,7 +42,7 @@ describe('Band qilindi', () => {
       makeBooking({
         paidAmount: 15_500_000,
         remainingAmount: 0,
-        cancellationDeadline: '2026-11-05T15:00:00Z',
+        cancellationDeadline: '2099-11-05T15:00:00Z',
       }),
     )
     expect(await screen.findByRole('heading', { name: 'Band qilindi!' })).toBeInTheDocument()
@@ -51,13 +51,28 @@ describe('Band qilindi', () => {
     expect(screen.getByText('Toʻlandi: 155 000 soʻm')).toBeInTheDocument()
     expect(screen.queryByText(/Qolgani/)).not.toBeInTheDocument()
     expect(
-      screen.getByText('Bekor qilish muddati: 5-noyabr, 2026, 20:00 gacha'),
+      screen.getByText('Bekor qilish muddati: 5-noyabr, 2099, 20:00 gacha'),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Oʻyinlarimga oʻtish' })).toHaveAttribute(
       'href',
       '/games',
     )
     expect(screen.getByRole('link', { name: 'Bosh sahifa' })).toHaveAttribute('href', '/')
+  })
+
+  it('says nothing comes back, not a past deadline, when booked inside the window', async () => {
+    renderDone(
+      makeBooking({
+        paidAmount: 5_500_000,
+        remainingAmount: 10_000_000,
+        refundIfCancelledNow: 0,
+        cancellationDeadline: new Date(Date.now() - 24 * 60 * 60_000).toISOString(),
+      }),
+    )
+    expect(
+      await screen.findByText('Hozir bekor qilsangiz, toʻlov qaytarilmaydi'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Bekor qilish muddati/)).not.toBeInTheDocument()
   })
 
   it('shows the remainder when part is still due', async () => {

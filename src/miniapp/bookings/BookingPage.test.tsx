@@ -150,7 +150,7 @@ describe('Booking detail', () => {
     expect(
       await screen.findByText('Hozir bekor qilsangiz: 55 000 soʻm qaytariladi'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/5-noyabr, 2026, 20:00 gacha bekor qilsangiz/)).toBeInTheDocument()
+    expect(screen.getByText(/5-noyabr, 2099, 20:00 gacha bekor qilsangiz/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Bronni bekor qilish' }))
     const sheet = await screen.findByRole('dialog', { name: 'Bronni bekor qilasizmi?' })
     expect(
@@ -170,6 +170,20 @@ describe('Booking detail', () => {
     expect(
       await screen.findByText('Hozir bekor qilsangiz, toʻlov qaytarilmaydi'),
     ).toBeInTheDocument()
+  })
+
+  it('gives the general rule, not a date in the past, once the deadline has passed', async () => {
+    stub({
+      ...partial,
+      refundIfCancelledNow: 0,
+      cancellationDeadline: new Date(Date.now() - 60 * 60_000).toISOString(),
+    })
+    renderApp('/bookings/b1')
+    expect(
+      await screen.findByText(/24 soat oldingacha bekor qilsangiz, toʻlov toʻliq qaytariladi/),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/\d{2}:\d{2} gacha/)).not.toBeInTheDocument()
+    expect(screen.getByText('Hozir bekor qilsangiz, toʻlov qaytarilmaydi')).toBeInTheDocument()
   })
 
   it('shows the hold for a pending booking and waits for R28 to pay', async () => {

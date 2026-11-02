@@ -6,6 +6,8 @@ import type { Booking } from '../api/bookings'
 import { ButtonLink, Card, Header, Screen } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { dayTitle, tashkentToday } from '../stadiums/dates'
+import { RefundLine } from '../bookings/RefundLine'
+import { isAhead } from '../bookings/when'
 
 /** Band qilindi! — the booking the checkout just paid, passed in the route state. */
 export function BookedPage() {
@@ -50,7 +52,7 @@ export function BookedPage() {
         )}
       </Card>
 
-      {booking.cancellationDeadline && (
+      {isAhead(booking.cancellationDeadline) ? (
         <p className="flex items-center justify-center gap-2 text-sm text-secondary">
           <CalendarClock size={16} aria-hidden />
           {t('booked.deadline', {
@@ -58,6 +60,8 @@ export function BookedPage() {
             time: formatTime(booking.cancellationDeadline),
           })}
         </p>
+      ) : (
+        <RefundLine booking={booking} />
       )}
 
       <div className="flex flex-col gap-3 pt-2">
