@@ -188,9 +188,12 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
         <span className="w-full truncate text-base font-medium text-primary">{who}</span>
         <BookingStatusBadge status={booking.status} />
       </span>
-      <span className="text-sm font-semibold text-primary">
-        {formatMoney(booking.ownerPrice ?? booking.price)}
-      </span>
+      {/* The owner's own price only: `price` is what the player pays. */}
+      {booking.ownerPrice !== undefined && (
+        <span className="text-sm font-semibold text-primary">
+          {formatMoney(booking.ownerPrice)}
+        </span>
+      )}
     </button>
   )
 }
@@ -260,7 +263,8 @@ function OwnerBookingSheet({
     },
   })
   const rows: Array<[string, number | undefined]> = [
-    [t('owner.booking.price'), booking.ownerPrice ?? booking.price],
+    // The owner's own price; the player price only under its own label.
+    [t('owner.booking.price'), booking.ownerPrice],
     ...(booking.ownerPrice !== undefined && booking.ownerPrice !== booking.price
       ? ([[t('owner.booking.playerPays'), booking.price]] as Array<[string, number]>)
       : []),
