@@ -294,6 +294,40 @@ describe('Foydalanuvchilar — detail', () => {
     })
   })
 
+  it('caps the reason at 500 characters and counts them', async () => {
+    backend()
+    signIn()
+    renderAt('/foydalanuvchilar/p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Foydalanuvchini bloklash' })
+    const field = within(dialog).getByRole('textbox')
+    expect(field).toHaveAttribute('maxLength', '500')
+    expect(within(dialog).getByText('0 / 500')).toBeInTheDocument()
+    fireEvent.change(field, { target: { value: 'Firibgarlik' } })
+    expect(within(dialog).getByText('11 / 500')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['You cannot block yourself', 'Oʻzingizni bloklay olmaysiz'],
+    ['reason: reason must be at most 500 characters', 'Sabab 500 ta belgidan oshmasligi kerak'],
+    [
+      'isBlocked: must not be null',
+      'Soʻrov notoʻgʻri. Maʼlumotlarni tekshirib qayta urinib koʻring',
+    ],
+  ])('maps the 400 "%s" to its own message', async (message, shown) => {
+    backend({ 'PUT /api/admin/users/p1': [400, message] })
+    signIn()
+    renderAt('/foydalanuvchilar/p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Foydalanuvchini bloklash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Firibgarlik' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Bloklash' }))
+    expect(await screen.findByText(shown)).toBeInTheDocument()
+    if (shown !== 'Oʻzingizni bloklay olmaysiz') {
+      expect(screen.queryByText('Oʻzingizni bloklay olmaysiz')).not.toBeInTheDocument()
+    }
+  })
+
   it('shows who blocked a user, when and why, and unblocks', async () => {
     const { requests } = backend({
       'PUT /api/admin/users/b1': [200, { ...blocked, isBlocked: false }],

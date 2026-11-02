@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { Ban, LockOpen, Phone } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDate, formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { BOOKINGS_LIST, listBookings, type AdminBooking } from '../../api/bookings'
@@ -265,6 +265,16 @@ function SummaryCard({ user }: { user: AdminUser }) {
   )
 }
 
+/** The block/unblock request answers 400 for two different reasons; tell them apart. */
+function blockErrorText(error: unknown): string {
+  if (!isApiError(error) || error.status !== 400)
+    return 'Amalni bajarib boʻlmadi. Qayta urinib koʻring'
+  if (error.message === API_MESSAGES.cannotBlockSelf) return 'Oʻzingizni bloklay olmaysiz'
+  if (error.message === API_MESSAGES.userReasonTooLong)
+    return 'Sabab 500 ta belgidan oshmasligi kerak'
+  return 'Soʻrov notoʻgʻri. Maʼlumotlarni tekshirib qayta urinib koʻring'
+}
+
 function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
   const toast = useToast()
   const queryClient = useQueryClient()
@@ -285,11 +295,7 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
     },
     onError: (error) => {
       setDialog(null)
-      toast.error(
-        isApiError(error) && error.status === 400
-          ? 'Oʻzingizni bloklay olmaysiz'
-          : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
-      )
+      toast.error(blockErrorText(error))
     },
   })
 

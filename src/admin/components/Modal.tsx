@@ -129,6 +129,8 @@ export interface ReasonModalProps {
   chips?: string[]
   /** The reason must be at least this long (after trimming). */
   minLength?: number
+  /** The field takes at most this many characters (the backend limit); a counter shows the count. */
+  maxLength?: number
   hint?: string
   confirmLabel: string
   /** Danger for negative actions (the default); primary for a neutral record. */
@@ -145,6 +147,7 @@ export function ReasonModal({
   description = 'Sababni tanlang yoki yozing.',
   chips = [],
   minLength = 10,
+  maxLength = 500,
   hint,
   confirmLabel,
   confirmVariant = 'danger',
@@ -219,11 +222,17 @@ export function ReasonModal({
           id={fieldId}
           required
           minLength={minLength}
+          maxLength={maxLength}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           className="h-24 resize-none rounded-md border border-border bg-background px-3 py-2.5 text-base text-primary outline-none focus:border-accent"
         />
-        {hint && <p className="text-xs text-secondary">{hint}</p>}
+        <div className="flex justify-between gap-3 text-xs text-secondary">
+          <p>{hint}</p>
+          <p aria-live="polite" className="shrink-0 tabular-nums">
+            {reason.length} / {maxLength}
+          </p>
+        </div>
       </div>
     </Modal>
   )
