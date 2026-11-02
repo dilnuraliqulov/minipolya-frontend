@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage } from '../api/errors'
 import { OWNER_STADIUMS_KEY, updateStadium, type OwnerStadium } from '../api/owner'
 import { DISTRICTS, FORMATS } from '../api/stadiums'
-import { BottomBar, Button, Input, useToast } from '../components'
+import { BottomBar, Button, Input, Screen, useToast } from '../components'
 import { useGoBack } from '../lib/useGoBack'
 import { formatLabel, SURFACE_KEYS } from '../stadiums/labels'
 import { OwnerStadiumSubPage } from './OwnerStadiumSubPage'
@@ -14,13 +14,14 @@ import { SelectField } from './SelectField'
 export function OwnerInfoPage() {
   const { t } = useTranslation()
   return (
-    <OwnerStadiumSubPage title={t('owner.section.info')}>
-      {(stadium) => <InfoForm key={stadium.id} stadium={stadium} />}
-    </OwnerStadiumSubPage>
+    <OwnerStadiumSubPage
+      title={t('owner.section.info')}
+      screen={(stadium, header) => <InfoForm key={stadium.id} stadium={stadium} header={header} />}
+    ></OwnerStadiumSubPage>
   )
 }
 
-function InfoForm({ stadium }: { stadium: OwnerStadium }) {
+function InfoForm({ stadium, header }: { stadium: OwnerStadium; header: ReactNode }) {
   const { t } = useTranslation()
   const toast = useToast()
   const goBack = useGoBack('/owner/stadium')
@@ -48,7 +49,16 @@ function InfoForm({ stadium }: { stadium: OwnerStadium }) {
   })
   const valid = name.trim().length > 0 && address.trim().length > 0
   return (
-    <>
+    <Screen
+      header={header}
+      footer={
+        <BottomBar>
+          <Button haptic disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>
+            {t('owner.save')}
+          </Button>
+        </BottomBar>
+      }
+    >
       <Input
         label={t('owner.field.name')}
         value={name}
@@ -82,11 +92,6 @@ function InfoForm({ stadium }: { stadium: OwnerStadium }) {
         placeholder="—"
         options={Object.entries(SURFACE_KEYS).map(([value, key]) => ({ value, label: t(key) }))}
       />
-      <BottomBar>
-        <Button haptic disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>
-          {t('owner.save')}
-        </Button>
-      </BottomBar>
-    </>
+    </Screen>
   )
 }

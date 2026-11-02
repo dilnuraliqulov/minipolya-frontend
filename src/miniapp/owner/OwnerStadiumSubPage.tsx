@@ -6,15 +6,19 @@ import { EmptyState, ErrorState, Header, Screen, SkeletonList } from '../compone
 import { useGoBack } from '../lib/useGoBack'
 import { useOwnerStadiumList } from './queries'
 
-/** A Maydonim sub-screen: finds the stadium by `:id` in the owner's list. */
+/**
+ * A Maydonim sub-screen: finds the stadium by `:id` in the owner's list.
+ * `children` fills the default Screen; `screen` builds its own Screen (with
+ * this header) when its footer needs the content's state, e.g. a form's save bar.
+ */
 export function OwnerStadiumSubPage({
   title,
-  footer,
   children,
+  screen,
 }: {
   title: string
-  footer?: (stadium: OwnerStadium) => ReactNode
-  children: (stadium: OwnerStadium) => ReactNode
+  children?: (stadium: OwnerStadium) => ReactNode
+  screen?: (stadium: OwnerStadium, header: ReactNode) => ReactNode
 }) {
   const { t } = useTranslation()
   const { id = '' } = useParams()
@@ -43,9 +47,6 @@ export function OwnerStadiumSubPage({
       </Screen>
     )
   }
-  return (
-    <Screen header={header} footer={footer?.(stadium)}>
-      {children(stadium)}
-    </Screen>
-  )
+  if (screen) return screen(stadium, header)
+  return <Screen header={header}>{children?.(stadium)}</Screen>
 }
