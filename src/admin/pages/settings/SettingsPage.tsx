@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { isApiError } from '../../../shared/api'
-import { formatDateTime, formatSom } from '../../../shared/format'
+import { formatDateTime, formatSom, somInputToTiyin, tiyinToSomInput } from '../../../shared/format'
 import { getAuditLog, type AuditChange, type AuditEntry } from '../../api/audit'
 import {
   getSettings,
@@ -33,29 +33,29 @@ const settingsKeys = {
 const HISTORY_PAGE_SIZE = 10
 
 /**
- * The form keeps the values as typed: the card fee in percent with up to two
- * decimals ("1.5"), the fees and the rounding step in whole so'm.
+ * The form keeps the values as typed, each with up to two decimals: the card
+ * fee in percent ("1.5"), the fees and the rounding step in so'm ("123.45").
+ * The API values are tiyin, so nothing is rounded either way.
  */
 type Draft = Record<SettingsField, string>
 
-const TIYIN_PER_SOM = 100
-
 function toDraft(settings: PlatformSettings): Draft {
   return {
-    teamGamePlatformFee: String(Math.round(settings.teamGamePlatformFee / TIYIN_PER_SOM)),
-    casualGameServiceFee: String(Math.round(settings.casualGameServiceFee / TIYIN_PER_SOM)),
+    teamGamePlatformFee: tiyinToSomInput(settings.teamGamePlatformFee),
+    casualGameServiceFee: tiyinToSomInput(settings.casualGameServiceFee),
     cardFeeBps: bpsToPercent(settings.cardFeeBps),
-    paymentRoundingStep: String(Math.round(settings.paymentRoundingStep / TIYIN_PER_SOM)),
+    paymentRoundingStep: tiyinToSomInput(settings.paymentRoundingStep),
   }
 }
 
 /** The draft as the API wants it: the card fee in basis points, so'm → tiyin. */
 function fromDraft(draft: Draft): Record<SettingsField, number> {
+  const tiyin = (text: string) => (text === '' ? 0 : somInputToTiyin(text))
   return {
-    teamGamePlatformFee: Number(draft.teamGamePlatformFee) * TIYIN_PER_SOM,
-    casualGameServiceFee: Number(draft.casualGameServiceFee) * TIYIN_PER_SOM,
+    teamGamePlatformFee: tiyin(draft.teamGamePlatformFee),
+    casualGameServiceFee: tiyin(draft.casualGameServiceFee),
     cardFeeBps: percentToBps(draft.cardFeeBps),
-    paymentRoundingStep: Number(draft.paymentRoundingStep) * TIYIN_PER_SOM,
+    paymentRoundingStep: tiyin(draft.paymentRoundingStep),
   }
 }
 
@@ -76,7 +76,7 @@ const FIELD_ERRORS: Record<SettingsField, string> = {
   teamGamePlatformFee: 'Haq manfiy boʻlishi mumkin emas',
   casualGameServiceFee: 'Haq manfiy boʻlishi mumkin emas',
   cardFeeBps: 'Komissiya 0 dan 10% gacha boʻlishi kerak',
-  paymentRoundingStep: "Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak",
+  paymentRoundingStep: "Qadam 0,01 so'mdan 10 000 so'mgacha boʻlishi kerak",
 }
 
 function fieldOfError(message: string): SettingsField | undefined {
@@ -234,7 +234,11 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
   const [errors, setErrors] = useState<Partial<Record<SettingsField, string>>>({})
   const [confirming, setConfirming] = useState(false)
 
-  const changed = FIELDS.filter((field) => draft[field] !== saved[field])
+  const values = fromDraft(draft)
+  // Compared by value, so "123.4" and "123.40" are the same fee.
+  const changed = FIELDS.filter((field) =>
+    draft[field] === '' ? saved[field] !== '' : values[field] !== settings[field],
+  )
   const dirty = changed.length > 0
 
   const save = useMutation({
@@ -269,7 +273,6 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
     setConfirming(true)
   }
 
-  const values = fromDraft(draft)
   const filled = (field: SettingsField) => draft[field] !== ''
 
   return (
@@ -287,6 +290,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Platforma haqi"
             suffix="so'm"
+            decimals={2}
             value={draft.teamGamePlatformFee}
             onChange={set('teamGamePlatformFee')}
             error={errors.teamGamePlatformFee}
@@ -304,6 +308,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Xizmat haqi"
             suffix="so'm"
+            decimals={2}
             value={draft.casualGameServiceFee}
             onChange={set('casualGameServiceFee')}
             error={errors.casualGameServiceFee}
@@ -342,9 +347,10 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Yaxlitlash qadami"
             suffix="so'm"
+            decimals={2}
             value={draft.paymentRoundingStep}
             onChange={set('paymentRoundingStep')}
-            helper="1 dan 10 000 so'mgacha"
+            helper="0,01 dan 10 000 so'mgacha"
             error={errors.paymentRoundingStep}
           />
         </SettingRow>

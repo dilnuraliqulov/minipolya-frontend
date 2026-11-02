@@ -50,6 +50,34 @@ function field(name: string) {
 describe('Sozlamalar', () => {
   useAdminTestSetup()
 
+  it('shows fees that are not whole so’m exactly, and saves them without rounding', async () => {
+    const { requests } = mockBackend({
+      ...base,
+      '/api/admin/settings': [
+        200,
+        { ...settings, teamGamePlatformFee: 12_345, paymentRoundingStep: 50 },
+      ],
+      'PUT /api/admin/settings': [200, { ...settings, updatedAt: '2026-10-23T00:00:00Z' }],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('123,45')
+    expect(field('Yaxlitlash qadami')).toHaveValue('0,5')
+    expect(screen.getByText("Har bir jamoadan: 123,45 so'm")).toBeInTheDocument()
+    // Retyping the same value is not a change.
+    fireEvent.change(field('Platforma haqi'), { target: { value: '123,450' } })
+    expect(screen.queryByRole('region', { name: 'Saqlanmagan oʻzgarishlar' })).toBeNull()
+    fireEvent.change(field('Xizmat haqi'), { target: { value: '5 000,07' } })
+    const bar = screen.getByRole('region', { name: 'Saqlanmagan oʻzgarishlar' })
+    fireEvent.click(within(bar).getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    await waitFor(() =>
+      expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+        casualGameServiceFee: 500_007,
+      }),
+    )
+  })
+
   it('shows the four settings in percent and so’m with a preview under each', async () => {
     mockBackend({ ...base })
     signIn()
@@ -173,7 +201,7 @@ describe('Sozlamalar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
     expect(
-      await screen.findByText("Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak"),
+      await screen.findByText("Qadam 0,01 so'mdan 10 000 so'mgacha boʻlishi kerak"),
     ).toBeInTheDocument()
   })
 
