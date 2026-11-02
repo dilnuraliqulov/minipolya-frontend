@@ -152,6 +152,7 @@ export const OWNER_STADIUMS_KEY = ['owner', 'stadiums'] as const
 export const pricingKey = (id: string) => ['owner', 'pricing', id] as const
 export const closuresKey = (id: string) => ['owner', 'closures', id] as const
 export const promotionsKey = (id: string) => ['owner', 'promotions', id] as const
+export const ownerGameKey = (id: string) => ['owner', 'game', id] as const
 export const scheduleKey = (id: string, date: string) => ['owner', 'schedule', id, date] as const
 export const statsKey = (id: string) => ['owner', 'stats', id] as const
 

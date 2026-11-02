@@ -26,6 +26,7 @@ export type ErrorMessageKey =
   | 'errors.cardDeclined'
   | 'errors.tooLate'
   | 'errors.paymentConfirming'
+  | 'errors.alreadyPaid'
   | 'errors.paymentUnclear'
   | 'errors.unknown'
 
@@ -52,6 +53,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       )
         return 'errors.cardDeclined'
       if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
+      // Team-game cash: card or cash got there first.
+      if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
       if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
       if (
         error.message === API_MESSAGES.joinPaymentUnconfirmed ||

@@ -80,7 +80,8 @@
     "tooLate": "Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi.",
     "paymentConfirming": "Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi.",
     "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring.",
-    "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak."
+    "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak.",
+    "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -657,6 +658,16 @@
       "remove": "Chegirmani olib tashlash",
       "removed": "Chegirma olib tashlandi"
     },
-    "editItem": "{{item}} — oʻzgartirish"
+    "editItem": "{{item}} — oʻzgartirish",
+    "gameCash": {
+      "title": "Jamoalar toʻlovi",
+      "owes": "{{team}} · Qolgani: {{amount}}",
+      "paid": "{{team}} · Toʻlangan",
+      "button": "Naqd olindi · {{amount}}",
+      "confirmTitle": "Naqd toʻlovni tasdiqlash",
+      "confirmText": "{{team}} jamoasidan {{amount}} naqd olinganini tasdiqlaysizmi?",
+      "confirm": "Tasdiqlash",
+      "done": "Naqd toʻlov qayd etildi"
+    }
   }
 }

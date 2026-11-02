@@ -80,7 +80,8 @@
     "tooLate": "The game starts in less than 3 hours — it can no longer be joined.",
     "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
     "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
-    "minimumTooLow": "The deposit must be at least 500 soʻm."
+    "minimumTooLow": "The deposit must be at least 500 soʻm.",
+    "alreadyPaid": "This payment is already recorded."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -657,6 +658,16 @@
       "remove": "Remove discount",
       "removed": "Discount removed"
     },
-    "editItem": "{{item}} — edit"
+    "editItem": "{{item}} — edit",
+    "gameCash": {
+      "title": "Team payments",
+      "owes": "{{team}} · Still owed: {{amount}}",
+      "paid": "{{team}} · Paid",
+      "button": "Cash received · {{amount}}",
+      "confirmTitle": "Confirm cash payment",
+      "confirmText": "Confirm that you received {{amount}} in cash from {{team}}?",
+      "confirm": "Confirm",
+      "done": "Cash payment recorded"
+    }
   }
 }

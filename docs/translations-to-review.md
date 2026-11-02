@@ -566,3 +566,12 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.prices.base` | Asosiy narx | Базовая цена | Base price |
 | `owner.prices.baseText` | Narx qoidalari qamramagan barcha soatlar uchun. Oʻyinchilar narxi shundan hisoblanadi. | Для всех часов, которые не попадают в правила цены. Цена для игроков считается от неё. | For every hour no price rule covers. The player price is worked out from it. |
 | `owner.editItem` | {{item}} — oʻzgartirish | {{item}} — изменить | {{item}} — edit |
+| `owner.gameCash.title` | Jamoalar toʻlovi | Оплата команд | Team payments |
+| `owner.gameCash.owes` | {{team}} · Qolgani: {{amount}} | {{team}} · Осталось: {{amount}} | {{team}} · Still owed: {{amount}} |
+| `owner.gameCash.paid` | {{team}} · Toʻlangan | {{team}} · Оплачено | {{team}} · Paid |
+| `owner.gameCash.button` | Naqd olindi · {{amount}} | Получено наличными · {{amount}} | Cash received · {{amount}} |
+| `owner.gameCash.confirmTitle` | Naqd toʻlovni tasdiqlash | Подтвердите оплату наличными | Confirm cash payment |
+| `owner.gameCash.confirmText` | {{team}} jamoasidan {{amount}} naqd olinganini tasdiqlaysizmi? | Подтверждаете, что получили {{amount}} наличными от команды {{team}}? | Confirm that you received {{amount}} in cash from {{team}}? |
+| `owner.gameCash.confirm` | Tasdiqlash | Подтвердить | Confirm |
+| `owner.gameCash.done` | Naqd toʻlov qayd etildi | Оплата наличными записана | Cash payment recorded |
+| `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |

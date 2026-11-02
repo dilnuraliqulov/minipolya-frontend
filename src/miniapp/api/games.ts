@@ -173,3 +173,11 @@ export function getMessages(gameId: string, page = 0): Promise<Page<GameMessage>
 export function sendMessage(gameId: string, message: string): Promise<GameMessage> {
   return api.post<GameMessage>(`/api/games/${gameId}/messages`, { message })
 }
+
+/**
+ * The stadium's owner records one team's remainder as received in cash
+ * (`remainderAmount`). 400 `"Already paid"` when card or cash came first.
+ */
+export function recordGameCash(id: string, side: GameSide): Promise<GameDetail> {
+  return api.post<GameDetail>(`/api/games/${id}/cash`, { side })
+}

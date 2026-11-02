@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc } from '../../shared/format'
 import type { Booking } from '../api/bookings'
+import { recordGameCash, type GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
 import { isAvailable } from '../api/missing'
 import {
   createManualBooking,
   OWNER_BOOKING_CASH,
+  ownerGameKey,
   ownerCancelBooking,
   scheduleKey,
   statsKey,
@@ -31,6 +33,7 @@ import { DateStrip } from '../stadiums/SlotPicker'
 import { availabilityKey } from '../stadiums/queries'
 import { slotLabel, tashkentToday } from '../stadiums/dates'
 import { DiscountSheet } from './DiscountSheet'
+import { GameCash } from './GameCash'
 import { OwnerTabScreen } from './OwnerTabScreen'
 import { useSchedule } from './queries'
 import { SelectField } from './SelectField'
@@ -280,6 +283,25 @@ function OwnerBookingSheet({
   const toast = useToast()
   const queryClient = useQueryClient()
   const [confirming, setConfirming] = useState(false)
+  const [cashFor, setCashFor] = useState<GameTeam | null>(null)
+  const cash = useMutation({
+    mutationFn: (team: GameTeam) => recordGameCash(booking.gameId!, team.side),
+    onSuccess: (game) => {
+      queryClient.setQueryData(ownerGameKey(game.id), game)
+      toast.show(t('owner.gameCash.done'), 'success')
+      setCashFor(null)
+    },
+    onError: (error) => {
+      toast.show(errorMessage(error), 'danger')
+      setCashFor(null)
+    },
+    onSettled: () => {
+      if (booking.gameId)
+        void queryClient.invalidateQueries({ queryKey: ownerGameKey(booking.gameId) })
+      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
+    },
+  })
   const cancel = useMutation({
     mutationFn: () => ownerCancelBooking(booking.id),
     onSuccess: () => {
@@ -306,13 +328,37 @@ function OwnerBookingSheet({
   return (
     <BottomSheet
       open
-      title={confirming ? t('owner.booking.cancelTitle') : t('owner.booking.title')}
-      subtitle={confirming ? t('owner.booking.cancelText') : undefined}
+      title={
+        cashFor
+          ? t('owner.gameCash.confirmTitle')
+          : confirming
+            ? t('owner.booking.cancelTitle')
+            : t('owner.booking.title')
+      }
+      subtitle={
+        cashFor
+          ? t('owner.gameCash.confirmText', {
+              team: cashFor.teamName ?? t('team.anonymous'),
+              amount: formatMoney(cashFor.remainderAmount),
+            })
+          : confirming
+            ? t('owner.booking.cancelText')
+            : undefined
+      }
       onClose={() => {
-        if (!cancel.isPending) onClose()
+        if (!cancel.isPending && !cash.isPending) onClose()
       }}
       actions={
-        confirming ? (
+        cashFor ? (
+          <>
+            <Button haptic loading={cash.isPending} onClick={() => cash.mutate(cashFor)}>
+              {t('owner.gameCash.confirm')}
+            </Button>
+            <Button variant="secondary" disabled={cash.isPending} onClick={() => setCashFor(null)}>
+              {t('owner.cancel')}
+            </Button>
+          </>
+        ) : confirming ? (
           <>
             <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate()}>
               {t('owner.booking.cancel')}
@@ -328,7 +374,7 @@ function OwnerBookingSheet({
         ) : undefined
       }
     >
-      {!confirming && (
+      {!confirming && !cashFor && (
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -361,7 +407,8 @@ function OwnerBookingSheet({
                 </div>
               ))}
           </dl>
-          {booking.remainingAmount > 0 && (
+          {booking.gameId && <GameCash gameId={booking.gameId} onCash={setCashFor} />}
+          {!booking.gameId && booking.remainingAmount > 0 && (
             <>
               <Button variant="secondary" disabled={!isAvailable(OWNER_BOOKING_CASH)}>
                 {t('owner.booking.cash')}

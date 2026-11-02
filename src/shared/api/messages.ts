@@ -59,6 +59,8 @@ export const API_MESSAGES = {
     "The other team's payment is still being confirmed; try again in a few minutes",
   joinOtherTeamFailed:
     "The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full",
+  /** 400 from `POST /api/games/{id}/cash` (and remainder payments) when the remainder is already settled. */
+  alreadyPaid: 'Already paid',
   /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
   gameRemainderConfirming:
     'The card payment is still being confirmed; the remainder will be marked paid once it is',
