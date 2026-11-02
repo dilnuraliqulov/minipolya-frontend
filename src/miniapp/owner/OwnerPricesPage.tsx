@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Wallet } from 'lucide-react'
+import { Pencil, Plus, Trash2, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { somToTiyin } from '../../shared/format'
@@ -9,6 +9,7 @@ import {
   OWNER_STADIUMS_KEY,
   pricingKey,
   removePricing,
+  updatePricing,
   updateStadium,
   type OwnerStadium,
   type PricingRule,
@@ -40,6 +41,10 @@ const WEEKDAY_KEYS = [
 
 const hhmm = (time: string) => time.slice(0, 5)
 
+/** A tiyin price as whole soʻm for the field; empty when it is not whole (never rounded). */
+const somField = (tiyin: number | undefined) =>
+  tiyin !== undefined && tiyin % 100 === 0 ? String(tiyin / 100) : ''
+
 /** Narxlar: the base price and the per-day hour rules, in the owner's own prices. */
 export function OwnerPricesPage() {
   const { t } = useTranslation()
@@ -55,7 +60,8 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const rules = usePricing(stadium.id)
-  const [adding, setAdding] = useState(false)
+  const [editing, setEditing] = useState<PricingRule | 'new' | null>(null)
+  const [editingBase, setEditingBase] = useState(false)
   const [settingMinimum, setSettingMinimum] = useState(false)
   const remove = useMutation({
     mutationFn: (id: string) => removePricing(stadium.id, id),
@@ -74,7 +80,17 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
       {stadium.pricePerHour !== undefined && (
         <Card className="flex flex-col gap-1 p-4">
           <p className="text-sm text-secondary">{t('owner.section.prices')}</p>
-          <p className="text-2xl font-bold text-primary">{formatMoney(stadium.pricePerHour)}</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-2xl font-bold text-primary">{formatMoney(stadium.pricePerHour)}</p>
+            <button
+              type="button"
+              aria-label={t('owner.prices.editBase')}
+              onClick={() => setEditingBase(true)}
+              className="flex size-11 items-center justify-center text-link"
+            >
+              <Pencil size={18} aria-hidden />
+            </button>
+          </div>
           {stadium.playerPrice !== undefined && (
             <p className="text-sm text-secondary">
               {t('owner.prices.player', { price: formatMoney(stadium.playerPrice) })}
@@ -96,19 +112,27 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
                 key={rule.id}
                 rule={rule}
                 busy={remove.isPending}
+                onEdit={() => setEditing(rule)}
                 onRemove={() => remove.mutate(rule.id)}
               />
             ))}
           </ul>
         </Card>
       )}
-      <Button variant="ghost" icon={Plus} onClick={() => setAdding(true)}>
+      <Button variant="ghost" icon={Plus} onClick={() => setEditing('new')}>
         {t('owner.prices.add')}
       </Button>
       <Button variant="ghost" icon={Wallet} onClick={() => setSettingMinimum(true)}>
         {t('owner.prices.minimum')}
       </Button>
-      {adding && <AddRuleSheet stadiumId={stadium.id} onClose={() => setAdding(false)} />}
+      {editing && (
+        <RuleSheet
+          stadiumId={stadium.id}
+          rule={editing === 'new' ? undefined : editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {editingBase && <BasePriceSheet stadium={stadium} onClose={() => setEditingBase(false)} />}
       {settingMinimum && (
         <MinimumSheet stadiumId={stadium.id} onClose={() => setSettingMinimum(false)} />
       )}
@@ -119,10 +143,12 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
 function RuleRow({
   rule,
   busy,
+  onEdit,
   onRemove,
 }: {
   rule: PricingRule
   busy: boolean
+  onEdit: () => void
   onRemove: () => void
 }) {
   const { t } = useTranslation()
@@ -141,6 +167,14 @@ function RuleRow({
       <span className="text-base font-semibold text-primary">{formatMoney(rule.pricePerHour)}</span>
       <button
         type="button"
+        aria-label={t('owner.editItem', { item: label })}
+        onClick={onEdit}
+        className="flex size-11 items-center justify-center text-link"
+      >
+        <Pencil size={18} aria-hidden />
+      </button>
+      <button
+        type="button"
         aria-label={t('owner.removeItem', { item: label })}
         disabled={busy}
         onClick={onRemove}
@@ -152,25 +186,36 @@ function RuleRow({
   )
 }
 
-function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () => void }) {
+/** Adds a rule, or edits `rule` (the API takes one weekday per rule either way). */
+function RuleSheet({
+  stadiumId,
+  rule,
+  onClose,
+}: {
+  stadiumId: string
+  rule?: PricingRule
+  onClose: () => void
+}) {
   const { t } = useTranslation()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const [day, setDay] = useState('0')
-  const [from, setFrom] = useState('18:00')
-  const [to, setTo] = useState('23:00')
-  const [price, setPrice] = useState('')
+  const [day, setDay] = useState(String(rule?.dayOfWeek ?? 0))
+  const [from, setFrom] = useState(rule ? hhmm(rule.startTime) : '18:00')
+  const [to, setTo] = useState(rule ? hhmm(rule.endTime) : '23:00')
+  const [price, setPrice] = useState(somField(rule?.pricePerHour))
   const som = Number(price.replace(/\D/g, ''))
   const add = useMutation({
-    mutationFn: () =>
-      addPricing(stadiumId, {
+    mutationFn: () => {
+      const body = {
         dayOfWeek: Number(day),
         startTime: `${from}:00`,
         endTime: `${to}:00`,
         pricePerHour: somToTiyin(som),
-      }),
+      }
+      return rule ? updatePricing(stadiumId, rule.id, body) : addPricing(stadiumId, body)
+    },
     onSuccess: () => {
-      toast.show(t('owner.prices.added'), 'success')
+      toast.show(t(rule ? 'owner.prices.updated' : 'owner.prices.added'), 'success')
       void queryClient.invalidateQueries({ queryKey: pricingKey(stadiumId) })
       onClose()
     },
@@ -178,7 +223,7 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
   return (
     <BottomSheet
       open
-      title={t('owner.prices.add')}
+      title={t(rule ? 'owner.prices.edit' : 'owner.prices.add')}
       onClose={() => {
         if (!add.isPending) onClose()
       }}
@@ -189,7 +234,7 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
           loading={add.isPending}
           onClick={() => add.mutate()}
         >
-          {t('owner.add')}
+          {t(rule ? 'owner.save' : 'owner.add')}
         </Button>
       }
     >
@@ -224,6 +269,50 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
       {add.isError && (
         <p role="alert" className="text-sm text-danger">
           {errorMessage(add.error)}
+        </p>
+      )}
+    </BottomSheet>
+  )
+}
+
+/** The owner's own base hourly price: `PUT /api/owner/stadiums/{id}` with `pricePerHour`. */
+function BasePriceSheet({ stadium, onClose }: { stadium: OwnerStadium; onClose: () => void }) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [price, setPrice] = useState(somField(stadium.pricePerHour))
+  const som = Number(price || '0')
+  const save = useMutation({
+    mutationFn: () => updateStadium(stadium.id, { pricePerHour: somToTiyin(som) }),
+    onSuccess: () => {
+      toast.show(t('owner.saved'), 'success')
+      void queryClient.invalidateQueries({ queryKey: OWNER_STADIUMS_KEY })
+      onClose()
+    },
+  })
+  return (
+    <BottomSheet
+      open
+      title={t('owner.prices.base')}
+      onClose={() => {
+        if (!save.isPending) onClose()
+      }}
+      actions={
+        <Button haptic disabled={som <= 0} loading={save.isPending} onClick={() => save.mutate()}>
+          {t('owner.save')}
+        </Button>
+      }
+    >
+      <p className="text-sm text-secondary">{t('owner.prices.baseText')}</p>
+      <Input
+        label={t('owner.field.price')}
+        inputMode="numeric"
+        value={price}
+        onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 9))}
+      />
+      {save.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {errorMessage(save.error)}
         </p>
       )}
     </BottomSheet>

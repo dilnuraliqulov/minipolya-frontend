@@ -560,3 +560,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.discount.saved` | Chegirma saqlandi | Скидка сохранена | Discount saved |
 | `owner.discount.remove` | Chegirmani olib tashlash | Убрать скидку | Remove discount |
 | `owner.discount.removed` | Chegirma olib tashlandi | Скидка убрана | Discount removed |
+| `owner.prices.edit` | Narx qoidasini oʻzgartirish | Изменить правило цены | Edit price rule |
+| `owner.prices.updated` | Narx qoidasi saqlandi | Правило цены сохранено | Price rule saved |
+| `owner.prices.editBase` | Asosiy narxni oʻzgartirish | Изменить базовую цену | Change the base price |
+| `owner.prices.base` | Asosiy narx | Базовая цена | Base price |
+| `owner.prices.baseText` | Narx qoidalari qamramagan barcha soatlar uchun. Oʻyinchilar narxi shundan hisoblanadi. | Для всех часов, которые не попадают в правила цены. Цена для игроков считается от неё. | For every hour no price rule covers. The player price is worked out from it. |
+| `owner.editItem` | {{item}} — oʻzgartirish | {{item}} — изменить | {{item}} — edit |

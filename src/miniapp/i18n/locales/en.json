@@ -565,7 +565,12 @@
       "removed": "Price rule removed",
       "minimum": "Deposit",
       "minimumField": "Minimum payment (soʻm)",
-      "minimumText": "Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon."
+      "minimumText": "Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon.",
+      "edit": "Edit price rule",
+      "updated": "Price rule saved",
+      "editBase": "Change the base price",
+      "base": "Base price",
+      "baseText": "For every hour no price rule covers. The player price is worked out from it."
     },
     "closures": {
       "title": "Closed days",
@@ -651,6 +656,7 @@
       "saved": "Discount saved",
       "remove": "Remove discount",
       "removed": "Discount removed"
-    }
+    },
+    "editItem": "{{item}} — edit"
   }
 }

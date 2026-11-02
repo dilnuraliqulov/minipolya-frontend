@@ -119,6 +119,8 @@ export interface StadiumBasics {
 
 /** `PUT /api/owner/stadiums/{id}`: only non-null fields change. */
 export interface UpdateStadiumBody extends StadiumBasics {
+  /** Tiyin, the owner's own base hourly price. */
+  pricePerHour?: number
   /** Tiyin, the owner's amount; at least 50 000. The API cannot clear it back to "full payment only". */
   minBookingAmount?: number
 }
@@ -176,6 +178,22 @@ export function addPricing(
   body: { dayOfWeek: number; startTime: string; endTime: string; pricePerHour: number },
 ): Promise<PricingRule> {
   return api.post<PricingRule>(`/api/owner/stadiums/${stadiumId}/pricing`, body)
+}
+
+export interface PricingRuleBody {
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  pricePerHour: number
+}
+
+/** `PUT /api/owner/stadiums/{id}/pricing/{ruleId}`: one weekday per rule, like a new one. */
+export function updatePricing(
+  stadiumId: string,
+  id: string,
+  body: PricingRuleBody,
+): Promise<PricingRule> {
+  return api.put<PricingRule>(`/api/owner/stadiums/${stadiumId}/pricing/${id}`, body)
 }
 
 export function removePricing(stadiumId: string, id: string): Promise<void> {

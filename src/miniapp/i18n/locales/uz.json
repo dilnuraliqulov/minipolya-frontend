@@ -565,7 +565,12 @@
       "removed": "Narx qoidasi oʻchirildi",
       "minimum": "Oldindan toʻlov",
       "minimumField": "Eng kam toʻlov (soʻm)",
-      "minimumText": "Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada."
+      "minimumText": "Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada.",
+      "edit": "Narx qoidasini oʻzgartirish",
+      "updated": "Narx qoidasi saqlandi",
+      "editBase": "Asosiy narxni oʻzgartirish",
+      "base": "Asosiy narx",
+      "baseText": "Narx qoidalari qamramagan barcha soatlar uchun. Oʻyinchilar narxi shundan hisoblanadi."
     },
     "closures": {
       "title": "Yopiq kunlar",
@@ -651,6 +656,7 @@
       "saved": "Chegirma saqlandi",
       "remove": "Chegirmani olib tashlash",
       "removed": "Chegirma olib tashlandi"
-    }
+    },
+    "editItem": "{{item}} — oʻzgartirish"
   }
 }

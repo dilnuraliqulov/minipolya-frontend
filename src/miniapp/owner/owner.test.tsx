@@ -295,6 +295,53 @@ describe('Ega rejimi — Maydonim', () => {
     ])
   })
 
+  it('edits the base price in soʻm and sends tiyin', async () => {
+    const api = stub({
+      'GET /api/owner/stadiums/s1/pricing': [],
+      'PUT /api/owner/stadiums/s1': { ...approved, pricePerHour: 16_000_000 },
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Asosiy narxni oʻzgartirish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Asosiy narx' })
+    const field = within(sheet).getByLabelText('Soatlik narx (soʻm)')
+    expect(field).toHaveValue('150000')
+    fireEvent.change(field, { target: { value: '' } })
+    expect(within(sheet).getByRole('button', { name: 'Saqlash' })).toBeDisabled()
+    fireEvent.change(field, { target: { value: '160 000' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
+    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([{ pricePerHour: 16_000_000 }])
+  })
+
+  it('edits a pricing rule with PUT, prefilled from the rule', async () => {
+    const rule: PricingRule = {
+      id: 'r1',
+      stadiumId: 's1',
+      dayOfWeek: 4,
+      startTime: '18:00:00',
+      endTime: '23:00:00',
+      pricePerHour: 18_000_000,
+      isActive: true,
+    }
+    const api = stub({
+      'GET /api/owner/stadiums/s1/pricing': [rule],
+      'PUT /api/owner/stadiums/s1/pricing/r1': { ...rule, pricePerHour: 19_000_000 },
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Juma, 18:00–23:00 — oʻzgartirish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Narx qoidasini oʻzgartirish' })
+    expect(within(sheet).getByLabelText('Kun')).toHaveValue('4')
+    expect(within(sheet).getByLabelText('Soatlik narx (soʻm)')).toHaveValue('180000')
+    fireEvent.change(within(sheet).getByLabelText('Soatlik narx (soʻm)'), {
+      target: { value: '190000' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Narx qoidasi saqlandi')).toBeInTheDocument()
+    expect(api.calls('PUT /api/owner/stadiums/s1/pricing/r1')).toEqual([
+      { dayOfWeek: 4, startTime: '18:00:00', endTime: '23:00:00', pricePerHour: 19_000_000 },
+    ])
+  })
+
   it('edits the details with the save button in the bottom bar', async () => {
     const api = stub({ 'PUT /api/owner/stadiums/s1': { id: 's1' } })
     renderApp('/owner/stadium/s1/info', { session })
