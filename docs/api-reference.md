@@ -8,8 +8,8 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `ed403c7` (Telegram bot steps 1–6; was `4d5faf0` — _Document R18-R23 and one-hour bookings; update the Postman collection_, 2026-11-01) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks) |
+| Commit | `253f585` (_Dev sign-in requires X-Dev-Login-Key (DEV_LOGIN_KEY)_; was `ed403c7` — Telegram bot steps 1–6, 2026-11-01) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed) |
 | Endpoints documented | **109** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
 
 ---
@@ -357,9 +357,26 @@ For testing the Mini App in a plain browser, without Telegram `initData`.
 `DevAuthController` exists **only under `SPRING_PROFILES_ACTIVE=dev`**: in
 every other profile both paths answer 404 `"Not found"`, and the backend
 refuses to start with `dev` together with `prod` or `atmos`
-(`DevProfileGuard`). Not counted in the endpoint total. The frontend now uses
-them, in dev builds only (`src/miniapp/auth/dev/`), and sends `X-Dev-Login-Key`
-(from `VITE_DEV_LOGIN_KEY`); backend `ed403c7` does not check that header yet.
+(`DevProfileGuard`). Not counted in the endpoint total. The frontend uses
+them in dev builds only (`src/miniapp/auth/dev/`).
+
+**Dev login key (R26, since `253f585`).** Both paths require the header
+**`X-Dev-Login-Key`**, equal to the backend's `DEV_LOGIN_KEY`
+(`app.dev.login-key`); the Mini App's dev build sends it from
+`VITE_DEV_LOGIN_KEY` (`.env.local`).
+
+- `DevLoginKeyInterceptor` (dev profile only, on `/api/auth/dev/**`) checks it
+  before the controller runs and before the body is read: SHA-256 of both
+  values compared in constant time. A **missing, empty or wrong** key answers
+  exactly like an unknown path — **404 `"Not found"`** (`NoHandlerFoundException`
+  → `GlobalExceptionHandler`), nothing hinting that the endpoints exist. So a
+  404 here can mean a wrong/missing key as well as "backend not in the `dev`
+  profile"; the response does not tell them apart. `POST /login`'s own 404
+  `"User not found"` is only reachable with the right key.
+- With `dev` active, the backend **refuses to start** when `DEV_LOGIN_KEY` is
+  unset, empty or shorter than **16 characters** (`DevProfileGuard`, and the
+  interceptor's constructor does the same check). There is no "key unset →
+  open" mode. Outside the `dev` profile the setting is ignored.
 
 - `GET /api/auth/dev/users` — public. The 50 newest users, not paged:
   `{ id: UUID, name: string, isOwner: boolean, isAdmin: boolean, isBlocked: boolean }[]`.
@@ -1921,7 +1938,7 @@ was done in, not the user's flags.
 |---|---|
 | Admin | `ADMIN_LOGIN_SUCCEEDED`, `ADMIN_LOGIN_FAILED`, `APPLICATION_APPROVED`, `APPLICATION_REJECTED`, `STADIUM_APPROVED`, `STADIUM_REJECTED` (pending → rejected; before changeset 038, pending → blocked), `STADIUM_BLOCKED`, `STADIUM_UNBLOCKED` (blocked → approved), `STADIUM_STATUS_CHANGED` (back to pending) — each with `status` and `statusReason` changes, `STADIUM_NOTE_ADDED` (entity `stadium`; records the note's id as `noteId`, never its text), `USER_BLOCKED`, `USER_UNBLOCKED`, `USER_ROLE_CHANGED`, `OWNER_LEGAL_DETAILS_CHANGED` (entity `user`), `REFUND_RETRIED`, `REFUND_MARKED_MANUAL` (entity `payment`, the refund row), `SETTINGS_CHANGED` |
 | Owner | `STADIUM_CREATED`, `STADIUM_UPDATED`, `PRICING_RULE_CREATED` / `_UPDATED` / `_DELETED`, `CLOSURE_CREATED` / `_DELETED`, `PROMOTION_CREATED` / `_DEACTIVATED`, `MANUAL_BOOKING_CREATED`, `CASH_RECEIVED`, `BOOKING_CANCELLED_BY_OWNER` |
-| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID`, `PHONE_SHARED_VIA_BOT` (the player shared their phone through the Telegram bot) |
+| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID`, `PROFILE_UPDATED` (entity `user`; `PATCH /api/users/me`, the phone itself never logged, only `phoneChanged`), `PHONE_SHARED_VIA_BOT` (the player shared their phone through the Telegram bot) |
 | System | `BOOKING_CONFIRMED`, `BOOKING_EXPIRED`, `BOOKING_COMPLETED`, `BOOKING_CANCELLED_BY_OWNER` (by a stadium block), `GAME_CONFIRMED`, `GAME_AUTO_CANCELLED`, `PAYMENT_COMPLETED`, `PAYMENT_RELEASED`, `REFUND_CREATED`, `REFUND_FAILED` (ATMOS declined a refund; entity `payment` = the original; `reason` = its error), `PROMOTION_EXPIRED` |
 
 New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
@@ -1937,7 +1954,9 @@ New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
 `isAdmin`, `isBlocked`, `failedLoginAttempts`, `lockedUntil`, `lastLoginAt`,
 `teamGamePlatformFee`, `casualGameServiceFee`,
 `cardFeeBps`, `paymentRoundingStep`, `noteId`, `failureReason`,
-`originalStatus`, `refundedManually`; the legal-details snapshot: `legalType`,
+`originalStatus`, `refundedManually`; on `PROFILE_UPDATED`: `firstName`,
+`lastName`, `name`, `language`, and `phoneChanged` (`false` → `true`, also
+the only change on `PHONE_SHARED_VIA_BOT`); the legal-details snapshot: `legalType`,
 `tin`, `atmosContractStatus`, `atmosRecipientId`; plus the stadium snapshot
 (`StadiumService.auditSnapshot`): `address`, `district`, `latitude`,
 `longitude`, `phone`, `description`, `format`, `surfaceType`, `openTime`,
@@ -1989,6 +2008,9 @@ Q19 and Q20 are new.
 price` in every view). Also shipped: R19–R23 from `docs/backend-requests.md`
 (dev sign-in, profile fields, blocked reason, Uzbek by default, the player
 stadium list fields and slot `status`); a booking is now exactly one hour.
+
+**`ed403c7..253f585`:** resolves nothing listed here; ships R26 (the dev
+sign-in requires `X-Dev-Login-Key`, §2).
 
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and

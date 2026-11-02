@@ -148,36 +148,6 @@ window; 400 for `freeOnly=true` without `date`.
 Medium — blocks the "Boʻsh maydonlar · N" section; the chosen date already
 travels to the stadium page.
 
-### R26 — Dev sign-in endpoints require a dev-only key
-
-**What's needed**
-The dev-only sign-in endpoints (R19: `GET /api/auth/dev/users`,
-`POST /api/auth/dev/login`) should require the header `X-Dev-Login-Key`, which
-must match a dev-only backend setting. Without it, a dev backend that is
-reachable on a network lets anyone sign in as any user.
-
-**Which screen needs it**
-None is blocked. The Mini App's dev user picker (browser testing, `npm run
-dev` only) already sends the header from `VITE_DEV_LOGIN_KEY` when it is set.
-
-**Proposed endpoint**
-Both R19 endpoints stay as they are — public, `dev` profile only — plus a check
-of the header.
-
-Request — header on both calls:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `X-Dev-Login-Key` | header | yes | equals the dev-only setting (a long random value in the dev profile's config); compared in constant time |
-
-Response — unchanged.
-
-Error cases — 403 when the header is missing or wrong (any message; no hint
-which of the two it was).
-
-**Priority**
-Low — hardening for shared dev networks; nothing in the frontend waits on it.
-
 ### R27 — Quote before paying for a booking
 
 **What's needed**
@@ -593,6 +563,38 @@ Medium — an owner who tries deposits is stuck with them.
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
 where the backend differs from it — the backend is what counts, and
 `docs/api-reference.md` documents it.
+
+### R26 — Dev sign-in endpoints require a dev-only key _(shipped in `253f585`)_
+
+**What's needed**
+The dev-only sign-in endpoints (R19: `GET /api/auth/dev/users`,
+`POST /api/auth/dev/login`) should require the header `X-Dev-Login-Key`, which
+must match a dev-only backend setting. Without it, a dev backend that is
+reachable on a network lets anyone sign in as any user.
+
+**Which screen needs it**
+None is blocked. The Mini App's dev user picker (browser testing, `npm run
+dev` only) already sends the header from `VITE_DEV_LOGIN_KEY` when it is set.
+
+**Proposed endpoint**
+Both R19 endpoints stay as they are — public, `dev` profile only — plus a check
+of the header.
+
+Request — header on both calls:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `X-Dev-Login-Key` | header | yes | equals the dev-only setting (a long random value in the dev profile's config); compared in constant time |
+
+Response — unchanged.
+
+Error cases — 403 when the header is missing or wrong (any message; no hint
+which of the two it was).
+
+**Priority**
+Low — hardening for shared dev networks; nothing in the frontend waits on it.
+
+**Shipped as** — a missing, empty or wrong key answers **404 `"Not found"`** (exactly like an unknown path, checked before the body is read by `DevLoginKeyInterceptor`), not 403. The setting is `DEV_LOGIN_KEY` (`app.dev.login-key`); with the `dev` profile active the backend refuses to start unless it is at least 16 characters. Compared as SHA-256 digests in constant time.
 
 ### R23 — Stadium list and detail fields the player screens need _(shipped in `c09bfb1`)_
 
