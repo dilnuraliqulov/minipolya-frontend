@@ -180,17 +180,3 @@ export async function getTimeline(
   const page = await getAuditLog({ entityType, entityId: id, size: 50 })
   return [...page.content].reverse()
 }
-
-export interface StadiumOption {
-  id: string
-  name: string
-}
-
-/**
- * Stadiums for the Bronlar "Maydon" filter: the real admin list (every status,
- * as old bookings can be on a blocked stadium).
- */
-export async function getStadiumOptions(): Promise<StadiumOption[]> {
-  const page = await api.get<Page<StadiumOption>>('/api/admin/stadiums', { query: { size: 200 } })
-  return page.content.map(({ id, name }) => ({ id, name }))
-}

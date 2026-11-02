@@ -131,6 +131,7 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
   return mockBackend({
     '/api/admin/stats': [200, stats],
     '/api/admin/stadiums': [200, page([{ id: 'st1', name: 'Chilonzor Arena' }])],
+    '/api/admin/stadiums/st1': [200, { id: 'st1', name: 'Chilonzor Arena' }],
     // The backend filters by status; the mock answers as it would.
     '/api/admin/bookings': (request) => {
       const status = request.url.searchParams.get('status')
@@ -153,6 +154,17 @@ const lastBookings = (requests: Request[]) =>
 
 describe('Bronlar', () => {
   useAdminTestSetup()
+
+  it('names the stadium of a linked view and loads no stadium list until the filter opens', async () => {
+    const { requests } = backend()
+    signIn()
+    renderAt('/bronlar?maydon=st1')
+    expect(
+      await screen.findByRole('button', { name: 'Maydon: Chilonzor Arena' }),
+    ).toBeInTheDocument()
+    expect(lastBookings(requests).get('stadiumId')).toBe('st1')
+    expect(requests.some((r) => r.url.pathname === '/api/admin/stadiums')).toBe(false)
+  })
 
   it('lists bookings: slot, stadium, client (walk-ins marked), price, paid, status', async () => {
     backend()
@@ -181,13 +193,22 @@ describe('Bronlar', () => {
       target: { value: '90 111' },
     })
     await waitFor(() => expect(lastBookings(requests).get('search')).toBe('90 111'))
-    // The stadium options are the real stadiums only.
-    await waitFor(() =>
-      expect(screen.getByLabelText('Maydon')).toHaveTextContent('Chilonzor Arena'),
-    )
-    expect(within(screen.getByLabelText('Maydon')).getAllByRole('option')).toHaveLength(2)
-    fireEvent.change(screen.getByLabelText('Maydon'), { target: { value: 'st1' } })
+    // The stadium filter searches the real stadium list on the server.
+    fireEvent.click(screen.getByRole('button', { name: 'Maydon: Barchasi' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Maydon qidirish' }), {
+      target: { value: 'Chil' },
+    })
+    await waitFor(() => {
+      const search = requests.filter((r) => r.url.pathname === '/api/admin/stadiums').at(-1)
+      expect(search?.url.searchParams.get('search')).toBe('Chil')
+      expect(search?.url.searchParams.get('size')).toBe('20')
+    })
+    const listbox = screen.getByRole('listbox', { name: 'Maydon' })
+    expect(within(listbox).getByRole('option', { name: 'Barchasi' })).toBeInTheDocument()
+    fireEvent.click(await within(listbox).findByRole('option', { name: 'Chilonzor Arena' }))
     await waitFor(() => expect(lastBookings(requests).get('stadiumId')).toBe('st1'))
+    expect(screen.getByRole('button', { name: 'Maydon: Chilonzor Arena' })).toBeInTheDocument()
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Holat'), { target: { value: 'completed' } })
     await waitFor(() => expect(lastBookings(requests).get('status')).toBe('completed'))
     fireEvent.click(screen.getByRole('button', { name: 'Sana: Barchasi' }))
@@ -300,7 +321,7 @@ describe('Bronlar', () => {
     renderAt('/bronlar?bron=b1')
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()
     expect(screen.queryByRole('grid')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Maydon')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Maydon:/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Oʻyinlar' }))
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()

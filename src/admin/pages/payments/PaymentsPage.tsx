@@ -11,7 +11,6 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { formatSomParts } from '../../../shared/format'
-import { getStadiumOptions } from '../../api/bookings'
 import { availability } from '../../api/missing'
 import {
   getPaymentSummary,
@@ -45,6 +44,7 @@ import { useFailedRefunds } from '../../queries'
 import { PAYMENT_METHODS, PAYMENT_STATUSES, PAYMENT_TYPES, statusOf } from '../../statuses'
 import { money, shortTxn } from './format'
 import { CopyButton, PaymentPanel } from './PaymentPanel'
+import { StadiumFilter } from '../stadiums/StadiumFilter'
 
 const PAGE_SIZE = 20
 
@@ -303,12 +303,6 @@ export function PaymentsPage() {
     placeholderData: keepPreviousData,
     enabled: mode !== 'soon',
   })
-  const stadiums = useQuery({
-    queryKey: ['admin', 'stadiums', 'options'],
-    queryFn: getStadiumOptions,
-    staleTime: 5 * 60_000,
-    enabled: mode !== 'soon',
-  })
   usePageHeader({ count: list.data?.totalElements })
 
   const filtered = Boolean(query || type || status || method || stadium || from || to)
@@ -448,13 +442,8 @@ export function PaymentsPage() {
           ]}
           onChange={(value) => update({ [PARAMS.method]: value || undefined })}
         />
-        <FilterSelect
-          label="Maydon"
+        <StadiumFilter
           value={stadium}
-          options={[
-            { value: '', label: 'Barchasi' },
-            ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
-          ]}
           onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
         />
         <DateRangePicker

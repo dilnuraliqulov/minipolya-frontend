@@ -5,7 +5,6 @@ import { formatSom, formatSomParts } from '../../../shared/format'
 import {
   BOOKINGS_LIST,
   GAMES_LIST,
-  getStadiumOptions,
   listBookings,
   listGames,
   type AdminBooking,
@@ -25,6 +24,7 @@ import { formatSlot } from '../../format'
 import { usePageHeader } from '../../layout/pageHeader'
 import { BOOKING_STATUSES, GAME_STATUSES, gameStatus, statusOf } from '../../statuses'
 import { BookingPanel, GamePanel } from './panels'
+import { StadiumFilter } from '../stadiums/StadiumFilter'
 
 const PAGE_SIZE = 20
 
@@ -207,12 +207,6 @@ export function BookingsPage() {
     placeholderData: keepPreviousData,
     enabled: tab === 'games' && mode !== 'soon',
   })
-  const stadiums = useQuery({
-    queryKey: ['admin', 'stadiums', 'options'],
-    queryFn: getStadiumOptions,
-    staleTime: 5 * 60_000,
-    enabled: mode !== 'soon',
-  })
   const list = tab === 'bookings' ? bookings : games
   usePageHeader({
     title: tab === 'games' ? 'Oʻyinlar' : 'Bronlar',
@@ -272,13 +266,8 @@ export function BookingsPage() {
                 tab === 'bookings' ? 'Mijoz ismi yoki telefon boʻyicha' : 'Jamoa yoki ism boʻyicha'
               }
             />
-            <FilterSelect
-              label="Maydon"
+            <StadiumFilter
               value={stadium}
-              options={[
-                { value: '', label: 'Barchasi' },
-                ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
-              ]}
               onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
             />
             <FilterSelect

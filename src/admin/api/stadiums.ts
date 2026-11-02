@@ -190,3 +190,19 @@ export const OWNER_STADIUMS = 'GET /api/admin/stadiums → ?ownerId'
 export function listOwnerStadiums(ownerId: string, page = 0): Promise<Page<StadiumRow>> {
   return api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { ownerId, page, size: 20 } })
 }
+
+export interface StadiumOption {
+  id: string
+  name: string
+}
+
+/**
+ * Stadiums for the "Maydon" filters of Bronlar and Toʻlovlar, searched on the
+ * server by name or address. Every status: old bookings can be on a blocked stadium.
+ */
+export async function searchStadiumOptions(search: string): Promise<StadiumOption[]> {
+  const page = await api.get<Page<StadiumOption>>('/api/admin/stadiums', {
+    query: { search: search || undefined, size: 20 },
+  })
+  return page.content.map(({ id, name }) => ({ id, name }))
+}
