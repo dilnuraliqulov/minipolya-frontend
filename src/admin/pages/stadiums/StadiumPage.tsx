@@ -629,36 +629,55 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
   const last = decision.data
   const shownStatus = stadium.status
 
+  // Approving is offered for pending and rejected stadiums (the backend allows
+  // both), with the same contract guard.
+  const approveButton = (
+    <Button
+      icon={Check}
+      className="w-full"
+      disabled={unsigned || change.isPending}
+      onClick={() => setDialog('approve')}
+    >
+      Tasdiqlash
+    </Button>
+  )
+  const approve = (
+    <>
+      {unsigned ? (
+        <DisabledHint hint="Egasining ATMOS shartnomasi imzolanmagan" className="w-full">
+          {approveButton}
+        </DisabledHint>
+      ) : (
+        approveButton
+      )}
+      {unsigned && (
+        <p className="flex items-center gap-2 text-sm text-warning">
+          <TriangleAlert size={16} aria-hidden />
+          Egasining ATMOS shartnomasi imzolanmagan
+        </p>
+      )}
+    </>
+  )
+  const blockButton = (
+    <Button
+      variant="danger-outline"
+      icon={Lock}
+      className="w-full"
+      disabled={change.isPending}
+      onClick={() => setDialog('block')}
+    >
+      Bloklash
+    </Button>
+  )
+
   let body: ReactNode
   if (shownStatus === 'pending') {
-    const approve = (
-      <Button
-        icon={Check}
-        className="w-full"
-        disabled={unsigned || change.isPending}
-        onClick={() => setDialog('approve')}
-      >
-        Tasdiqlash
-      </Button>
-    )
     body = (
       <>
         <p className="text-sm text-secondary">
           Tasdiqlansa, maydon ilovada koʻrinadi va bron qilish uchun ochiladi
         </p>
-        {unsigned ? (
-          <DisabledHint hint="Egasining ATMOS shartnomasi imzolanmagan" className="w-full">
-            {approve}
-          </DisabledHint>
-        ) : (
-          approve
-        )}
-        {unsigned && (
-          <p className="flex items-center gap-2 text-sm text-warning">
-            <TriangleAlert size={16} aria-hidden />
-            Egasining ATMOS shartnomasi imzolanmagan
-          </p>
-        )}
+        {approve}
         <Button
           variant="danger-outline"
           icon={X}
@@ -676,15 +695,7 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
         <p className="text-sm text-secondary">
           Maydon ilovada koʻrinadi va bron qilish uchun ochiq
         </p>
-        <Button
-          variant="danger-outline"
-          icon={Lock}
-          className="w-full"
-          disabled={change.isPending}
-          onClick={() => setDialog('block')}
-        >
-          Bloklash
-        </Button>
+        {blockButton}
       </>
     )
   } else {
@@ -707,7 +718,12 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
             )
           )}
         </dl>
-        {!rejected && (
+        {rejected ? (
+          <>
+            {approve}
+            {blockButton}
+          </>
+        ) : (
           <Button
             icon={LockOpen}
             className="w-full"

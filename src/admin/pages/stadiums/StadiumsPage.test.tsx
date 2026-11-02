@@ -440,14 +440,54 @@ describe('Maydonlar — detail', () => {
     expect(audit?.url.searchParams.get('entityId')).toBe('s4')
   })
 
-  it('shows a rejected stadium with its reason and no actions', async () => {
-    backend()
+  it('shows a rejected stadium with its reason; approve and block go through confirmations', async () => {
+    const { requests } = backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'signed' }],
+      'PUT /api/admin/stadiums/s5/status': [200, { ...rejected, status: 'approved' }],
+    })
     signIn()
     renderAt('/maydonlar/s5')
     const panel = await screen.findByRole('region', { name: 'Qaror' })
     expect(within(panel).getByText('Rad etilgan')).toBeInTheDocument()
     expect(within(panel).getByText('Rasmlar mos emas')).toBeInTheDocument()
-    expect(within(panel).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Bloklash' })).toBeEnabled()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Tasdiqlash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Maydonni tasdiqlash' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tasdiqlash' }))
+    expect(await screen.findByText('Maydon tasdiqlandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({ status: 'approved' })
+  })
+
+  it('blocks a rejected stadium with a reason', async () => {
+    const { requests } = backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'signed' }],
+      'PUT /api/admin/stadiums/s5/status': [200, { ...rejected, status: 'blocked' }],
+    })
+    signIn()
+    renderAt('/maydonlar/s5')
+    const panel = await screen.findByRole('region', { name: 'Qaror' })
+    fireEvent.click(within(panel).getByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Maydonni bloklash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), {
+      target: { value: 'Soxta maʼlumotlar' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Bloklash' }))
+    expect(await screen.findByText('Maydon bloklandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+      status: 'blocked',
+      reason: 'Soxta maʼlumotlar',
+    })
+  })
+
+  it('keeps approval of a rejected stadium disabled while the contract is not signed', async () => {
+    backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'pending' }],
+    })
+    signIn()
+    renderAt('/maydonlar/s5')
+    const panel = await screen.findByRole('region', { name: 'Qaror' })
+    expect(within(panel).getByRole('button', { name: 'Tasdiqlash' })).toBeDisabled()
+    expect(within(panel).getByRole('button', { name: 'Bloklash' })).toBeEnabled()
   })
 
   it('enters the owner details, validating STIR and the recipient id', async () => {
