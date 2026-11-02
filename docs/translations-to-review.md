@@ -546,3 +546,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.schedule.waitingShort` | Jamoa kutmoqda | Команда ждёт | A team is waiting |
 | `owner.wizard.onTheHour` | Vaqt butun soatda boʻlishi kerak (masalan, 08:00). | Время должно быть ровно в начале часа (например, 08:00). | Times must be on the hour (e.g. 08:00). |
 | `owner.field.hoursUnit` | {{count}} soat | {{count}} ч | {{count}} h |
+| `errors.minimumTooLow` | Oldindan toʻlov kamida 500 soʻm boʻlishi kerak. | Предоплата должна быть не меньше 500 сум. | The deposit must be at least 500 soʻm. |
+| `owner.prices.minimum` | Oldindan toʻlov | Предоплата | Deposit |
+| `owner.prices.minimumField` | Eng kam toʻlov (soʻm) | Минимальная оплата (сум) | Minimum payment (soʻm) |
+| `owner.prices.minimumText` | Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada. | При бронировании игрок платит не меньше этой суммы, остальное позже. Не меньше 500 сум. Текущее значение пока не показывается — скоро. | Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon. |

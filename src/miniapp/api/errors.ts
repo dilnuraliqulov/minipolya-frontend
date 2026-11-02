@@ -22,6 +22,7 @@ export type ErrorMessageKey =
   | 'errors.tooMany'
   | 'errors.alreadyReviewed'
   | 'errors.reviewNotPlayed'
+  | 'errors.minimumTooLow'
   | 'errors.cardDeclined'
   | 'errors.tooLate'
   | 'errors.paymentConfirming'
@@ -41,6 +42,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       // POST /api/reviews: two 400s the review form tells apart.
       if (error.message === API_MESSAGES.alreadyReviewed) return 'errors.alreadyReviewed'
       if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
+      // Owner stadium forms: the minimum booking amount's floor.
+      if (error.message === API_MESSAGES.minimumTooLow) return 'errors.minimumTooLow'
       // Team games: a declined card and the 3-hour cut-off are 400s too.
       if (
         error.message === API_MESSAGES.joinDeclined ||

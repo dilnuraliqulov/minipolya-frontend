@@ -260,6 +260,41 @@ describe('Ega rejimi — Maydonim', () => {
       { dayOfWeek: 0, startTime: '18:00:00', endTime: '23:00:00', pricePerHour: 20_000_000 },
     ])
   })
+
+  it('sets the minimum booking amount in soʻm and sends tiyin', async () => {
+    const api = stub({
+      'GET /api/owner/stadiums/s1/pricing': [],
+      'PUT /api/owner/stadiums/s1': { id: 's1' },
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
+    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
+      target: { value: '50 000' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
+    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([{ minBookingAmount: 5_000_000 }])
+  })
+
+  it('explains the API floor when the minimum is too low', async () => {
+    stub({
+      'GET /api/owner/stadiums/s1/pricing': [],
+      'PUT /api/owner/stadiums/s1': jsonResponse(
+        400,
+        null,
+        "minBookingAmount must be at least 50000 tiyin (500 so'm)",
+      ),
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
+    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
+      target: { value: '100' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await within(sheet).findByRole('alert')).toHaveTextContent('kamida 500 soʻm')
+  })
 })
 
 describe('Ega rejimi — Hisobot', () => {

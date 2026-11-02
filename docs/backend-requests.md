@@ -565,6 +565,27 @@ Mini App player — Raqib qidirish, game detail "Qolganini toʻlash".
 **Priority**
 High — guards against double holds and double charges.
 
+### R41 — Let the owner turn the minimum booking amount off
+
+**What's needed**
+`PUT /api/owner/stadiums/{id}` applies only non-null fields, and a non-null
+`minBookingAmount` must be ≥ 50 000 tiyin. Once an owner sets a minimum, they
+cannot go back to "full payment only" (null); only an admin can, in the
+database.
+
+**Which screen needs it**
+Mini App owner mode — Narxlar → Oldindan toʻlov (it can set and change the
+minimum, not remove it).
+
+**Proposed change**
+`PUT /api/owner/stadiums/{id}` accepts `"clearMinBookingAmount": true`, which
+sets `minBookingAmount` to null (full payment only). Sending it together with
+`minBookingAmount` → 400 `"Send either minBookingAmount or clearMinBookingAmount"`.
+The audit entry records the change like any other field.
+
+**Priority**
+Medium — an owner who tries deposits is stuck with them.
+
 ---
 
 ## Done

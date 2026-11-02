@@ -1,13 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { somToTiyin } from '../../shared/format'
 import { errorMessage } from '../api/errors'
 import {
   addPricing,
+  OWNER_STADIUMS_KEY,
   pricingKey,
   removePricing,
+  updateStadium,
   type OwnerStadium,
   type PricingRule,
 } from '../api/owner'
@@ -54,6 +56,7 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
   const queryClient = useQueryClient()
   const rules = usePricing(stadium.id)
   const [adding, setAdding] = useState(false)
+  const [settingMinimum, setSettingMinimum] = useState(false)
   const remove = useMutation({
     mutationFn: (id: string) => removePricing(stadium.id, id),
     onSuccess: () => {
@@ -102,7 +105,13 @@ function Prices({ stadium }: { stadium: OwnerStadium }) {
       <Button variant="ghost" icon={Plus} onClick={() => setAdding(true)}>
         {t('owner.prices.add')}
       </Button>
+      <Button variant="ghost" icon={Wallet} onClick={() => setSettingMinimum(true)}>
+        {t('owner.prices.minimum')}
+      </Button>
       {adding && <AddRuleSheet stadiumId={stadium.id} onClose={() => setAdding(false)} />}
+      {settingMinimum && (
+        <MinimumSheet stadiumId={stadium.id} onClose={() => setSettingMinimum(false)} />
+      )}
     </>
   )
 }
@@ -215,6 +224,53 @@ function AddRuleSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () =
       {add.isError && (
         <p role="alert" className="text-sm text-danger">
           {errorMessage(add.error)}
+        </p>
+      )}
+    </BottomSheet>
+  )
+}
+
+/**
+ * Oldindan toʻlov: the stadium's minimum booking amount (the deposit). Write-only for now —
+ * the owner's stadium list does not carry it (R35), and the API cannot clear it.
+ */
+function MinimumSheet({ stadiumId, onClose }: { stadiumId: string; onClose: () => void }) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [amount, setAmount] = useState('')
+  const som = Number(amount || '0')
+  const save = useMutation({
+    mutationFn: () => updateStadium(stadiumId, { minBookingAmount: somToTiyin(som) }),
+    onSuccess: () => {
+      toast.show(t('owner.saved'), 'success')
+      void queryClient.invalidateQueries({ queryKey: OWNER_STADIUMS_KEY })
+      onClose()
+    },
+  })
+  return (
+    <BottomSheet
+      open
+      title={t('owner.prices.minimum')}
+      onClose={() => {
+        if (!save.isPending) onClose()
+      }}
+      actions={
+        <Button haptic disabled={som <= 0} loading={save.isPending} onClick={() => save.mutate()}>
+          {t('owner.save')}
+        </Button>
+      }
+    >
+      <p className="text-sm text-secondary">{t('owner.prices.minimumText')}</p>
+      <Input
+        label={t('owner.prices.minimumField')}
+        inputMode="numeric"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value.replace(/\D/g, '').slice(0, 9))}
+      />
+      {save.isError && (
+        <p role="alert" className="text-sm text-danger">
+          {errorMessage(save.error)}
         </p>
       )}
     </BottomSheet>

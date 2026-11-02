@@ -79,7 +79,8 @@
     "cardDeclined": "The card was declined. Choose another card or check this one.",
     "tooLate": "The game starts in less than 3 hours — it can no longer be joined.",
     "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
-    "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games."
+    "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
+    "minimumTooLow": "The deposit must be at least 500 soʻm."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -561,7 +562,10 @@
       "add": "Add a price rule",
       "player": "For players: {{price}}",
       "added": "Price rule added",
-      "removed": "Price rule removed"
+      "removed": "Price rule removed",
+      "minimum": "Deposit",
+      "minimumField": "Minimum payment (soʻm)",
+      "minimumText": "Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon."
     },
     "closures": {
       "title": "Closed days",

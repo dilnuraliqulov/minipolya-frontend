@@ -34,6 +34,8 @@ export const API_MESSAGES = {
   alreadyReviewed: 'You have already reviewed this stadium',
   /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
   reviewNotPlayed: 'You can only review a stadium you have played at',
+  /** 400 from `POST` / `PUT /api/owner/stadiums` when `minBookingAmount` is under the 50 000-tiyin floor. */
+  minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
   /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
   joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
   /** 400 from `POST /api/games/{id}/join` when the joining team's card is declined. */

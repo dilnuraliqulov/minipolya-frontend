@@ -89,6 +89,12 @@ export interface StadiumBasics {
   surfaceType?: string
 }
 
+/** `PUT /api/owner/stadiums/{id}`: only non-null fields change. */
+export interface UpdateStadiumBody extends StadiumBasics {
+  /** Tiyin, the owner's amount; at least 50 000. The API cannot clear it back to "full payment only". */
+  minBookingAmount?: number
+}
+
 export interface CreateStadiumBody extends Required<
   Pick<StadiumBasics, 'name' | 'address' | 'format' | 'surfaceType'>
 > {
@@ -128,7 +134,7 @@ export function createStadium(body: CreateStadiumBody): Promise<{ id: string }> 
 }
 
 /** Only the fields given are changed (the API applies non-null values). */
-export function updateStadium(id: string, body: StadiumBasics): Promise<unknown> {
+export function updateStadium(id: string, body: UpdateStadiumBody): Promise<unknown> {
   return api.put(`/api/owner/stadiums/${id}`, body)
 }
 

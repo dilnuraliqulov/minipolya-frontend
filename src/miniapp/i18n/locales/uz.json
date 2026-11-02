@@ -79,7 +79,8 @@
     "cardDeclined": "Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.",
     "tooLate": "Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi.",
     "paymentConfirming": "Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi.",
-    "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring."
+    "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring.",
+    "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -561,7 +562,10 @@
       "add": "Narx qoidasi qoʻshish",
       "player": "Oʻyinchiga: {{price}}",
       "added": "Narx qoidasi qoʻshildi",
-      "removed": "Narx qoidasi oʻchirildi"
+      "removed": "Narx qoidasi oʻchirildi",
+      "minimum": "Oldindan toʻlov",
+      "minimumField": "Eng kam toʻlov (soʻm)",
+      "minimumText": "Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada."
     },
     "closures": {
       "title": "Yopiq kunlar",
