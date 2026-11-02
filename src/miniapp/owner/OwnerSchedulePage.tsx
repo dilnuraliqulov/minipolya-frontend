@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Phone, Plus, Swords } from 'lucide-react'
+import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc } from '../../shared/format'
@@ -30,6 +30,7 @@ import { formatMoney } from '../format'
 import { DateStrip } from '../stadiums/SlotPicker'
 import { availabilityKey } from '../stadiums/queries'
 import { slotLabel, tashkentToday } from '../stadiums/dates'
+import { DiscountSheet } from './DiscountSheet'
 import { OwnerTabScreen } from './OwnerTabScreen'
 import { useSchedule } from './queries'
 import { SelectField } from './SelectField'
@@ -64,6 +65,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
   })
   const [open, setOpen] = useState<Booking | null>(null)
   const [walkIn, setWalkIn] = useState<string | null>(null)
+  const [discount, setDiscount] = useState<TimeSlot | null>(null)
   const day = schedule.data?.[0]
   const bookings = day?.bookings ?? []
   const atHour = (slot: TimeSlot) =>
@@ -134,6 +136,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
                         slot={slot}
                         waiting={waitingAt.has(slot.startTime.slice(0, 5))}
                         onWalkIn={() => setWalkIn(slot.startTime.slice(0, 5))}
+                        onDiscount={() => setDiscount(slot)}
                       />
                     )}
                   </li>
@@ -156,6 +159,14 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
           stadium={stadium}
           date={date}
           onClose={() => setOpen(null)}
+        />
+      )}
+      {discount && (
+        <DiscountSheet
+          stadiumId={stadium.id}
+          date={date}
+          slot={discount}
+          onClose={() => setDiscount(null)}
         />
       )}
       {walkIn !== null && (
@@ -202,10 +213,12 @@ function SlotRow({
   slot,
   waiting,
   onWalkIn,
+  onDiscount,
 }: {
   slot: TimeSlot
   waiting: boolean
   onWalkIn: () => void
+  onDiscount: () => void
 }) {
   const { t } = useTranslation()
   const free = slot.status === 'free'
@@ -215,22 +228,40 @@ function SlotRow({
       : slot.status === 'past'
         ? t('owner.schedule.past')
         : t('owner.schedule.free')
+  const time = slot.startTime.slice(0, 5)
   return (
-    <button
-      type="button"
-      disabled={!free}
-      onClick={onWalkIn}
+    <div
       className={cx(
-        'flex min-h-12 w-full items-center gap-3 rounded-xl border border-dashed border-border px-3 text-left',
+        'flex min-h-12 w-full items-center rounded-xl border border-dashed border-border',
         !free && 'opacity-55',
       )}
     >
-      <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
-      <span className="flex-1 text-sm text-secondary">
-        {waiting && free ? t('owner.schedule.waitingShort') : label}
-      </span>
-      {free && <Plus size={18} className="text-link" aria-hidden />}
-    </button>
+      <button
+        type="button"
+        disabled={!free}
+        onClick={onWalkIn}
+        className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-3 text-left"
+      >
+        <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
+        <span className="flex-1 text-sm text-secondary">
+          {waiting && free ? t('owner.schedule.waitingShort') : label}
+        </span>
+        {slot.discountPercent !== undefined && free && (
+          <span className="text-xs font-semibold text-link">-{slot.discountPercent}%</span>
+        )}
+        {free && <Plus size={18} className="text-link" aria-hidden />}
+      </button>
+      {free && (
+        <button
+          type="button"
+          onClick={onDiscount}
+          aria-label={t('owner.discount.open', { time })}
+          className="flex size-12 shrink-0 items-center justify-center border-l border-dashed border-border text-link"
+        >
+          <Percent size={18} aria-hidden />
+        </button>
+      )}
+    </div>
   )
 }
 

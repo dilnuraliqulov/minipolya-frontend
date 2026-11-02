@@ -37,6 +37,34 @@ export interface PricingRule {
   isActive: boolean
 }
 
+/** `PromotionResponse` (api-reference §10.5): a discount over a time window. */
+export interface Promotion {
+  id: string
+  stadiumId: string
+  stadiumName?: string
+  name: string
+  description?: string
+  /** 1–100. */
+  discountPercent: number
+  /** ISO UTC; the window is inclusive at both ends. */
+  startsAt: string
+  endsAt: string
+  /** 0 = Monday … 6 = Sunday; absent = every day. */
+  dayOfWeek?: number
+  /** `"18:00:00"`, Tashkent; absent = all hours. */
+  startTime?: string
+  endTime?: string
+  isActive: boolean
+  createdAt?: string
+}
+
+export interface CreatePromotionBody {
+  name: string
+  discountPercent: number
+  startsAt: string
+  endsAt: string
+}
+
 export interface Closure {
   id: string
   stadiumId: string
@@ -121,6 +149,7 @@ export const OWNER_LEGAL = 'GET /api/owner/legal-details'
 export const OWNER_STADIUMS_KEY = ['owner', 'stadiums'] as const
 export const pricingKey = (id: string) => ['owner', 'pricing', id] as const
 export const closuresKey = (id: string) => ['owner', 'closures', id] as const
+export const promotionsKey = (id: string) => ['owner', 'promotions', id] as const
 export const scheduleKey = (id: string, date: string) => ['owner', 'schedule', id, date] as const
 export const statsKey = (id: string) => ['owner', 'stats', id] as const
 
@@ -200,4 +229,19 @@ export function getOwnerBookings(stadiumId: string, page: number): Promise<Page<
   return api.get<Page<Booking>>(`/api/owner/stadiums/${stadiumId}/bookings`, {
     query: { page, size: 20 },
   })
+}
+
+/** Newest first. The backend has no filter, so the schedule reads one large page. */
+export function getPromotions(stadiumId: string): Promise<Page<Promotion>> {
+  return api.get<Page<Promotion>>(`/api/owner/stadiums/${stadiumId}/promotions`, {
+    query: { page: 0, size: 100 },
+  })
+}
+
+export function createPromotion(stadiumId: string, body: CreatePromotionBody): Promise<Promotion> {
+  return api.post<Promotion>(`/api/owner/stadiums/${stadiumId}/promotions`, body)
+}
+
+export function deactivatePromotion(id: string): Promise<void> {
+  return api.put<void>(`/api/owner/promotions/${id}/deactivate`)
 }

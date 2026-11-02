@@ -550,3 +550,13 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.prices.minimum` | Oldindan toʻlov | Предоплата | Deposit |
 | `owner.prices.minimumField` | Eng kam toʻlov (soʻm) | Минимальная оплата (сум) | Minimum payment (soʻm) |
 | `owner.prices.minimumText` | Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada. | При бронировании игрок платит не меньше этой суммы, остальное позже. Не меньше 500 сум. Текущее значение пока не показывается — скоро. | Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon. |
+| `owner.discount.title` | Narxni oʻzgartirish | Изменить цену | Change price |
+| `owner.discount.open` | {{time}} narxini oʻzgartirish | Изменить цену на {{time}} | Change the {{time}} price |
+| `owner.discount.percent` | Chegirma (%) | Скидка (%) | Discount (%) |
+| `owner.discount.hint` | 1 dan 100 gacha | От 1 до 100 | 1 to 100 |
+| `owner.discount.playersSee` | Oʻyinchilar koʻradi | Игроки видят | Players see |
+| `owner.discount.note` | Bu soat uchun narxni chegirma bilan pasaytirish mumkin. Oʻyinchilar narxi chegirmadan keyin hisoblanadi. | Цену на этот час можно снизить скидкой. Цена для игроков рассчитывается после скидки. | You can lower this hour’s price with a discount. The player price is worked out after the discount. |
+| `owner.discount.name` | {{time}} chegirmasi | Скидка на {{time}} | {{time}} discount |
+| `owner.discount.saved` | Chegirma saqlandi | Скидка сохранена | Discount saved |
+| `owner.discount.remove` | Chegirmani olib tashlash | Убрать скидку | Remove discount |
+| `owner.discount.removed` | Chegirma olib tashlandi | Скидка убрана | Discount removed |

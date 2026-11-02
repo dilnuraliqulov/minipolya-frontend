@@ -639,6 +639,18 @@
       "sentText": "Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi.",
       "toStadium": "Maydonimga oʻtish",
       "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00)."
+    },
+    "discount": {
+      "title": "Narxni oʻzgartirish",
+      "open": "{{time}} narxini oʻzgartirish",
+      "percent": "Chegirma (%)",
+      "hint": "1 dan 100 gacha",
+      "playersSee": "Oʻyinchilar koʻradi",
+      "note": "Bu soat uchun narxni chegirma bilan pasaytirish mumkin. Oʻyinchilar narxi chegirmadan keyin hisoblanadi.",
+      "name": "{{time}} chegirmasi",
+      "saved": "Chegirma saqlandi",
+      "remove": "Chegirmani olib tashlash",
+      "removed": "Chegirma olib tashlandi"
     }
   }
 }

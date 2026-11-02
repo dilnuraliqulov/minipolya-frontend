@@ -639,6 +639,18 @@
       "sentText": "Once an admin approves it, players can see and book it.",
       "toStadium": "Go to my pitch",
       "onTheHour": "Times must be on the hour (e.g. 08:00)."
+    },
+    "discount": {
+      "title": "Change price",
+      "open": "Change the {{time}} price",
+      "percent": "Discount (%)",
+      "hint": "1 to 100",
+      "playersSee": "Players see",
+      "note": "You can lower this hour’s price with a discount. The player price is worked out after the discount.",
+      "name": "{{time}} discount",
+      "saved": "Discount saved",
+      "remove": "Remove discount",
+      "removed": "Discount removed"
     }
   }
 }
