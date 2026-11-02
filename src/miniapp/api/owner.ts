@@ -244,12 +244,6 @@ export function ownerCancelBooking(id: string): Promise<Booking> {
   return api.delete<Booking>(`/api/owner/bookings/${id}`)
 }
 
-export function getOwnerBookings(stadiumId: string, page: number): Promise<Page<Booking>> {
-  return api.get<Page<Booking>>(`/api/owner/stadiums/${stadiumId}/bookings`, {
-    query: { page, size: 20 },
-  })
-}
-
 /** Newest first. The backend has no filter, so the schedule reads one large page. */
 export function getPromotions(stadiumId: string): Promise<Page<Promotion>> {
   return api.get<Page<Promotion>>(`/api/owner/stadiums/${stadiumId}/promotions`, {

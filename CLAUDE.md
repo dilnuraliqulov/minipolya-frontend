@@ -45,7 +45,7 @@ admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
 │   ├── main.tsx      #   entry: viewport, theme, session (in-memory JWT), API client, Query, i18n
-│   ├── App.tsx, routes.tsx  # router; screens later parts build are SoonTab / SoonScreen ("Tez orada")
+│   ├── App.tsx, routes.tsx  # router
 │   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
 │   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
@@ -55,7 +55,7 @@ src/
 │   ├── cards/        #   Kartalarim, AddCardSheet (number → SMS), CardRow
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
-│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen, SoonTab / SoonScreen
+│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen
 │   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, prices, closures), Hisobot, Profil, add-stadium wizard
 │   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
@@ -82,7 +82,8 @@ src/
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
 │   ├── brand/        #   logoMark.ts, logo-mark.svg (LogoMark, LogoSpinner, favicon)
-│   ├── format/       #   formatSom, Tashkent date/time helpers
+│   ├── format/       #   formatSom, soʻm input ⇄ tiyin, Tashkent date/time helpers, tashkentToday
+│   ├── map/          #   mapLink (OpenStreetMap "Xaritada ochish" link)
 │   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
 └── test/setup.ts     # Vitest setup
 ```
@@ -114,9 +115,12 @@ plain browser; the page still renders and follows the computer's theme.
   Exact backend message strings live only in `shared/api/messages.ts`.
 - **Queries:** `createQueryClient()` — no retries on 4xx, at most 2 on
   5xx/network, mutations never retried.
-- **Money:** `formatSom(tiyin)` from `shared/format`. **Dates:** `formatDate`,
-  `formatTime`, `formatDateTime`, `formatTimeRange`, `toTashkentParts`
-  (`dayOfWeek` 0 = Monday) from `shared/format`.
+- **Money:** `formatSom(tiyin)` from `shared/format`; typed soʻm → tiyin with
+  `somToTiyin` (whole soʻm) or `somInputToTiyin` / `tiyinToSomInput` (up to two
+  decimals, no rounding). **Dates:** `formatDate`, `formatTime`,
+  `formatDateTime`, `formatTimeRange`, `toTashkentParts` (`dayOfWeek` 0 =
+  Monday), `tashkentToday` from `shared/format`. **Map links:** `mapLink` from
+  `shared/map`.
 - **Endpoint types** go next to the feature that uses them, not in `shared/api`.
 - **JWT claims:** `readJwtClaims` / `isJwtExpired` from `shared/api` — for
   client decisions only (skip an expired token, notice role changes); the
@@ -169,8 +173,8 @@ restyle per page.
   parameter**, so a page either sorts what it has, or leaves columns
   unsortable.
 - Admin pages: add the item to `MENU` in `layout/menu.ts` (route, sidebar and
-  breadcrumbs follow), then add its page to `PAGES` in `routes.tsx` (until then
-  it shows `ComingSoonPage`). Detail pages go in `detailRoutes` and set their
+  breadcrumbs follow), then add its page to `PAGES` in `routes.tsx` (a menu item
+  without a page throws at startup). Detail pages go in `detailRoutes` and set their
   own title, crumbs and status badge with `usePageHeader`.
 - Filters, tabs and the open side panel live in the URL (`useSearchParams`), so
   a filtered view or one booking can be linked to.
@@ -421,8 +425,8 @@ Rules for everything under `src/miniapp`. Every later part follows them.
 **Real data only.** Use only endpoints and fields that exist in the backend
 (`docs/api-reference.md`, and the DTOs in `../minipolyaBackend` when in
 doubt). Never sample data, never a stand-in record. When something is
-missing: show "Tez orada" (`SoonScreen` / a disabled control with a "Tez
-orada" note) or hide it, request nothing, and add a full contract to
+missing: show "Tez orada" (a `common.soon` note / a disabled control with a
+"Tez orada" note) or hide it, request nothing, and add a full contract to
 `docs/backend-requests.md` plus its line to `src/miniapp/api/missing.ts`
 (`MISSING_ENDPOINTS`, same pattern as the admin's). The API function is
 written against the requested contract behind `isAvailable(...)`.

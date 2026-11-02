@@ -2,11 +2,11 @@ import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { GameDetail, GameTeam } from '../api/games'
 import type { OwnerStadium } from '../api/owner'
-import { tashkentToday } from '../stadiums/dates'
 import { jsonResponse, makeUser, stubApi } from '../test/api'
 import { makeBooking } from '../test/bookings'
 import { readySession, renderApp } from '../test/renderApp'
 import { makeSlot } from '../test/stadiums'
+import { tashkentToday } from '../../shared/format'
 
 afterEach(() => {
   vi.unstubAllGlobals()

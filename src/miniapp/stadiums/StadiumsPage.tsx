@@ -10,13 +10,13 @@ import { TabScreen } from '../layout/TabScreen'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
 import { useMe } from '../profile/queries'
 import { useSplashDone } from '../splash'
-import { tashkentToday } from './dates'
 import { FiltersSheet } from './FiltersSheet'
 import { isBannerHidden, rememberBannerHidden } from './bannerPreference'
 import { InfoBanner } from './InfoBanner'
 import { STADIUM_LISTS_KEY, useToggleFavorite } from './queries'
 import { DateStrip } from './SlotPicker'
 import { StadiumCardCompact } from './StadiumCardCompact'
+import { tashkentToday } from '../../shared/format'
 
 /** Bosh sahifa (the Maydonlar tab): search and filters, the date strip, the info
  * banner, the stadium list. The chosen day only travels to the stadium page

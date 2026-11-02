@@ -20,9 +20,10 @@ import {
   SkeletonList,
   useToast,
 } from '../components'
-import { dayTitle, tashkentToday } from '../stadiums/dates'
+import { dayTitle } from '../stadiums/dates'
 import { OwnerStadiumSubPage } from './OwnerStadiumSubPage'
 import { useClosures } from './queries'
+import { tashkentToday } from '../../shared/format'
 
 /** Yopiq kunlar: planned closures — list, add a full-day closure, remove. */
 export function OwnerClosuresPage() {

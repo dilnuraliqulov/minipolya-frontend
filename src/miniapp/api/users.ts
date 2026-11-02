@@ -25,9 +25,6 @@ export interface AuthResponse {
   user: User
 }
 
-export const AUTH_TELEGRAM = 'POST /api/auth/telegram'
-export const USERS_ME = 'GET /api/users/me'
-
 export function loginWithTelegram(initData: string): Promise<AuthResponse> {
   return api.post<AuthResponse>('/api/auth/telegram', { initData })
 }

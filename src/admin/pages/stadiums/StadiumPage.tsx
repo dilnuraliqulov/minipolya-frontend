@@ -60,6 +60,7 @@ import {
   REJECT_REASONS,
 } from './labels'
 import { OwnerDetailsModal } from './OwnerDetailsModal'
+import { mapLink } from '../../../shared/map'
 
 const StadiumMap = lazy(() => import('./StadiumMap'))
 
@@ -95,14 +96,6 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
       <dd className="min-w-0 flex-1 text-primary">{children}</dd>
     </div>
   )
-}
-
-function mapLink(stadium: StadiumDetail): string {
-  if (stadium.latitude !== undefined && stadium.longitude !== undefined) {
-    const { latitude: lat, longitude: lng } = stadium
-    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`
-  }
-  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(`${stadium.address}, Toshkent`)}`
 }
 
 /** A per-hour amount from the backend, or "—" when it is absent. */
@@ -206,7 +199,7 @@ function InfoSection({
             <span className="flex flex-col items-start gap-1">
               {stadium.address}
               <a
-                href={mapLink(stadium)}
+                href={mapLink({ ...stadium, address: `${stadium.address}, Toshkent` })}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 rounded-xs text-sm text-link hover:underline focus-visible:outline-2 focus-visible:outline-accent"

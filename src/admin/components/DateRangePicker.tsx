@@ -1,8 +1,9 @@
 import { Calendar, ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { formatLocalDate, lastDays, monthStart, tashkentToday } from '../format'
+import { formatLocalDate, lastDays, monthStart } from '../format'
 import { Button } from './Button'
 import { cx } from './cx'
+import { tashkentToday } from '../../shared/format'
 
 /** Tashkent calendar days (`LocalDate` strings), both inclusive; either may be open. */
 export interface DateRange {

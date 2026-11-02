@@ -1,4 +1,7 @@
-/** An OpenStreetMap link for a stadium: its coordinates, or a search for its address. */
+/**
+ * An OpenStreetMap link for a stadium: its coordinates, or a search for its
+ * address. Used by both apps ("Xaritada ochish").
+ */
 export function mapLink({
   latitude,
   longitude,

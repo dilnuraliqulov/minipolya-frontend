@@ -1,4 +1,3 @@
-import { toTashkentParts } from '../../shared/format'
 import { MONTH_KEYS } from '../format'
 import i18n from '../i18n'
 
@@ -18,12 +17,6 @@ export interface StripDate {
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
-
-/** Today's calendar date in Tashkent, `"YYYY-MM-DD"`. */
-export function tashkentToday(now: Date = new Date()): string {
-  const { year, month, day } = toTashkentParts(now)
-  return `${year}-${pad(month)}-${pad(day)}`
-}
 
 /** Calendar maths on a plain date (no time zone involved). */
 function addDays(iso: string, days: number): StripDate {

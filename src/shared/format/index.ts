@@ -7,6 +7,7 @@ export {
   formatTime,
   formatTimeRange,
   parseUtc,
+  tashkentToday,
   tashkentToUtc,
   toTashkentParts,
 } from './datetime'

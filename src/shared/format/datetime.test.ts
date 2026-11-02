@@ -3,6 +3,7 @@ import {
   formatDate,
   formatDateTime,
   formatTime,
+  tashkentToday,
   formatTimeRange,
   parseUtc,
   tashkentToUtc,
@@ -57,5 +58,14 @@ describe('tashkentToUtc', () => {
   it('round-trips through toTashkentParts', () => {
     const p = toTashkentParts(tashkentToUtc('2026-11-06', '23:00'))
     expect([p.day, p.month, p.hour]).toEqual([6, 11, 23])
+  })
+})
+
+describe('tashkentToday', () => {
+  it('is the calendar date in Tashkent, not UTC', () => {
+    // 20:00 UTC on the 27th is already 01:00 on the 28th in Tashkent.
+    expect(tashkentToday(new Date('2026-10-27T20:00:00Z'))).toBe('2026-10-28')
+    expect(tashkentToday(new Date('2026-10-27T18:59:00Z'))).toBe('2026-10-27')
+    expect(tashkentToday(new Date('2026-10-31T19:00:00Z'))).toBe('2026-11-01')
   })
 })

@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, stubApi } from '../test/api'
 import { renderApp } from '../test/renderApp'
 import { makeStadium, page } from '../test/stadiums'
-import { nextDate, tashkentToday } from './dates'
+import { nextDate } from './dates'
+import { tashkentToday } from '../../shared/format'
 
 beforeEach(() => {
   localStorage.clear()

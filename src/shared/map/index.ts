@@ -1,0 +1,1 @@
+export { mapLink } from './mapLink'

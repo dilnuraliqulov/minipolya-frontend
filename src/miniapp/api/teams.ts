@@ -25,9 +25,6 @@ export interface TeamDetail {
   members: TeamMember[]
 }
 
-/** `@Size(max = 100)` on the team name. */
-export const TEAM_NAME_MAX = 100
-
 /** R32: a team invite link and joining by it. Not shipped; nothing calls it. */
 export const TEAM_INVITE = 'POST /api/teams/join'
 

@@ -4,7 +4,8 @@ import { jsonResponse, stubApi } from '../test/api'
 import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
 import { makeDetail, makeReview, page } from '../test/stadiums'
-import { nextDate, tashkentToday } from './dates'
+import { nextDate } from './dates'
+import { tashkentToday } from '../../shared/format'
 
 // Leaflet needs a real layout; the map itself is checked by eye.
 vi.mock('./StadiumMap', () => ({ StadiumMap: () => <div data-testid="map" /> }))

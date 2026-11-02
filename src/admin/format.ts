@@ -47,12 +47,6 @@ export function formatDayMonthShort(date: string): string {
   return `${day} ${MONTHS_SHORT[month - 1]}`
 }
 
-/** Today's date in Tashkent as a `LocalDate` string, e.g. "2026-10-27". */
-export function tashkentToday(now: Date = new Date()): string {
-  const p = toTashkentParts(now)
-  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`
-}
-
 /** The `count` dates ending with `last` (inclusive), oldest first: LocalDate strings. */
 export function lastDays(last: string, count: number): string[] {
   const [year, month, day] = last.split('-').map(Number)
