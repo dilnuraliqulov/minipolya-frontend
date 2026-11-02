@@ -106,11 +106,14 @@ function GameContent({ game }: { game: GameDetail }) {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-4 py-2">
-        <Side team={a} />
-        <span className="text-md font-semibold text-secondary">{t('game.vs')}</span>
-        <Side team={b} />
-      </div>
+      {/* The API lists only teams still in the game: none once it is cancelled. */}
+      {a && (
+        <div className="flex items-center justify-center gap-4 py-2">
+          <Side team={a} />
+          <span className="text-md font-semibold text-secondary">{t('game.vs')}</span>
+          <Side team={b} />
+        </div>
+      )}
       <div className="flex justify-center">
         <Badge tone={badge.tone}>{badge.labelKey ? t(badge.labelKey) : badge.raw}</Badge>
       </div>
@@ -149,14 +152,16 @@ function GameContent({ game }: { game: GameDetail }) {
         </Link>
       )}
 
-      <section className="flex flex-col gap-3" aria-labelledby="game-teams">
-        <h3 id="game-teams" className="text-lg font-semibold text-primary">
-          {t('game.teams')}
-        </h3>
-        {teams.map((team) => (
-          <TeamMembers key={team.side} team={team} />
-        ))}
-      </section>
+      {teams.length > 0 && (
+        <section className="flex flex-col gap-3" aria-labelledby="game-teams">
+          <h3 id="game-teams" className="text-lg font-semibold text-primary">
+            {t('game.teams')}
+          </h3>
+          {teams.map((team) => (
+            <TeamMembers key={team.side} team={team} />
+          ))}
+        </section>
+      )}
 
       {myTeam && (
         <MyPayment team={myTeam}>

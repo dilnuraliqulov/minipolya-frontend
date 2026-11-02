@@ -195,6 +195,15 @@ describe('Oʻyin — a team game', () => {
     expect(screen.queryByRole('link', { name: /Chat/ })).not.toBeInTheDocument()
   })
 
+  it('a cancelled game without teams shows no opponent placeholders or empty team list', async () => {
+    // The API lists only teams still in the game; after a cancel there are none.
+    stub({ ...confirmed, status: 'cancelled', teams: [] })
+    renderApp('/games/g1')
+    expect(await screen.findByText('Bekor qilingan')).toBeInTheDocument()
+    expect(screen.queryByText('Raqib kutilmoqda')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Jamoalar' })).not.toBeInTheDocument()
+  })
+
   it('a player outside the teams sees no payment or cancel', async () => {
     stub({ ...confirmed, creatorId: RIVAL, teams: [{ ...teamA, leaderId: 'x' }, teamB] })
     renderApp('/games/g1')
