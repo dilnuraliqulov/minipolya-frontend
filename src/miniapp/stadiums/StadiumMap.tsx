@@ -39,6 +39,8 @@ export function StadiumMap({ latitude, longitude }: { latitude: number; longitud
     L.marker([latitude, longitude], {
       icon: L.divIcon({ className: '', html: PIN_HTML, iconSize: [36, 36], iconAnchor: [18, 18] }),
       interactive: false,
+      // Without this Leaflet makes the pin a focusable, unlabelled role="button".
+      keyboard: false,
     }).addTo(map)
     return () => {
       map.remove()

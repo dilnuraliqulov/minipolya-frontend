@@ -44,7 +44,7 @@ describe('Oʻyinlarim — bookings', () => {
       'Chilonzor Arena',
     ])
     expect(
-      within(items[0] as HTMLElement).getByText('Juma, 6-noyabr · 20:00–21:00'),
+      within(items[0] as HTMLElement).getByText('Juma, 6-noyabr · 20:00\u2060–\u206021:00'),
     ).toBeInTheDocument()
     expect(within(items[0] as HTMLElement).getByText('Tasdiqlangan')).toBeInTheDocument()
     expect(within(items[1] as HTMLElement).getByText('Kutilmoqda')).toBeInTheDocument()
@@ -108,7 +108,7 @@ describe('Oʻyinlarim — bookings', () => {
     )
     expect(within(games).getByText('Raqib kutilmoqda')).toBeInTheDocument()
     expect(
-      within(games).getByText('Jamoa vs jamoa · Juma, 6-noyabr · 20:00–21:00'),
+      within(games).getByText('Jamoa vs jamoa · Juma, 6-noyabr · 20:00\u2060–\u206021:00'),
     ).toBeInTheDocument()
   })
 

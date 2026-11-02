@@ -47,7 +47,7 @@ describe('Band qilindi', () => {
     )
     expect(await screen.findByRole('heading', { name: 'Band qilindi!' })).toBeInTheDocument()
     expect(screen.getByText('Bunyodkor Arena')).toBeInTheDocument()
-    expect(screen.getByText(/20:00–21:00/)).toBeInTheDocument()
+    expect(screen.getByText(/20:00\u2060–\u206021:00/)).toBeInTheDocument()
     expect(screen.getByText('Toʻlandi: 155 000 soʻm')).toBeInTheDocument()
     expect(screen.queryByText(/Qolgani/)).not.toBeInTheDocument()
     expect(

@@ -80,7 +80,7 @@ describe('Oʻyin — a team game', () => {
     expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
     expect(screen.getAllByText('Chilonzor Lions').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Yunusobod Tigers').length).toBeGreaterThan(0)
-    expect(screen.getByText('Juma, 6-noyabr · 20:00–21:00')).toBeInTheDocument()
+    expect(screen.getByText('Juma, 6-noyabr · 20:00\u2060–\u206021:00')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Chat/ })).toHaveAttribute('href', '/games/g1/chat')
     expect(await screen.findByText('Bobur')).toBeInTheDocument()
     const pay = screen.getByRole('region', { name: 'Jamoangiz toʻlovi' })

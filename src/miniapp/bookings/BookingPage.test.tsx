@@ -53,7 +53,7 @@ describe('Booking detail', () => {
       await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Tasdiqlangan')).toBeInTheDocument()
-    expect(screen.getByText('Juma, 6-noyabr · 20:00–21:00')).toBeInTheDocument()
+    expect(screen.getByText('Juma, 6-noyabr · 20:00\u2060–\u206021:00')).toBeInTheDocument()
     expect(screen.getByText('1 soat')).toBeInTheDocument()
     expect(await screen.findByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Qoʻngʻiroq/ })).toHaveAttribute(

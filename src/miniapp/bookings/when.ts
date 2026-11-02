@@ -2,12 +2,16 @@ import { formatTimeRange } from '../../shared/format'
 import type { Booking } from '../api/bookings'
 import { dayTitle, tashkentToday } from '../stadiums/dates'
 
-/** `"Juma, 6-noyabr · 20:00–21:00"` in Tashkent time. */
+/** U+2060 WORD JOINER: invisible, forbids a line break on either side. */
+const WJ = '\u2060'
+
+/**
+ * `"Juma, 6-noyabr · 20:00–21:00"` in Tashkent time. The time range never
+ * wraps at its dash on a narrow screen (word joiners around the `–`).
+ */
 export function bookingWhen(booking: Pick<Booking, 'startsAt' | 'endsAt'>): string {
-  return `${dayTitle(tashkentToday(new Date(booking.startsAt)))} · ${formatTimeRange(
-    booking.startsAt,
-    booking.endsAt,
-  )}`
+  const range = formatTimeRange(booking.startsAt, booking.endsAt).replace('–', `${WJ}–${WJ}`)
+  return `${dayTitle(tashkentToday(new Date(booking.startsAt)))} · ${range}`
 }
 
 /**

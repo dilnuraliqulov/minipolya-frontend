@@ -1,13 +1,12 @@
 import { CalendarClock, Check, CreditCard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useNavigate } from 'react-router'
-import { formatTime, formatTimeRange } from '../../shared/format'
+import { formatTime } from '../../shared/format'
 import type { Booking } from '../api/bookings'
 import { ButtonLink, Card, Header, Screen } from '../components'
 import { formatLongDate, formatMoney } from '../format'
-import { dayTitle, tashkentToday } from '../stadiums/dates'
 import { RefundLine } from '../bookings/RefundLine'
-import { isAhead } from '../bookings/when'
+import { bookingWhen, isAhead } from '../bookings/when'
 
 /** Band qilindi! — the booking the checkout just paid, passed in the route state. */
 export function BookedPage() {
@@ -17,10 +16,7 @@ export function BookedPage() {
   const booking = (location.state as { booking?: Booking } | null)?.booking
   if (!booking) return <Navigate to="/games" replace />
 
-  const when = `${dayTitle(tashkentToday(new Date(booking.startsAt)))} · ${formatTimeRange(
-    booking.startsAt,
-    booking.endsAt,
-  )}`
+  const when = bookingWhen(booking)
   return (
     <Screen
       header={
