@@ -21,6 +21,11 @@ import {
   STADIUM_STATUSES,
   SURFACE_TYPES,
 } from '../statuses'
+import { CONTRACT_LABELS, LEGAL_TYPE_LABELS } from '../pages/stadiums/labels'
+
+const PAYMENT_STATUS_LABELS = Object.fromEntries(
+  Object.entries(PAYMENT_STATUSES).map(([k, v]) => [k, v.label]),
+)
 
 export const ACTION_LABELS: Record<string, string> = {
   // Admin
@@ -36,6 +41,8 @@ export const ACTION_LABELS: Record<string, string> = {
   USER_BLOCKED: 'Foydalanuvchini blokladi',
   USER_UNBLOCKED: 'Foydalanuvchini blokdan chiqardi',
   USER_ROLE_CHANGED: 'Foydalanuvchi rolini oʻzgartirdi',
+  OWNER_LEGAL_DETAILS_CHANGED: 'Egasining yuridik maʼlumotlarini oʻzgartirdi',
+  STADIUM_NOTE_ADDED: 'Maydonga ichki izoh qoʻshdi',
   SETTINGS_CHANGED: 'Sozlamalarni oʻzgartirdi',
   PLATFORM_SETTINGS_UPDATED: 'Sozlamalarni oʻzgartirdi',
   // Owner
@@ -63,6 +70,8 @@ export const ACTION_LABELS: Record<string, string> = {
   GAME_CANCELLED: 'Oʻyinni bekor qildi',
   GAME_OPPONENT_LEFT: 'Raqib sifatida chiqib ketdi',
   GAME_REMAINDER_PAID: 'Oʻyin qoldigʻini toʻladi',
+  PROFILE_UPDATED: 'Profilini yangiladi',
+  PHONE_SHARED_VIA_BOT: 'Telefon raqamini bot orqali yubordi',
   // System
   BOOKING_CONFIRMED: 'Bron tasdiqlandi',
   BOOKING_EXPIRED: 'Bron muddati oʻtdi',
@@ -182,6 +191,29 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   casualGameServiceFee: { label: 'Doʻstlar bilan oʻyin: xizmat haqi', kind: 'money' },
   cardFeeBps: { label: 'Karta komissiyasi', kind: 'bps' },
   paymentRoundingStep: { label: 'Narxni yaxlitlash', kind: 'money' },
+  statusReason: { label: 'Sabab', kind: 'text' },
+  failureReason: { label: 'Xato sababi', kind: 'text' },
+  originalStatus: { label: 'Avvalgi holat', kind: 'enum', values: PAYMENT_STATUS_LABELS },
+  refundedManually: { label: 'Qoʻlda qaytarilgan', kind: 'bool' },
+  noteId: { label: 'Izoh', kind: 'id' },
+  // PROFILE_UPDATED / PHONE_SHARED_VIA_BOT (the phone number itself is never logged).
+  firstName: { label: 'Ism', kind: 'text' },
+  lastName: { label: 'Familiya', kind: 'text' },
+  language: {
+    label: 'Til',
+    kind: 'enum',
+    values: { uz: 'Oʻzbekcha', ru: 'Ruscha', en: 'Inglizcha' },
+  },
+  phoneChanged: { label: 'Telefon oʻzgardi', kind: 'bool' },
+  // OWNER_LEGAL_DETAILS_CHANGED: the legal-details snapshot.
+  legalType: { label: 'Yuridik shakl', kind: 'enum', values: LEGAL_TYPE_LABELS },
+  tin: { label: 'STIR / JShShIR', kind: 'text' },
+  atmosContractStatus: {
+    label: 'ATMOS shartnomasi',
+    kind: 'enum',
+    values: Object.fromEntries(Object.entries(CONTRACT_LABELS).map(([k, v]) => [k, v.label])),
+  },
+  atmosRecipientId: { label: 'ATMOS qabul qiluvchi ID', kind: 'text' },
   // The stadium snapshot (owner edits).
   address: { label: 'Manzil', kind: 'text' },
   latitude: { label: 'Kenglik', kind: 'text' },
