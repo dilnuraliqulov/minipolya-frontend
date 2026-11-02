@@ -1,5 +1,5 @@
 import { ChevronRight, Heart, Info, MapPinOff, MessageSquare, Star } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
@@ -29,7 +29,6 @@ import { mapLink } from './mapLink'
 import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
 import { ReviewCard } from './ReviewCard'
 import { DateStrip, SlotList } from './SlotPicker'
-import { StadiumMap } from './StadiumMap'
 
 /** Maydon: photos, info, amenities, map, cancellation rule, reviews, favourite. */
 export function StadiumPage() {
@@ -252,13 +251,23 @@ function Amenities({ stadium }: { stadium: StadiumDetail }) {
   )
 }
 
+/**
+ * Leaflet (~150 kB) loads only when a stadium with coordinates is opened,
+ * so it is not part of, or preloaded with, the Mini App launch.
+ */
+const StadiumMap = lazy(() => import('./StadiumMap').then((m) => ({ default: m.StadiumMap })))
+
 function Address({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
   const hasCoordinates = stadium.latitude !== undefined && stadium.longitude !== undefined
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-title font-bold text-primary">{t('stadium.address')}</h3>
-      {hasCoordinates && <StadiumMap latitude={stadium.latitude!} longitude={stadium.longitude!} />}
+      {hasCoordinates && (
+        <Suspense fallback={<div aria-hidden className="h-35 rounded-xl bg-surface" />}>
+          <StadiumMap latitude={stadium.latitude!} longitude={stadium.longitude!} />
+        </Suspense>
+      )}
       <div className="flex items-center gap-2">
         <p className="min-w-0 flex-1 text-base text-primary">{stadium.address}</p>
         <button

@@ -53,7 +53,7 @@ describe('Maydon — the stadium page', () => {
         .getAllByRole('listitem')
         .map((item) => item.textContent),
     ).toEqual(['Yoritish', 'Kiyinish xonasi', 'Avtoturargoh'])
-    expect(screen.getByTestId('map')).toBeInTheDocument()
+    expect(await screen.findByTestId('map')).toBeInTheDocument()
     expect(screen.getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
     expect(
       screen.getByText(
