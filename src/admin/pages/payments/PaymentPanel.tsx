@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Copy, HandCoins, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDateTime } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
@@ -19,7 +19,7 @@ import { entityPath } from '../../audit/links'
 import { StatusTimeline } from '../../audit/StatusTimeline'
 import { DisabledHint, SOON } from '../../components/Availability'
 import { Button } from '../../components/Button'
-import { ReasonModal } from '../../components/Modal'
+import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { PanelRow, PanelSection, SidePanel } from '../../components/SidePanel'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
@@ -89,10 +89,23 @@ function Linked({
   )
 }
 
+const NOT_FAILED_ANYMORE = 'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi'
+
+/** The refund was settled meanwhile (another admin, the reconciler): the 400 says so. */
+function isNoLongerFailed(error: unknown): boolean {
+  return (
+    isApiError(error) &&
+    error.status === 400 &&
+    (error.message === API_MESSAGES.refundNotFailedRetry ||
+      error.message === API_MESSAGES.refundNotFailedMark)
+  )
+}
+
 function FailedRefund({ payment }: { payment: AdminPayment }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [marking, setMarking] = useState(false)
+  const [confirmingRetry, setConfirmingRetry] = useState(false)
   const retryMode = availability(REFUND_RETRY)
   const manualMode = availability(REFUND_MANUAL)
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['admin'] })
@@ -100,6 +113,7 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   const retry = useMutation({
     mutationFn: () => retryRefund(payment.id),
     onSuccess: (result) => {
+      setConfirmingRetry(false)
       refresh()
       if (result.status === 'failed') {
         toast.error(`Yana amalga oshmadi: ${result.failureReason ?? 'ATMOS xatosi'}`)
@@ -107,12 +121,19 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
         toast.success('Pul qaytarildi')
       }
     },
-    onError: (error) =>
+    onError: (error) => {
+      setConfirmingRetry(false)
+      if (isNoLongerFailed(error)) {
+        refresh()
+        toast.error(NOT_FAILED_ANYMORE)
+        return
+      }
       toast.error(
         isApiError(error) && error.status === 502
           ? 'ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'
           : 'Qayta urinib boʻlmadi. Keyinroq urinib koʻring',
-      ),
+      )
+    },
   })
   const manual = useMutation({
     mutationFn: (reason: string) => markRefunded(payment.id, reason),
@@ -121,8 +142,13 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
       refresh()
       toast.success('Qoʻlda qaytarildi deb belgilandi')
     },
-    onError: () => {
+    onError: (error) => {
       setMarking(false)
+      if (isNoLongerFailed(error)) {
+        refresh()
+        toast.error(NOT_FAILED_ANYMORE)
+        return
+      }
       toast.error('Belgilab boʻlmadi. Qayta urinib koʻring')
     },
   })
@@ -131,7 +157,7 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
     <Button
       icon={RefreshCw}
       disabled={retryMode === 'soon' || retry.isPending}
-      onClick={() => retry.mutate()}
+      onClick={() => setConfirmingRetry(true)}
     >
       {retry.isPending ? 'Urinilmoqda…' : 'Qayta urinish'}
     </Button>
@@ -168,6 +194,15 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
           manualButton
         )}
       </div>
+      <ConfirmModal
+        open={confirmingRetry}
+        title="Qaytarishni qayta urinish"
+        message={`Pul toʻlovchining kartasiga qaytadan yuboriladi: ${payment.userName ?? 'Toʻlovchi'} · ${money(payment.amount)}. Davom etasizmi?`}
+        confirmLabel="Qayta urinish"
+        busy={retry.isPending}
+        onClose={() => setConfirmingRetry(false)}
+        onConfirm={() => retry.mutate()}
+      />
       <ReasonModal
         open={marking}
         title="Qoʻlda qaytarildi deb belgilash"

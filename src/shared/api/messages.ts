@@ -32,6 +32,10 @@ export const API_MESSAGES = {
   cannotBlockSelf: 'You cannot block yourself',
   /** 400 from `PUT /api/admin/users/{id}` (bean validation): `reason` over 500 characters. */
   userReasonTooLong: 'reason: reason must be at most 500 characters',
+  /** 400 from `POST /api/admin/payments/{id}/retry-refund` when the refund is no longer `failed`. */
+  refundNotFailedRetry: 'Only a failed refund can be retried',
+  /** 400 from `POST /api/admin/payments/{id}/mark-refunded` when the refund is no longer `failed`. */
+  refundNotFailedMark: 'Only a failed refund can be marked as refunded',
   /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium whose owner has no signed ATMOS contract. */
   contractNotSigned: "The owner's ATMOS contract is not signed",
   /** 400 from `POST /api/reviews` when the caller already reviewed this stadium. */

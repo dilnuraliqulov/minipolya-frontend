@@ -236,6 +236,10 @@ describe('Toʻlovlar', () => {
       '/bronlar?bron=b1',
     )
     fireEvent.click(within(panel).getByRole('button', { name: 'Qayta urinish' }))
+    const confirm = screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })
+    expect(confirm).toHaveTextContent('Pul toʻlovchining kartasiga qaytadan yuboriladi')
+    expect(requests.some((r) => r.method === 'POST')).toBe(false)
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Qayta urinish' }))
     expect(await screen.findByText('Pul qaytarildi')).toBeInTheDocument()
     expect(requests.some((r) => r.method === 'POST')).toBe(true)
 
@@ -250,8 +254,69 @@ describe('Toʻlovlar', () => {
     signIn()
     renderAt('/tolovlar?tolov=p1')
     fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })).getByRole(
+        'button',
+        { name: 'Qayta urinish' },
+      ),
+    )
     expect(
       await screen.findByText('ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'),
+    ).toBeInTheDocument()
+  })
+
+  it('cancelling the retry confirmation sends nothing', async () => {
+    const { requests } = backend()
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    const confirm = screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Bekor qilish' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Qaytarishni qayta urinish' })).toBeNull(),
+    )
+    expect(requests.some((r) => r.method === 'POST')).toBe(false)
+  })
+
+  it('says when the refund is no longer failed (retried elsewhere)', async () => {
+    backend({
+      'POST /api/admin/payments/p1/retry-refund': [400, 'Only a failed refund can be retried'],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })).getByRole(
+        'button',
+        { name: 'Qayta urinish' },
+      ),
+    )
+    expect(
+      await screen.findByText(
+        'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('says when a refund marked by hand is no longer failed', async () => {
+    backend({
+      'POST /api/admin/payments/p1/mark-refunded': [
+        400,
+        'Only a failed refund can be marked as refunded',
+      ],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qoʻlda qaytarildi' }))
+    const dialog = screen.getByRole('dialog', { name: 'Qoʻlda qaytarildi deb belgilash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), {
+      target: { value: 'Mijozga maydonda naqd qaytarildi' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Belgilash' }))
+    expect(
+      await screen.findByText(
+        'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi',
+      ),
     ).toBeInTheDocument()
   })
 
