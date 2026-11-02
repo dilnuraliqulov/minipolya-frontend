@@ -6,6 +6,16 @@ import { useEffect, useRef } from 'react'
  * A small, static-feeling OpenStreetMap view with one marker. Loaded lazily
  * (React.lazy) so Leaflet is only downloaded when a stadium has coordinates.
  */
+/**
+ * Leaflet writes string tooltip/popup content with innerHTML. The stadium name
+ * is typed by its owner, so it goes in as an element holding plain text.
+ */
+function textContent(text: string): HTMLElement {
+  const span = document.createElement('span')
+  span.textContent = text
+  return span
+}
+
 export default function StadiumMap({
   latitude,
   longitude,
@@ -41,7 +51,7 @@ export default function StadiumMap({
       fillOpacity: 1,
     })
       .addTo(map)
-      .bindTooltip(label)
+      .bindTooltip(textContent(label))
     return () => {
       map.remove()
     }
