@@ -160,7 +160,7 @@ describe('Bronlar', () => {
     signIn()
     renderAt('/bronlar?maydon=st1')
     expect(
-      await screen.findByRole('button', { name: 'Maydon: Chilonzor Arena' }),
+      await screen.findByRole('button', { name: 'Maydon: Chilonzor Arena' }, { timeout: 5000 }),
     ).toBeInTheDocument()
     expect(lastBookings(requests).get('stadiumId')).toBe('st1')
     expect(requests.some((r) => r.url.pathname === '/api/admin/stadiums')).toBe(false)

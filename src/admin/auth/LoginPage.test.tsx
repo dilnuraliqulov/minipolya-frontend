@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureApiClient, createMemoryTokenStore, getTokenStore } from '../../shared/api'
@@ -209,6 +209,8 @@ describe('admin login page', () => {
         pressEnter()
         expect(fetchMock).toHaveBeenCalledTimes(1)
 
+        // The countdown starts in an effect after the alert renders: wait for its timer.
+        await waitFor(() => expect(vi.getTimerCount()).toBeGreaterThan(0))
         act(() => vi.advanceTimersByTime(61_000))
         expect(screen.getByRole('alert')).toHaveTextContent('0:59 dan keyin')
 
