@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `253f585` (_Dev sign-in requires X-Dev-Login-Key (DEV_LOGIN_KEY)_; was `ed403c7` — Telegram bot steps 1–6, 2026-11-01) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed) |
-| Endpoints documented | **109** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
+| Commit | `5cc6ef6` (_R38: owner dashboard: unpaid bookings filter and paid in app/cash/outstanding_; was `253f585` — dev sign-in requires `X-Dev-Login-Key`, 2026-11-02) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers) |
+| Endpoints documented | **120** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
 
 ---
 
@@ -148,9 +148,9 @@ Two things the frontend must handle:
 
 | Level | How it is enforced |
 |---|---|
-| **public** | `/api/auth/**`, `GET /api/stadiums/**`, `GET /api/reviews/stadium/**`, `/webhooks/**` |
-| **user** | any other path — a valid JWT is required |
-| **owner** | `/api/owner/**` → requires `ROLE_OWNER` (the `isOwner` claim) |
+| **public** | `/api/auth/**`, `GET /api/stadiums/**`, `GET /api/reviews/stadium/**`, `GET /api/uploads/**` (uploaded stadium photos, R36), `/webhooks/**` |
+| **user** | any other path — a valid JWT is required; also exactly `POST /api/owner/stadiums` and `GET /api/owner/stadiums` (no sub-paths, R42) |
+| **owner** | the rest of `/api/owner/**` → requires `ROLE_OWNER` (the `isOwner` claim) |
 | **admin** | `/api/admin/**` → requires `ROLE_ADMIN` (the `isAdmin` claim) |
 
 Roles come from the **JWT claims**, not from the live database row — so a user
@@ -170,12 +170,16 @@ These apply to every endpoint and are not repeated below.
 | 400 | `"<field>: <constraint message>"`, comma-joined | bean validation failed on `@Valid`; e.g. `"rating: must be less than or equal to 5"` |
 | 401 | `"Authentication required"` | no/invalid token on a protected endpoint |
 | 401 | `"Session ended because the password was changed; sign in again"`, `code: "TOKEN_REVOKED"` | token predates the user's last password change (§1.5) |
-| 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` or `/api/admin/**` |
+| 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` (except the two R42 paths, §1.6) or `/api/admin/**` |
 | 403 | `"Account is blocked"`, `code: "ACCOUNT_BLOCKED"`, `data: { reason?, blockedAt? }` | the user is blocked (§1.2) |
 | 404 | `"<Thing> not found"` | `ResourceNotFoundException` |
 | 404 | `"Not found"` | no endpoint serves the path |
 | 405 | `"Method not allowed"` | the path exists but not with this method |
 | 409 | `"Data conflict"` | a database constraint other than the booking overlap |
+| 409 | the endpoint's own message | `ConflictException` (since `5cc6ef6`: the owner's cash while a card payment is in flight, §5; joining a team already joined, §8) |
+| 400 | `"file is required"` | a multipart request without its `file` part, or a broken multipart body (photo upload, §4) |
+| 413 | `"File too large"` | an upload over 10 MB (`spring.servlet.multipart.max-file-size`, or the service's own check) |
+| 415 | `"Unsupported media type"` | a body type the endpoint does not take (e.g. JSON to the photo upload) |
 | 410 | `"Booking has expired"` | `BookingExpiredException` |
 | 500 | `"Internal server error"` | anything unhandled |
 
@@ -512,7 +516,7 @@ Rating, cover photo and favourite flag are loaded for the whole page at once.
 | `averageRating` | number? | as on the list; absent with no reviews |
 | `reviewCount` | number? | `0` when none |
 | `cancellationPolicy` | `{ cancellationHours: number }` | |
-| `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position` |
+| `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position`; the lowest is the cover. An uploaded photo's `url` is a **relative path** `/api/uploads/stadiums/<stadiumId>/<file>` (R36) — prefix the API base URL (§1.1); photos sent as URLs on create/update keep the URL as sent |
 | `amenities` | `AmenitiesResponse` | `parking`, `lighting`, `showers`, `lockerRoom`, `wifi`, `cafe`, `equipmentRental`, `tribune` — all boolean |
 | `createdAt`, `updatedAt` | timestamp (UTC) | |
 
@@ -595,7 +599,7 @@ shape).
 **Response** — `PromotionResponse[]` (currently active promotions only; shape
 in §10).
 
-### `POST /api/owner/stadiums` — owner
+### `POST /api/owner/stadiums` — user (any signed-in user, R42)
 
 **Body** — `CreateStadiumRequest`
 
@@ -615,7 +619,7 @@ in §10).
 | `pricePerHour` | number **(tiyin)** | yes | `@PositiveOrZero` |
 | `minBookingAmount` | number **(tiyin)** | no | `@PositiveOrZero`, and **≥ 50 000** when set; null ⇒ full payment required |
 | `cancellationHours` | number | no | `@PositiveOrZero`; defaults to **24** |
-| `photos` | string[] | no | each non-blank, max 500 chars (URLs — there is no upload endpoint, see [Q5](#11-questions-about-the-backend)) |
+| `photos` | string[] | no | each non-blank, max 500 chars (URLs). To add image files, upload them afterwards with `POST /api/owner/stadiums/{id}/photos` (R36) |
 | `amenities` | object | no | the eight booleans |
 
 **Response** — `StadiumDetailResponse` in the owner's own prices (with
@@ -624,30 +628,107 @@ The stadium is created with `status: "pending"` and is invisible to players
 until an admin approves it (which needs the owner's signed ATMOS contract,
 §10.9).
 
-**Errors** — 400 validation; 400 `"Invalid district"`; 400 `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 401; 403 `"Access denied"`.
+**Errors** — 400 validation; 400 `"Invalid district"`; 400 `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 401.
 
-**Note** — this path is behind `ROLE_OWNER`, so a user who is not yet an owner
-cannot create their first stadium here; they go through
-`POST /api/owner-applications` first (§9) and must then obtain a **new token**
-for the `isOwner` claim to appear.
+**Note** — since R42 (`025b302`) this exact path needs only a token, **not**
+`ROLE_OWNER`: a player adds their first stadium here and follows its review
+with `GET /api/owner/stadiums`. Approval sets `is_owner`, and the user then
+needs a **new token** (the flag is a JWT claim, §1.6) for the rest of
+`/api/owner/**`, which stays owner-only — including `GET`/`PUT
+/api/owner/stadiums/{id}` and the photo endpoints for the stadium just added.
 
 ### `PUT /api/owner/stadiums/{id}` — owner
 
 **Body** — `UpdateStadiumRequest`: every field of the create body optional
-(only non-null values applied), plus `isActive` (boolean). `status` is
-deliberately absent — only an admin changes it.
+(only non-null values applied), plus `isActive` (boolean) and
+`clearMinBookingAmount` (boolean, R41). `status` is deliberately absent — only
+an admin changes it.
 
-An absent `district` leaves it unchanged.
+An absent `district` leaves it unchanged. A null `minBookingAmount` also leaves
+it unchanged; `"clearMinBookingAmount": true` removes it (players then pay in
+full; audited like any field). Absent or `false` does nothing.
 
 **Response** — `StadiumDetailResponse` (owner's own prices + `playerPrice`/`playerMinBookingAmount`).
 
-**Errors** — 400 validation / `"Invalid district"` / `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+**Errors** — 400 validation / `"Invalid district"` / `"minBookingAmount must be at least 50000 tiyin (500 so'm)"` / `"Send either minBookingAmount or clearMinBookingAmount"` (`clearMinBookingAmount: true` together with a non-null `minBookingAmount`); 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
 
-### `GET /api/owner/stadiums` — owner
+### `GET /api/owner/stadiums` — user (any signed-in user, R42)
 
-**Response** — `StadiumResponse[]` (not paged) for the calling owner, any
+**Response** — `StadiumResponse[]` (not paged) for the caller, any
 status, in the owner's own prices with `playerPrice` alongside; `statusReason` tells the owner why a stadium is
-`rejected` or `blocked`.
+`rejected` or `blocked`. A caller with no stadiums gets `[]`. Like `POST`, this
+exact path needs only a token, not `ROLE_OWNER` (R42).
+
+### `GET /api/owner/stadiums/{id}` — owner
+
+One of the caller's stadiums in **any** status (R35) — the same
+`StadiumDetailResponse` that `PUT` returns, built by the same code: the owner's
+own prices with `playerPrice` / `playerMinBookingAmount`, `status`,
+`statusReason`, photos.
+
+**Errors** — 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+### Stadium photos — owner (R36)
+
+All three work in any stadium status. Each checks ownership (404
+`"Stadium not found"`, then 403 `"You do not own this stadium"`), locks the
+stadium row (so concurrent uploads cannot pass the limit) and is audited as
+`STADIUM_UPDATED` with the `photos` URL list before → after. The photo with
+the lowest `position` is the cover (`coverPhotoUrl`).
+
+`PhotoResponse` — `{ id: UUID, url: string, position: number }`.
+
+#### `POST /api/owner/stadiums/{id}/photos` — owner
+
+**Body** — `multipart/form-data` with one part, **`file`**: a JPEG, PNG or
+WebP image, at most **10 MB**. The type is told from the file's **magic
+bytes**, never from its content type or name. Stored as
+`stadiums/<stadiumId>/<random uuid>.<jpg|png|webp>`; the new photo goes
+**last** (`max(position) + 1`).
+
+**Response** — `PhotoResponse`, `message: "Photo uploaded"`. Its `url` is
+`/api/uploads/stadiums/<stadiumId>/<file>` — relative, see below.
+
+**Errors**
+
+| Status | `message` |
+|---|---|
+| 400 | `"file is required"` — no `file` part |
+| 400 | `"Unsupported image type"` — not JPEG, PNG or WebP |
+| 400 | `"A stadium can have at most 10 photos"` |
+| 403 | `"You do not own this stadium"` |
+| 404 | `"Stadium not found"` |
+| 413 | `"File too large"` — over 10 MB |
+| 415 | `"Unsupported media type"` — not a multipart body |
+
+#### `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — owner
+
+**Response** — `data: null`, `message: "Photo deleted"`. The remaining photos
+are renumbered `0..n-1`; an uploaded file is removed from disk after the
+deletion commits (a photo added as an external URL is never touched).
+
+**Errors** — 403 `"You do not own this stadium"`; 404 `"Stadium not found"` / `"Photo not found"` (also when the photo belongs to another stadium).
+
+#### `PUT /api/owner/stadiums/{id}/photos/order` — owner
+
+**Body** — `ReorderPhotosRequest`: `{ "photoIds": UUID[] }` (`@NotNull`, no
+null items) — **every** photo of the stadium exactly once, in the new order;
+the first becomes the cover.
+
+**Response** — `PhotoResponse[]` in the new order, `message: "Photos reordered"`.
+
+**Errors** — 400 `"photoIds must list every photo of the stadium exactly once"`; 400 validation; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+#### `GET /api/uploads/stadiums/{stadiumId}/{file}` — **public**
+
+Serves an uploaded photo (the `url` above) — the raw image, **not** the JSON
+envelope — with its `Content-Type`, `Cache-Control: max-age=31536000, public,
+immutable` and `X-Content-Type-Options: nosniff`. Only a
+`<uuid>.<jpg|png|webp>` name under a stadium id resolves; anything else (other
+names, directories, `..`) answers 404 `"Not found"` (400 `"Invalid id"` for a
+bad stadium id) — no listing, no traversal. Since the stored `url` is
+relative, an `<img>` on another origin needs the API base URL in front of it
+(§1.1).
 
 ---
 
@@ -758,7 +839,7 @@ before **or after** the game. Paying after the game leaves the booking
 
 | Status | `message` |
 |---|---|
-| 400 | `"Already paid"` — the owner took it in cash first |
+| 400 | `"Already paid"` — the owner took it in cash first (`POST /api/owner/bookings/{id}/cash`; both lock the booking row, so whichever lands first wins) |
 | 400 | `"This booking has no part payment to complete"` |
 | 400 | `"Only a live booking can be paid off"` (status is not `confirmed`/`completed`) |
 | 403 | `"This booking does not belong to you"` |
@@ -833,6 +914,30 @@ the full price.
 | `page`, `size` | number | no |
 
 **Response** — paged `BookingResponse` in the **owner's view** (§1.10). **Errors** — 403 `"You do not own this stadium"`.
+
+### `POST /api/owner/bookings/{bookingId}/cash` — owner
+
+The owner marks the rest of a booking as received in cash (R37) — the
+booking's `remainingAmount`, the same amount the player would pay with
+`pay-remainder`, not the full price. **No body.** The player's app payment and
+this lock the booking row and settle one at a time: whichever lands first
+wins, the other answers 400 `"Already paid"`. Audited as `CASH_RECEIVED`.
+
+Applies to a `confirmed` / `completed` booking that is `partially_paid`, or a
+manual (walk-in) booking still `unpaid`. A team game's booking is not settled
+here — its teams' remainders go through `POST /api/games/{id}/cash` (§9).
+
+**Response** — `BookingResponse` in the **owner's view** (§1.10), `message: "Cash recorded"`.
+
+**Errors**
+
+| Status | `message` |
+|---|---|
+| 400 | `"Already paid"` — nothing left (e.g. the player paid in the app first) |
+| 400 | `"This booking has no part payment to complete"` — pending, cancelled or expired, not part-paid, or a game booking |
+| 403 | `"You do not own this stadium"` |
+| 404 | `"Booking not found"` |
+| 409 | `"A payment for this booking is being processed"` — a card payment of the booking is still `processing` / `capture_pending` (outcome unknown) |
 
 ### `DELETE /api/owner/bookings/{bookingId}` — owner
 
@@ -1000,6 +1105,13 @@ Newest first (`createdAt` desc). **Response** — paged `PaymentResponse`.
 | `TeamResponse` | `id` UUID, `name` string, `leaderName` string?, `memberCount` number? |
 | `TeamDetailResponse` | `id` UUID, `name` string, `leaderId` UUID, `leaderName` string?, `members` `TeamMemberResponse[]` |
 | `TeamMemberResponse` | `userId` UUID, `userName` string?, `role` string (`leader` \| `member`) |
+| `TeamInviteResponse` | `code` string — the invite code (R32) |
+| `TeamInvitePreviewResponse` | `team` `TeamResponse`, `isMember` boolean |
+
+The invite code (changeset 043, `teams.invite_code`, unique, null until the
+leader first asks for it) is 128 random bits, base64url without padding — **22
+characters**, safe in a link. It never appears in a team response; only the
+leader gets it from the invite endpoints. Team changes are not audited.
 
 ### `POST /api/teams` — user
 
@@ -1025,6 +1137,42 @@ membership check).
 **Response** — `TeamDetailResponse`, `message: "Member added"`.
 
 **Errors** — 400 `"User is already a member of this team"`; 403 `"Only the team leader can perform this action"`; 404 `"Team not found"` / `"User not found"`.
+
+### `GET /api/teams/{id}/invite` — user (leader only)
+
+**Response** — `TeamInviteResponse` `{ code }`. The code is **created on the
+first request** and returned unchanged after that; the client builds the
+invite link from it.
+
+**Errors** — 403 `"Only the team leader can perform this action"`; 404 `"Team not found"`.
+
+### `POST /api/teams/{id}/invite` — user (leader only)
+
+A new invite code; links with the old one **stop working**. No body.
+
+**Response** — `TeamInviteResponse` `{ code }`, `message: "Invite link renewed"`.
+
+**Errors** — 403 `"Only the team leader can perform this action"`; 404 `"Team not found"`.
+
+### `GET /api/teams/invite/{code}` — user
+
+What an invite link leads to — any signed-in user.
+
+**Response** — `TeamInvitePreviewResponse` `{ team: TeamResponse, isMember }`;
+`isMember` says whether the caller is already in the team.
+
+**Errors** — 404 `"Invite not found"` (unknown or renewed-away code, blank, or over 32 characters).
+
+### `POST /api/teams/join` — user
+
+Joins the team an invite code belongs to, as a `member` — the same membership
+add-member gives.
+
+**Body** — `JoinTeamRequest`: `{ "code": string }` (`@NotBlank`; trimmed).
+
+**Response** — `TeamDetailResponse`, `message: "Joined team"`.
+
+**Errors** — 400 `"code: must not be blank"`; 404 `"Invite not found"`; **409** `"User is already a member of this team"` (add-member keeps its 400 for the same case; only the join answers 409).
 
 ### `DELETE /api/teams/{id}/members/{userId}` — user (leader only)
 
@@ -1426,19 +1574,40 @@ All under `/api/owner/dashboard`, all owner-only, all 403
 |---|---|
 | `GET /api/owner/dashboard/stadiums` | `StadiumResponse[]` (owner's own prices + `playerPrice`) |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/stats` | `OwnerDashboardStatsResponse` |
-| `GET /api/owner/dashboard/stadiums/{stadiumId}/revenue` | `OwnerRevenueResponse` |
+| `GET /api/owner/dashboard/stadiums/{stadiumId}/revenue` | `OwnerRevenueResponse` — query `days`: `7` or `30` (default `30`, R43) |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/schedule` | `OwnerScheduleResponse[]` |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/reviews` | paged `ReviewResponse`, newest first |
-| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` (owner's view, §5) |
+| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` (owner's view, §5) — query `from`, `to` (`LocalDate`, optional), `unpaid` (boolean, default `false`, R38), `page`, `size` |
 
 `OwnerDashboardStatsResponse` (all fields present): `stadiumId` UUID,
 `stadiumName` string, `todayBookings`/`weekBookings`/`monthBookings`/
 `totalBookings` number, `todayRevenue`/`weekRevenue`/`monthRevenue`/
 `totalRevenue` number **(tiyin)**, `averageRating` number, `reviewCount`
-number, `occupancyPercent` number.
+number, `occupancyPercent` number, and (R38, all **tiyin**):
+
+| Field | What |
+|---|---|
+| `todayPaidInApp`, `weekPaidInApp`, `monthPaidInApp` | money that **arrived** for the stadium's bookings by card (payment status `paid`, `captured` or `completed`), as players paid it, counted by the payment's `createdAt` in the period |
+| `todayPaidInCash`, `weekPaidInCash`, `monthPaidInCash` | the same for `cash` payments |
+| `todayOutstanding`, `weekOutstanding`, `monthOutstanding` | the sum of `remainingAmount` (exactly as the booking responses show it) of **live** bookings (`pending`, `confirmed`, `completed`) **starting** in the period |
+
+Periods are Tashkent: today, this Monday–Sunday week, this calendar month.
 
 `OwnerRevenueResponse`: `stadiumId` UUID, `dailyRevenue`
-`{ date: LocalDate, revenue: number (tiyin), bookingCount: number }[]`.
+`{ date: LocalDate, revenue: number (tiyin), bookingCount: number }[]` —
+since R43 **every** Tashkent day of the window is present, oldest first,
+ending today (`0` / `0` on a day without payments): 7 entries for `days=7`,
+30 for `days=30` (the default). Any other `days` is 400
+`"days must be 7 or 30"`. The revenue definition itself is unchanged
+(completed `booking` payments, by `createdAt`).
+
+`…/bookings?unpaid=true` (R38) returns only **live** bookings (`pending`,
+`confirmed`, `completed` — not cancelled or expired) with
+`remainingAmount > 0`, **soonest `startsAt` first**; `from` / `to` still
+apply (by `startsAt`, Tashkent days). Filtered in the query, so pages and
+`totalElements` are exact. Without `unpaid` the list is as before. The
+similar `GET /api/owner/stadiums/{stadiumId}/bookings` (§5) has **no**
+`unpaid` parameter.
 
 `OwnerScheduleResponse` (one per day; `from`/`to` are optional `LocalDate`
 query parameters): `date`, `bookings` `BookingResponse[]` (owner's view), `waitingGames`
@@ -1451,6 +1620,23 @@ query parameters): `date`, `bookings` `BookingResponse[]` (owner's view), `waiti
 > **Two revenue definitions.** `…/stats` sums only `payment_type = booking`
 > rows; `…/schedule` sums booking prices. They disagree for game bookings —
 > see [Q8](#11-questions-about-the-backend).
+
+#### `GET /api/owner/legal-details` — owner
+
+The caller's own legal form and ATMOS contract status (R39), read-only — the
+details themselves are kept by admins (§10.9).
+
+**Response** — `OwnerContractStatusResponse` (`NON_NULL`):
+
+| Field | Type | Notes |
+|---|---|---|
+| `legalType` | string? | `yatt` \| `mchj` \| `self_employed` (§1.9); absent when nothing has been entered |
+| `atmosContractStatus` | string | `none` \| `pending` \| `signed` |
+| `ownerContractStatus` | string | the **same value** as `atmosContractStatus`, under the admin stadium list's name |
+
+Never the `tin`, the `atmosRecipientId` or who changed them. With no legal
+details yet it answers both statuses `none` and no `legalType` (the admin's
+`GET /api/admin/users/{id}/legal-details` still answers `data: null` then).
 
 ### 10.8 Owner applications
 
@@ -2012,6 +2198,13 @@ stadium list fields and slot `status`); a booking is now exactly one hour.
 **`ed403c7..253f585`:** resolves nothing listed here; ships R26 (the dev
 sign-in requires `X-Dev-Login-Key`, §2).
 
+**`253f585..5cc6ef6`:** resolves Q5 (R36, `29739b6` — photo upload) and Q6
+(R37, `f2af228` — the owner's cash on an ordinary booking, at
+`/api/owner/bookings/{id}/cash`). Also ships R32 (team invite links), R35,
+R38, R39, R41, R42 and R43 from `docs/backend-requests.md`. Q11 still stands:
+R42 only lets a not-yet-owner add and list stadiums; the rest of
+`/api/owner/**` still needs a fresh token after approval.
+
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and
 `TOKEN_REVOKED` set it; everything else is prose only. Clients that want to react
@@ -2046,13 +2239,13 @@ on `:5173`, the Mini App on its hosted origin, the admin panel) cannot call
 this API at all until CORS is configured. **This blocks all browser-based
 frontend work** and needs an allowed-origins list.
 
-**Q5 — No file/photo upload endpoint.**
+**Q5 — No file/photo upload endpoint.** _(Resolved in `29739b6`, request R36: `POST /api/owner/stadiums/{id}/photos` takes a multipart `file` (JPEG/PNG/WebP, ≤ 10 MB, ≤ 10 photos), stores it on the backend's filesystem and serves it publicly at `GET /api/uploads/stadiums/{stadiumId}/{file}`; plus delete and reorder — §4.)_
 `CreateStadiumRequest.photos` and `UpdateStadiumRequest.photos` are
 `List<String>` of URLs (max 500 chars). Nothing in the API accepts an image, so
 it is unclear where an owner's photos are meant to be hosted and how the
 frontend should produce those URLs.
 
-**Q6 — `POST /api/bookings/{id}/cash` does not exist.**
+**Q6 — `POST /api/bookings/{id}/cash` does not exist.** _(Resolved in `f2af228`, request R37: the endpoint is `POST /api/owner/bookings/{id}/cash` — no body, takes `remainingAmount`, answers the owner's `BookingResponse`, `"Cash recorded"` — §5. The backend `CLAUDE.md` now documents that path.)_
 The backend `CLAUDE.md` documents it ("the owner marks the same money as
 received in cash (it takes `remainingAmount`, not the full price)") as one of
 the two ways a booking remainder is settled, and the `PaymentService` has the

@@ -307,43 +307,6 @@ Error cases — none new.
 Low — the list shows the logo mark instead of a photo; the detail page fetches
 the stadium.
 
-### R32 — Invite players to a team by link
-
-**What's needed**
-`POST /api/teams/{id}/members` takes a `userId`, but a leader has no way to
-learn another player's id: there is no user search and no invite. The design
-has "Taklif havolasini ulashish" (share an invite link) on Jamoam; the player
-who opens the link should join the team.
-
-**Which screen needs it**
-Mini App player — Jamoam (sardor), "Taklif havolasini ulashish"; joining from
-the link (start parameter `team_<code>`, routed in Part 4).
-
-**Proposed endpoints**
-`POST /api/teams/{id}/invite` — logged-in user, leader only: returns a link.
-
-| Field | Type | Notes |
-|---|---|---|
-| `code` | string | opaque, unguessable; valid until the team is deleted or the leader makes a new one |
-| `inviteLink` | string | `https://t.me/<bot>/<app>?startapp=team_<code>` |
-
-`POST /api/teams/join` — logged-in user.
-
-Request:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `code` | string | yes | `@NotBlank` |
-
-Response — `TeamDetailResponse` of the joined team, `message: "Joined team"`.
-
-Error cases — 403 `"Only the team leader can perform this action"` (invite);
-404 `"Invite not found"` (unknown or replaced code); 400 `"User is already a
-member of this team"`.
-
-**Priority**
-High — without it a team can never have members other than its leader.
-
 ### R33 — A team game's price before it is created
 
 **What's needed**
@@ -404,7 +367,196 @@ a `remainder` payment of this booking is `processing`, with `code:
 **Priority**
 High — guards against charging a player twice.
 
-### R35 — The owner's own stadium detail
+### R40 — Make team game charges safe to retry
+
+**What's needed**
+`POST /api/games` (team game) and `POST /api/games/{id}/pay-remainder` are not
+idempotent. If the answer is lost (timeout, 5xx), a retry creates a second
+waiting game with a second hold, or charges a remainder that is still
+`processing` again (`chargeForTeamGame` has no guard). The Mini App no longer
+offers a retry after such errors and sends the captain to Oʻyinlarim, but the
+server should make a retry harmless.
+
+**Which screen needs it**
+Mini App player — Raqib qidirish, game detail "Qolganini toʻlash".
+
+**Proposed change**
+- `POST /api/games` and `POST /api/games/{id}/pay-remainder` accept an
+  optional `Idempotency-Key` header (UUID); a repeated key within 24 h returns
+  the first result instead of acting again.
+- `pay-remainder` answers 409 `code: "PAYMENT_PROCESSING"` while a remainder
+  payment of that team is `processing` (same as R34 for bookings).
+- `POST /api/games` refuses a second waiting game of the same team on the same
+  hour: 409 `"Your team is already looking for an opponent at this time"`.
+
+**Priority**
+High — guards against double holds and double charges.
+
+---
+
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R43 — Daily revenue for the last 7 or 30 days, every day included _(shipped in `a65e149`)_
+
+**What's needed**
+Hisobot draws a 7/30-day revenue chart. `GET …/revenue` returned only the last
+30 days that had payments, so the client would have to fill in missing days and
+cut the window itself.
+
+**Which screen needs it**
+Mini App owner mode — Hisobot.
+
+**Proposed change**
+`GET /api/owner/dashboard/stadiums/{stadiumId}/revenue?days=7|30` (default 30):
+`dailyRevenue` has every day of the window, oldest first, ending today
+(Tashkent), with `revenue: 0, bookingCount: 0` on days without payments.
+
+Error cases — 400 "days must be 7 or 30"; 403 "You do not own this stadium".
+
+**Priority**
+Medium.
+
+**Shipped as** — as proposed.
+
+### R42 — A user without a stadium can add one and see its status _(shipped in `025b302`)_
+
+**What's needed**
+Profil always shows the "Ega rejimi" card: no stadium → "Maydon qoʻshish"; a
+stadium under review → "Koʻrib chiqilmoqda"; approved → "Ega rejimiga oʻtish".
+`/api/owner/**` is `ROLE_OWNER` and `is_owner` is set only on approval, so a
+player can neither submit a stadium nor see its status.
+
+**Which screen needs it**
+Mini App player — Profil (Ega rejimi card), Maydon qoʻshish.
+
+**Proposed change**
+Exactly `POST /api/owner/stadiums` and `GET /api/owner/stadiums` (not their
+sub-paths) need only a signed-in user; both already act on the caller's own
+stadiums. Every other `/api/owner/**` path stays `ROLE_OWNER`.
+
+Error cases — 401 without a token; a non-owner still gets 403 on every other
+owner path.
+
+**Priority**
+High — the profile's owner card depends on it.
+
+**Shipped as** — as proposed. The stadium is created `pending`; approval still sets `is_owner` (the Mini App re-logs in when the profile's flags move).
+
+### R41 — Let the owner turn the minimum booking amount off _(shipped in `ea565b9`)_
+
+**What's needed**
+`PUT /api/owner/stadiums/{id}` applies only non-null fields, and a non-null
+`minBookingAmount` must be ≥ 50 000 tiyin. Once an owner sets a minimum, they
+cannot go back to "full payment only" (null); only an admin can, in the
+database.
+
+**Which screen needs it**
+Mini App owner mode — Narxlar → Oldindan toʻlov (it can set and change the
+minimum, not remove it).
+
+**Proposed change**
+`PUT /api/owner/stadiums/{id}` accepts `"clearMinBookingAmount": true`, which
+sets `minBookingAmount` to null (full payment only). Sending it together with
+`minBookingAmount` → 400 `"Send either minBookingAmount or clearMinBookingAmount"`.
+The audit entry records the change like any other field.
+
+**Priority**
+Medium — an owner who tries deposits is stuck with them.
+
+**Shipped as** — as proposed.
+
+### R39 — The owner's contract and payout status _(shipped in `74c8d41`)_
+
+**What's needed**
+Owner Profil shows "Toʻlovlar: Shartnoma — Imzolangan" and support contact.
+Legal details and `atmosContractStatus` exist only under `/api/admin/**`.
+
+**Which screen needs it**
+Mini App owner mode — Profil.
+
+**Proposed endpoint**
+`GET /api/owner/legal-details` — owner; `{ legalType?, atmosContractStatus,
+ownerContractStatus }` (§1.9 values), read-only.
+
+Error cases — none beyond 401/403.
+
+**Priority**
+Low — informational.
+
+**Shipped as** — response `{ legalType?, atmosContractStatus, ownerContractStatus }` (lowercase values; `ownerContractStatus` mirrors the admin view of the same contract); no bank or tax details. An owner without a legal-details row gets `none`.
+
+### R38 — Unpaid remainders and the app/cash split for the owner _(shipped in `5cc6ef6`)_
+
+**What's needed**
+Hisobot shows "Toʻlanmagan qoldiqlar" and money received in the app vs in cash.
+`…/stats` returns only totals; filtering one page of bookings in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App owner mode — Hisobot.
+
+**Proposed endpoints**
+`GET /api/owner/dashboard/stadiums/{id}/bookings?unpaid=true` — owner; paged
+`BookingResponse` (owner view) with `remainingAmount > 0`, live bookings only,
+soonest first. `OwnerDashboardStatsResponse` gains, per period
+(`today`/`week`/`month`): `…PaidInApp`, `…PaidInCash`, `…Outstanding` (tiyin).
+
+Error cases — 403 `"You do not own this stadium"`.
+
+**Priority**
+Medium — the totals are shown meanwhile.
+
+**Shipped as** — as proposed: `unpaid=true` on the owner dashboard booking list (live bookings, `remainingAmount > 0`, soonest first, a JPA specification), and `OwnerDashboardStatsResponse` gains `todayPaidInApp`, `todayPaidInCash`, `todayOutstanding` and the same for `week…` / `month…` (tiyin).
+
+### R37 — The owner marks a booking's remainder as paid in cash _(shipped in `f2af228`)_
+
+**What's needed**
+`POST /api/bookings/{id}/cash` is documented in the backend `CLAUDE.md` but not
+mapped (api-reference Q6). The schedule's "Naqd olindi" cannot work for an
+ordinary booking (team games have `POST /api/games/{id}/cash`).
+
+**Which screen needs it**
+Mini App owner mode — Jadval booking sheet, Hisobot unpaid list.
+
+**Proposed endpoint**
+`POST /api/owner/bookings/{id}/cash` — owner of the stadium; no body. Records
+the booking's `remainingAmount` as cash; response `BookingResponse` (owner
+view), `message: "Cash recorded"`.
+
+Error cases — 400 `"Already paid"`; 400 `"This booking has no part payment to
+complete"`; 403 `"You do not own this stadium"`; 404 `"Booking not found"`.
+
+**Priority**
+High — every deposit booking ends with a cash remainder the owner must record.
+
+**Shipped as** — as proposed, plus 409 "A payment for this booking is being processed" while an app remainder payment is `processing`; cash and pay-remainder lock the booking row.
+
+### R36 — Upload stadium photos _(shipped in `29739b6`)_
+
+**What's needed**
+`photos` on create/update are URL strings and there is no upload endpoint
+(api-reference Q5); a phone owner has no URL to give.
+
+**Which screen needs it**
+Mini App owner mode — Maydon qoʻshish step 3 "Rasmlar", Maydonim → Rasmlar.
+
+**Proposed endpoint**
+`POST /api/owner/stadiums/{id}/photos` — owner; `multipart/form-data`, field
+`file` (JPEG/PNG/WebP, ≤ 10 MB). Response — `PhotoResponse` `{ id, url,
+position }`. `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — `data: null`.
+
+Error cases — 400 `"Unsupported image type"`, 413 `"File too large"`; 403; 404.
+
+**Priority**
+Medium — stadiums can be created without photos; players see the logo instead.
+
+**Shipped as** — magic-byte check (JPEG/PNG/WebP) → 400 "Unsupported image type"; > 10 MB → 413 "File too large"; at most 10 → 400 "A stadium can have at most 10 photos". Stored under `UPLOADS_DIR` and served publicly at `GET /api/uploads/stadiums/{stadiumId}/{file}` (the stored `url` is that relative path — the Mini App shows it through `mediaUrl`). Also `DELETE …/photos/{photoId}` ("Photo deleted", 404 "Photo not found") and `PUT …/photos/order` `{ photoIds }` (every photo exactly once, else 400 "photoIds must list every photo of the stadium exactly once") → `PhotoResponse[]`; the first is the cover. Audited `STADIUM_UPDATED`.
+
+### R35 — The owner's own stadium detail _(shipped in `bcb73a2`)_
 
 **What's needed**
 `GET /api/owner/stadiums` returns `StadiumResponse` (no phone, description,
@@ -431,138 +583,46 @@ Error cases — 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
 **Priority**
 High — three of the six Maydonim sections wait for it.
 
-### R36 — Upload stadium photos
+**Shipped as** — as proposed, any status; the same response as `PUT /api/owner/stadiums/{id}`.
+
+### R32 — Invite players to a team by link _(shipped in `890db7d`)_
 
 **What's needed**
-`photos` on create/update are URL strings and there is no upload endpoint
-(api-reference Q5); a phone owner has no URL to give.
+`POST /api/teams/{id}/members` takes a `userId`, but a leader has no way to
+learn another player's id: there is no user search and no invite. The design
+has "Taklif havolasini ulashish" (share an invite link) on Jamoam; the player
+who opens the link should join the team.
 
 **Which screen needs it**
-Mini App owner mode — Maydon qoʻshish step 3 "Rasmlar", Maydonim → Rasmlar.
-
-**Proposed endpoint**
-`POST /api/owner/stadiums/{id}/photos` — owner; `multipart/form-data`, field
-`file` (JPEG/PNG/WebP, ≤ 10 MB). Response — `PhotoResponse` `{ id, url,
-position }`. `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — `data: null`.
-
-Error cases — 400 `"Unsupported image type"`, 413 `"File too large"`; 403; 404.
-
-**Priority**
-Medium — stadiums can be created without photos; players see the logo instead.
-
-### R37 — The owner marks a booking's remainder as paid in cash
-
-**What's needed**
-`POST /api/bookings/{id}/cash` is documented in the backend `CLAUDE.md` but not
-mapped (api-reference Q6). The schedule's "Naqd olindi" cannot work for an
-ordinary booking (team games have `POST /api/games/{id}/cash`).
-
-**Which screen needs it**
-Mini App owner mode — Jadval booking sheet, Hisobot unpaid list.
-
-**Proposed endpoint**
-`POST /api/owner/bookings/{id}/cash` — owner of the stadium; no body. Records
-the booking's `remainingAmount` as cash; response `BookingResponse` (owner
-view), `message: "Cash recorded"`.
-
-Error cases — 400 `"Already paid"`; 400 `"This booking has no part payment to
-complete"`; 403 `"You do not own this stadium"`; 404 `"Booking not found"`.
-
-**Priority**
-High — every deposit booking ends with a cash remainder the owner must record.
-
-### R38 — Unpaid remainders and the app/cash split for the owner
-
-**What's needed**
-Hisobot shows "Toʻlanmagan qoldiqlar" and money received in the app vs in cash.
-`…/stats` returns only totals; filtering one page of bookings in the client
-would be wrong.
-
-**Which screen needs it**
-Mini App owner mode — Hisobot.
+Mini App player — Jamoam (sardor), "Taklif havolasini ulashish"; joining from
+the link (start parameter `team_<code>`, routed in Part 4).
 
 **Proposed endpoints**
-`GET /api/owner/dashboard/stadiums/{id}/bookings?unpaid=true` — owner; paged
-`BookingResponse` (owner view) with `remainingAmount > 0`, live bookings only,
-soonest first. `OwnerDashboardStatsResponse` gains, per period
-(`today`/`week`/`month`): `…PaidInApp`, `…PaidInCash`, `…Outstanding` (tiyin).
+`POST /api/teams/{id}/invite` — logged-in user, leader only: returns a link.
 
-Error cases — 403 `"You do not own this stadium"`.
+| Field | Type | Notes |
+|---|---|---|
+| `code` | string | opaque, unguessable; valid until the team is deleted or the leader makes a new one |
+| `inviteLink` | string | `https://t.me/<bot>/<app>?startapp=team_<code>` |
 
-**Priority**
-Medium — the totals are shown meanwhile.
+`POST /api/teams/join` — logged-in user.
 
-### R39 — The owner's contract and payout status
+Request:
 
-**What's needed**
-Owner Profil shows "Toʻlovlar: Shartnoma — Imzolangan" and support contact.
-Legal details and `atmosContractStatus` exist only under `/api/admin/**`.
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `code` | string | yes | `@NotBlank` |
 
-**Which screen needs it**
-Mini App owner mode — Profil.
+Response — `TeamDetailResponse` of the joined team, `message: "Joined team"`.
 
-**Proposed endpoint**
-`GET /api/owner/legal-details` — owner; `{ legalType?, atmosContractStatus,
-ownerContractStatus }` (§1.9 values), read-only.
-
-Error cases — none beyond 401/403.
+Error cases — 403 `"Only the team leader can perform this action"` (invite);
+404 `"Invite not found"` (unknown or replaced code); 400 `"User is already a
+member of this team"`.
 
 **Priority**
-Low — informational.
+High — without it a team can never have members other than its leader.
 
-### R40 — Make team game charges safe to retry
-
-**What's needed**
-`POST /api/games` (team game) and `POST /api/games/{id}/pay-remainder` are not
-idempotent. If the answer is lost (timeout, 5xx), a retry creates a second
-waiting game with a second hold, or charges a remainder that is still
-`processing` again (`chargeForTeamGame` has no guard). The Mini App no longer
-offers a retry after such errors and sends the captain to Oʻyinlarim, but the
-server should make a retry harmless.
-
-**Which screen needs it**
-Mini App player — Raqib qidirish, game detail "Qolganini toʻlash".
-
-**Proposed change**
-- `POST /api/games` and `POST /api/games/{id}/pay-remainder` accept an
-  optional `Idempotency-Key` header (UUID); a repeated key within 24 h returns
-  the first result instead of acting again.
-- `pay-remainder` answers 409 `code: "PAYMENT_PROCESSING"` while a remainder
-  payment of that team is `processing` (same as R34 for bookings).
-- `POST /api/games` refuses a second waiting game of the same team on the same
-  hour: 409 `"Your team is already looking for an opponent at this time"`.
-
-**Priority**
-High — guards against double holds and double charges.
-
-### R41 — Let the owner turn the minimum booking amount off
-
-**What's needed**
-`PUT /api/owner/stadiums/{id}` applies only non-null fields, and a non-null
-`minBookingAmount` must be ≥ 50 000 tiyin. Once an owner sets a minimum, they
-cannot go back to "full payment only" (null); only an admin can, in the
-database.
-
-**Which screen needs it**
-Mini App owner mode — Narxlar → Oldindan toʻlov (it can set and change the
-minimum, not remove it).
-
-**Proposed change**
-`PUT /api/owner/stadiums/{id}` accepts `"clearMinBookingAmount": true`, which
-sets `minBookingAmount` to null (full payment only). Sending it together with
-`minBookingAmount` → 400 `"Send either minBookingAmount or clearMinBookingAmount"`.
-The audit entry records the change like any other field.
-
-**Priority**
-Medium — an owner who tries deposits is stuck with them.
-
----
-
-## Done
-
-In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
-where the backend differs from it — the backend is what counts, and
-`docs/api-reference.md` documents it.
+**Shipped as** — the backend returns only `{ code }` (22-char base64url, 128 bits); the Mini App builds the link with `buildInviteLink('team_' + code)` from its public `VITE_` names. Added `GET /api/teams/{id}/invite` (leader; the current code, created on first request), `POST` renews it ("Invite link renewed"), and `GET /api/teams/invite/{code}` → `{ team: TeamResponse, isMember }` for the join screen. Join: 404 "Invite not found", already a member **409** "User is already a member of this team" (add-member keeps its 400). No team size limit.
 
 ### R26 — Dev sign-in endpoints require a dev-only key _(shipped in `253f585`)_
 
