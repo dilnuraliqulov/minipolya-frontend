@@ -38,6 +38,10 @@ export const API_MESSAGES = {
   refundNotFailedMark: 'Only a failed refund can be marked as refunded',
   /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium whose owner has no signed ATMOS contract. */
   contractNotSigned: "The owner's ATMOS contract is not signed",
+  /** 400 from `POST /api/owner/stadiums/{id}/photos`: not a JPEG, PNG or WebP (by its bytes). */
+  unsupportedImage: 'Unsupported image type',
+  /** 400 from `POST /api/owner/stadiums/{id}/photos`: the stadium already has 10 photos. */
+  tooManyPhotos: 'A stadium can have at most 10 photos',
   /** 400 from `POST /api/reviews` when the caller already reviewed this stadium. */
   alreadyReviewed: 'You have already reviewed this stadium',
   /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */

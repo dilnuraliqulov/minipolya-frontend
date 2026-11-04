@@ -26,7 +26,7 @@ type QueryValue = string | number | boolean | undefined | null
 
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  /** Serialised as JSON. */
+  /** Serialised as JSON — or, as `FormData`, sent as multipart (the browser sets the boundary). */
   body?: unknown
   /** `undefined` and `null` values are dropped. */
   query?: Record<string, QueryValue>
@@ -46,6 +46,15 @@ function baseUrl(): string {
     throw new Error('VITE_API_URL is not set for this production build')
   }
   return url.replace(/\/+$/, '')
+}
+
+/**
+ * A URL the backend hands out for a file it serves itself (e.g. an uploaded
+ * photo, `/api/uploads/...`) made absolute against the API host; any other
+ * URL unchanged.
+ */
+export function mediaUrl(url: string): string {
+  return url.startsWith('/') ? baseUrl() + url : url
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
@@ -73,7 +82,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const headers: Record<string, string> = { ...options.headers, Accept: 'application/json' }
   const token = config.tokenStore.get()
   if (token) headers.Authorization = `Bearer ${token}`
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  const multipart = options.body instanceof FormData
+  if (options.body !== undefined && !multipart) headers['Content-Type'] = 'application/json'
 
   // Outside the try: a configuration error must not look like a network failure.
   const url = buildUrl(path, options.query)
@@ -83,7 +93,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await fetch(url, {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options.body === undefined
+          ? undefined
+          : multipart
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
       signal: options.signal,
     })
   } catch (cause) {

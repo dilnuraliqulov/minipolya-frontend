@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../shared/api'
 import { Heart, Star } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +23,7 @@ export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCom
   const titleId = useId()
   const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState(false)
-  const photo = stadium.coverPhotoUrl
+  const photo = stadium.coverPhotoUrl ? mediaUrl(stadium.coverPhotoUrl) : undefined
   const meta = [stadium.district, formatLabel(stadium.format), surfaceLabel(stadium.surfaceType, t)]
     .filter(Boolean)
     .join(' · ')

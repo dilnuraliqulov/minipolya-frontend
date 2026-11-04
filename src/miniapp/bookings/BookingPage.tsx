@@ -3,7 +3,7 @@ import { CalendarDays, Clock, MapPin, Phone, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
-import { isApiError } from '../../shared/api'
+import { isApiError, mediaUrl } from '../../shared/api'
 import { formatTime } from '../../shared/format'
 import { BOOKINGS_KEY, bookingKey, type Booking } from '../api/bookings'
 import { getMyPayments } from '../api/payments'
@@ -212,7 +212,7 @@ function Head({ booking, stadium }: { booking: Booking; stadium?: StadiumDetail 
       <span className="flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface text-secondary">
         {photo && !broken ? (
           <img
-            src={photo.url}
+            src={mediaUrl(photo.url)}
             alt=""
             width={72}
             height={72}

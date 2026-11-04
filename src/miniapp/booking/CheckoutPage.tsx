@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../shared/api'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -409,7 +410,7 @@ function Summary({
         <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-surface">
           {photo && (
             <img
-              src={photo.url}
+              src={mediaUrl(photo.url)}
               alt=""
               width={56}
               height={56}

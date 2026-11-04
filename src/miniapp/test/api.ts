@@ -43,7 +43,12 @@ export function stubApi(routes: Record<string, Reply>) {
   const mock = vi.fn(async (input: string, init?: RequestInit) => {
     const url = new URL(input)
     const key = `${init?.method ?? 'GET'} ${url.pathname}`
-    const body = init?.body ? JSON.parse(init.body as string) : undefined
+    const body =
+      init?.body instanceof FormData
+        ? init.body
+        : init?.body
+          ? JSON.parse(init.body as string)
+          : undefined
     sent.push({ key, body, query: url.searchParams })
     if (!(key in routes)) return jsonResponse(404, null, 'Not found')
     const route = routes[key]
