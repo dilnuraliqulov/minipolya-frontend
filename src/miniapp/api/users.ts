@@ -37,6 +37,8 @@ export function getMe(): Promise<User> {
 export interface UpdateUserRequest {
   name?: string
   language?: string
+  /** `+998XXXXXXXXX`; 409 `code: PHONE_TAKEN` when another account has it. */
+  phone?: string
 }
 
 export function updateMe(body: UpdateUserRequest): Promise<User> {

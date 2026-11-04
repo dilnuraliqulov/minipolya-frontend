@@ -1,10 +1,12 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 
 const root = import.meta.dirname
+const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as { version: string }
 
 /**
  * Serves admin.html for every /admin/* route, so the admin panel's router
@@ -32,6 +34,8 @@ function adminRoutes(): Plugin {
 
 export default defineConfig({
   plugins: [adminRoutes(), react(), tailwindcss()],
+  // The app version shown in Profil and Ilova haqida.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   server: {
     // In dev the apps call /api on their own origin and Vite forwards it to the
     // local backend, so no CORS is needed. Production builds use VITE_API_URL.

@@ -24,29 +24,73 @@ function stub(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Ega rejimi — Profil', () => {
-  it('shows the owner, their phone and stadium count, and payouts as "Tez orada"', async () => {
-    stub()
+  it('shows the current stadium, the owner, MAYDON with the contract status, HISOB and ILOVA', async () => {
+    stub({ 'GET /api/owner/legal-details': { legalType: 'yatt', atmosContractStatus: 'signed' } })
     renderApp('/owner/profile', { session })
-    expect(await screen.findByText('Jasur Toshmatov')).toBeInTheDocument()
-    expect(screen.getByText(/\+998 90 123 45 67/)).toBeInTheDocument()
-    expect(await screen.findByText('Maydon egasi · 2 maydon')).toBeInTheDocument()
-    expect(screen.getByText('Toʻlovlar').parentElement).toHaveTextContent(
-      'Tez orada — server bu maʼlumotni egaga hali bermaydi',
-    )
+    expect(await screen.findByText('Bunyodkor Arena')).toBeInTheDocument()
+    expect(screen.getByText('Jasur Toshmatov · +998 90 123 45 67')).toBeInTheDocument()
+    const stadium = screen.getByRole('region', { name: 'Maydon' })
+    expect(within(stadium).getByRole('button', { name: /Maydonlarim.*2 ta/ })).toBeInTheDocument()
+    expect(within(stadium).getByRole('button', { name: 'Maydon qoʻshish' })).toBeInTheDocument()
+    expect(
+      await within(stadium).findByRole('button', { name: /Toʻlovlar va shartnoma.*Imzolangan/ }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Hisob' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Ilova' })).toBeInTheDocument()
+    expect(screen.getByText(/· Ega rejimi$/)).toBeInTheDocument()
+  })
+
+  it('switches the current stadium from the switcher sheet', async () => {
+    stub()
+    const { router } = renderApp('/owner/profile', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Maydonni tanlang' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Maydonni tanlang' })
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Sergeli Park' }))
+    await waitFor(() => expect(router.state.location.search).toBe('?stadium=s2'))
+    expect(screen.getByText('Sergeli Park')).toBeInTheDocument()
+  })
+
+  it('has no switcher with one stadium', async () => {
+    stub({ 'GET /api/owner/stadiums': [stadiums[0]] })
+    renderApp('/owner/profile', { session })
+    await screen.findByText('Bunyodkor Arena')
+    expect(screen.queryByRole('button', { name: 'Maydonni tanlang' })).not.toBeInTheDocument()
+  })
+
+  it('opens Toʻlovlar va shartnoma read-only', async () => {
+    stub({ 'GET /api/owner/legal-details': { legalType: 'mchj', atmosContractStatus: 'pending' } })
+    renderApp('/owner/contract', { session })
+    expect(
+      await screen.findByText('Faqat koʻrish uchun — oʻzgartirish uchun bizga yozing'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('MChJ')).toBeInTheDocument()
+    expect(screen.getByText('Jarayonda')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  })
+
+  it('Toʻlovlar va shartnoma: error state with retry', async () => {
+    let calls = 0
+    stub({
+      'GET /api/owner/legal-details': () =>
+        ++calls === 1 ? jsonResponse(403, null, 'Access denied') : { atmosContractStatus: 'none' },
+    })
+    renderApp('/owner/contract', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    expect(await screen.findByText('Yoʻq')).toBeInTheDocument()
   })
 
   it('says when there is no phone yet', async () => {
     const noPhone = makeUser({ isOwner: true, name: 'Jasur Toshmatov' })
     stub({ 'GET /api/users/me': noPhone })
     renderApp('/owner/profile', { session: readySession(noPhone) })
-    expect(await screen.findByText('Jasur Toshmatov')).toBeInTheDocument()
+    expect(await screen.findByText(/Jasur Toshmatov/)).toBeInTheDocument()
     expect(screen.queryByText(/\+998/)).not.toBeInTheDocument()
   })
 
-  it('goes back to player mode with the switch', async () => {
+  it('goes back to player mode', async () => {
     stub()
     const { router } = renderApp('/owner/profile', { session })
-    fireEvent.click(await screen.findByRole('switch', { name: 'Oʻyinchi rejimiga oʻtish' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Oʻyinchi rejimiga qaytish' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/profile'))
   })
 
@@ -68,10 +112,11 @@ describe('Ega rejimi — Profil', () => {
   it('shows the error state and retries', async () => {
     let calls = 0
     stub({
-      'GET /api/users/me': () => (++calls === 1 ? jsonResponse(500, null, 'boom') : owner),
+      'GET /api/users/me': () =>
+        ++calls === 1 ? jsonResponse(404, null, 'User not found') : owner,
     })
     renderApp('/owner/profile', { session })
     fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
-    expect(await screen.findByText('Jasur Toshmatov')).toBeInTheDocument()
+    expect(await screen.findByText(/Jasur Toshmatov/)).toBeInTheDocument()
   })
 })

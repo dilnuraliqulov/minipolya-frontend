@@ -5,7 +5,7 @@ import type { BlockDetails } from '../api/blocked'
 import { Button, ErrorState, Header, Screen, SkeletonList, StateView } from '../components'
 import { formatLongDate } from '../format'
 import { hasSplash, useSplashDone } from '../splash'
-import { getTelegramWebApp } from '../telegram'
+import { openSupport, supportUsername } from '../telegram'
 import { useSession, useSessionState } from './sessionContext'
 
 /**
@@ -71,13 +71,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 function BlockedScreen({ details }: { details: BlockDetails }) {
   const { t } = useTranslation()
-  const support = import.meta.env.VITE_TELEGRAM_SUPPORT_USERNAME
-  const openSupport = () => {
-    const url = `https://t.me/${support}`
-    const webApp = getTelegramWebApp()
-    if (webApp) webApp.openTelegramLink(url)
-    else window.open(url, '_blank', 'noopener')
-  }
+  const support = supportUsername()
   const when = [
     details.blockedAt && t('blocked.date', { date: formatLongDate(details.blockedAt) }),
     t('blocked.questions'),

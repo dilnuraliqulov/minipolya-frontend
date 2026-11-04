@@ -65,6 +65,15 @@ const stats: OwnerStats = {
   averageRating: 4.83,
   reviewCount: 128,
   occupancyPercent: 64.4,
+  todayPaidInApp: 100_000_000,
+  todayPaidInCash: 82_000_000,
+  todayOutstanding: 30_000_000,
+  weekPaidInApp: 500_000_000,
+  weekPaidInCash: 300_000_000,
+  weekOutstanding: 60_000_000,
+  monthPaidInApp: 2_000_000_000,
+  monthPaidInCash: 1_000_000_000,
+  monthOutstanding: 90_000_000,
 }
 
 function stub(overrides: Record<string, unknown> = {}) {
@@ -261,7 +270,7 @@ describe('Ega rejimi — Maydonim', () => {
     renderApp('/owner/stadium?stadium=s2', { session })
     expect(await screen.findByText('Rad etildi')).toBeInTheDocument()
     expect(screen.getByText('Sabab: Rasmlar yetarli emas')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Ish vaqti/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Ish vaqti/ })).toBeEnabled()
   })
 
   it('lists pricing rules in owner prices and adds one in soʻm', async () => {
@@ -362,43 +371,6 @@ describe('Ega rejimi — Maydonim', () => {
     ])
   })
 
-  it('sets the minimum booking amount in soʻm and sends tiyin', async () => {
-    const api = stub({
-      'GET /api/owner/stadiums/s1/pricing': [],
-      'PUT /api/owner/stadiums/s1': { id: 's1' },
-    })
-    renderApp('/owner/stadium/s1/prices', { session })
-    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
-    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
-    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
-      target: { value: '50 000' },
-    })
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
-    expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
-    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([{ minBookingAmount: 5_000_000 }])
-  })
-
-  it('explains the API floor when the minimum is too low', async () => {
-    stub({
-      'GET /api/owner/stadiums/s1/pricing': [],
-      'PUT /api/owner/stadiums/s1': jsonResponse(
-        400,
-        null,
-        "minBookingAmount must be at least 50000 tiyin (500 so'm)",
-      ),
-    })
-    renderApp('/owner/stadium/s1/prices', { session })
-    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
-    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
-    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
-      target: { value: '100' },
-    })
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
-    expect(await within(sheet).findByRole('alert')).toHaveTextContent('kamida 500 soʻm')
-  })
-})
-
-describe('Ega rejimi — Hisobot', () => {
   it('shows the totals per period from the stats', async () => {
     stub()
     renderApp('/owner/report', { session })

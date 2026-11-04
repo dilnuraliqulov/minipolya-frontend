@@ -81,7 +81,10 @@
     "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
     "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
     "minimumTooLow": "The deposit must be at least 500 soʻm.",
-    "alreadyPaid": "This payment is already recorded."
+    "alreadyPaid": "This payment is already recorded.",
+    "imageType": "Only JPG, PNG or WebP images can be uploaded.",
+    "tooManyPhotos": "A pitch can have at most 10 photos.",
+    "fileTooLarge": "The photo is too large — up to 10 MB."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -115,7 +118,18 @@
     "saved": "Saved",
     "setupTitle": "Complete your profile",
     "setupSubtitle": "So the pitch owner can contact you",
-    "continue": "Continue"
+    "continue": "Continue",
+    "sectionAccount": "Account",
+    "sectionApp": "App",
+    "phoneNotSet": "Not set",
+    "version": "MiniPolya v{{version}} · Telegram app",
+    "versionOwner": "MiniPolya v{{version}} · Owner mode",
+    "ownerCard": {
+      "noneTitle": "Do you have a pitch?",
+      "noneText": "Add it to MiniPolya and take bookings online",
+      "reviewText": "Under review. We will contact you soon.",
+      "enter": "Switch to owner mode"
+    }
   },
   "stadiums": {
     "search": "Search for a pitch or address",
@@ -407,7 +421,35 @@
     "name": "Team name",
     "nameHint": "3–24 characters.",
     "created": "Team created",
-    "notFoundTitle": "Team not found"
+    "notFoundTitle": "Team not found",
+    "inviteSheet": {
+      "title": "Invite link",
+      "text": "Send the link to your friends — they join the team by opening it.",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Could not copy. Press and hold the link to copy it.",
+      "share": "Share in Telegram",
+      "shareText": "Join the “{{team}}” team",
+      "renew": "Create a new link",
+      "renewed": "New link ready. The old one no longer works.",
+      "notConfigured": "The invite link is not set up yet."
+    },
+    "join": {
+      "title": "Join a team",
+      "invited": "You have been invited to a team",
+      "leader": "Captain: {{name}}",
+      "members": "{{count}} members",
+      "join": "Join the team",
+      "later": "Later",
+      "joinedTitle": "You joined the team",
+      "joinedText": "You now see “{{team}}” games and chat.",
+      "memberTitle": "You are already in this team",
+      "memberText": "You are a member of “{{team}}”.",
+      "toTeam": "Go to my team",
+      "invalidTitle": "Invalid link",
+      "invalidText": "The invite link is out of date or wrong. Ask the captain for a new one.",
+      "home": "Go to home"
+    }
   },
   "game": {
     "title": "Game",
@@ -521,7 +563,10 @@
       "pricesText": "Base price: {{price}}",
       "terms": "Booking terms",
       "closures": "Closed days",
-      "closuresText": "Planned closures"
+      "closuresText": "Planned closures",
+      "hoursText": "Opening and closing time",
+      "termsText": "Deposit and cancellation period",
+      "photosText": "Up to 10, the first is the cover"
     },
     "soonDetail": "Coming soon — the server does not give the owner this yet",
     "save": "Save",
@@ -609,7 +654,9 @@
       "cancelTitle": "Cancel this booking?",
       "cancelText": "The player gets back everything paid by card.",
       "cancelled": "Booking cancelled",
-      "playerPays": "The player pays"
+      "playerPays": "The player pays",
+      "cashDone": "Cash payment recorded",
+      "cashConfirmText": "Confirm that you received {{amount}} in cash from the client?"
     },
     "report": {
       "today": "Today",
@@ -620,13 +667,29 @@
       "revenue": "Revenue",
       "rating": "Rating",
       "occupancy": "Occupancy",
-      "unpaid": "Unpaid remainders"
+      "unpaid": "Unpaid remainders",
+      "chartTitle": "Daily revenue",
+      "chartWindow": "Period",
+      "days": "{{count}} days",
+      "chartTotal": "Total for the period",
+      "bookingCount": "{{count}} bookings",
+      "date": "Date",
+      "inApp": "Received in the app",
+      "inCash": "Received in cash",
+      "outstanding": "Still owed",
+      "unpaidEmpty": "Nothing is still owed.",
+      "owes": "Still owed: {{amount}}",
+      "cash": "Cash received"
     },
     "profile": {
-      "playerMode": "Switch to player mode",
+      "playerMode": "Back to player mode",
       "playerModeText": "Book pitches and play team games",
       "payouts": "Payouts",
-      "badge": "Pitch owner · {{count}} pitches"
+      "badge": "Pitch owner · {{count}} pitches",
+      "sectionStadium": "Pitch",
+      "myStadiums": "My pitches",
+      "count": "{{count}}",
+      "switchStadium": "Choose a pitch"
     },
     "wizard": {
       "title": "Add a pitch",
@@ -639,12 +702,13 @@
       "next": "Next",
       "back": "Back",
       "submit": "Send for review",
-      "photosSoon": "Photo upload is coming soon — the pitch is sent without photos for now.",
+      "photosSoon": "Upload photos after sending the pitch, in My pitch → Photos.",
       "hoursError": "Closing time must be after opening time.",
       "sentTitle": "The pitch was sent for review",
       "sentText": "Once an admin approves it, players can see and book it.",
       "toStadium": "Go to my pitch",
-      "onTheHour": "Times must be on the hour (e.g. 08:00)."
+      "onTheHour": "Times must be on the hour (e.g. 08:00).",
+      "toProfile": "Back to Profile"
     },
     "discount": {
       "title": "Change price",
@@ -668,6 +732,176 @@
       "confirmText": "Confirm that you received {{amount}} in cash from {{team}}?",
       "confirm": "Confirm",
       "done": "Cash payment recorded"
+    },
+    "contract": {
+      "title": "Payouts and contract",
+      "readOnly": "Read only — write to us to change it",
+      "legalType": "Legal form",
+      "atmos": "ATMOS contract",
+      "notSet": "Not set",
+      "payoutNote": "Payments made in the app are transferred to your account under the contract.",
+      "support": "Write to support",
+      "status": {
+        "none": "None",
+        "pending": "In progress",
+        "signed": "Signed"
+      },
+      "legal": {
+        "yatt": "Sole proprietor",
+        "mchj": "LLC",
+        "self_employed": "Self-employed"
+      }
+    },
+    "reviews": {
+      "title": "Reviews",
+      "count": "{{count}} reviews",
+      "emptyTitle": "No reviews yet",
+      "emptyText": "Players rate your pitch after they play.",
+      "yourReply": "Your reply",
+      "reply": "Reply",
+      "replyTitle": "Reply to the review",
+      "replyLabel": "Your reply",
+      "send": "Send",
+      "sent": "Reply sent"
+    },
+    "hours": {
+      "note": "Hourly bookings open within these hours. Close single days in “Closed days”."
+    },
+    "terms": {
+      "minimum": "Minimum payment",
+      "minimumOn": "When booking, the player pays at least this amount up front and the rest later.",
+      "minimumOff": "No minimum — the player pays in full when booking.",
+      "playerPays": "Players pay: {{amount}}",
+      "cancelTitle": "Cancellation period",
+      "cancelText": "Cancelled at least this many hours before the game, the payment is refunded in full.",
+      "hours": "{{count}} h",
+      "less": "One hour less",
+      "more": "One hour more"
+    },
+    "photos": {
+      "text": "The first photo is the cover. Change the order with the arrows.",
+      "upload": "Upload a photo",
+      "uploaded": "Photo uploaded",
+      "deleted": "Photo deleted",
+      "emptyTitle": "No photos yet",
+      "emptyText": "Photos help players choose your pitch.",
+      "alt": "Photo {{n}}",
+      "cover": "Cover",
+      "makeCover": "Make cover",
+      "delete": "Delete photo {{n}}",
+      "left": "Move photo {{n}} left",
+      "right": "Move photo {{n}} right",
+      "limits": "{{count}} / {{max}} · JPG, PNG or WebP, up to 10 MB"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadValue": "{{count}} new",
+    "unread": "unread",
+    "readAll": "Mark all as read",
+    "emptyTitle": "No notifications",
+    "emptyText": "News about your bookings, games and payments will appear here.",
+    "types": {
+      "booking_confirmed": "Booking confirmed",
+      "booking_cancelled": "Booking cancelled",
+      "booking_reminder": "Booking reminder",
+      "booking_expired": "Booking expired",
+      "game_confirmed": "Game confirmed",
+      "game_cancelled": "Game cancelled",
+      "game_player_joined": "Someone joined your game",
+      "game_player_left": "A player left",
+      "game_payment_received": "Game payment received",
+      "game_opponent_left": "The opponent left",
+      "review_reply": "Reply to your review",
+      "stadium_approved": "Your pitch was approved",
+      "stadium_rejected": "Your pitch was rejected",
+      "owner_application_status": "Your application was reviewed",
+      "promotion_new": "New promotion",
+      "other": "New message"
+    }
+  },
+  "phonePage": {
+    "current": "Current number: {{phone}}",
+    "shareTitle": "Share via Telegram",
+    "shareText": "Your number is taken from your Telegram account — no typing needed.",
+    "share": "Share my number",
+    "or": "or type it in",
+    "shared": "Number saved",
+    "notReceived": "The number has not arrived yet. Type it in or try again in a moment."
+  },
+  "help": {
+    "title": "Help",
+    "supportTitle": "Have a question?",
+    "supportText": "Write to support on Telegram.",
+    "supportSoon": "A support chat is coming soon.",
+    "write": "Message @{{username}}",
+    "faq": "Frequently asked questions",
+    "q": {
+      "booking": "How do I book?",
+      "cancel": "Cancelling and refunds",
+      "cash": "Paying the rest in cash",
+      "teams": "Team vs team games",
+      "stadium": "How do I add my pitch?"
+    },
+    "a": {
+      "booking": "In Pitches choose a pitch, a day and an hour, then pay by card. Need several hours? Book each one separately.",
+      "cancel": "My games → booking → “Cancel”. The refund is shown on the booking page before you cancel — it depends on the pitch's cancellation terms and how long is left before the game. The money goes back to your card.",
+      "cash": "If the pitch allows a deposit, you pay only part of the price when booking. Pay the rest in cash at the pitch on the day, or by card in the app with “Pay the rest”.",
+      "teams": "In My team create a team and invite friends with the invite link. The captain picks a time and looks for an opponent; when another team accepts, the game is confirmed and the pitch price is split between the teams.",
+      "stadium": "Profile → “Add a pitch”. Fill in the details and send — the pitch is reviewed, and once approved players can see it. Then switch to owner mode from Profile."
+    }
+  },
+  "about": {
+    "title": "About",
+    "version": "Version {{version}}",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "copyright": "© 2026 MiniPolya · Tashkent"
+  },
+  "legal": {
+    "terms": {
+      "general": {
+        "title": "General",
+        "text": "MiniPolya is an online booking service for football pitches in Tashkent. By using the app you agree to these terms."
+      },
+      "booking": {
+        "title": "Booking and payment",
+        "text": "A booking is confirmed once it is paid. You pay the price shown when booking; there are no extra charges."
+      },
+      "cancel": {
+        "title": "Cancelling and refunds",
+        "text": "Each pitch's cancellation terms are shown on the booking page. The refund is shown before you cancel."
+      },
+      "owners": {
+        "title": "Pitch owners",
+        "text": "Owners are responsible for accurate pitch details, prices and opening hours. Pitches are visible to players only after approval."
+      },
+      "changes": {
+        "title": "Changes",
+        "text": "If these terms change, the new version is published on this page."
+      }
+    },
+    "privacy": {
+      "collect": {
+        "title": "What we collect",
+        "text": "Your Telegram id, the first name, last name and phone you enter, and your booking and payment history."
+      },
+      "use": {
+        "title": "Why",
+        "text": "To make bookings and payments, so the pitch owner can reach you, and to send notifications."
+      },
+      "share": {
+        "title": "Who we share it with",
+        "text": "The owner of a pitch you book sees your name and phone. Card details are kept only by the payment provider — we never see them."
+      },
+      "keep": {
+        "title": "How long",
+        "text": "Data is kept for as long as the service needs it to work."
+      },
+      "contact": {
+        "title": "Contact",
+        "text": "For questions about your data, write to the support chat in Help."
+      }
     }
   }
 }

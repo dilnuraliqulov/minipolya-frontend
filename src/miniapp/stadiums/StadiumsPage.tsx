@@ -7,6 +7,7 @@ import { NO_FILTERS, getStadiums, type StadiumFilters } from '../api/stadiums'
 import { errorMessage } from '../api/errors'
 import { Button, EmptyState, ErrorState, SearchField, SkeletonList, useToast } from '../components'
 import { TabScreen } from '../layout/TabScreen'
+import { NotificationBell } from '../notifications/NotificationBell'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
 import { useMe } from '../profile/queries'
 import { useSplashDone } from '../splash'
@@ -71,6 +72,7 @@ export function StadiumsPage() {
             <span className="absolute top-2 right-2 size-2 rounded-full bg-accent" />
           )}
         </button>
+        <NotificationBell />
       </div>
 
       <DateStrip today={today} value={date} onChange={setDate} />

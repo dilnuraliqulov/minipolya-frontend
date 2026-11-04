@@ -1,15 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Percent, Phone, Plus, Swords } from 'lucide-react'
+import { Banknote, Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc, tashkentToday } from '../../shared/format'
 import type { Booking } from '../api/bookings'
 import { recordGameCash, type GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
-import { isAvailable } from '../api/missing'
 import {
   createManualBooking,
-  OWNER_BOOKING_CASH,
+  markBookingCash,
   ownerGameKey,
   ownerCancelBooking,
   scheduleKey,
@@ -284,6 +283,23 @@ function OwnerBookingSheet({
   const queryClient = useQueryClient()
   const [confirming, setConfirming] = useState(false)
   const [cashFor, setCashFor] = useState<GameTeam | null>(null)
+  const [bookingCash, setBookingCash] = useState(false)
+  const takeCash = useMutation({
+    mutationFn: () => markBookingCash(booking.id),
+    onSuccess: () => {
+      toast.show(t('owner.booking.cashDone'), 'success')
+      setBookingCash(false)
+      onClose()
+    },
+    onError: (error) => {
+      toast.show(errorMessage(error), 'danger')
+      setBookingCash(false)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
+      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
+    },
+  })
   const cash = useMutation({
     mutationFn: (team: GameTeam) => recordGameCash(booking.gameId!, team.side),
     onSuccess: (game) => {
@@ -329,7 +345,7 @@ function OwnerBookingSheet({
     <BottomSheet
       open
       title={
-        cashFor
+        cashFor || bookingCash
           ? t('owner.gameCash.confirmTitle')
           : confirming
             ? t('owner.booking.cancelTitle')
@@ -341,12 +357,16 @@ function OwnerBookingSheet({
               team: cashFor.teamName ?? t('team.anonymous'),
               amount: formatMoney(cashFor.remainderAmount),
             })
-          : confirming
-            ? t('owner.booking.cancelText')
-            : undefined
+          : bookingCash
+            ? t('owner.booking.cashConfirmText', {
+                amount: formatMoney(booking.remainingAmount),
+              })
+            : confirming
+              ? t('owner.booking.cancelText')
+              : undefined
       }
       onClose={() => {
-        if (!cancel.isPending && !cash.isPending) onClose()
+        if (!cancel.isPending && !cash.isPending && !takeCash.isPending) onClose()
       }}
       actions={
         cashFor ? (
@@ -355,6 +375,19 @@ function OwnerBookingSheet({
               {t('owner.gameCash.confirm')}
             </Button>
             <Button variant="secondary" disabled={cash.isPending} onClick={() => setCashFor(null)}>
+              {t('owner.cancel')}
+            </Button>
+          </>
+        ) : bookingCash ? (
+          <>
+            <Button haptic loading={takeCash.isPending} onClick={() => takeCash.mutate()}>
+              {t('owner.gameCash.confirm')}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={takeCash.isPending}
+              onClick={() => setBookingCash(false)}
+            >
               {t('owner.cancel')}
             </Button>
           </>
@@ -374,7 +407,7 @@ function OwnerBookingSheet({
         ) : undefined
       }
     >
-      {!confirming && !cashFor && (
+      {!confirming && !cashFor && !bookingCash && (
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -409,14 +442,9 @@ function OwnerBookingSheet({
           </dl>
           {booking.gameId && <GameCash gameId={booking.gameId} onCash={setCashFor} />}
           {!booking.gameId && booking.remainingAmount > 0 && (
-            <>
-              <Button variant="secondary" disabled={!isAvailable(OWNER_BOOKING_CASH)}>
-                {t('owner.booking.cash')}
-              </Button>
-              {!isAvailable(OWNER_BOOKING_CASH) && (
-                <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
-              )}
-            </>
+            <Button variant="secondary" icon={Banknote} onClick={() => setBookingCash(true)}>
+              {t('owner.gameCash.button', { amount: formatMoney(booking.remainingAmount) })}
+            </Button>
           )}
           {CANCELLABLE.has(booking.status) && (
             <Button variant="danger-outline" onClick={() => setConfirming(true)}>

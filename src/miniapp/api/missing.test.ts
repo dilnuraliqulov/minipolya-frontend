@@ -8,7 +8,6 @@ import {
 } from './bookings'
 import { TEAM_GAME_QUOTE } from './games'
 import { isAvailable, MISSING_ENDPOINTS } from './missing'
-import { TEAM_INVITE } from './teams'
 
 describe('requested endpoints', () => {
   it.each([
@@ -17,7 +16,6 @@ describe('requested endpoints', () => {
     [BOOKINGS_WHEN, 'R29'],
     [BOOKING_CASH_PAID, 'R30'],
     [BOOKING_STADIUM_FIELDS, 'R31'],
-    [TEAM_INVITE, 'R32'],
     [TEAM_GAME_QUOTE, 'R33'],
   ])('%s is missing (%s)', (endpoint, request) => {
     expect(isAvailable(endpoint)).toBe(false)

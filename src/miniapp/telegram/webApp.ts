@@ -50,6 +50,12 @@ export interface TelegramWebApp {
   offEvent(event: TelegramEvent, handler: () => void): void
   openTelegramLink(url: string): void
   openLink(url: string): void
+  /**
+   * Bot API 6.9+: asks the user to share their phone with the bot. The
+   * callback only says whether they agreed — the number reaches the backend
+   * through the bot, never from here.
+   */
+  requestContact?(callback?: (shared: boolean) => void): void
   BackButton: {
     isVisible: boolean
     show(): void

@@ -1,20 +1,17 @@
-import { CreditCard, Globe, Heart, LandPlot, SunMoon, User as UserIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { LandPlot } from 'lucide-react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import type { User } from '../api/users'
 import { useSession } from '../auth/sessionContext'
-import { Card, ErrorState, ListRow, SkeletonList, Switch } from '../components'
-import { isLanguage } from '../i18n'
+import { Button, Card, ErrorState, SkeletonBlock, SkeletonList } from '../components'
 import { TabScreen } from '../layout/TabScreen'
-import { useThemePreference } from '../theme'
-import { LANGUAGE_LABEL_KEYS, THEME_LABEL_KEYS } from './labels'
 import { formatPhone } from './phone'
-import { initials } from './profile'
+import { initials, ownerState } from './profile'
+import { AccountSection, AppSection, AppVersion } from './ProfileSections'
 import { useMe, useOwnerStadiums } from './queries'
-import { LanguageSheet, ThemeSheet } from './SettingsSheets'
 
-/** The Profil tab: who you are, your settings, and owner mode when you have a stadium. */
+/** The Profil tab: who you are, owner mode (always), HISOB, ILOVA and the version. */
 export function ProfilePage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -32,98 +29,78 @@ export function ProfilePage() {
       ) : me.isError ? (
         <ErrorState onRetry={() => void me.refetch()} />
       ) : (
-        <ProfileContent user={me.data} />
+        <>
+          <ProfileHeader user={me.data} />
+          <OwnerModeCard user={me.data} />
+          <AccountSection user={me.data} />
+          <AppSection user={me.data} />
+          <AppVersion />
+        </>
       )}
     </TabScreen>
   )
 }
 
-function ProfileContent({ user }: { user: User }) {
+function ProfileHeader({ user }: { user: User }) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const theme = useThemePreference()
-  const [sheet, setSheet] = useState<'language' | 'theme' | null>(null)
-  const language = isLanguage(user.language) ? user.language : 'uz'
-
   return (
-    <>
-      <div className="flex items-center gap-4 pt-3 pb-2">
-        <div
-          className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-3xl font-bold text-on-accent"
-          aria-hidden
-        >
-          {initials(user.name)}
-        </div>
-        <div className="flex min-w-0 flex-col gap-1">
-          <p className="truncate text-2xl font-bold text-primary">{user.name}</p>
-          <p className="text-base text-secondary">
-            {user.phone ? formatPhone(user.phone) : t('profile.noPhone')}
-          </p>
-        </div>
+    <div className="flex items-center gap-4 pt-3 pb-2">
+      <div
+        className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-3xl font-bold text-on-accent"
+        aria-hidden
+      >
+        {initials(user.name)}
       </div>
-
-      {user.isOwner && <OwnerModeRow />}
-
-      <Card>
-        <ListRow
-          icon={UserIcon}
-          label={t('profile.personal')}
-          onClick={() => navigate('/profile/personal')}
-        />
-        <ListRow
-          icon={CreditCard}
-          label={t('profile.cards')}
-          onClick={() => navigate('/profile/cards')}
-        />
-        <ListRow
-          icon={Heart}
-          label={t('profile.favorites')}
-          onClick={() => navigate('/profile/favorites')}
-        />
-        <ListRow
-          icon={Globe}
-          label={t('profile.language')}
-          value={t(LANGUAGE_LABEL_KEYS[language])}
-          onClick={() => setSheet('language')}
-        />
-        <ListRow
-          icon={SunMoon}
-          label={t('profile.theme')}
-          value={t(THEME_LABEL_KEYS[theme])}
-          onClick={() => setSheet('theme')}
-        />
-      </Card>
-
-      <LanguageSheet
-        open={sheet === 'language'}
-        current={language}
-        onClose={() => setSheet(null)}
-      />
-      <ThemeSheet open={sheet === 'theme'} onClose={() => setSheet(null)} />
-    </>
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="truncate text-2xl font-bold text-primary">{user.name}</p>
+        <p className="text-base text-secondary">
+          {user.phone ? formatPhone(user.phone) : t('profile.noPhone')}
+        </p>
+      </div>
+    </div>
   )
 }
 
-/** Shown only when the API says this owner has at least one stadium. */
-function OwnerModeRow() {
+/** "Ega rejimi" — always shown, in one of three states (GET /api/owner/stadiums, R42). */
+function OwnerModeCard({ user }: { user: User }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const stadiums = useOwnerStadiums(true)
-  if (!stadiums.data || stadiums.data.length === 0) return null
+
+  if (stadiums.isPending) return <SkeletonBlock />
+  if (stadiums.isError) {
+    return (
+      <Card>
+        <ErrorState onRetry={() => void stadiums.refetch()} />
+      </Card>
+    )
+  }
+  const state = ownerState(user, stadiums.data)
   return (
-    <Card className="flex items-center gap-4 p-4">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-bar text-link">
-        <LandPlot size={20} aria-hidden />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-md font-semibold text-primary">{t('profile.ownerMode')}</p>
-        <p className="text-sm text-secondary">{t('profile.ownerModeText')}</p>
-      </div>
-      <Switch
-        label={t('profile.ownerMode')}
-        checked={false}
-        onChange={(on) => on && navigate('/owner')}
-      />
+    <Card className="flex flex-col gap-3 border border-border p-4">
+      <p className="flex items-center gap-2 text-md font-semibold text-primary">
+        <LandPlot size={20} className="text-link" aria-hidden />
+        {state === 'none' ? t('profile.ownerCard.noneTitle') : t('profile.ownerMode')}
+      </p>
+      {state === 'none' && (
+        <>
+          <p className="text-sm text-secondary">{t('profile.ownerCard.noneText')}</p>
+          <Button haptic onClick={() => navigate('/owner/new')}>
+            {t('owner.wizard.title')}
+          </Button>
+        </>
+      )}
+      {state === 'review' && (
+        <p className="text-sm text-secondary">{t('profile.ownerCard.reviewText')}</p>
+      )}
+      {state === 'owner' && (
+        <>
+          <p className="text-sm text-secondary">{t('profile.ownerModeText')}</p>
+          <Button haptic onClick={() => navigate('/owner')}>
+            {t('profile.ownerCard.enter')}
+          </Button>
+        </>
+      )}
     </Card>
   )
 }

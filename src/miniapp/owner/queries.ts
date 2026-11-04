@@ -2,11 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import {
   closuresKey,
   getClosures,
+  getOwnerLegal,
+  getOwnerStadium,
   getOwnerStadiums,
   getOwnerStats,
   getPricing,
   getSchedule,
+  OWNER_LEGAL_KEY,
   OWNER_STADIUMS_KEY,
+  ownerStadiumKey,
   pricingKey,
   scheduleKey,
   statsKey,
@@ -33,4 +37,13 @@ export function useSchedule(stadiumId: string, date: string) {
 
 export function useOwnerStats(stadiumId: string) {
   return useQuery({ queryKey: statsKey(stadiumId), queryFn: () => getOwnerStats(stadiumId) })
+}
+
+export function useOwnerLegal() {
+  return useQuery({ queryKey: OWNER_LEGAL_KEY, queryFn: getOwnerLegal })
+}
+
+/** R35: the stadium's full settings in the owner's view. */
+export function useOwnerStadiumDetail(id: string) {
+  return useQuery({ queryKey: ownerStadiumKey(id), queryFn: () => getOwnerStadium(id) })
 }

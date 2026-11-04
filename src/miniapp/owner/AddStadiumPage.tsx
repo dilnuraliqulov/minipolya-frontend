@@ -18,6 +18,7 @@ import {
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
+import { useMe } from '../profile/queries'
 import { formatLabel, SURFACE_KEYS } from '../stadiums/labels'
 import { SelectField } from './SelectField'
 
@@ -35,7 +36,10 @@ const onTheHour = (time: string) => time.endsWith(':00')
  */
 export function AddStadiumPage() {
   const { t } = useTranslation()
-  const goBack = useGoBack('/owner/stadium')
+  // A player without owner rights (R42) comes from Profil and goes back there.
+  const isOwner = useMe().data?.isOwner ?? false
+  const home = isOwner ? '/owner/stadium' : '/profile'
+  const goBack = useGoBack(home)
   const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
@@ -87,8 +91,8 @@ export function AddStadiumPage() {
           description={t('owner.wizard.sentText')}
         >
           <div className="w-full pt-3">
-            <ButtonLink to="/owner/stadium" replace>
-              {t('owner.wizard.toStadium')}
+            <ButtonLink to={home} replace>
+              {isOwner ? t('owner.wizard.toStadium') : t('owner.wizard.toProfile')}
             </ButtonLink>
           </div>
         </StateView>

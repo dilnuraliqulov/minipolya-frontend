@@ -28,3 +28,29 @@ export function openExternalLink(url: string): void {
   if (webApp) webApp.openLink(url)
   else window.open(url, '_blank', 'noopener')
 }
+
+/** Opens a t.me link: inside Telegram as a chat, in a plain browser as a new tab. */
+export function openTelegramLink(url: string): void {
+  const webApp = getTelegramWebApp()
+  if (webApp) webApp.openTelegramLink(url)
+  else window.open(url, '_blank', 'noopener')
+}
+
+/** The public support account from VITE_TELEGRAM_SUPPORT_USERNAME (no @), or null. */
+export function supportUsername(): string | null {
+  const name = import.meta.env.VITE_TELEGRAM_SUPPORT_USERNAME?.replace(/^@/, '').trim()
+  return name ? name : null
+}
+
+/** Opens the support chat; does nothing when no support account is configured. */
+export function openSupport(): void {
+  const name = supportUsername()
+  if (name) openTelegramLink(`https://t.me/${name}`)
+}
+
+/** Telegram's share screen for a link (`t.me/share/url`), with optional text. */
+export function shareLink(url: string, text?: string): void {
+  const query = new URLSearchParams({ url })
+  if (text) query.set('text', text)
+  openTelegramLink(`https://t.me/share/url?${query.toString()}`)
+}

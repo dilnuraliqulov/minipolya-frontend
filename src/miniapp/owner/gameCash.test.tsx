@@ -117,3 +117,64 @@ describe('Ega rejimi — team game cash', () => {
     expect(await screen.findByText('Bu toʻlov allaqachon qayd etilgan.')).toBeInTheDocument()
   })
 })
+
+describe('Ega rejimi — booking cash (R37)', () => {
+  const deposit = {
+    ...booking,
+    gameId: undefined,
+    source: 'player',
+    paymentStatus: 'partially_paid',
+    remainingAmount: 9_000_000,
+  }
+
+  it('records the rest of an ordinary booking in cash after confirming', async () => {
+    const api = stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [
+        {
+          date: TODAY,
+          bookings: [deposit],
+          waitingGames: [],
+          totalSlots: 1,
+          bookedSlots: 1,
+          revenue: 0,
+        },
+      ],
+      'POST /api/owner/bookings/b1/cash': { ...deposit, remainingAmount: 0 },
+    })
+    const sheet = await openBooking()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Naqd olindi · 90 000 soʻm' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })
+    expect(confirm).toHaveTextContent('Mijozdan 90 000 soʻm naqd olinganini tasdiqlaysizmi?')
+    expect(api.calls('POST /api/owner/bookings/b1/cash')).toHaveLength(0)
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Tasdiqlash' }))
+    expect(await screen.findByText('Naqd toʻlov qayd etildi')).toBeInTheDocument()
+    expect(api.calls('POST /api/owner/bookings/b1/cash')).toHaveLength(1)
+  })
+
+  it('maps a card payment still processing to a conflict message', async () => {
+    stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [
+        {
+          date: TODAY,
+          bookings: [deposit],
+          waitingGames: [],
+          totalSlots: 1,
+          bookedSlots: 1,
+          revenue: 0,
+        },
+      ],
+      'POST /api/owner/bookings/b1/cash': jsonResponse(
+        409,
+        null,
+        'A payment for this booking is being processed',
+      ),
+    })
+    const sheet = await openBooking()
+    fireEvent.click(within(sheet).getByRole('button', { name: /Naqd olindi/ }))
+    const confirm = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Tasdiqlash' }))
+    expect(
+      await screen.findByText('Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.'),
+    ).toBeInTheDocument()
+  })
+})

@@ -23,6 +23,9 @@ export type ErrorMessageKey =
   | 'errors.alreadyReviewed'
   | 'errors.reviewNotPlayed'
   | 'errors.minimumTooLow'
+  | 'errors.imageType'
+  | 'errors.tooManyPhotos'
+  | 'errors.fileTooLarge'
   | 'errors.cardDeclined'
   | 'errors.tooLate'
   | 'errors.paymentConfirming'
@@ -45,6 +48,9 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
       // Owner stadium forms: the minimum booking amount's floor.
       if (error.message === API_MESSAGES.minimumTooLow) return 'errors.minimumTooLow'
+      // Stadium photo upload.
+      if (error.message === API_MESSAGES.unsupportedImage) return 'errors.imageType'
+      if (error.message === API_MESSAGES.tooManyPhotos) return 'errors.tooManyPhotos'
       // Team games: a declined card and the 3-hour cut-off are 400s too.
       if (
         error.message === API_MESSAGES.joinDeclined ||
@@ -71,6 +77,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       return 'errors.notFound'
     case 409:
       return 'errors.conflict'
+    case 413:
+      return 'errors.fileTooLarge'
     case 429:
       return 'errors.tooMany'
     default:

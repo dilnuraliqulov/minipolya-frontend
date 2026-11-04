@@ -3,10 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Challenge } from '../api/games'
 import type { TeamDetail } from '../api/teams'
 import { jsonResponse, stubApi } from '../test/api'
+import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+  removeFakeTelegram()
 })
 
 const ME = '018f3a2c-0000-7000-8000-000000000001'
@@ -100,11 +103,45 @@ describe('Jamoam', () => {
     expect(screen.queryByRole('button', { name: 'Jamoani oʻchirish' })).not.toBeInTheDocument()
   })
 
-  it('keeps the invite link for R32', async () => {
-    stub()
+  it('the leader opens "Taklif havolasi": copy, share in Telegram, renew', async () => {
+    vi.stubEnv('VITE_TELEGRAM_BOT_USERNAME', 'minipolya_bot')
+    vi.stubEnv('VITE_TELEGRAM_APP_NAME', 'app')
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    const telegram = installFakeTelegram()
+    const api = stub({
+      'GET /api/teams/t1/invite': { code: 'abc123' },
+      'POST /api/teams/t1/invite': { code: 'new456' },
+    })
     renderApp('/team')
-    expect(await screen.findByRole('button', { name: 'Taklif havolasini ulashish' })).toBeDisabled()
-    expect(screen.getAllByText('Tez orada').length).toBeGreaterThan(0)
+    fireEvent.click(await screen.findByRole('button', { name: 'Taklif havolasini ulashish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Taklif havolasi' })
+    const link = 'https://t.me/minipolya_bot/app?startapp=team_abc123'
+    expect(await within(sheet).findByText(link)).toBeInTheDocument()
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Havoladan nusxa olish' }))
+    expect(await screen.findByText('Havola nusxalandi')).toBeInTheDocument()
+    expect(writeText).toHaveBeenCalledWith(link)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Telegramda ulashish' }))
+    const shared = vi.mocked(telegram.webApp.openTelegramLink).mock.calls[0]?.[0] ?? ''
+    expect(shared.startsWith('https://t.me/share/url?')).toBe(true)
+    expect(new URL(shared).searchParams.get('url')).toBe(link)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Yangi havola yaratish' }))
+    expect(
+      await within(sheet).findByText('https://t.me/minipolya_bot/app?startapp=team_new456'),
+    ).toBeInTheDocument()
+    expect(api.calls('POST /api/teams/t1/invite')).toHaveLength(1)
+  })
+
+  it('a member has no invite button', async () => {
+    stub({ 'GET /api/teams/me': [{ id: 't2', name: 'Sergeli Atlas' }], 'GET /api/teams/t2': atlas })
+    renderApp('/team')
+    await screen.findByRole('heading', { level: 2, name: 'Sergeli Atlas' })
+    expect(
+      screen.queryByRole('button', { name: 'Taklif havolasini ulashish' }),
+    ).not.toBeInTheDocument()
   })
 
   it('removes a member after confirming', async () => {
