@@ -53,6 +53,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     testTimeout: 15_000,
+    // Each worker runs a jsdom page app; one per core (12 here) starves an 8 GB
+    // machine until router-level waits time out. A quarter of the cores is enough.
+    maxWorkers: '25%',
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
