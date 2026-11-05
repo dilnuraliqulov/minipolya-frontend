@@ -83,8 +83,6 @@ export interface Booking {
 
 /** R27: `GET /api/stadiums/{id}/quote` — price, deposit, remainder, deadline before paying. */
 export const BOOKING_QUOTE = 'GET /api/stadiums/{id}/quote'
-/** R28: `POST /api/bookings/{id}/pay` — pay a pending, unpaid booking within its hold. */
-export const BOOKING_PAY = 'POST /api/bookings/{id}/pay'
 /** R29: `?when=upcoming|past` on the booking list. */
 export const BOOKINGS_WHEN = 'GET /api/bookings?when'
 /** R30: `paidInCash` on the player `BookingResponse`. */
@@ -119,6 +117,17 @@ export function getBookings(page: number): Promise<Page<Booking>> {
 
 export function getBooking(id: string): Promise<Booking> {
   return api.get<Booking>(`/api/bookings/${id}`)
+}
+
+/**
+ * R28: pays a pending booking again — the same or another card after a decline —
+ * for the same amount as its first attempt (the deposit or the whole price; the
+ * server decides). A decline is still 200 with the new `declineReason` and the
+ * same `expiresAt` (the hold is never extended). 409 `BOOKING_NOT_PENDING`,
+ * `BOOKING_EXPIRED`, `PAYMENT_IN_PROGRESS`.
+ */
+export function payBooking(id: string, cardId: string): Promise<Booking> {
+  return api.post<Booking>(`/api/bookings/${id}/pay`, { cardId })
 }
 
 /** Pays the whole remainder of a `partially_paid` booking from a saved card. */

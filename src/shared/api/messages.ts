@@ -42,6 +42,13 @@ export const API_CODES = {
   insufficientFunds: 'INSUFFICIENT_FUNDS',
   /** Any other refusal. */
   cardDeclined: 'CARD_DECLINED',
+  // R28: POST /api/bookings/{id}/pay, 409s.
+  /** The booking is no longer pending (confirmed, cancelled, or expired by the job). */
+  bookingNotPending: 'BOOKING_NOT_PENDING',
+  /** Its hold has run out: the slot has to be booked again. */
+  bookingExpired: 'BOOKING_EXPIRED',
+  /** A payment of it is processing or has arrived: do not charge again. */
+  paymentInProgress: 'PAYMENT_IN_PROGRESS',
   /**
    * HTTP 202 with `success: false` from `POST /api/games/{id}/join`: the joining team
    * paid, the other team's capture has no clear answer yet. The backend finishes the

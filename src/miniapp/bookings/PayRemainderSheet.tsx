@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { payRemainder, type Booking } from '../api/bookings'
+import { payBooking, payRemainder, type Booking } from '../api/bookings'
 import { declineMessageKey, errorTone } from '../api/errors'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
@@ -11,29 +11,51 @@ import { formatMoney } from '../format'
 import type { PaymentState } from '../payment/machine'
 import { usePayment } from '../payment/usePayment'
 
-/** "Qolganini toʻlash": a saved card and the pay-remainder call, through the payment machine. */
+/**
+ * Paying a booking from a saved card, through the payment machine:
+ * `rest` — "Qolganini toʻlash", the remainder of a partly paid booking;
+ * `pending` — R28, a pending booking whose card was declined, paid again within
+ * its hold (the server charges the first attempt's amount).
+ */
 export function PayRemainderSheet({
   open,
   booking,
+  mode = 'rest',
+  amount,
   onClose,
   onPaid,
 }: {
   open: boolean
   booking: Booking
+  mode?: 'rest' | 'pending'
+  /** `pending`: what the first attempt asked for (its payment row), shown on the button. */
+  amount?: number
   /** The payment state the sheet closed in ("checking" = still being settled). */
   onClose: (outcome: PaymentState['kind']) => void
   onPaid: () => void
 }) {
   if (!open) return null
-  return <OpenPayRemainder booking={booking} onClose={onClose} onPaid={onPaid} />
+  return (
+    <OpenPayRemainder
+      booking={booking}
+      mode={mode}
+      amount={amount}
+      onClose={onClose}
+      onPaid={onPaid}
+    />
+  )
 }
 
 function OpenPayRemainder({
   booking,
+  mode,
+  amount,
   onClose,
   onPaid,
 }: {
   booking: Booking
+  mode: 'rest' | 'pending'
+  amount?: number
   /** The payment state the sheet closed in ("checking" = still being settled). */
   onClose: (outcome: PaymentState['kind']) => void
   onPaid: () => void
@@ -59,6 +81,10 @@ function OpenPayRemainder({
 
   const pay = () => {
     if (!card) return
+    if (mode === 'pending') {
+      void payment.pay(() => payBooking(booking.id, card.id), { paymentType: 'booking', booking })
+      return
+    }
     void payment.pay(() => payRemainder(booking.id, card.id), { paymentType: 'remainder' })
   }
 
@@ -67,20 +93,22 @@ function OpenPayRemainder({
       ? t(declineMessageKey(state.reason))
       : state.kind === 'checking'
         ? t('checkout.checkingText')
-        : state.kind === 'failed'
-          ? t(state.errorKey)
-          : null
+        : state.kind === 'holdExpired'
+          ? t('checkout.holdExpiredText')
+          : state.kind === 'failed'
+            ? t(state.errorKey)
+            : null
 
   return (
     <>
       <BottomSheet
         open={!adding}
-        title={t('booking.payRestTitle')}
+        title={mode === 'pending' ? t('booking.payPendingTitle') : t('booking.payRestTitle')}
         onClose={() => {
           if (!paying) onClose(state.kind)
         }}
         actions={
-          state.kind === 'checking' ? (
+          state.kind === 'checking' || state.kind === 'holdExpired' ? (
             <Button variant="secondary" onClick={() => onClose(state.kind)}>
               {t('cards.back')}
             </Button>
@@ -88,7 +116,11 @@ function OpenPayRemainder({
             <Button haptic loading={paying} disabled={!card} onClick={pay}>
               {paying
                 ? t('checkout.paying')
-                : t('booking.payRestButton', { amount: formatMoney(booking.remainingAmount) })}
+                : mode === 'rest'
+                  ? t('booking.payRestButton', { amount: formatMoney(booking.remainingAmount) })
+                  : amount !== undefined
+                    ? t('booking.payRestButton', { amount: formatMoney(amount) })
+                    : t('booking.payNow')}
             </Button>
           )
         }

@@ -18,7 +18,7 @@ import {
   Screen,
   SkeletonList,
 } from '../components'
-import { formatLongDate } from '../format'
+import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { formatLabel } from '../stadiums/labels'
@@ -81,7 +81,7 @@ function BookingContent({ booking }: { booking: Booking }) {
   const queryClient = useQueryClient()
   // The stadium adds photo, district, address and phone; the page works without it.
   const stadium = useStadium(booking.stadiumId).data
-  const [sheet, setSheet] = useState<'pay' | 'cancel' | null>(null)
+  const [sheet, setSheet] = useState<'pay' | 'payPending' | 'cancel' | null>(null)
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: bookingKey(booking.id) })
     void queryClient.invalidateQueries({ queryKey: BOOKINGS_KEY })
@@ -105,6 +105,25 @@ function BookingContent({ booking }: { booking: Booking }) {
       )
   const canPayRest = owesRest && !settling && !processing && (knowsState || !payments.isPending)
   const canCancel = CANCELLABLE.has(booking.status)
+  // R28: a pending booking whose card was declined is paid again within its hold.
+  // Not while a payment of it is still on its way, and not once the hold is over.
+  const hold = useCountdown(booking.expiresAt)
+  const canPayPending =
+    booking.status === 'pending' &&
+    booking.paymentStatus === 'unpaid' &&
+    booking.paymentState !== 'processing' &&
+    booking.expiresAt !== undefined &&
+    !hold.expired
+  // The server charges what the first attempt asked for (deposit or in full); that
+  // amount is on its payment row, so the button can show it.
+  const attempts = useQuery({
+    queryKey: ['payments', 'my'],
+    queryFn: () => getMyPayments(0),
+    enabled: canPayPending,
+  })
+  const firstAttempt = attempts.data?.content
+    .filter((p) => p.bookingId === booking.id && p.paymentType === 'booking' && p.amount > 0)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]
 
   return (
     <>
@@ -128,11 +147,12 @@ function BookingContent({ booking }: { booking: Booking }) {
             <p className="text-center text-sm text-secondary">{t('booking.cashNote')}</p>
           </>
         )}
-        {booking.status === 'pending' && booking.paymentStatus === 'unpaid' && (
-          <>
-            <Button disabled>{t('booking.payNow')}</Button>
-            <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
-          </>
+        {canPayPending && (
+          <Button haptic onClick={() => setSheet('payPending')}>
+            {firstAttempt
+              ? t('booking.payRestButton', { amount: formatMoney(firstAttempt.amount) })
+              : t('booking.payNow')}
+          </Button>
         )}
       </PaymentSummary>
 
@@ -175,8 +195,10 @@ function BookingContent({ booking }: { booking: Booking }) {
       )}
 
       <PayRemainderSheet
-        open={sheet === 'pay'}
+        open={sheet === 'pay' || sheet === 'payPending'}
         booking={booking}
+        mode={sheet === 'payPending' ? 'pending' : 'rest'}
+        amount={firstAttempt?.amount}
         onClose={(outcome) => {
           setSheet(null)
           if (outcome === 'checking') setSettling(true)

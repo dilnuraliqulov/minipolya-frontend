@@ -167,6 +167,47 @@ describe('runPayment', () => {
     expect(s).toEqual({ kind: 'slotTaken' })
   })
 
+  describe('R28: paying a pending booking again', () => {
+    const conflict = (code: string) => () =>
+      Promise.reject(new ApiError('conflict', 409, code)) as Promise<B>
+    const retry = (charge: () => Promise<B>, booking: B = unpaid) =>
+      runPayment(charge, { paymentType: 'booking', sleep, booking })
+
+    it('BOOKING_EXPIRED -> holdExpired, nothing looked up', async () => {
+      expect(await retry(conflict('BOOKING_EXPIRED'))).toEqual({ kind: 'holdExpired' })
+      expect(getBooking).not.toHaveBeenCalled()
+    })
+
+    it('BOOKING_NOT_PENDING and the booking was confirmed meanwhile -> success', async () => {
+      const confirmed = makeBooking({ id: unpaid.id })
+      getBooking.mockResolvedValue(confirmed)
+      expect(await retry(conflict('BOOKING_NOT_PENDING'))).toEqual({
+        kind: 'success',
+        booking: confirmed,
+      })
+    })
+
+    it('BOOKING_NOT_PENDING and the booking expired -> holdExpired', async () => {
+      getBooking.mockResolvedValue({ ...unpaid, status: 'expired' })
+      expect(await retry(conflict('BOOKING_NOT_PENDING'))).toEqual({ kind: 'holdExpired' })
+    })
+
+    it('PAYMENT_IN_PROGRESS -> waits for that payment, never charges again', async () => {
+      const processing = { ...unpaid, paymentState: 'processing' }
+      getBooking
+        .mockResolvedValueOnce(processing)
+        .mockResolvedValueOnce(makeBooking({ id: unpaid.id }))
+      const charge = vi.fn(conflict('PAYMENT_IN_PROGRESS'))
+      expect((await retry(charge)).kind).toBe('success')
+      expect(charge).toHaveBeenCalledTimes(1)
+      expect(getMyPayments).not.toHaveBeenCalled()
+    })
+
+    it('a 409 code without the booking at hand is not a taken slot', async () => {
+      expect(await run(conflict('BOOKING_NOT_PENDING'))).toEqual({ kind: 'holdExpired' })
+    })
+  })
+
   it('409 on remainder -> failed(errors.conflict)', async () => {
     const s = await run(() => Promise.reject(new ApiError('x', 409)), 'remainder')
     expect(s).toEqual({ kind: 'failed', errorKey: 'errors.conflict' })

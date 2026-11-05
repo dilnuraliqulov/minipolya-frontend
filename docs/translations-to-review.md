@@ -230,6 +230,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `checkout.declinedTitle` | Toʻlov amalga oshmadi | Оплата не прошла | The payment did not go through |
 | `checkout.hold` | Bron {{time}} davomida saqlanadi | Бронь сохраняется ещё {{time}} | The booking is held for {{time}} |
 | `checkout.holdExpired` | Bron muddati tugadi | Срок брони истёк | The hold has expired |
+| `checkout.holdExpiredText` | Bron saqlanish vaqti tugadi, bu vaqt yana boʻshatildi. Vaqtni qaytadan tanlang. | Время удержания брони истекло, слот снова свободен. Выберите время заново. | The hold on this booking ran out and the slot is free again. Choose a time again. |
+| `checkout.chooseAgain` | Vaqtni qayta tanlash | Выбрать время заново | Choose a time again |
+| `checkout.chooseCard` | Boshqa kartani tanlang yoki yangisini qoʻshing. | Выберите другую карту или добавьте новую. | Choose another card or add a new one. |
 | `checkout.retry` | Qayta urinish | Повторить | Try again |
 | `checkout.otherCard` | Boshqa karta | Другая карта | Another card |
 | `checkout.slotTakenTitle` | Bu vaqt band boʻlib qoldi | Это время уже заняли | This time was just taken |
@@ -327,6 +330,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `booking.cancelledAt` | Bekor qilingan: {{date}}, {{time}} | Отменена: {{date}}, {{time}} | Cancelled: {{date}}, {{time}} |
 | `booking.cancelReason` | Sabab: {{reason}} | Причина: {{reason}} | Reason: {{reason}} |
 | `booking.payRestTitle` | Qolganini toʻlash | Доплата | Pay the rest |
+| `booking.payPendingTitle` | Bronni toʻlash | Оплата брони | Pay for the booking |
 | `booking.payRestButton` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
 | `booking.restPaid` | Toʻlov qabul qilindi | Оплата принята | Payment received |
 | `booking.notFoundTitle` | Bron topilmadi | Бронь не найдена | Booking not found |

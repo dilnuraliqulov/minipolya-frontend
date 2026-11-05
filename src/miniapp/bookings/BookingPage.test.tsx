@@ -215,9 +215,8 @@ describe('Booking detail', () => {
     expect(screen.getByText('Hozir bekor qilsangiz, toʻlov qaytarilmaydi')).toBeInTheDocument()
   })
 
-  it('shows the hold for a pending booking and waits for R28 to pay', async () => {
-    const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString()
-    stub(
+  describe('a pending booking whose card was declined (R28)', () => {
+    const pending = (expiresAt: string, extra = {}) =>
       makeBooking({
         id: 'b1',
         stadiumId: STADIUM_ID,
@@ -227,14 +226,65 @@ describe('Booking detail', () => {
         remainingAmount: 15_500_000,
         refundIfCancelledNow: 0,
         expiresAt,
-      }),
-    )
-    renderApp('/bookings/b1')
-    expect(await screen.findByText('Kutilmoqda')).toBeInTheDocument()
-    expect(screen.getByText(/gacha yakunlang/)).toBeInTheDocument()
-    expect(screen.getByText(/Bron yana 0[45]:\d\d saqlanadi/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Toʻlash' })).toBeDisabled()
-    expect(screen.getByText('Tez orada')).toBeInTheDocument()
+        paymentState: 'declined',
+        declineReason: 'CARD_DECLINED',
+        ...extra,
+      })
+    // The first attempt asked for the deposit: that is what the server charges again.
+    const firstAttempt = page([
+      makePayment({ bookingId: 'b1', paymentType: 'booking', status: 'failed', amount: 5_500_000 }),
+    ])
+
+    it('shows the hold and pays it again for the amount of the first attempt', async () => {
+      const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString()
+      const api = stub(pending(expiresAt), {
+        'GET /api/payments/my': firstAttempt,
+        'POST /api/bookings/b1/pay': makeBooking({ id: 'b1', stadiumId: STADIUM_ID }),
+      })
+      renderApp('/bookings/b1')
+      expect(await screen.findByText('Kutilmoqda')).toBeInTheDocument()
+      expect(screen.getByText(/Bron yana 0[45]:[0-9]{2} saqlanadi/)).toBeInTheDocument()
+      fireEvent.click(await screen.findByRole('button', { name: 'Toʻlash · 55 000 soʻm' }))
+      const sheet = await screen.findByRole('dialog', { name: 'Bronni toʻlash' })
+      fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 55 000 soʻm' }))
+      await vi.waitFor(() =>
+        expect(api.calls('POST /api/bookings/b1/pay')).toEqual([{ cardId: 'c1' }]),
+      )
+      expect(await screen.findByText('Toʻlov qabul qilindi')).toBeInTheDocument()
+    })
+
+    it('says the hold ran out when the retry comes too late', async () => {
+      const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString()
+      stub(pending(expiresAt), {
+        'GET /api/payments/my': firstAttempt,
+        'POST /api/bookings/b1/pay': jsonResponse(409, null, 'expired', 'BOOKING_EXPIRED'),
+      })
+      renderApp('/bookings/b1')
+      fireEvent.click(await screen.findByRole('button', { name: /^Toʻlash/ }))
+      const sheet = await screen.findByRole('dialog', { name: 'Bronni toʻlash' })
+      fireEvent.click(await within(sheet).findByRole('button', { name: /^Toʻlash/ }))
+      expect(await within(sheet).findByRole('alert')).toHaveTextContent(
+        'Bron saqlanish vaqti tugadi',
+      )
+      expect(within(sheet).queryByRole('button', { name: /^Toʻlash/ })).toBeNull()
+    })
+
+    it('offers no payment once the hold is over, or while a payment is processing', async () => {
+      stub(pending(new Date(Date.now() - 1_000).toISOString()))
+      const { unmount } = renderApp('/bookings/b1')
+      expect(await screen.findByText('Bron muddati tugadi')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Toʻlash/ })).toBeNull()
+      unmount()
+      stub(
+        pending(new Date(Date.now() + 5 * 60_000).toISOString(), {
+          paymentState: 'processing',
+          declineReason: undefined,
+        }),
+      )
+      renderApp('/bookings/b1')
+      expect(await screen.findByText('Kutilmoqda')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Toʻlash/ })).toBeNull()
+    })
   })
 
   it('shows a cancelled booking without actions', async () => {

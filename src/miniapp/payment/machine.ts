@@ -1,4 +1,4 @@
-import { isApiError } from '../../shared/api'
+import { API_CODES, isApiError } from '../../shared/api'
 import { getBooking, type Booking } from '../api/bookings'
 import { errorMessageKey, type ErrorMessageKey } from '../api/errors'
 import { getMyPayments } from '../api/payments'
@@ -13,6 +13,8 @@ export type PaymentState =
   | { kind: 'declined'; booking: Booking; reason?: string }
   | { kind: 'checking'; booking: Booking }
   | { kind: 'slotTaken' }
+  /** R28: the booking's hold ran out before it was paid; the slot must be booked again. */
+  | { kind: 'holdExpired' }
   | { kind: 'failed'; errorKey: ErrorMessageKey }
 
 export interface RunPaymentOptions {
@@ -21,6 +23,12 @@ export interface RunPaymentOptions {
   pollTimes?: number
   pollMs?: number
   sleep?: (ms: number) => Promise<void>
+  /**
+   * R28: the pending booking being paid again. Its 409s are read against it: a
+   * payment already on its way, or the booking no longer pending, is looked up
+   * instead of being reported as a failure.
+   */
+  booking?: Booking
   /** Checked after every await; when true nothing more is requested. */
   isCancelled?: () => boolean
 }
@@ -98,10 +106,26 @@ export async function runPayment(
   try {
     booking = await charge()
   } catch (error) {
-    if (paymentType === 'booking' && isApiError(error) && error.status === 409) {
+    const code = isApiError(error) ? error.code : undefined
+    if (code === API_CODES.bookingExpired) return { kind: 'holdExpired' }
+    const elsewhere = code === API_CODES.paymentInProgress || code === API_CODES.bookingNotPending
+    if (elsewhere && opts.booking) {
+      // Not this call's charge: see where the booking stands now, and if a payment
+      // of it is still on its way, wait for it like any unsettled payment.
+      try {
+        booking = await getBooking(opts.booking.id)
+      } catch {
+        return { kind: 'checking', booking: opts.booking }
+      }
+      if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
+      if (booking.status !== 'pending') return { kind: 'holdExpired' }
+    } else if (code === API_CODES.bookingNotPending) {
+      return { kind: 'holdExpired' }
+    } else if (paymentType === 'booking' && isApiError(error) && error.status === 409) {
       return { kind: 'slotTaken' }
+    } else {
+      return { kind: 'failed', errorKey: errorMessageKey(error) }
     }
-    return { kind: 'failed', errorKey: errorMessageKey(error) }
   }
   if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
   if (isCancelled()) return { kind: 'checking', booking }

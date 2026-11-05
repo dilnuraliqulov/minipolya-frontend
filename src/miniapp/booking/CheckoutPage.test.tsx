@@ -177,21 +177,100 @@ describe('Checkout', () => {
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
   })
 
-  it('shows a declined card with the hold countdown and no retry yet', async () => {
-    const expiresAt = new Date(Date.now() + 9 * 60_000 + 30_000).toISOString()
-    stub({
-      [BOOK]: makeBooking({ status: 'pending', paymentStatus: 'unpaid', paidAmount: 0, expiresAt }),
-      [PAYMENTS]: page([makePayment({ status: 'failed' })]),
+  describe('after a decline (R28)', () => {
+    const held = (expiresAt: string, reason = 'CARD_DECLINED') =>
+      makeBooking({
+        id: 'b9',
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        paidAmount: 0,
+        expiresAt,
+        paymentState: 'declined',
+        declineReason: reason,
+      })
+    const PAY = 'POST /api/bookings/b9/pay'
+
+    it('shows the hold countdown and pays the same booking again with the same card', async () => {
+      const expiresAt = new Date(Date.now() + 9 * 60_000 + 30_000).toISOString()
+      const api = stub({ [BOOK]: held(expiresAt), [PAY]: makeBooking({ id: 'b9' }) })
+      const { router } = renderApp(URL)
+      fireEvent.click(await payButton())
+      expect(await screen.findByRole('alert')).toHaveTextContent('Karta rad etildi')
+      expect(screen.getByText(/Bron 09:(29|30) davomida saqlanadi/)).toBeInTheDocument()
+      // The declined card is outlined; the list stays locked until "Boshqa karta".
+      expect(screen.getByRole('radio', { name: /•••• 1234/ }).className).toContain('border-danger')
+      fireEvent.click(screen.getByRole('button', { name: 'Qayta urinish' }))
+      await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
+      expect(api.calls(PAY)).toEqual([{ cardId: 'c1' }])
+      // One booking: the retry does not create another.
+      expect(api.calls(BOOK)).toHaveLength(1)
     })
-    renderApp(URL)
-    fireEvent.click(await payButton())
-    const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('Toʻlov amalga oshmadi')
-    expect(alert).toHaveTextContent('Karta rad etildi')
-    expect(screen.getByText(/Bron 09:(29|30) davomida saqlanadi/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Qayta urinish/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /Boshqa karta/ })).toBeDisabled()
-    expect(screen.getAllByText('Tez orada').length).toBeGreaterThan(0)
+
+    it('"Boshqa karta" unlocks the list; the other card pays and succeeds', async () => {
+      const expiresAt = new Date(Date.now() + 9 * 60_000).toISOString()
+      const api = stub({
+        [BOOK]: held(expiresAt, 'INSUFFICIENT_FUNDS'),
+        [PAY]: makeBooking({ id: 'b9' }),
+      })
+      const { router } = renderApp(URL)
+      fireEvent.click(await payButton())
+      expect(await screen.findByRole('alert')).toHaveTextContent('Kartada mablagʻ yetarli emas')
+      fireEvent.click(screen.getByRole('button', { name: 'Boshqa karta' }))
+      expect(
+        screen.getByText('Boshqa kartani tanlang yoki yangisini qoʻshing.'),
+      ).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('radio', { name: /•••• 5678/ }))
+      // The payment option is fixed now: the server charges what the first attempt asked.
+      fireEvent.click(await payButton())
+      await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
+      expect(api.calls(PAY)).toEqual([{ cardId: 'c2' }])
+    })
+
+    it('a second decline says the new reason and keeps the same hold', async () => {
+      const expiresAt = new Date(Date.now() + 9 * 60_000).toISOString()
+      stub({ [BOOK]: held(expiresAt), [PAY]: held(expiresAt, 'CARD_EXPIRED') })
+      renderApp(URL)
+      fireEvent.click(await payButton())
+      await screen.findByText(/Karta rad etildi/)
+      fireEvent.click(screen.getByRole('button', { name: 'Qayta urinish' }))
+      expect(
+        await screen.findByText(
+          'Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Qayta urinish' })).toBeEnabled()
+    })
+
+    it('when the hold runs out: "Bron muddati tugadi" and back to the slots', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      const expiresAt = new Date(Date.now() + 5_000).toISOString()
+      const api = stub({ [BOOK]: held(expiresAt) })
+      const { router } = renderApp(URL)
+      fireEvent.click(await payButton())
+      await screen.findByText(/Karta rad etildi/)
+      await vi.advanceTimersByTimeAsync(6_000)
+      expect(await screen.findByText('Bron muddati tugadi')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Qayta urinish' })).toBeNull()
+      const before = api.queries(AVAILABILITY).length
+      fireEvent.click(screen.getByRole('button', { name: 'Vaqtni qayta tanlash' }))
+      await vi.waitFor(() => expect(router.state.location.pathname).toBe(`/stadiums/${ID}`))
+      expect(router.state.location.search).toBe(`?date=${DATE}`)
+      await vi.waitFor(() => expect(api.queries(AVAILABILITY).length).toBeGreaterThan(before))
+      expect(api.calls(PAY)).toHaveLength(0)
+    })
+
+    it('a 409 BOOKING_EXPIRED on the retry shows the same', async () => {
+      const expiresAt = new Date(Date.now() + 9 * 60_000).toISOString()
+      stub({
+        [BOOK]: held(expiresAt),
+        [PAY]: jsonResponse(409, null, "The booking's hold has expired", 'BOOKING_EXPIRED'),
+      })
+      renderApp(URL)
+      fireEvent.click(await payButton())
+      await screen.findByText(/Karta rad etildi/)
+      fireEvent.click(screen.getByRole('button', { name: 'Qayta urinish' }))
+      expect(await screen.findByText('Bron muddati tugadi')).toBeInTheDocument()
+    })
   })
 
   it.each([

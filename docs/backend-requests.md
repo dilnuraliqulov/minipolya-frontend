@@ -189,39 +189,6 @@ full payment; it has no minimum booking amount"`, closed, outside hours); 404
 Medium — checkout works from the availability price; the deposit and deadline
 lines wait on it.
 
-### R28 — Pay a pending booking whose payment was declined
-
-**What's needed**
-A declined card leaves the booking `pending` / `unpaid` until the 10-minute
-hold expires, but there is no way to pay it afterwards: `pay-remainder` needs a
-`partially_paid` booking, and re-posting `POST /api/bookings` is a 409 on the
-held slot.
-
-**Which screen needs it**
-Mini App player — booking detail ("Toʻlash" in the pending banner) and the
-"try another card" step after a decline.
-
-**Proposed endpoint**
-`POST /api/bookings/{id}/pay` — logged-in user (the booking's owner)
-
-Request — path `id`, body:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `cardId` | UUID | yes | an active card of the caller |
-| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | uppercase; absent keeps the option chosen at creation; same rule as creation |
-
-Response — `BookingResponse`, `message` as for creation (`paid` /
-`partially_paid` / `unpaid` outcome; a decline is still **200**).
-
-Error cases — 400 `"Booking is not awaiting payment"` (not `pending`, already
-paid, or the hold expired); 403 `"This booking does not belong to you"`; 404
-`"Booking not found"` / `"Card not found"`.
-
-**Priority**
-Medium — without it a declined payment can only be retried by waiting for the
-hold to expire and booking again.
-
 ### R29 — Upcoming and past filter on the booking list
 
 **What's needed**
@@ -424,6 +391,43 @@ Low — the server already refuses a second join; this only removes a dead butto
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
 where the backend differs from it — the backend is what counts, and
 `docs/api-reference.md` documents it.
+
+### R28 — Pay a pending booking whose payment was declined _(shipped in `e14bd5e`)_
+
+**Shipped:** `POST /api/bookings/{id}/pay` `{ cardId }` as proposed, for the same amount as the first attempt (deposit or full); a decline is 200 with the new `declineReason` and the same `expiresAt` (never extended); 409 `BOOKING_NOT_PENDING`, `BOOKING_EXPIRED`, `PAYMENT_IN_PROGRESS`.
+
+**What's needed**
+A declined card leaves the booking `pending` / `unpaid` until the 10-minute
+hold expires, but there is no way to pay it afterwards: `pay-remainder` needs a
+`partially_paid` booking, and re-posting `POST /api/bookings` is a 409 on the
+held slot.
+
+**Which screen needs it**
+Mini App player — booking detail ("Toʻlash" in the pending banner) and the
+"try another card" step after a decline.
+
+**Proposed endpoint**
+`POST /api/bookings/{id}/pay` — logged-in user (the booking's owner)
+
+Request — path `id`, body:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `cardId` | UUID | yes | an active card of the caller |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | uppercase; absent keeps the option chosen at creation; same rule as creation |
+
+Response — `BookingResponse`, `message` as for creation (`paid` /
+`partially_paid` / `unpaid` outcome; a decline is still **200**).
+
+Error cases — 400 `"Booking is not awaiting payment"` (not `pending`, already
+paid, or the hold expired); 403 `"This booking does not belong to you"`; 404
+`"Booking not found"` / `"Card not found"`.
+
+**Priority**
+Medium — without it a declined payment can only be retried by waiting for the
+hold to expire and booking again.
+
+---
 
 ### R44 — Say why a card payment was declined _(shipped in `41a786c`)_
 
