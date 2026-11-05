@@ -476,6 +476,8 @@
     "vs": "vs",
     "waitingOpponent": "Waiting for an opponent",
     "waitingText": "As soon as an opponent accepts, the pitch is booked and we will let you know.",
+    "joinPendingTitle": "The opposing team's payment is being confirmed",
+    "joinPendingText": "The game updates here as soon as the outcome is known.",
     "chat": "Chat",
     "chatText": "Messages between both captains",
     "teams": "Teams",

@@ -14,9 +14,8 @@ import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
  * Open: R24 (list sorted by distance/rating), R25 (list filtered to stadiums
  * free on a date), R27 (booking quote), R30 (cash paid on a booking),
  * R31 (stadium photo, district and format on a booking), R33 (team game quote),
- * R34 (server guard, nothing to gate) and R45 (a game being joined still on
- * the challenge board; teams/pendingJoins.ts covers this launch, nothing to
- * gate). R32, R35–R39, R41–R43, R44, R28 and R29 shipped
+ * and R34 (server guard, nothing to gate). R32, R35–R39, R41–R43, R44, R28,
+ * R29 and R45 shipped
  * (docs/backend-requests.md, Done). R20, R21 and R23
  * shipped in backend `4d5faf0`.
  */

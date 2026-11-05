@@ -214,6 +214,51 @@ describe('Oʻyin — a team game', () => {
     expect(screen.queryByRole('link', { name: /Chat/ })).not.toBeInTheDocument()
   })
 
+  describe('while another team is joining (R45 joinPending)', () => {
+    const joining: GameDetail = { ...confirmed, status: 'open', teams: [teamA], joinPending: true }
+
+    it('says the opposing team payment is being confirmed and offers no cancel', async () => {
+      stub(joining)
+      renderApp('/games/g1')
+      expect(await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')).toBeInTheDocument()
+      expect(
+        screen.getByText('Natija aniq boʻlgach, oʻyin shu yerda yangilanadi.'),
+      ).toBeInTheDocument()
+      // The waiting note would contradict it.
+      expect(
+        screen.queryByText(
+          'Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz.',
+        ),
+      ).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Oʻyinni bekor qilish' })).toBeNull()
+    })
+
+    it('offers no pay-the-rest while it lasts', async () => {
+      stub({ ...confirmed, joinPending: true })
+      renderApp('/games/g1')
+      await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')
+      expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).toBeNull()
+    })
+
+    it('re-reads the game until the backend settles it, then shows the confirmed game', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      let reads = 0
+      stub(joining, {
+        'GET /api/games/g1': () => (++reads === 1 ? joining : confirmed),
+      })
+      renderApp('/games/g1')
+      await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')
+      await vi.advanceTimersByTimeAsync(10_500)
+      expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
+      expect(screen.queryByText('Raqib jamoa toʻlovi tasdiqlanmoqda')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Qolganini toʻlash' })).toBeInTheDocument()
+      // Settled: no more polling.
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(reads).toBe(2)
+      vi.useRealTimers()
+    })
+  })
+
   it('a cancelled game without teams shows no opponent placeholders or empty team list', async () => {
     // The API lists only teams still in the game; after a cancel there are none.
     stub({ ...confirmed, status: 'cancelled', teams: [] })

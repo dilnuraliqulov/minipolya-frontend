@@ -165,27 +165,6 @@ describe('Raqibni qabul qilish', () => {
     expect(api.calls(JOIN)).toHaveLength(1)
   })
 
-  it('on the board, shows a pending join instead of "Qabul qilish"', async () => {
-    stub({
-      [JOIN]: pendingJoin,
-      'GET /api/teams/t1': {
-        id: 't1',
-        name: 'Chilonzor Lions',
-        leaderId: '018f3a2c-0000-7000-8000-000000000001',
-        leaderName: 'Ali',
-        members: [],
-      },
-    })
-    const { router } = renderApp(URL)
-    await screen.findByRole('radio', { name: /•••• 1234/ })
-    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
-    await screen.findByText('Toʻlov tasdiqlanmoqda')
-    await router.navigate('/team')
-    expect(await screen.findByText('Yunusobod United')).toBeInTheDocument()
-    expect(screen.getByText('Toʻlov tasdiqlanmoqda')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Qabul qilish' })).toBeNull()
-  })
-
   it('shows "the payment system is down" as a warning and keeps the pay button', async () => {
     stub({
       [JOIN]: jsonResponse(

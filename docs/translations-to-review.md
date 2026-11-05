@@ -414,6 +414,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.vs` | vs | vs | vs |
 | `game.waitingOpponent` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
 | `game.waitingText` | Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz. | Как только соперник примет вызов, поле будет забронировано, и мы сообщим. | As soon as an opponent accepts, the pitch is booked and we will let you know. |
+| `game.joinPendingTitle` | Raqib jamoa toʻlovi tasdiqlanmoqda | Платёж команды-соперника подтверждается | The opposing team's payment is being confirmed |
+| `game.joinPendingText` | Natija aniq boʻlgach, oʻyin shu yerda yangilanadi. | Когда результат станет известен, игра обновится здесь. | The game updates here as soon as the outcome is known. |
 | `game.chat` | Chat | Чат | Chat |
 | `game.chatText` | Ikkala jamoa sardorlari bilan yozishma | Переписка капитанов обеих команд | Messages between both captains |
 | `game.teams` | Jamoalar | Команды | Teams |

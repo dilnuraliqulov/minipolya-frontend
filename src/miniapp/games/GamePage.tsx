@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, ChevronRight, Info, MapPin, MessageCircle, SearchX } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronRight,
+  Hourglass,
+  Info,
+  MapPin,
+  MessageCircle,
+  SearchX,
+} from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
@@ -93,7 +101,11 @@ function GameContent({ game }: { game: GameDetail }) {
     teams.find((team) => team.leaderId === me.id) ?? teams.find((team) => team.side === mySide)
   const isLeader = myTeam?.leaderId === me.id
   // The backend lets only a leader of a team still in the game cancel it.
-  const canCancel = CANCELLABLE.has(game.status) && teams.some((x) => x.leaderId === me.id)
+  // R45: while another team's payment is being confirmed, nothing that would race it
+  // (cancelling, paying the rest) is offered; the screen refreshes until it settles.
+  const joining = game.joinPending === true
+  const canCancel =
+    !joining && CANCELLABLE.has(game.status) && teams.some((x) => x.leaderId === me.id)
   const badge = gameStatusBadge(game.status)
   const [a, b] = teams
 
@@ -124,7 +136,20 @@ function GameContent({ game }: { game: GameDetail }) {
         )}
       </Card>
 
-      {game.status === 'open' && (
+      {joining && (
+        <div
+          role="status"
+          className="flex gap-3 rounded-xl border border-warning bg-warning-soft p-3 text-warning"
+        >
+          <Hourglass size={18} className="mt-0.5 shrink-0" aria-hidden />
+          <div className="flex flex-col gap-1 text-sm">
+            <p className="font-semibold">{t('game.joinPendingTitle')}</p>
+            <p>{t('game.joinPendingText')}</p>
+          </div>
+        </div>
+      )}
+
+      {game.status === 'open' && !joining && (
         <p className="flex gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
           <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
           {t('game.waitingText')}
@@ -159,6 +184,7 @@ function GameContent({ game }: { game: GameDetail }) {
       {myTeam && (
         <MyPayment team={myTeam}>
           {isLeader &&
+            !joining &&
             myTeam.remainderStatus === 'unpaid' &&
             myTeam.remainderAmount > 0 &&
             PAYABLE.has(game.status) && (

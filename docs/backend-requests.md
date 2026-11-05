@@ -333,7 +333,15 @@ High — guards against double holds and double charges.
 
 ---
 
-### R45 — Keep a game that is being joined off the challenge board
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R45 — Keep a game that is being joined off the challenge board _(shipped in `b896a07`)_
+
+**Shipped:** `GET /api/games/challenges` leaves out any game with a `joining` team, for everyone (the joining captain too); it comes back if that join fails. `GameDetailResponse.joinPending` (team games only) is true meanwhile.
 
 **What's needed**
 While a team's join is half-way (`game_teams.status = 'joining'`, e.g. after a
@@ -357,12 +365,6 @@ partial unique index already treats that side as taken). Optionally,
 Low — the server already refuses a second join; this only removes a dead button.
 
 ---
-
-## Done
-
-In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
-where the backend differs from it — the backend is what counts, and
-`docs/api-reference.md` documents it.
 
 ### R29 — Upcoming and past filter on the booking list _(shipped in `08687d6`)_
 

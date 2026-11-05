@@ -2,11 +2,10 @@ import { useSyncExternalStore } from 'react'
 
 /**
  * Team games this player joined whose answer was 202 PAYMENT_PENDING: paid,
- * the other team's capture not settled yet. The challenge board still lists
- * such a game (it stays `open` until the backend finishes the join), so it
- * must not offer "Qabul qilish" — paying — again. In memory only, for this
- * launch: the backend's notification brings the outcome, and the game reads
- * fresh from the server whenever it is opened.
+ * the other team's capture not settled yet. The backend now leaves such a game
+ * off the challenge board (R45) and marks it `joinPending`; this only lets the
+ * accept screen keep saying "Toʻlov tasdiqlanmoqda" (instead of "this challenge
+ * is gone") when the captain comes back to it in the same launch.
  */
 const pending = new Set<string>()
 const listeners = new Set<() => void>()

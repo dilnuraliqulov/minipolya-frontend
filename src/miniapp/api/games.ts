@@ -69,6 +69,11 @@ export interface GameDetail extends Game {
   price?: number
   /** Team games only. */
   teams?: GameTeam[]
+  /**
+   * R45, team games only: a team is half-way through joining (its payment being
+   * confirmed, e.g. after 202 PAYMENT_PENDING). Settled by the backend.
+   */
+  joinPending?: boolean
   participants?: GameParticipant[]
 }
 
