@@ -145,7 +145,12 @@ export function createTeamGame(body: CreateTeamGameBody): Promise<GameDetail> {
   return api.post<GameDetail>('/api/games', { ...body, type: 'team_vs_team', maxPlayers: 2 })
 }
 
-/** A leader accepts a waiting team game; the backend takes the free side. */
+/**
+ * A leader accepts a waiting team game with their team and a card; the backend
+ * picks the free side (A when the team left behind sits on B). `side: 'b'` is
+ * optional now but kept for now: older backends require it and newer ones
+ * accept it from any client. Drop it once every backend decides the side itself.
+ */
 export function acceptChallenge(gameId: string, teamId: string, cardId: string) {
   return api.post<GameParticipant>(`/api/games/${gameId}/join`, {
     gameId,
