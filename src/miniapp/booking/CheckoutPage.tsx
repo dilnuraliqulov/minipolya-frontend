@@ -7,7 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
 import { BOOKINGS_KEY, createBooking, type Booking, type PaymentOption } from '../api/bookings'
 import type { SavedCard } from '../api/cards'
-import { errorTone } from '../api/errors'
+import { declineMessageKey, errorTone } from '../api/errors'
 import { getAvailability, type StadiumDetail, type TimeSlot } from '../api/stadiums'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
@@ -349,7 +349,9 @@ function CheckoutForm({
           <CircleAlert size={20} className="mt-0.5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1">
             <p className="text-md font-semibold">{t('checkout.declinedTitle')}</p>
-            <p className="text-sm">{t('checkout.declinedText')}</p>
+            <p className="text-sm">
+              {t(declineMessageKey(state.kind === 'declined' ? state.reason : undefined))}
+            </p>
           </div>
         </div>
       )}

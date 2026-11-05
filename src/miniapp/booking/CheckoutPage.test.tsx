@@ -194,6 +194,33 @@ describe('Checkout', () => {
     expect(screen.getAllByText('Tez orada').length).toBeGreaterThan(0)
   })
 
+  it.each([
+    ['CARD_DECLINED', 'Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.'],
+    [
+      'INSUFFICIENT_FUNDS',
+      'Kartada mablagʻ yetarli emas. Boshqa karta tanlang yoki kartani toʻldiring.',
+    ],
+    ['CARD_EXPIRED', 'Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning.'],
+  ])('says why from declineReason %s, without reading the payments', async (reason, text) => {
+    const expiresAt = new Date(Date.now() + 9 * 60_000).toISOString()
+    const api = stub({
+      [BOOK]: makeBooking({
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        paidAmount: 0,
+        expiresAt,
+        paymentState: 'declined',
+        declineReason: reason,
+      }),
+    })
+    renderApp(URL)
+    fireEvent.click(await payButton())
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Toʻlov amalga oshmadi')
+    expect(alert).toHaveTextContent(text)
+    expect(api.calls(PAYMENTS)).toHaveLength(0)
+  })
+
   it('sends the player back to the slots when the hour was taken', async () => {
     const api = stub({ [BOOK]: jsonResponse(409, null, 'Slot is already booked') })
     const { router } = renderApp(URL)

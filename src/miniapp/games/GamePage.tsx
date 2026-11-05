@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { formatTime } from '../../shared/format'
-import { errorMessage, errorMessageKey, errorTone } from '../api/errors'
+import { errorMessage, errorMessageKey, errorTone, isDeclineKey } from '../api/errors'
 import {
   cancelGame,
   CHALLENGES_KEY,
@@ -328,7 +328,7 @@ function PayTeamRemainderSheet({
       // say so, and reload the game instead of leaving the pay button live.
       // The payment system being down is safe too: nothing was charged.
       const key = errorMessageKey(error)
-      if (key === 'errors.cardDeclined' || key === 'errors.providerUnavailable') return
+      if (isDeclineKey(key) || key === 'errors.providerUnavailable') return
       toast.show(errorMessage(error), 'danger')
       void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
       onClose()
@@ -365,11 +365,7 @@ function PayTeamRemainderSheet({
               key={c.id}
               card={c}
               selected={c.id === card?.id}
-              invalid={
-                pay.isError &&
-                c.id === card?.id &&
-                errorMessageKey(pay.error) === 'errors.cardDeclined'
-              }
+              invalid={pay.isError && c.id === card?.id && isDeclineKey(errorMessageKey(pay.error))}
               onSelect={() => setCardId(c.id)}
             />
           ))}

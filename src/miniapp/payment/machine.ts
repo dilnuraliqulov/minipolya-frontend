@@ -9,7 +9,8 @@ export type PaymentState =
   | { kind: 'idle' }
   | { kind: 'paying' }
   | { kind: 'success'; booking: Booking }
-  | { kind: 'declined'; booking: Booking }
+  /** `reason`: R44 `declineReason`, when the backend says why. */
+  | { kind: 'declined'; booking: Booking; reason?: string }
   | { kind: 'checking'; booking: Booking }
   | { kind: 'slotTaken' }
   | { kind: 'failed'; errorKey: ErrorMessageKey }
@@ -41,6 +42,30 @@ export function canRetry(state: PaymentState): boolean {
   return state.kind === 'failed'
 }
 
+const declined = (booking: Booking): PaymentState => ({
+  kind: 'declined',
+  booking,
+  reason: booking.declineReason,
+})
+
+/**
+ * What the booking itself says (backend ccfa4d5+): true = refused (or failed without a
+ * refusal), false = not refused, undefined = an older backend that does not say — then
+ * the payment row in GET /api/payments/my is read instead.
+ */
+function refusedOnBooking(booking: Booking): boolean | undefined {
+  if (booking.declineReason) return true
+  if (booking.paymentState === undefined) return undefined
+  return booking.paymentState === 'declined' || booking.paymentState === 'failed'
+}
+
+/** Refused, from the booking when it says, else from its payment row. */
+async function isRefused(booking: Booking, type: PaymentType): Promise<boolean> {
+  const said = refusedOnBooking(booking)
+  if (said !== undefined) return said
+  return (await paymentRowStatus(booking, type)) === 'failed'
+}
+
 /** The newest payment row of this booking (and kind), or undefined. */
 async function paymentRowStatus(booking: Booking, type: PaymentType): Promise<string | undefined> {
   try {
@@ -53,9 +78,9 @@ async function paymentRowStatus(booking: Booking, type: PaymentType): Promise<st
 
 /**
  * Runs one charge and works out what happened. `charge` creates and charges
- * the booking (or pays its remainder). An unpaid answer cannot tell declined
- * from still-processing: the payment row says it, and while it is not settled
- * the booking is polled.
+ * the booking (or pays its remainder). An unpaid answer is told apart by the
+ * booking's own `paymentState` / `declineReason` (R44) — or, from an older
+ * backend, by the payment row — and while it is not settled the booking is polled.
  */
 export async function runPayment(
   charge: () => Promise<Booking>,
@@ -81,9 +106,7 @@ export async function runPayment(
   if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
   if (isCancelled()) return { kind: 'checking', booking }
 
-  if ((await paymentRowStatus(booking, paymentType)) === 'failed') {
-    return { kind: 'declined', booking }
-  }
+  if (await isRefused(booking, paymentType)) return declined(booking)
 
   for (let i = 0; i < pollTimes; i++) {
     if (isCancelled()) break
@@ -96,8 +119,7 @@ export async function runPayment(
     }
     if (isCancelled()) break
     if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
-    const status = await paymentRowStatus(booking, paymentType)
-    if (status === 'failed') return { kind: 'declined', booking }
+    if (await isRefused(booking, paymentType)) return declined(booking)
   }
   return { kind: 'checking', booking }
 }

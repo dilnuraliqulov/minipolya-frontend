@@ -35,22 +35,19 @@ export const API_CODES = {
   bindingNotFound: 'BINDING_NOT_FOUND',
   /** Any other refusal of the card. */
   cardBindingFailed: 'CARD_BINDING_FAILED',
+  // R44: a refused card payment. The `code` of the 400 declines of the team-game calls
+  // (POST /api/games, /join, /pay-remainder), and the `declineReason` of a booking or a
+  // payment row. CARD_EXPIRED (above) is the third reason.
+  /** Not enough money on the card. */
+  insufficientFunds: 'INSUFFICIENT_FUNDS',
+  /** Any other refusal. */
+  cardDeclined: 'CARD_DECLINED',
   /**
    * HTTP 202 with `success: false` from `POST /api/games/{id}/join`: the joining team
    * paid, the other team's capture has no clear answer yet. The backend finishes the
    * join (or undoes it and refunds) and notifies the player. Never pay again.
    */
   paymentPending: 'PAYMENT_PENDING',
-} as const
-
-/**
- * Declines arrive without a code (a 400 with prose, or HTTP 200 and a `failed` payment
- * row), so a declined card cannot yet be told from one without enough money. R44 asks
- * for these codes; the client maps them already and they take over once sent.
- */
-export const REQUESTED_DECLINE_CODES = {
-  cardDeclined: 'CARD_DECLINED',
-  insufficientFunds: 'INSUFFICIENT_FUNDS',
 } as const
 
 /**

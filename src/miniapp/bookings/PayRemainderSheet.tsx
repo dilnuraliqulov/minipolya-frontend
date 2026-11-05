@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { payRemainder, type Booking } from '../api/bookings'
-import { errorTone } from '../api/errors'
+import { declineMessageKey, errorTone } from '../api/errors'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
 import { useCards } from '../cards/queries'
@@ -64,7 +64,7 @@ function OpenPayRemainder({
 
   const problem =
     state.kind === 'declined'
-      ? t('checkout.declinedText')
+      ? t(declineMessageKey(state.reason))
       : state.kind === 'checking'
         ? t('checkout.checkingText')
         : state.kind === 'failed'

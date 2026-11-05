@@ -14,6 +14,19 @@ export type BookingStatus =
 
 export type PaymentStatus = 'unpaid' | 'partially_paid' | 'paid'
 
+/**
+ * R44: why a card payment was refused. Uppercase on the wire (the backend's
+ * `DeclineReason` enum names), unlike the other enums.
+ */
+export type DeclineReason = 'INSUFFICIENT_FUNDS' | 'CARD_EXPIRED' | 'CARD_DECLINED'
+
+/**
+ * Where the booking's latest card payment stands (backend `ccfa4d5`); always sent by
+ * that backend. `declined` exactly when `declineReason` is present; `failed` = failed
+ * without a refusal (e.g. never acknowledged); `none` = no card payment.
+ */
+export type BookingPaymentState = 'paid' | 'processing' | 'declined' | 'failed' | 'none'
+
 /** Request side only: uppercase. */
 export type PaymentOption = 'MINIMUM' | 'FULL'
 
@@ -55,6 +68,10 @@ export interface Booking {
   refundIfCancelledNow?: number
   /** Tiyin; only on a cancellation response. */
   refundAmount?: number
+  /** R44: the latest card payment (in full, deposit or remainder) was refused, and why. */
+  declineReason?: DeclineReason | string
+  /** Absent only from a backend older than `ccfa4d5`. */
+  paymentState?: BookingPaymentState | string
   createdAt: string
   /** R30: tiyin taken in cash. Not shipped; the client does not read it. */
   paidInCash?: number
@@ -88,7 +105,7 @@ export interface CreateBookingBody {
 
 /**
  * Creates the booking and charges the card in the same call. A decline is
- * still 200: read `paymentStatus`.
+ * still 200: read `paymentStatus`, and `declineReason` for why.
  */
 export function createBooking(body: CreateBookingBody): Promise<Booking> {
   return api.post<Booking>('/api/bookings', body)

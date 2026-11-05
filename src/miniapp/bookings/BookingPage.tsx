@@ -89,15 +89,21 @@ function BookingContent({ booking }: { booking: Booking }) {
   const owesRest = booking.paymentStatus === 'partially_paid' && LIVE.has(booking.status)
   // A remainder charge still being settled must not be paid a second time.
   const [settling, setSettling] = useState(false)
+  // The booking says where its latest card payment stands (paymentState); only a
+  // backend older than ccfa4d5 leaves it out, and then the payment rows are read.
+  const knowsState = booking.paymentState !== undefined
   const payments = useQuery({
     queryKey: ['payments', 'my'],
     queryFn: () => getMyPayments(0),
-    enabled: owesRest,
+    enabled: owesRest && !knowsState,
   })
-  const processing = payments.data?.content.some(
-    (p) => p.bookingId === booking.id && p.paymentType === 'remainder' && p.status === 'processing',
-  )
-  const canPayRest = owesRest && !settling && !processing && !payments.isPending
+  const processing = knowsState
+    ? booking.paymentState === 'processing'
+    : payments.data?.content.some(
+        (p) =>
+          p.bookingId === booking.id && p.paymentType === 'remainder' && p.status === 'processing',
+      )
+  const canPayRest = owesRest && !settling && !processing && (knowsState || !payments.isPending)
   const canCancel = CANCELLABLE.has(booking.status)
 
   return (

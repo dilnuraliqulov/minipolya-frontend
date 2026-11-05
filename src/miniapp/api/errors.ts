@@ -1,4 +1,4 @@
-import { API_CODES, API_MESSAGES, isApiError, REQUESTED_DECLINE_CODES } from '../../shared/api'
+import { API_CODES, API_MESSAGES, isApiError } from '../../shared/api'
 import i18n from '../i18n'
 import { isAccountBlocked } from './blocked'
 
@@ -58,9 +58,36 @@ const CARD_CODES: Record<string, ErrorMessageKey> = {
   [API_CODES.smsResendUnavailable]: 'errors.smsResendUnavailable',
   [API_CODES.bindingNotFound]: 'errors.bindingNotFound',
   [API_CODES.cardBindingFailed]: 'errors.cardBindingFailed',
-  // R44, not sent yet: a decline that says why.
-  [REQUESTED_DECLINE_CODES.cardDeclined]: 'errors.cardDeclined',
-  [REQUESTED_DECLINE_CODES.insufficientFunds]: 'errors.insufficientFunds',
+  // R44: a refused card payment (team-game 400s). CARD_EXPIRED above reads the same.
+  [API_CODES.cardDeclined]: 'errors.cardDeclined',
+  [API_CODES.insufficientFunds]: 'errors.insufficientFunds',
+}
+
+/**
+ * R44: the text for a refused card payment, from `declineReason` (a booking or payment
+ * row) or a 400's `code`. No reason, or one this client does not know: a plain decline.
+ */
+export function declineMessageKey(reason: string | undefined): ErrorMessageKey {
+  switch (reason) {
+    case API_CODES.insufficientFunds:
+      return 'errors.insufficientFunds'
+    case API_CODES.cardExpired:
+      return 'errors.cardExpired'
+    default:
+      return 'errors.cardDeclined'
+  }
+}
+
+/**
+ * The card was refused (any reason): the player may try again with another card, and
+ * the chosen card is outlined. On a payment call CARD_EXPIRED is a refusal too.
+ */
+export function isDeclineKey(key: ErrorMessageKey | null | undefined): boolean {
+  return (
+    key === 'errors.cardDeclined' ||
+    key === 'errors.insufficientFunds' ||
+    key === 'errors.cardExpired'
+  )
 }
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {

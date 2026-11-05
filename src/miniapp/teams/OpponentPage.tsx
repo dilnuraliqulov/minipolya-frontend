@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
-import { errorMessageKey, errorTone, isUnclearPaymentError } from '../api/errors'
+import { errorMessageKey, errorTone, isDeclineKey, isUnclearPaymentError } from '../api/errors'
 import { createTeamGame, MY_GAMES_KEY } from '../api/games'
 import { getAvailability } from '../api/stadiums'
 import { parseCheckoutParams, type CheckoutParams } from '../booking/checkoutParams'
@@ -247,11 +247,7 @@ function Opponent({ params }: { params: CheckoutParams }) {
         {t('opponent.rules')}
       </p>
 
-      <CardPicker
-        choice={choice}
-        disabled={create.isPending}
-        invalid={failure === 'errors.cardDeclined'}
-      />
+      <CardPicker choice={choice} disabled={create.isPending} invalid={isDeclineKey(failure)} />
 
       {failure && <Notice tone={errorTone(failure)}>{t(failure)}</Notice>}
     </Screen>

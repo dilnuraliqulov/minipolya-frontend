@@ -157,7 +157,7 @@ describe('AddCardSheet', () => {
     [
       'CARD_EXPIRED',
       'Amal qilish muddati (OO/YY)',
-      'Kartaning amal qilish muddati tugagan. Boshqa karta kiriting.',
+      'Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning.',
     ],
   ])('shows %s under its field', async (code, field, text) => {
     stubApi({ 'POST /api/cards': jsonResponse(400, null, 'refused', code) })

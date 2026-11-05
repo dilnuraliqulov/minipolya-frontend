@@ -3,7 +3,7 @@ export { api, apiRequest, configureApiClient, getTokenStore, mediaUrl } from './
 export type { ApiClientConfig, RequestOptions } from './client'
 export { isJwtExpired, readJwtClaims } from './jwt'
 export type { JwtClaims } from './jwt'
-export { API_CODES, API_MESSAGES, REQUESTED_DECLINE_CODES } from './messages'
+export { API_CODES, API_MESSAGES } from './messages'
 export { createQueryClient, shouldRetry } from './queryClient'
 export { createLocalStorageTokenStore, createMemoryTokenStore } from './tokenStore'
 export type { TokenStore } from './tokenStore'

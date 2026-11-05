@@ -69,7 +69,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.providerUnavailable` | Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring. | Платёжная система временно не работает. Попробуйте чуть позже. | The payment system is temporarily unavailable. Please try again shortly. |
 | `errors.cardNotSupported` | Faqat Uzcard va Humo kartalari qabul qilinadi. | Принимаются только карты Uzcard и Humo. | Only Uzcard and Humo cards are accepted. |
 | `errors.cardExpiryInvalid` | Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting. | Неверный номер карты или срок действия. Проверьте и введите ещё раз. | The card number or expiry date is wrong. Check them and try again. |
-| `errors.cardExpired` | Kartaning amal qilish muddati tugagan. Boshqa karta kiriting. | Срок действия карты истёк. Введите другую карту. | This card has expired. Enter another card. |
+| `errors.cardExpired` | Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning. | Срок действия карты истёк. Используйте другую карту. | This card has expired. Use another card. |
 | `errors.smsCodeWrong` | SMS kod notoʻgʻri. Qaytadan kiriting. | Неверный SMS-код. Введите ещё раз. | Wrong SMS code. Enter it again. |
 | `errors.smsCodeExpired` | SMS kodning muddati tugadi. Kodni qayta yuboring. | Срок действия SMS-кода истёк. Отправьте код ещё раз. | The SMS code has expired. Send a new code. |
 | `errors.smsResendTooEarly` | Yangi kodni biroz kutib soʻrang. | Подождите немного, прежде чем запрашивать новый код. | Please wait a little before asking for a new code. |
@@ -228,7 +228,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `checkout.pay` | Toʻlash · {{amount}} | Оплатить · {{amount}} | Pay · {{amount}} |
 | `checkout.paying` | Toʻlanmoqda… | Оплата… | Paying… |
 | `checkout.declinedTitle` | Toʻlov amalga oshmadi | Оплата не прошла | The payment did not go through |
-| `checkout.declinedText` | Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring. | Карта отклонена. Выберите другую карту или проверьте эту. | The card was declined. Choose another card or check this one. |
 | `checkout.hold` | Bron {{time}} davomida saqlanadi | Бронь сохраняется ещё {{time}} | The booking is held for {{time}} |
 | `checkout.holdExpired` | Bron muddati tugadi | Срок брони истёк | The hold has expired |
 | `checkout.retry` | Qayta urinish | Повторить | Try again |

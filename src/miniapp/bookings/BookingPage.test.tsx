@@ -115,6 +115,35 @@ describe('Booking detail', () => {
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
   })
 
+  it('says why the remainder was refused from declineReason, without reading the payments', async () => {
+    const api = stub(
+      { ...partial, paymentState: 'paid' },
+      {
+        'POST /api/bookings/b1/pay-remainder': {
+          ...partial,
+          paymentState: 'declined',
+          declineReason: 'CARD_EXPIRED',
+        },
+      },
+    )
+    renderApp('/bookings/b1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini ilovada toʻlash' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
+    fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
+    expect(await within(sheet).findByRole('alert')).toHaveTextContent(
+      'Kartaning amal qilish muddati tugagan',
+    )
+    expect(api.calls('GET /api/payments/my')).toHaveLength(0)
+  })
+
+  it('reads a processing remainder from paymentState, without reading the payments', async () => {
+    const api = stub({ ...partial, paymentState: 'processing' })
+    renderApp('/bookings/b1')
+    expect(await screen.findByText(/Toʻlov tekshirilmoqda/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' })).toBeNull()
+    expect(api.calls('GET /api/payments/my')).toHaveLength(0)
+  })
+
   it('does not offer pay-the-rest again while a remainder payment is processing', async () => {
     stub(partial, {
       'GET /api/payments/my': page([

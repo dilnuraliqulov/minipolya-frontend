@@ -16,6 +16,8 @@ export interface Payment {
   providerTxnId?: string
   status: string
   refundReason?: string
+  /** R44: on a failed row the provider refused, why (uppercase). */
+  declineReason?: string
   createdAt: string
 }
 

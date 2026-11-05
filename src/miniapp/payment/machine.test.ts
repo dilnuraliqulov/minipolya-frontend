@@ -67,6 +67,49 @@ describe('runPayment', () => {
     expect(getBooking).not.toHaveBeenCalled()
   })
 
+  it.each(['INSUFFICIENT_FUNDS', 'CARD_EXPIRED', 'CARD_DECLINED'])(
+    'declineReason %s on the booking -> declined with it, no payments lookup',
+    async (reason) => {
+      const b = makeBooking({
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        paidAmount: 0,
+        paymentState: 'declined',
+        declineReason: reason,
+      })
+      expect(await run(() => Promise.resolve(b))).toEqual({
+        kind: 'declined',
+        booking: b,
+        reason,
+      })
+      expect(getMyPayments).not.toHaveBeenCalled()
+      expect(getBooking).not.toHaveBeenCalled()
+    },
+  )
+
+  it('paymentState failed (no refusal) -> declined without a reason, no lookup', async () => {
+    const b = makeBooking({ status: 'pending', paymentStatus: 'unpaid', paymentState: 'failed' })
+    expect(await run(() => Promise.resolve(b))).toEqual({ kind: 'declined', booking: b })
+    expect(getMyPayments).not.toHaveBeenCalled()
+  })
+
+  it('paymentState processing -> polls the booking only, then its declineReason', async () => {
+    const processing = makeBooking({
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      paymentState: 'processing',
+    })
+    const refused = { ...processing, paymentState: 'declined', declineReason: 'INSUFFICIENT_FUNDS' }
+    getBooking.mockResolvedValueOnce(processing).mockResolvedValueOnce(refused)
+    expect(await run(() => Promise.resolve(processing))).toEqual({
+      kind: 'declined',
+      booking: refused,
+      reason: 'INSUFFICIENT_FUNDS',
+    })
+    expect(getBooking).toHaveBeenCalledTimes(2)
+    expect(getMyPayments).not.toHaveBeenCalled()
+  })
+
   it('another booking failed row is ignored', async () => {
     getMyPayments.mockResolvedValue(page(makePayment({ bookingId: 'other', status: 'failed' })))
     getBooking.mockResolvedValue(unpaid)

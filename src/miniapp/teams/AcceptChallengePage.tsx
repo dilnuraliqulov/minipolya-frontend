@@ -12,7 +12,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
-import { errorMessageKey, errorTone, isUnclearPaymentError } from '../api/errors'
+import { errorMessageKey, errorTone, isDeclineKey, isUnclearPaymentError } from '../api/errors'
 import {
   acceptChallenge,
   CHALLENGES_KEY,
@@ -303,11 +303,7 @@ function AcceptForm({
         {t('accept.rule')}
       </p>
 
-      <CardPicker
-        choice={choice}
-        disabled={accept.isPending}
-        invalid={failure === 'errors.cardDeclined'}
-      />
+      <CardPicker choice={choice} disabled={accept.isPending} invalid={isDeclineKey(failure)} />
 
       {failure && <Notice tone={errorTone(failure)}>{t(failure)}</Notice>}
     </Screen>

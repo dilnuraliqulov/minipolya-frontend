@@ -394,7 +394,40 @@ High — guards against double holds and double charges.
 
 ---
 
-### R44 — Say why a card payment was declined
+### R45 — Keep a game that is being joined off the challenge board
+
+**What's needed**
+While a team's join is half-way (`game_teams.status = 'joining'`, e.g. after a
+202 `PAYMENT_PENDING`), the game stays `open` and `GET /api/games/challenges`
+still lists it — to every captain, including the one whose team is joining.
+"Qabul qilish" then offers to pay again; the backend refuses the second join
+(400 "This game already has an opponent", nothing charged), but the board
+should not offer it. The Mini App hides the button for the joining captain for
+the rest of that launch only (`teams/pendingJoins.ts`).
+
+**Which screen needs it**
+Mini App player — Jamoam, "Raqib qidirayotgan jamoalar".
+
+**Proposed change**
+`GET /api/games/challenges` leaves out games that have a `joining` team (the
+partial unique index already treats that side as taken). Optionally,
+`GameDetailResponse` gets `joinPending: boolean` (true while a team is
+`joining`) so the game screen can say "Toʻlov tasdiqlanmoqda" after a relaunch.
+
+**Priority**
+Low — the server already refuses a second join; this only removes a dead button.
+
+---
+
+## Done
+
+In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
+where the backend differs from it — the backend is what counts, and
+`docs/api-reference.md` documents it.
+
+### R44 — Say why a card payment was declined _(shipped in `41a786c`)_
+
+**Shipped:** the 400 declines of the team-game calls carry `code` INSUFFICIENT_FUNDS / CARD_EXPIRED / CARD_DECLINED; `BookingResponse.declineReason` (every view) and `PaymentResponse.declineReason` (not `failureCode` as proposed), values uppercase; plus `BookingResponse.paymentState` (`ccfa4d5`): `paid` / `processing` / `declined` / `failed` / `none`, always present.
 
 **What's needed**
 Card binding now answers with a `code` (`CARD_NOT_SUPPORTED`, `CARD_EXPIRED`,
@@ -433,37 +466,6 @@ The Mini App already maps `INSUFFICIENT_FUNDS`, `CARD_EXPIRED` and
 Medium — the player cannot tell an empty card from a refused one.
 
 ---
-
-### R45 — Keep a game that is being joined off the challenge board
-
-**What's needed**
-While a team's join is half-way (`game_teams.status = 'joining'`, e.g. after a
-202 `PAYMENT_PENDING`), the game stays `open` and `GET /api/games/challenges`
-still lists it — to every captain, including the one whose team is joining.
-"Qabul qilish" then offers to pay again; the backend refuses the second join
-(400 "This game already has an opponent", nothing charged), but the board
-should not offer it. The Mini App hides the button for the joining captain for
-the rest of that launch only (`teams/pendingJoins.ts`).
-
-**Which screen needs it**
-Mini App player — Jamoam, "Raqib qidirayotgan jamoalar".
-
-**Proposed change**
-`GET /api/games/challenges` leaves out games that have a `joining` team (the
-partial unique index already treats that side as taken). Optionally,
-`GameDetailResponse` gets `joinPending: boolean` (true while a team is
-`joining`) so the game screen can say "Toʻlov tasdiqlanmoqda" after a relaunch.
-
-**Priority**
-Low — the server already refuses a second join; this only removes a dead button.
-
----
-
-## Done
-
-In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
-where the backend differs from it — the backend is what counts, and
-`docs/api-reference.md` documents it.
 
 ### R43 — Daily revenue for the last 7 or 30 days, every day included _(shipped in `a65e149`)_
 

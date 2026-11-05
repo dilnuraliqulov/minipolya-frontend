@@ -119,6 +119,25 @@ describe('Oʻyin — a team game', () => {
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
   })
 
+  it('says insufficient funds from the code and keeps the sheet open with the card outlined', async () => {
+    stub(confirmed, {
+      'POST /api/games/g1/pay-remainder': jsonResponse(
+        400,
+        null,
+        'Card payment was declined; the remainder is still owed',
+        'INSUFFICIENT_FUNDS',
+      ),
+    })
+    renderApp('/games/g1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
+    fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
+    expect(await within(sheet).findByRole('alert')).toHaveTextContent(
+      'Kartada mablagʻ yetarli emas',
+    )
+    expect(within(sheet).getByRole('radio', { checked: true }).className).toContain('border-danger')
+  })
+
   it('cancels with the refund the API shows for my team', async () => {
     const api = stub(confirmed, { 'DELETE /api/games/g1': null })
     renderApp('/games/g1')
