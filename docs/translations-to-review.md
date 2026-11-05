@@ -79,6 +79,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.tooLate` | Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi. | До игры меньше 3 часов — присоединиться уже нельзя. | The game starts in less than 3 hours — it can no longer be joined. |
 | `errors.paymentConfirming` | Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi. | Оплата ещё подтверждается — не платите повторно, результат скоро появится. | The payment is still being confirmed — do not pay again; the result shows soon. |
 | `errors.paymentUnclear` | Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring. | Оплата не подтвердилась. Если деньги списались, они вернутся полностью — проверьте «Мои игры». | The payment was not confirmed. If money was taken, it comes back in full — check My games. |
+| `errors.paymentPending` | Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi. | Платёж подтверждается. Результат придёт в уведомлении. | Your payment is being confirmed. You'll get the result in a notification. |
+| `errors.hasOpponent` | Bu oʻyinga raqib allaqachon topilgan. | У этой игры уже есть соперник. | This game already has an opponent. |
 | `errors.minimumTooLow` | Oldindan toʻlov kamida 500 soʻm boʻlishi kerak. | Предоплата должна быть не меньше 500 сум. | The deposit must be at least 500 soʻm. |
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
@@ -448,6 +450,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `accept.slotTakenTitle` | Bu vaqt band boʻlib qoldi | Это время уже заняли | This time was just taken |
 | `accept.tooLateTitle` | Oʻyinga 3 soatdan kam qoldi | До игры меньше 3 часов | Less than 3 hours to the game |
 | `accept.backToTeam` | Jamoamga qaytish | Вернуться в команду | Back to my team |
+| `accept.pendingTitle` | Toʻlov tasdiqlanmoqda | Платёж подтверждается | Payment being confirmed |
+| `accept.openGame` | Oʻyinni ochish | Открыть игру | Open the game |
 | `choice.title` | Qanday band qilasiz? | Как бронируете? | How do you want to book? |
 | `choice.self` | Oʻzim band qilaman | Забронирую сам | Book it myself |
 | `choice.selfText` | Oddiy bron · {{price}} | Обычная бронь · {{price}} | A regular booking · {{price}} |

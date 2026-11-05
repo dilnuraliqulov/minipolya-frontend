@@ -16,6 +16,8 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
       ),
       'errors.providerUnavailable',
     ],
+    [new ApiError('x', 202, 'PAYMENT_PENDING'), 'errors.paymentPending'],
+    [new ApiError('This game already has an opponent', 400), 'errors.hasOpponent'],
     [new ApiError('x', 400, 'CARD_NOT_SUPPORTED'), 'errors.cardNotSupported'],
     [new ApiError('x', 400, 'CARD_EXPIRY_INVALID'), 'errors.cardExpiryInvalid'],
     [new ApiError('x', 400, 'CARD_EXPIRED'), 'errors.cardExpired'],
@@ -80,6 +82,10 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
       'Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring.',
     )
     expect(errorTone('errors.cardDeclined')).toBe('danger')
+  })
+
+  it('never offers to pay again after 202 PAYMENT_PENDING', () => {
+    expect(isUnclearPaymentError(new ApiError('x', 202, 'PAYMENT_PENDING'))).toBe(true)
   })
 
   it('treats anything that is not an ApiError as unknown', () => {

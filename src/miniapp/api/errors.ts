@@ -42,6 +42,8 @@ export type ErrorMessageKey =
   | 'errors.paymentConfirming'
   | 'errors.alreadyPaid'
   | 'errors.paymentUnclear'
+  | 'errors.paymentPending'
+  | 'errors.hasOpponent'
   | 'errors.unknown'
 
 /** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
@@ -66,6 +68,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (error.code === API_CODES.tokenRevoked) return 'errors.session'
   if (error.code === API_CODES.tooManyAttempts) return 'errors.tooMany'
   if (error.code === API_CODES.phoneTaken) return 'errors.phoneTaken'
+  // 202: paid, the rest still being settled by the backend.
+  if (error.code === API_CODES.paymentPending) return 'errors.paymentPending'
   const cardKey = error.code === undefined ? undefined : CARD_CODES[error.code]
   if (cardKey) return cardKey
   if (error.isNetworkError) return 'errors.network'
@@ -94,6 +98,7 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       )
         return 'errors.cardDeclined'
       if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
+      if (error.message === API_MESSAGES.joinHasOpponent) return 'errors.hasOpponent'
       // Team-game cash: card or cash got there first.
       if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
       if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
@@ -145,6 +150,7 @@ export function isUnclearPaymentError(error: unknown): boolean {
     key === 'errors.network' ||
     key === 'errors.server' ||
     key === 'errors.paymentConfirming' ||
-    key === 'errors.paymentUnclear'
+    key === 'errors.paymentUnclear' ||
+    key === 'errors.paymentPending'
   )
 }

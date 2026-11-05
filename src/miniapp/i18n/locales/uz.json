@@ -91,6 +91,8 @@
     "tooLate": "Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi.",
     "paymentConfirming": "Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi.",
     "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring.",
+    "paymentPending": "Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi.",
+    "hasOpponent": "Bu oʻyinga raqib allaqachon topilgan.",
     "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak.",
     "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
     "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
@@ -511,7 +513,9 @@
     "goneText": "Boshqa jamoa qabul qilgan yoki chaqiriq bekor qilingan.",
     "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
     "tooLateTitle": "Oʻyinga 3 soatdan kam qoldi",
-    "backToTeam": "Jamoamga qaytish"
+    "backToTeam": "Jamoamga qaytish",
+    "pendingTitle": "Toʻlov tasdiqlanmoqda",
+    "openGame": "Oʻyinni ochish"
   },
   "choice": {
     "title": "Qanday band qilasiz?",

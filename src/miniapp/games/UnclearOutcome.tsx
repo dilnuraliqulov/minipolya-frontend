@@ -11,7 +11,9 @@ export function UnclearOutcome({ error }: { error: unknown }) {
   const { t } = useTranslation()
   const key = errorMessageKey(error)
   const text =
-    key === 'errors.paymentConfirming' || key === 'errors.paymentUnclear'
+    key === 'errors.paymentConfirming' ||
+    key === 'errors.paymentUnclear' ||
+    key === 'errors.paymentPending'
       ? t(key)
       : t('game.unclearText')
   return (

@@ -35,6 +35,12 @@ export const API_CODES = {
   bindingNotFound: 'BINDING_NOT_FOUND',
   /** Any other refusal of the card. */
   cardBindingFailed: 'CARD_BINDING_FAILED',
+  /**
+   * HTTP 202 with `success: false` from `POST /api/games/{id}/join`: the joining team
+   * paid, the other team's capture has no clear answer yet. The backend finishes the
+   * join (or undoes it and refunds) and notifies the player. Never pay again.
+   */
+  paymentPending: 'PAYMENT_PENDING',
 } as const
 
 /**
@@ -84,6 +90,8 @@ export const API_MESSAGES = {
   minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
   /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
   joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
+  /** 400 from `POST /api/games/{id}/join` when another team has joined (or is joining) first. */
+  joinHasOpponent: 'This game already has an opponent',
   /** 400 from `POST /api/games/{id}/join` when the joining team's card is declined. */
   joinDeclined: 'Card payment was declined; the game is still looking for an opponent',
   /** 400 from `POST /api/games` (team game) when the hold is declined. */

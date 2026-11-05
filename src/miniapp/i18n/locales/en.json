@@ -91,6 +91,8 @@
     "tooLate": "The game starts in less than 3 hours — it can no longer be joined.",
     "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
     "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
+    "paymentPending": "Your payment is being confirmed. You'll get the result in a notification.",
+    "hasOpponent": "This game already has an opponent.",
     "minimumTooLow": "The deposit must be at least 500 soʻm.",
     "alreadyPaid": "This payment is already recorded.",
     "imageType": "Only JPG, PNG or WebP images can be uploaded.",
@@ -511,7 +513,9 @@
     "goneText": "Another team accepted it or it was cancelled.",
     "slotTakenTitle": "This time was just taken",
     "tooLateTitle": "Less than 3 hours to the game",
-    "backToTeam": "Back to my team"
+    "backToTeam": "Back to my team",
+    "pendingTitle": "Payment being confirmed",
+    "openGame": "Open the game"
   },
   "choice": {
     "title": "How do you want to book?",

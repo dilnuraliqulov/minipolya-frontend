@@ -1,10 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, CalendarX, Clock, Info, MapPin, SearchX } from 'lucide-react'
+import { CalendarDays, CalendarX, Clock, Hourglass, Info, MapPin, SearchX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { errorMessageKey, errorTone, isUnclearPaymentError } from '../api/errors'
-import { acceptChallenge, CHALLENGES_KEY, MY_GAMES_KEY, type Challenge } from '../api/games'
+import {
+  acceptChallenge,
+  CHALLENGES_KEY,
+  gameKey,
+  MY_GAMES_KEY,
+  type Challenge,
+} from '../api/games'
 import { bookingWhen } from '../bookings/when'
 import { CardPicker } from '../cards/CardPicker'
 import { UnclearOutcome } from '../games/UnclearOutcome'
@@ -24,6 +30,7 @@ import {
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { formatLabel } from '../stadiums/labels'
+import { markJoinPending, usePendingJoins } from './pendingJoins'
 import { useChallenges, useLedTeams } from './queries'
 import { TeamAvatar } from './TeamAvatar'
 
@@ -38,7 +45,17 @@ export function AcceptChallengePage() {
   const goBack = useGoBack('/team')
   const board = useChallenges()
   const led = useLedTeams()
+  const isPending = usePendingJoins()
   const header = <Header title={t('accept.title')} onBack={goBack} />
+
+  // Already paid, still being confirmed: never show the pay form for it again.
+  if (isPending(gameId)) {
+    return (
+      <Screen header={header}>
+        <JoinPending gameId={gameId} />
+      </Screen>
+    )
+  }
 
   if (board.isPending || led.isPending) {
     return (
@@ -71,6 +88,21 @@ export function AcceptChallengePage() {
     )
   }
   return <AcceptForm challenge={challenge} teamId={team.id} teamName={team.name} />
+}
+
+/** 202 PAYMENT_PENDING: paid; the backend settles the rest and notifies. */
+function JoinPending({ gameId }: { gameId: string }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  return (
+    <StateView
+      icon={Hourglass}
+      title={t('accept.pendingTitle')}
+      description={t('errors.paymentPending')}
+      actionLabel={t('accept.openGame')}
+      onAction={() => navigate(`/games/${gameId}`, { replace: true })}
+    />
+  )
 }
 
 function Gone({
@@ -118,10 +150,13 @@ function AcceptForm({
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
       navigate(`/games/${challenge.gameId}`, { replace: true })
     },
-    // Any failure may have changed the board (a capture that failed cancels the game).
-    onError: () => {
+    // Any failure may have changed the board (a capture that failed cancels the game),
+    // and the game itself: it reads fresh from the server the next time it opens.
+    onError: (error) => {
+      if (errorMessageKey(error) === 'errors.paymentPending') markJoinPending(challenge.gameId)
       void queryClient.invalidateQueries({ queryKey: CHALLENGES_KEY })
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
+      void queryClient.invalidateQueries({ queryKey: gameKey(challenge.gameId) })
     },
   })
   const header = (
@@ -134,6 +169,20 @@ function AcceptForm({
   )
 
   const failure = accept.isError ? errorMessageKey(accept.error) : null
+  if (failure === 'errors.paymentPending') {
+    return (
+      <Screen header={header}>
+        <JoinPending gameId={challenge.gameId} />
+      </Screen>
+    )
+  }
+  if (failure === 'errors.hasOpponent') {
+    return (
+      <Screen header={header}>
+        <Gone />
+      </Screen>
+    )
+  }
   if (accept.isError && isApiError(accept.error) && accept.error.status === 409) {
     return (
       <Screen header={header}>

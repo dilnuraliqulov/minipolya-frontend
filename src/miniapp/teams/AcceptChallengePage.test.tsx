@@ -4,9 +4,11 @@ import type { Challenge } from '../api/games'
 import { jsonResponse, stubApi } from '../test/api'
 import { makeCard } from '../test/bookings'
 import { renderApp } from '../test/renderApp'
+import { resetPendingJoins } from './pendingJoins'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  resetPendingJoins()
 })
 
 const challenge: Challenge = {
@@ -32,6 +34,18 @@ const page = <T,>(content: T[]) => ({
   totalPages: 1,
 })
 const URL = '/challenges/g1?team=t1'
+/** The backend's 202 is `success: false` with code PAYMENT_PENDING (PaymentPendingException). */
+const pendingJoin = () =>
+  new Response(
+    JSON.stringify({
+      success: false,
+      data: null,
+      code: 'PAYMENT_PENDING',
+      message:
+        "To'lov tasdiqlanmoqda. O'yin tasdiqlangani yoki bekor qilingani haqida xabar beramiz",
+    }),
+    { status: 202, headers: { 'Content-Type': 'application/json' } },
+  )
 const JOIN = 'POST /api/games/g1/join'
 
 function stub(overrides: Record<string, unknown> = {}) {
@@ -117,6 +131,84 @@ describe('Raqibni qabul qilish', () => {
       screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ }),
     ).not.toBeInTheDocument()
     expect(api.calls(JOIN)).toHaveLength(1)
+  })
+
+  it('on 202 PAYMENT_PENDING says the payment is being confirmed and never offers to pay again', async () => {
+    let gameReads = 0
+    const api = stub({
+      [JOIN]: pendingJoin,
+      'GET /api/games/g1': () => {
+        gameReads++
+        return jsonResponse(404, null, 'x')
+      },
+    })
+    const { router } = renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    expect(await screen.findByText('Toʻlov tasdiqlanmoqda')).toBeInTheDocument()
+    expect(
+      screen.getByText('Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeNull()
+    expect(screen.queryByText('Natijani tekshiring')).toBeNull()
+
+    // Coming back to the challenge: still no pay form.
+    await router.navigate('/team')
+    await router.navigate(URL)
+    expect(await screen.findByText('Toʻlov tasdiqlanmoqda')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeNull()
+
+    // The game opens fresh from the server.
+    fireEvent.click(screen.getByRole('button', { name: 'Oʻyinni ochish' }))
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/games/g1'))
+    await vi.waitFor(() => expect(gameReads).toBe(1))
+    expect(api.calls(JOIN)).toHaveLength(1)
+  })
+
+  it('on the board, shows a pending join instead of "Qabul qilish"', async () => {
+    stub({
+      [JOIN]: pendingJoin,
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: '018f3a2c-0000-7000-8000-000000000001',
+        leaderName: 'Ali',
+        members: [],
+      },
+    })
+    const { router } = renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    await screen.findByText('Toʻlov tasdiqlanmoqda')
+    await router.navigate('/team')
+    expect(await screen.findByText('Yunusobod United')).toBeInTheDocument()
+    expect(screen.getByText('Toʻlov tasdiqlanmoqda')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Qabul qilish' })).toBeNull()
+  })
+
+  it('shows "the payment system is down" as a warning and keeps the pay button', async () => {
+    stub({
+      [JOIN]: jsonResponse(
+        502,
+        null,
+        "To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring",
+      ),
+    })
+    renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    const notice = await screen.findByRole('alert')
+    expect(notice).toHaveTextContent('Toʻlov tizimi vaqtincha ishlamayapti')
+    expect(notice).toHaveAttribute('data-tone', 'warning')
+    expect(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeEnabled()
+  })
+
+  it('says the challenge is gone when another team joined first', async () => {
+    stub({ [JOIN]: jsonResponse(400, null, 'This game already has an opponent') })
+    renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    expect(await screen.findByText('Bu chaqiriq endi mavjud emas')).toBeInTheDocument()
   })
 
   it('says the challenge is gone when it is not on the board', async () => {
