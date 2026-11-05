@@ -2,7 +2,7 @@ import { CreditCard, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage } from '../api/errors'
-import { lastFour, type SavedCard } from '../api/cards'
+import { formatMaskedNumber, type SavedCard } from '../api/cards'
 import {
   BottomSheet,
   Button,
@@ -29,7 +29,7 @@ export function CardsPage() {
   const [menuCard, setMenuCard] = useState<SavedCard | null>(null)
   const [confirmCard, setConfirmCard] = useState<SavedCard | null>(null)
 
-  const label = (card: SavedCard) => `•••• ${lastFour(card.maskedNumber)}`
+  const label = (card: SavedCard) => formatMaskedNumber(card.maskedNumber)
 
   const confirmDelete = () => {
     if (!confirmCard) return

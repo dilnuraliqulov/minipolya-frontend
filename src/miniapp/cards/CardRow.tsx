@@ -1,6 +1,6 @@
 import { Ellipsis } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { lastFour, type SavedCard } from '../api/cards'
+import { formatMaskedNumber, type SavedCard } from '../api/cards'
 import { cx } from '../components'
 import { CardBrandTile } from './CardBrandTile'
 
@@ -19,7 +19,9 @@ function Details({ card }: { card: SavedCard }) {
   const type = card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)
   return (
     <span className="flex min-w-0 flex-1 flex-col gap-1 text-left">
-      <span className="text-md font-semibold text-primary">{`•••• ${lastFour(card.maskedNumber)}`}</span>
+      <span className="text-md font-semibold text-primary">
+        {formatMaskedNumber(card.maskedNumber)}
+      </span>
       <span className="text-sm text-secondary">
         {card.expiry ? `${type} · ${card.expiry}` : type}
       </span>
