@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `9e9acb5` (_Payments: lock and re-check before any reverse, never reverse twice_, 2026-11-05; was `5cc6ef6` — R38 owner dashboard) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`) |
-| Endpoints documented | **121** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
+| Commit | `08687d6` (_R29: GET /api/bookings?when=upcoming\|past_, 2026-11-06; was `9e9acb5` — payments never reversed twice) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`) |
+| Endpoints documented | **122** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
 
 ---
 
@@ -71,6 +71,8 @@ Every endpoint — success or error — answers with the same wrapper
 | `PHONE_TAKEN` | 409 | — | `PATCH /api/users/me` — the phone belongs to another account |
 | `CARD_NOT_SUPPORTED`, `CARD_EXPIRY_INVALID`, `CARD_EXPIRED`, `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`, `SMS_RESEND_TOO_EARLY`, `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` | 400 | — | `POST /api/cards`, `/api/cards/resend`, `/api/cards/confirm` (`CardBindingException`, since `9e9acb5`) — §7.1 |
 | `PAYMENT_PENDING` | **202**, `success: false` | — | `POST /api/games/{id}/join` (team game): paid, the other team's capture has no clear answer yet (`PaymentPendingException`) — §9 |
+| `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `CARD_DECLINED` | 400 | — | since `41a786c` (R44, `CardDeclinedException`): why a card payment was refused, on the declines of `POST /api/games` (team game), `POST /api/games/{id}/join`, `POST /api/games/{id}/pay-remainder` and `POST /api/games/{id}/pay?cardId=`; the `message` is the old prose. A **booking** decline is 200 and says it in `declineReason` instead (§5) |
+| `BOOKING_NOT_PENDING`, `BOOKING_EXPIRED`, `PAYMENT_IN_PROGRESS` | 409 | — | `POST /api/bookings/{id}/pay` (R28, `BookingPaymentConflictException`) — §5 |
 
 A 202 `PAYMENT_PENDING` is a **2xx with `success: false`**: a client that only
 checks `response.ok` would read it as a success with `data: null`. Check
@@ -772,6 +774,8 @@ relative, an `<img>` on another origin needs the API base URL in front of it
 | `cancellationDeadline` | timestamp (UTC)? | last moment a cancellation still refunds |
 | `refundIfCancelledNow` | number **(tiyin)**? | **display this, never recompute it**; everything paid by card |
 | `refundAmount` | number **(tiyin)**? | only on a cancellation response: what was actually refunded |
+| `declineReason` | string? | since `41a786c` (R44): the booking's **latest card payment** (in full, deposit or remainder) was refused, and why — **uppercase**: `INSUFFICIENT_FUNDS` (ATMOS `-057`, `-112`), `CARD_EXPIRED` (`-067`), `CARD_DECLINED` (any other refusal). Absent otherwise, including once a later payment went through. Every view |
+| `paymentState` | string | since `ccfa4d5`, **always present**, lowercase: where that latest card payment stands — `paid` (its money arrived, even if given back since), `processing` (no answer yet), `declined` (refused; **exactly when `declineReason` is present**), `failed` (failed without a refusal, e.g. never acknowledged), `none` (no card payment: cash, manual and game bookings). Every view |
 | `createdAt` | timestamp (UTC) | |
 
 ### `POST /api/bookings` — user
@@ -853,12 +857,41 @@ before **or after** the game. Paying after the game leaves the booking
 | 403 | `"This booking does not belong to you"` |
 | 404 | `"Booking not found"` / `"Card not found"` |
 
+### `POST /api/bookings/{id}/pay` — user
+
+_Since `e14bd5e` (R28)._ Pays a **pending** booking again — with the same or
+another card, after a decline — while its hold lasts. The amount is not a
+choice: **the same as the first attempt** (the deposit or the whole price), on
+the same path as `POST /api/bookings`. The booking row is locked for the call,
+so two taps at once charge once.
+
+**Body** — `{ "cardId": UUID }` (`@NotNull`; an active card of the caller).
+
+**Response** — `BookingResponse`, with the same `message`s as `POST /api/bookings`.
+Success confirms the booking (`paid` / `partially_paid`). A decline is still
+**200**: `pending`, `paymentStatus: unpaid`, the new `declineReason`, and the
+**same `expiresAt`** — the hold is never extended. Audited
+`BOOKING_PAYMENT_RETRIED`.
+
+**Errors**
+
+| Status | `code` | `message` |
+|---|---|---|
+| 409 | `BOOKING_NOT_PENDING` | `"This booking is not awaiting payment"` — confirmed, cancelled, or expired by the job |
+| 409 | `BOOKING_EXPIRED` | `"The booking's hold has expired; book the slot again"` |
+| 409 | `PAYMENT_IN_PROGRESS` | `"A payment for this booking is being processed"` — a payment of it is `processing` or arrived |
+| 403 | — | `"This booking does not belong to you"` |
+| 404 | — | `"Booking not found"` / `"Card not found"` |
+| 502 | — | the payment provider is unreachable (§1.7) |
+
 ### `GET /api/bookings` — user · paged
 
 The caller's own bookings.
 
-| Query | `page`, `size` |
-|---|---|
+| Query | Type | Required | Notes |
+|---|---|---|---|
+| `when` | `upcoming` \| `past` | no | since `08687d6` (R29): `upcoming` — `startsAt` now or later, **soonest first**; `past` — `startsAt` before now, **newest first**; absent — every booking, latest `startsAt` first (as before); any other value 400 `"Invalid when"` |
+| `page`, `size` | number | no | |
 
 **Response** — paged `BookingResponse`.
 
@@ -1137,11 +1170,8 @@ Soft delete (`isActive = false`) so past payments stay explainable.
 | `providerTxnId` | string? | unique — makes webhooks idempotent |
 | `status` | string | §1.9 |
 | `refundReason` | string? | |
+| `declineReason` | string? | since `41a786c` (R44): on a `failed` row the provider **refused** — `INSUFFICIENT_FUNDS`, `CARD_EXPIRED` or `CARD_DECLINED` (uppercase); absent when a payment failed without a refusal. Never the provider's own code or text (`failureReason` stays admin-only). `AdminPaymentResponse` has it too |
 | `createdAt` | timestamp (UTC) | |
-
-A `failed` row does **not** say why (insufficient funds, expired card, blocked):
-`failure_reason` is kept only for the admin (`AdminPaymentResponse`). Requested
-as R44.
 
 #### `POST /api/payments/initiate` — user
 
@@ -1284,7 +1314,10 @@ them in the client.**
 `createdAt`, and `price` _(tiyin)_? — **casual/open games only**: what one
 player pays for their share (§1.10). No `serviceFeePerPerson` and no
 `cardFee` any more (the admin game detail still has `serviceFeePerPerson`,
-§10.9) — plus:
+§10.9) — plus `joinPending` boolean? — **`team_vs_team` only**, since `b896a07`
+(R45): `true` while a team is half-way through joining (its status `joining`,
+e.g. after 202 `PAYMENT_PENDING`), until the backend confirms or undoes the join —
+plus:
 
 `teams` — **`team_vs_team` only**, `GameTeamResponse[]`:
 
@@ -1330,7 +1363,7 @@ team's joining `price` (`playerAmount(advance + fee)`, §1.10); no slot is booke
 | Status | `message` |
 |---|---|
 | 400 | validation; `"teamAId is required for a team_vs_team game"`; `"cardId is required to create a team game"` |
-| 400 | `"Card payment was declined; the game was not created"` |
+| 400 | `"Card payment was declined; the game was not created"`, `code` `INSUFFICIENT_FUNDS` / `CARD_EXPIRED` / `CARD_DECLINED` (R44, §1.2) |
 | 400 | `"A team game can be created at most <N> days before it is played"` — the hold would outlast `app.payments.hold-max-minutes` (default 43 200 min; with the 120-minute slack the message reads **29** days) |
 | 403 | `"Only the team leader can create a team game"` |
 | 404 | `"Stadium not found"` / `"Team not found"` / `"Card not found"` |
@@ -1354,8 +1387,10 @@ Public `open` games, soonest first (`startsAt` asc).
 ### `GET /api/games/challenges` — user · paged
 
 Waiting `team_vs_team` games an opponent could still join (before their
-3-hour point), **excluding** ones the caller's own team is waiting on. Soonest
-first.
+3-hour point), **excluding** ones the caller's own team is waiting on and, since
+`b896a07` (R45), any game another team is half-way through joining — for
+everyone, the joining captain too; it is back on the board if that join fails.
+Soonest first.
 
 | Query | Type | Required |
 |---|---|---|
@@ -1403,8 +1438,8 @@ answer leaves a record the reconcile job finishes:
   false`, `data: null`, message `"To'lov tasdiqlanmoqda. O'yin tasdiqlangani yoki
   bekor qilingani haqida xabar beramiz"`. The joiner **has paid**; the reconcile
   job (every ~5 min) confirms or undoes the game and notifies both teams. Never
-  pay again. Meanwhile the game stays `open` and is **still listed** on
-  `GET /api/games/challenges` (R45).
+  pay again. Meanwhile the game stays `open` but is **off**
+  `GET /api/games/challenges`, and its `joinPending` is `true` (R45).
 
 | Field | Type | Required | Validation |
 |---|---|---|---|
@@ -1427,7 +1462,7 @@ answer leaves a record the reconcile job finishes:
 |---|---|
 | 400 | `"Game is not open for joining"`, `"You have already joined this game"`, `"Game is already full"` |
 | 400 | `"cardId is required to join a team game"`, `"The opposing team joins as side <a\|b>"` (a side that is neither `b` nor the free one) |
-| 400 | `"Card payment was declined; the game is still looking for an opponent"` |
+| 400 | `"Card payment was declined; the game is still looking for an opponent"`, with the decline `code` (R44, §1.2) |
 | 400 | `"The card payment could not be confirmed; the game is still looking for an opponent. If the money was taken it will be returned in full"`, `"The other team's payment is still being confirmed; try again in a few minutes"`, `"The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full"` |
 | 400 | `"A team cannot play against itself"`, `"This game already has an opponent"` |
 | 400 | `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"` — past the 3-hour point (Uzbek; see [Q7](#11-questions-about-the-backend)) |
@@ -1462,7 +1497,7 @@ after the game.
 
 **Response** — the refreshed `GameDetailResponse`, `message: "Remainder paid"`.
 
-**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"`; 404 `"Game not found"` / `"Card not found"`; 502 (§1.7).
+**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"` (with the decline `code`, R44, §1.2); 404 `"Game not found"` / `"Card not found"`; 502 (§1.7).
 
 ### `POST /api/games/{id}/cash` — owner (the stadium's owner)
 
@@ -2297,6 +2332,11 @@ sign-in requires `X-Dev-Login-Key`, §2).
 R38, R39, R41, R42 and R43 from `docs/backend-requests.md`. Q11 still stands:
 R42 only lets a not-yet-owner add and list stadiums; the rest of
 `/api/owner/**` still needs a fresh token after approval.
+
+**`9e9acb5..08687d6`:** ships R28 (`POST /api/bookings/{id}/pay`), R29
+(`?when=`), R44 (`declineReason` and the decline `code`s, plus `paymentState`)
+and R45 (the board leaves out games being joined; `joinPending`). Q1 is answered
+further still: every refused card payment now says why with a code. Q3 stands.
 
 **`5cc6ef6..9e9acb5`:** resolves nothing listed here. Q1 is answered a little
 further (card binding and `PAYMENT_PENDING` carry a `code`; payment declines
