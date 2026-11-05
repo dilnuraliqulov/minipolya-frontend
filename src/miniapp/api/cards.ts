@@ -34,6 +34,17 @@ export function startCardBinding(
   })
 }
 
+/**
+ * The SMS code again, for the same binding. Before the provider's 60-second
+ * cooldown: 400 `SMS_RESEND_TOO_EARLY`; when the provider cannot resend at all:
+ * 400 `SMS_RESEND_UNAVAILABLE` (the card has to be entered again).
+ */
+export function resendCardCode(
+  bindingId: string,
+): Promise<{ bindingId: string; maskedPhone: string }> {
+  return api.post<{ bindingId: string; maskedPhone: string }>('/api/cards/resend', { bindingId })
+}
+
 export function confirmCard(bindingId: string, smsCode: string): Promise<SavedCard> {
   return api.post<SavedCard>('/api/cards/confirm', { bindingId, smsCode })
 }
