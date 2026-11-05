@@ -7,6 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
 import { BOOKINGS_KEY, createBooking, type Booking, type PaymentOption } from '../api/bookings'
 import type { SavedCard } from '../api/cards'
+import { errorTone } from '../api/errors'
 import { getAvailability, type StadiumDetail, type TimeSlot } from '../api/stadiums'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
@@ -21,6 +22,7 @@ import {
   Screen,
   SkeletonList,
   StateView,
+  Notice,
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
@@ -352,13 +354,7 @@ function CheckoutForm({
         </div>
       )}
       {state.kind === 'failed' && (
-        <div
-          role="alert"
-          className="flex gap-3 rounded-xl border border-danger bg-danger-soft p-3 text-danger"
-        >
-          <CircleAlert size={20} className="mt-0.5 shrink-0" aria-hidden />
-          <p className="text-sm">{t(state.errorKey)}</p>
-        </div>
+        <Notice tone={errorTone(state.errorKey)}>{t(state.errorKey)}</Notice>
       )}
 
       <Card className="flex gap-3 p-3">

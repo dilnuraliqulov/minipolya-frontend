@@ -65,6 +65,17 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.alreadyReviewed` | Siz bu maydonni allaqachon baholagansiz. | Вы уже оценили это поле. | You have already rated this pitch. |
 | `errors.reviewNotPlayed` | Faqat oʻynagan maydoningizni baholashingiz mumkin. | Оценить можно только поле, где вы играли. | You can only rate a pitch you have played at. |
 | `errors.cardDeclined` | Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring. | Карта отклонена. Выберите другую карту или проверьте эту. | The card was declined. Choose another card or check this one. |
+| `errors.insufficientFunds` | Kartada mablagʻ yetarli emas. Boshqa karta tanlang yoki kartani toʻldiring. | На карте недостаточно средств. Выберите другую карту или пополните эту. | Not enough money on the card. Choose another card or top this one up. |
+| `errors.providerUnavailable` | Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring. | Платёжная система временно не работает. Попробуйте чуть позже. | The payment system is temporarily unavailable. Please try again shortly. |
+| `errors.cardNotSupported` | Faqat Uzcard va Humo kartalari qabul qilinadi. | Принимаются только карты Uzcard и Humo. | Only Uzcard and Humo cards are accepted. |
+| `errors.cardExpiryInvalid` | Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting. | Неверный номер карты или срок действия. Проверьте и введите ещё раз. | The card number or expiry date is wrong. Check them and try again. |
+| `errors.cardExpired` | Kartaning amal qilish muddati tugagan. Boshqa karta kiriting. | Срок действия карты истёк. Введите другую карту. | This card has expired. Enter another card. |
+| `errors.smsCodeWrong` | SMS kod notoʻgʻri. Qaytadan kiriting. | Неверный SMS-код. Введите ещё раз. | Wrong SMS code. Enter it again. |
+| `errors.smsCodeExpired` | SMS kodning muddati tugadi. Kodni qayta yuboring. | Срок действия SMS-кода истёк. Отправьте код ещё раз. | The SMS code has expired. Send a new code. |
+| `errors.smsResendTooEarly` | Yangi kodni biroz kutib soʻrang. | Подождите немного, прежде чем запрашивать новый код. | Please wait a little before asking for a new code. |
+| `errors.smsResendUnavailable` | Kodni qayta yuborib boʻlmadi. Karta maʼlumotlarini qaytadan kiriting. | Не удалось отправить код ещё раз. Введите данные карты заново. | The code couldn't be sent again. Enter the card details once more. |
+| `errors.bindingNotFound` | Karta qoʻshish jarayoni tugagan. Qaytadan boshlang. | Процесс добавления карты завершён. Начните заново. | This card setup has ended. Please start again. |
+| `errors.cardBindingFailed` | Kartani qoʻshib boʻlmadi. Boshqa karta bilan urinib koʻring. | Не удалось добавить карту. Попробуйте другую карту. | The card couldn't be added. Try another card. |
 | `errors.tooLate` | Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi. | До игры меньше 3 часов — присоединиться уже нельзя. | The game starts in less than 3 hours — it can no longer be joined. |
 | `errors.paymentConfirming` | Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi. | Оплата ещё подтверждается — не платите повторно, результат скоро появится. | The payment is still being confirmed — do not pay again; the result shows soon. |
 | `errors.paymentUnclear` | Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring. | Оплата не подтвердилась. Если деньги списались, они вернутся полностью — проверьте «Мои игры». | The payment was not confirmed. If money was taken, it comes back in full — check My games. |
@@ -249,12 +260,10 @@ Placeholders such as `{{count}}` must stay as they are.
 | `cards.newCode` | Yangi kod yuborish | Отправить новый код | Send a new code |
 | `cards.privacy` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi. | Данные карты не хранятся в MiniPolya. | Card details are not stored in MiniPolya. |
 | `cards.footer` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi — faqat toʻlov tokeni saqlanadi. | Данные карты не хранятся в MiniPolya — сохраняется только платёжный токен. | Card details are not stored in MiniPolya — only a payment token is kept. |
-| `cards.wrongNumber` | Karta raqami yoki amal qilish muddati notoʻgʻri | Неверный номер карты или срок действия | The card number or expiry date is wrong |
 | `cards.numberLength` | Karta raqami 16 ta raqamdan iborat boʻlishi kerak | Номер карты должен состоять из 16 цифр | The card number must have 16 digits |
 | `cards.numberBrand` | Faqat Uzcard (8600…) va Humo (9860…) kartalari qabul qilinadi | Принимаются только карты Uzcard (8600…) и Humo (9860…) | Only Uzcard (8600…) and Humo (9860…) cards are accepted |
 | `cards.expiryShape` | Muddatni OO/YY koʻrinishida kiriting, masalan 08/28 | Введите срок в формате ММ/ГГ, например 08/28 | Enter the expiry as MM/YY, e.g. 08/28 |
 | `cards.expiryPast` | Kartaning amal qilish muddati tugagan | Срок действия карты истёк | This card has expired |
-| `cards.wrongCode` | Kod notoʻgʻri. Qaytadan kiriting. | Неверный код. Введите ещё раз. | Wrong code. Enter it again. |
 | `cards.codeExpired` | Kod muddati tugadi — yangi kod soʻrang | Срок действия кода истёк — запросите новый | The code has expired — request a new one |
 | `cards.noInternet` | Internet aloqasi yoʻq | Нет подключения к интернету | No internet connection |
 | `cards.noInternetHint` | Ulanishni tekshiring, qayta urinib koʻring. | Проверьте соединение и попробуйте ещё раз. | Check your connection and try again. |

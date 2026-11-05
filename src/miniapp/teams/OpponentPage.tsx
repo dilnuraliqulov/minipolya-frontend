@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarX, CircleAlert, Info, Users } from 'lucide-react'
+import { CalendarX, Info, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
-import { errorMessageKey, isUnclearPaymentError } from '../api/errors'
+import { errorMessageKey, errorTone, isUnclearPaymentError } from '../api/errors'
 import { createTeamGame, MY_GAMES_KEY } from '../api/games'
 import { getAvailability } from '../api/stadiums'
 import { parseCheckoutParams, type CheckoutParams } from '../booking/checkoutParams'
@@ -23,6 +23,7 @@ import {
   SkeletonList,
   StateView,
   useToast,
+  Notice,
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
@@ -252,12 +253,7 @@ function Opponent({ params }: { params: CheckoutParams }) {
         invalid={failure === 'errors.cardDeclined'}
       />
 
-      {failure && (
-        <p role="alert" className="flex gap-2 rounded-xl bg-danger-soft p-3 text-sm text-danger">
-          <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
-          {t(failure)}
-        </p>
-      )}
+      {failure && <Notice tone={errorTone(failure)}>{t(failure)}</Notice>}
     </Screen>
   )
 }

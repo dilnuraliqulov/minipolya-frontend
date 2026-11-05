@@ -1,11 +1,12 @@
-import { CircleAlert, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { payRemainder, type Booking } from '../api/bookings'
+import { errorTone } from '../api/errors'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
 import { useCards } from '../cards/queries'
-import { BottomSheet, Button, ErrorState, SkeletonList, useToast } from '../components'
+import { BottomSheet, Button, ErrorState, Notice, SkeletonList, useToast } from '../components'
 import { formatMoney } from '../format'
 import type { PaymentState } from '../payment/machine'
 import { usePayment } from '../payment/usePayment'
@@ -124,13 +125,9 @@ function OpenPayRemainder({
               <p className="text-sm text-secondary">{t('checkout.addCardFirst')}</p>
             )}
             {problem && (
-              <div
-                role="alert"
-                className="flex gap-3 rounded-xl border border-danger bg-danger-soft p-3 text-sm text-danger"
-              >
-                <CircleAlert size={18} className="mt-0.5 shrink-0" aria-hidden />
+              <Notice tone={state.kind === 'failed' ? errorTone(state.errorKey) : 'danger'}>
                 {problem}
-              </div>
+              </Notice>
             )}
           </div>
         )}

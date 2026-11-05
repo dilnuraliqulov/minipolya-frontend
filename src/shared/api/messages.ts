@@ -16,6 +16,35 @@ export const API_CODES = {
   accountBlocked: 'ACCOUNT_BLOCKED',
   /** 409 from `PATCH /api/users/me`: the phone belongs to another account. */
   phoneTaken: 'PHONE_TAKEN',
+  // Adding a card (POST /api/cards, /resend, /confirm): 400s from CardBindingException.
+  /** Not an Uzcard / Humo number. */
+  cardNotSupported: 'CARD_NOT_SUPPORTED',
+  /** The number and expiry do not match a card. */
+  cardExpiryInvalid: 'CARD_EXPIRY_INVALID',
+  /** The card has expired. */
+  cardExpired: 'CARD_EXPIRED',
+  /** Wrong SMS code; the binding stays open. */
+  smsCodeWrong: 'SMS_CODE_WRONG',
+  /** The SMS code is no longer valid: resend it. */
+  smsCodeExpired: 'SMS_CODE_EXPIRED',
+  /** A new code was asked for before the 60-second cooldown ended. */
+  smsResendTooEarly: 'SMS_RESEND_TOO_EARLY',
+  /** The provider cannot resend: the card has to be entered again. */
+  smsResendUnavailable: 'SMS_RESEND_UNAVAILABLE',
+  /** Unknown or finished binding: start again. */
+  bindingNotFound: 'BINDING_NOT_FOUND',
+  /** Any other refusal of the card. */
+  cardBindingFailed: 'CARD_BINDING_FAILED',
+} as const
+
+/**
+ * Declines arrive without a code (a 400 with prose, or HTTP 200 and a `failed` payment
+ * row), so a declined card cannot yet be told from one without enough money. R44 asks
+ * for these codes; the client maps them already and they take over once sent.
+ */
+export const REQUESTED_DECLINE_CODES = {
+  cardDeclined: 'CARD_DECLINED',
+  insufficientFunds: 'INSUFFICIENT_FUNDS',
 } as const
 
 /**
@@ -26,6 +55,11 @@ export const API_CODES = {
  * message breaks in exactly one obvious place.
  */
 export const API_MESSAGES = {
+  /**
+   * 502 from any card or payment call when the payment provider cannot be reached:
+   * nothing was charged or bound, the player may try again. Not a decline.
+   */
+  providerUnavailable: "To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring",
   /** 403 on any endpoint, at any time, when an admin has blocked the user. */
   accountBlocked: 'Account is blocked',
   /** 400 from `PUT /api/admin/users/{id}` when an admin tries to block their own account. */

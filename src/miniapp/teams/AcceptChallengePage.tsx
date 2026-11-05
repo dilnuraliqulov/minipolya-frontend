@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, CalendarX, CircleAlert, Clock, Info, MapPin, SearchX } from 'lucide-react'
+import { CalendarDays, CalendarX, Clock, Info, MapPin, SearchX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
-import { errorMessageKey, isUnclearPaymentError } from '../api/errors'
+import { errorMessageKey, errorTone, isUnclearPaymentError } from '../api/errors'
 import { acceptChallenge, CHALLENGES_KEY, MY_GAMES_KEY, type Challenge } from '../api/games'
 import { bookingWhen } from '../bookings/when'
 import { CardPicker } from '../cards/CardPicker'
@@ -19,6 +19,7 @@ import {
   SkeletonList,
   StateView,
   useToast,
+  Notice,
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
@@ -224,12 +225,7 @@ function AcceptForm({
         invalid={failure === 'errors.cardDeclined'}
       />
 
-      {failure && (
-        <p role="alert" className="flex gap-2 rounded-xl bg-danger-soft p-3 text-sm text-danger">
-          <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
-          {t(failure)}
-        </p>
-      )}
+      {failure && <Notice tone={errorTone(failure)}>{t(failure)}</Notice>}
     </Screen>
   )
 }

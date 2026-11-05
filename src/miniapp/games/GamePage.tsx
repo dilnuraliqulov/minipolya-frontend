@@ -1,19 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  CalendarDays,
-  ChevronRight,
-  CircleAlert,
-  Info,
-  MapPin,
-  MessageCircle,
-  SearchX,
-} from 'lucide-react'
+import { CalendarDays, ChevronRight, Info, MapPin, MessageCircle, SearchX } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { formatTime } from '../../shared/format'
-import { errorMessage, errorMessageKey } from '../api/errors'
+import { errorMessage, errorMessageKey, errorTone } from '../api/errors'
 import {
   cancelGame,
   CHALLENGES_KEY,
@@ -38,6 +30,7 @@ import {
   Screen,
   SkeletonList,
   useToast,
+  Notice,
 } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
@@ -333,7 +326,9 @@ function PayTeamRemainderSheet({
       // Only a decline is safe to try again with another card. Anything else
       // (still confirming, already paid, no answer) may have moved money: close,
       // say so, and reload the game instead of leaving the pay button live.
-      if (errorMessageKey(error) === 'errors.cardDeclined') return
+      // The payment system being down is safe too: nothing was charged.
+      const key = errorMessageKey(error)
+      if (key === 'errors.cardDeclined' || key === 'errors.providerUnavailable') return
       toast.show(errorMessage(error), 'danger')
       void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
       onClose()
@@ -381,10 +376,7 @@ function PayTeamRemainderSheet({
         </div>
       )}
       {pay.isError && (
-        <p role="alert" className="flex gap-2 rounded-xl bg-danger-soft p-3 text-sm text-danger">
-          <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
-          {errorMessage(pay.error)}
-        </p>
+        <Notice tone={errorTone(errorMessageKey(pay.error))}>{errorMessage(pay.error)}</Notice>
       )}
     </BottomSheet>
   )

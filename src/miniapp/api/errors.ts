@@ -1,4 +1,4 @@
-import { API_CODES, API_MESSAGES, isApiError } from '../../shared/api'
+import { API_CODES, API_MESSAGES, isApiError, REQUESTED_DECLINE_CODES } from '../../shared/api'
 import i18n from '../i18n'
 import { isAccountBlocked } from './blocked'
 
@@ -27,11 +27,38 @@ export type ErrorMessageKey =
   | 'errors.tooManyPhotos'
   | 'errors.fileTooLarge'
   | 'errors.cardDeclined'
+  | 'errors.insufficientFunds'
+  | 'errors.providerUnavailable'
+  | 'errors.cardNotSupported'
+  | 'errors.cardExpiryInvalid'
+  | 'errors.cardExpired'
+  | 'errors.smsCodeWrong'
+  | 'errors.smsCodeExpired'
+  | 'errors.smsResendTooEarly'
+  | 'errors.smsResendUnavailable'
+  | 'errors.bindingNotFound'
+  | 'errors.cardBindingFailed'
   | 'errors.tooLate'
   | 'errors.paymentConfirming'
   | 'errors.alreadyPaid'
   | 'errors.paymentUnclear'
   | 'errors.unknown'
+
+/** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
+const CARD_CODES: Record<string, ErrorMessageKey> = {
+  [API_CODES.cardNotSupported]: 'errors.cardNotSupported',
+  [API_CODES.cardExpiryInvalid]: 'errors.cardExpiryInvalid',
+  [API_CODES.cardExpired]: 'errors.cardExpired',
+  [API_CODES.smsCodeWrong]: 'errors.smsCodeWrong',
+  [API_CODES.smsCodeExpired]: 'errors.smsCodeExpired',
+  [API_CODES.smsResendTooEarly]: 'errors.smsResendTooEarly',
+  [API_CODES.smsResendUnavailable]: 'errors.smsResendUnavailable',
+  [API_CODES.bindingNotFound]: 'errors.bindingNotFound',
+  [API_CODES.cardBindingFailed]: 'errors.cardBindingFailed',
+  // R44, not sent yet: a decline that says why.
+  [REQUESTED_DECLINE_CODES.cardDeclined]: 'errors.cardDeclined',
+  [REQUESTED_DECLINE_CODES.insufficientFunds]: 'errors.insufficientFunds',
+}
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (!isApiError(error)) return 'errors.unknown'
@@ -39,7 +66,15 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (error.code === API_CODES.tokenRevoked) return 'errors.session'
   if (error.code === API_CODES.tooManyAttempts) return 'errors.tooMany'
   if (error.code === API_CODES.phoneTaken) return 'errors.phoneTaken'
+  const cardKey = error.code === undefined ? undefined : CARD_CODES[error.code]
+  if (cardKey) return cardKey
   if (error.isNetworkError) return 'errors.network'
+  // The provider could not be reached: nothing was charged or bound. Not a decline, and
+  // not unclear — the player may simply try again. Matched on the backend's own message,
+  // so a proxy's 502 (whose outcome is unknown) stays a server error.
+  if (error.status === 502 && error.message === API_MESSAGES.providerUnavailable) {
+    return 'errors.providerUnavailable'
+  }
   if (error.status >= 500) return 'errors.server'
   switch (error.status) {
     case 400:
@@ -84,6 +119,14 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
     default:
       return 'errors.unknown'
   }
+}
+
+/**
+ * How a failure is shown: "try again later" (the payment system is down) is a warning,
+ * so it never looks like a declined card; everything else is a danger notice.
+ */
+export function errorTone(key: ErrorMessageKey): 'warning' | 'danger' {
+  return key === 'errors.providerUnavailable' ? 'warning' : 'danger'
 }
 
 /** The translated message for an error, in the current language. */

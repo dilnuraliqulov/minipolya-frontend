@@ -140,9 +140,78 @@ describe('AddCardSheet', () => {
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
     expect(
-      await screen.findByText('Karta raqami yoki amal qilish muddati notoʻgʻri'),
+      await screen.findByText(
+        'Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting.',
+      ),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('SMS kod')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['CARD_NOT_SUPPORTED', 'Karta raqami', 'Faqat Uzcard va Humo kartalari qabul qilinadi.'],
+    [
+      'CARD_EXPIRY_INVALID',
+      'Karta raqami',
+      'Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting.',
+    ],
+    [
+      'CARD_EXPIRED',
+      'Amal qilish muddati (OO/YY)',
+      'Kartaning amal qilish muddati tugagan. Boshqa karta kiriting.',
+    ],
+  ])('shows %s under its field', async (code, field, text) => {
+    stubApi({ 'POST /api/cards': jsonResponse(400, null, 'refused', code) })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    expect(await screen.findByText(text)).toBeInTheDocument()
+    expect(screen.getByLabelText(field)).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('says CARD_BINDING_FAILED above the form', async () => {
+    stubApi({ 'POST /api/cards': jsonResponse(400, null, 'refused', 'CARD_BINDING_FAILED') })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Kartani qoʻshib boʻlmadi. Boshqa karta bilan urinib koʻring.',
+    )
+  })
+
+  it('shows a 502 as "the payment system is down", not as a refused card', async () => {
+    stubApi({
+      'POST /api/cards': jsonResponse(
+        502,
+        null,
+        "To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring",
+      ),
+    })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    const notice = await screen.findByRole('alert')
+    expect(notice).toHaveTextContent(
+      'Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring.',
+    )
+    expect(notice).toHaveAttribute('data-tone', 'warning')
+    expect(screen.getByLabelText('Karta raqami')).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByRole('button', { name: 'Davom etish' })).toBeEnabled()
+  })
+
+  it('goes back to the card form when the binding is gone', async () => {
+    stubApi({
+      'POST /api/cards': BIND,
+      'POST /api/cards/confirm': jsonResponse(400, null, 'gone', 'BINDING_NOT_FOUND'),
+    })
+    setup()
+    await toCodeStep()
+    fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '123456' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
+    expect(
+      await screen.findByText('Karta qoʻshish jarayoni tugagan. Qaytadan boshlang.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText('SMS kod')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Karta raqami')).toBeInTheDocument()
   })
 
   it('shows the no-internet text on a network failure and retries', async () => {
@@ -193,7 +262,7 @@ describe('AddCardSheet', () => {
     await toCodeStep()
     fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '111111' } })
     fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
-    expect(await screen.findByText('Kod notoʻgʻri. Qaytadan kiriting.')).toBeInTheDocument()
+    expect(await screen.findByText('SMS kod notoʻgʻri. Qaytadan kiriting.')).toBeInTheDocument()
     expect(screen.getByLabelText('SMS kod')).toHaveValue('')
   })
 

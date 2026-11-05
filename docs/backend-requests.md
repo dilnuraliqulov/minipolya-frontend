@@ -394,6 +394,46 @@ High — guards against double holds and double charges.
 
 ---
 
+### R44 — Say why a card payment was declined
+
+**What's needed**
+Card binding now answers with a `code` (`CARD_NOT_SUPPORTED`, `CARD_EXPIRED`,
+`SMS_CODE_WRONG` …), but a declined **payment** still does not say why. The
+team-game declines are 400s with English prose ("Card payment was declined; …")
+and a declined booking is HTTP 200 with a `failed` row in
+`GET /api/payments/my` — no reason either way. The provider's code is known
+(`STPIMS-ERR-057` / `-112` insufficient funds, `-067` card expired, `-058`
+blocked) but kept in `payments.failure_reason`, which only the admin sees. So
+the player cannot be told "not enough money on the card" versus "the card was
+declined" versus "the card has expired".
+
+**Which screen needs it**
+Mini App player — checkout and "Qolganini toʻlash" (bookings), Raqib qidirish,
+accepting a challenge and the team remainder (team games).
+
+**Proposed change**
+- The 400 declines of `POST /api/games`, `POST /api/games/{id}/join` and
+  `POST /api/games/{id}/pay-remainder` add a `code`:
+
+  | `code` | When (ATMOS) |
+  |---|---|
+  | `INSUFFICIENT_FUNDS` | `STPIMS-ERR-057`, `STPIMS-ERR-112` |
+  | `CARD_EXPIRED` | `STPIMS-ERR-067` (the same code card binding uses) |
+  | `CARD_DECLINED` | any other decline |
+
+- `PaymentResponse` (`GET /api/payments/my`) gets an optional
+  `failureCode` (`string`, the same three values), present only on a `failed`
+  row; never the provider's own code or text.
+
+The Mini App already maps `INSUFFICIENT_FUNDS`, `CARD_EXPIRED` and
+`CARD_DECLINED` (`errors.ts`); until they are sent every decline reads
+"Karta rad etildi".
+
+**Priority**
+Medium — the player cannot tell an empty card from a refused one.
+
+---
+
 ## Done
 
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes

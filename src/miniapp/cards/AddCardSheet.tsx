@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isApiError } from '../../shared/api'
 import { CARDS_KEY, confirmCard, startCardBinding, type SavedCard } from '../api/cards'
-import { errorMessage } from '../api/errors'
-import { BottomSheet, Button, cx, Input, useToast } from '../components'
+import { errorMessageKey, errorTone, type ErrorMessageKey } from '../api/errors'
+import { BottomSheet, Button, cx, Input, Notice, useToast } from '../components'
 import { tashkentToday } from '../../shared/format'
 import { CardBrandTile } from './CardBrandTile'
 import {
@@ -28,17 +28,42 @@ const RESEND_SECONDS = 60
 const CODE_LENGTH = 6
 
 type Problem =
-  { kind: 'number' } | { kind: 'code' } | { kind: 'network' } | { kind: 'other'; message: string }
+  /** Under the card number field. */
+  | { kind: 'number'; key: ErrorMessageKey }
+  /** Under the expiry field. */
+  | { kind: 'expiry'; key: ErrorMessageKey }
+  /** Under the SMS code; the typed code is cleared. */
+  | { kind: 'code'; key: ErrorMessageKey }
+  /** The SMS code is no longer valid: a new one is needed. */
+  | { kind: 'codeExpired' }
+  | { kind: 'network' }
+  /** A notice above the form (a refusal, or the payment system being down). */
+  | { kind: 'other'; key: ErrorMessageKey }
 
+/**
+ * Where a failed call's message goes. The backend's card codes (errors.ts) decide;
+ * a 4xx without a code (bean validation) is read as the number, or the code, being wrong.
+ */
 function classify(error: unknown, step: 'bind' | 'confirm'): Problem {
-  if (isApiError(error)) {
-    if (error.isNetworkError) return { kind: 'network' }
-    if (step === 'bind' && error.status === 400) return { kind: 'number' }
-    if (step === 'confirm' && error.status >= 400 && error.status < 500 && error.status !== 401) {
-      return { kind: 'code' }
-    }
+  if (isApiError(error) && error.isNetworkError) return { kind: 'network' }
+  const key = errorMessageKey(error)
+  switch (key) {
+    case 'errors.cardNotSupported':
+    case 'errors.cardExpiryInvalid':
+      return { kind: 'number', key }
+    case 'errors.cardExpired':
+      return { kind: 'expiry', key }
+    case 'errors.smsCodeWrong':
+      return { kind: 'code', key }
+    case 'errors.smsCodeExpired':
+      return { kind: 'codeExpired' }
   }
-  return { kind: 'other', message: errorMessage(error) }
+  if (isApiError(error) && error.code === undefined && error.status === 400) {
+    return step === 'bind'
+      ? { kind: 'number', key: 'errors.cardExpiryInvalid' }
+      : { kind: 'code', key: 'errors.smsCodeWrong' }
+  }
+  return { kind: 'other', key }
 }
 
 function clock(seconds: number): string {
@@ -107,15 +132,17 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
       : numberProblem === 'length' && touched.number && number.length > 0
         ? t('cards.numberLength')
         : problem?.kind === 'number'
-          ? t('cards.wrongNumber')
+          ? t(problem.key)
           : undefined
   const expiryError =
     expiryIssue === 'past'
       ? t('cards.expiryPast')
       : expiryIssue === 'shape' && touched.expiry && expiry.length > 0
         ? t('cards.expiryShape')
-        : undefined
-  const expired = binding !== null && secondsLeft === 0
+        : problem?.kind === 'expiry'
+          ? t(problem.key)
+          : undefined
+  const expired = binding !== null && (secondsLeft === 0 || problem?.kind === 'codeExpired')
 
   const requestCode = async () => {
     if (busy || !formReady) return
@@ -156,7 +183,11 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     } catch (error) {
       if (!mounted.current) return
       const next = classify(error, 'confirm')
-      if (next.kind === 'code') setCode('')
+      if (next.kind === 'code' || next.kind === 'codeExpired') setCode('')
+      if (next.kind === 'other' && next.key === 'errors.bindingNotFound') {
+        // The binding is gone: back to the card form, which says so.
+        setBinding(null)
+      }
       setProblem(next)
     } finally {
       if (mounted.current) setBusy(false)
@@ -176,13 +207,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
         </div>
       </div>
     ) : problem?.kind === 'other' ? (
-      <div
-        role="alert"
-        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger"
-      >
-        <CircleAlert size={18} className="mt-0.5 shrink-0" aria-hidden />
-        <span className="text-sm">{problem.message}</span>
-      </div>
+      <Notice tone={errorTone(problem.key)}>{t(problem.key)}</Notice>
     ) : null
 
   const privacy = (
@@ -210,7 +235,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
           label={t('cards.number')}
           value={groupCardNumber(number)}
           onChange={(event) => {
-            if (problem?.kind === 'number') setProblem(null)
+            if (problem?.kind === 'number' || problem?.kind === 'expiry') setProblem(null)
             setNumber(digitsOnly(event.target.value).slice(0, 16))
           }}
           onBlur={() => setTouched((x) => ({ ...x, number: true }))}
@@ -223,7 +248,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
           label={t('cards.expiry')}
           value={expiry}
           onChange={(event) => {
-            if (problem?.kind === 'number') setProblem(null)
+            if (problem?.kind === 'number' || problem?.kind === 'expiry') setProblem(null)
             setExpiry(formatExpiry(event.target.value))
           }}
           onBlur={() => setTouched((x) => ({ ...x, expiry: true }))}
@@ -236,7 +261,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     )
   }
 
-  const wrongCode = problem?.kind === 'code'
+  const wrongCode = problem?.kind === 'code' ? problem.key : null
   return (
     <BottomSheet
       open
@@ -297,13 +322,13 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
       {wrongCode && (
         <p role="alert" className="flex items-center gap-2 text-sm text-danger">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
-          {t('cards.wrongCode')}
+          {t(wrongCode)}
         </p>
       )}
       {expired && !wrongCode && (
-        <p className="flex items-center gap-2 text-sm text-danger">
+        <p role="alert" className="flex items-center gap-2 text-sm text-danger">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
-          {t('cards.codeExpired')}
+          {problem?.kind === 'codeExpired' ? t('errors.smsCodeExpired') : t('cards.codeExpired')}
         </p>
       )}
       {!expired && (
