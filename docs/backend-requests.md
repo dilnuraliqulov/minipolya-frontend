@@ -189,34 +189,6 @@ full payment; it has no minimum booking amount"`, closed, outside hours); 404
 Medium — checkout works from the availability price; the deposit and deadline
 lines wait on it.
 
-### R29 — Upcoming and past filter on the booking list
-
-**What's needed**
-`GET /api/bookings` returns every booking in one fixed order, so the client
-cannot show "Kelgusi" and "Oʻtgan" separately. Splitting one page in the client
-would be wrong.
-
-**Which screen needs it**
-Mini App player — Oʻyinlarim, the Kelgusi / Oʻtgan segmented control.
-
-**Proposed endpoint**
-`GET /api/bookings` — logged-in user, new optional parameter.
-
-Request — in addition to `page`, `size`:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `when` | string | no | `upcoming` or `past`; anything else is 400. Absent keeps today's order |
-
-Response — the existing page payload. `upcoming`: bookings that have not ended
-yet, soonest first; `past`: ended bookings, most recent first.
-
-Error cases — 400 `"Invalid when"` for an unknown value.
-
-**Priority**
-Medium — the list works unsplit; the segmented control stays disabled until it
-ships.
-
 ### R30 — Cash taken on a booking, on the player response
 
 **What's needed**
@@ -391,6 +363,38 @@ Low — the server already refuses a second join; this only removes a dead butto
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
 where the backend differs from it — the backend is what counts, and
 `docs/api-reference.md` documents it.
+
+### R29 — Upcoming and past filter on the booking list _(shipped in `08687d6`)_
+
+**Shipped:** `GET /api/bookings?when=upcoming` (starting now or later, soonest first) and `?when=past` (started already, newest first); without `when` every booking as before; any other value 400 "Invalid when".
+
+**What's needed**
+`GET /api/bookings` returns every booking in one fixed order, so the client
+cannot show "Kelgusi" and "Oʻtgan" separately. Splitting one page in the client
+would be wrong.
+
+**Which screen needs it**
+Mini App player — Oʻyinlarim, the Kelgusi / Oʻtgan segmented control.
+
+**Proposed endpoint**
+`GET /api/bookings` — logged-in user, new optional parameter.
+
+Request — in addition to `page`, `size`:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `when` | string | no | `upcoming` or `past`; anything else is 400. Absent keeps today's order |
+
+Response — the existing page payload. `upcoming`: bookings that have not ended
+yet, soonest first; `past`: ended bookings, most recent first.
+
+Error cases — 400 `"Invalid when"` for an unknown value.
+
+**Priority**
+Medium — the list works unsplit; the segmented control stays disabled until it
+ships.
+
+---
 
 ### R28 — Pay a pending booking whose payment was declined _(shipped in `e14bd5e`)_
 

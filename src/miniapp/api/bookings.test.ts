@@ -25,12 +25,12 @@ describe('createBooking', () => {
 })
 
 describe('getBookings', () => {
-  it('asks for a page of 20', async () => {
+  it('asks for one tab (R29), a page of 20', async () => {
     const fetch = stubApi({
       'GET /api/bookings': { content: [], page: 2, size: 20, totalElements: 0, totalPages: 0 },
     })
-    await getBookings(2)
-    expect(fetch.queries('GET /api/bookings')).toEqual([{ page: '2', size: '20' }])
+    await getBookings(2, 'past')
+    expect(fetch.queries('GET /api/bookings')).toEqual([{ when: 'past', page: '2', size: '20' }])
   })
 })
 

@@ -332,10 +332,11 @@
     },
     "upcoming": "Upcoming",
     "past": "Past",
-    "filterSoon": "Splitting into upcoming and past is coming soon",
     "listLabel": "Bookings",
     "emptyTitle": "No bookings yet",
     "emptyText": "Pick a pitch and make your first booking.",
+    "emptyPastTitle": "No past bookings",
+    "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
     "more": "Show more"
   },

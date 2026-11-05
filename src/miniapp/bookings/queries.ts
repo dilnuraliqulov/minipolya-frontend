@@ -1,11 +1,20 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { BOOKINGS_KEY, bookingKey, getBooking, getBookings } from '../api/bookings'
+import {
+  BOOKINGS_KEY,
+  bookingKey,
+  getBooking,
+  getBookings,
+  type BookingsWhen,
+} from '../api/bookings'
 
-/** The player's bookings, newest `startsAt` first as the server orders them, paged. */
-export function useBookings() {
+/**
+ * One tab of the player's bookings (R29), paged, in the server's order. Keyed
+ * under BOOKINGS_KEY, so invalidating that refreshes both tabs.
+ */
+export function useBookings(when: BookingsWhen) {
   return useInfiniteQuery({
-    queryKey: BOOKINGS_KEY,
-    queryFn: ({ pageParam }) => getBookings(pageParam),
+    queryKey: [...BOOKINGS_KEY, when],
+    queryFn: ({ pageParam }) => getBookings(pageParam, when),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.page + 1 < last.totalPages ? last.page + 1 : undefined),
   })

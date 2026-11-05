@@ -30,11 +30,18 @@ export function makeUser(overrides: Partial<User> = {}): User {
   }
 }
 
-type Reply = ((body: unknown) => unknown) | Response | object | string | number | boolean | null
+type Reply =
+  | ((body: unknown, query: URLSearchParams) => unknown)
+  | Response
+  | object
+  | string
+  | number
+  | boolean
+  | null
 
 /**
  * Stubs `fetch` with a table of `'METHOD /path'` → reply (data for a 200, a
- * Response, or a function of the JSON body). Unlisted requests answer 404.
+ * Response, or a function of the JSON body and the query). Unlisted requests answer 404.
  * Returns the mock; `calls(key)` lists the JSON bodies sent to one route,
  * `queries(key)` their query parameters.
  */
@@ -53,7 +60,7 @@ export function stubApi(routes: Record<string, Reply>) {
     if (!(key in routes)) return jsonResponse(404, null, 'Not found')
     const route = routes[key]
     const reply = await (typeof route === 'function'
-      ? (route as (b: unknown) => unknown)(body)
+      ? (route as (b: unknown, q: URLSearchParams) => unknown)(body, url.searchParams)
       : route)
     return reply instanceof Response ? reply : jsonResponse(200, reply)
   })

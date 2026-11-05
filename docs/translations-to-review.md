@@ -288,10 +288,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `bookings.status.cancelled` | Bekor qilingan | Отменена | Cancelled |
 | `bookings.upcoming` | Kelgusi | Предстоящие | Upcoming |
 | `bookings.past` | Oʻtgan | Прошедшие | Past |
-| `bookings.filterSoon` | Kelgusi va oʻtgan boʻyicha ajratish tez orada | Разделение на предстоящие и прошедшие — скоро | Splitting into upcoming and past is coming soon |
 | `bookings.listLabel` | Bronlar | Брони | Bookings |
 | `bookings.emptyTitle` | Hali bronlar yoʻq | Броней пока нет | No bookings yet |
 | `bookings.emptyText` | Maydon tanlab, birinchi bronni qiling. | Выберите поле и сделайте первую бронь. | Pick a pitch and make your first booking. |
+| `bookings.emptyPastTitle` | Oʻtgan bronlar yoʻq | Прошедших броней нет | No past bookings |
+| `bookings.emptyPastText` | Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi. | Здесь появятся брони, по которым вы уже сыграли. | Bookings you have played will show here. |
 | `bookings.findPitch` | Maydon topish | Найти поле | Find a pitch |
 | `bookings.more` | Yana koʻrsatish | Показать ещё | Show more |
 | `booked.headerTitle` | Bron | Бронь | Booking |

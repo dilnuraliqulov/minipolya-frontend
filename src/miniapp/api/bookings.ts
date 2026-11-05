@@ -83,8 +83,6 @@ export interface Booking {
 
 /** R27: `GET /api/stadiums/{id}/quote` — price, deposit, remainder, deadline before paying. */
 export const BOOKING_QUOTE = 'GET /api/stadiums/{id}/quote'
-/** R29: `?when=upcoming|past` on the booking list. */
-export const BOOKINGS_WHEN = 'GET /api/bookings?when'
 /** R30: `paidInCash` on the player `BookingResponse`. */
 export const BOOKING_CASH_PAID = 'BookingResponse.paidInCash'
 /** R31: `stadiumCoverPhotoUrl`, `stadiumDistrict`, `stadiumFormat` on `BookingResponse`. */
@@ -109,9 +107,15 @@ export function createBooking(body: CreateBookingBody): Promise<Booking> {
   return api.post<Booking>('/api/bookings', body)
 }
 
-export function getBookings(page: number): Promise<Page<Booking>> {
+/**
+ * R29: `upcoming` — starting now or later, soonest first; `past` — started
+ * already, newest first. The split and the order are the server's.
+ */
+export type BookingsWhen = 'upcoming' | 'past'
+
+export function getBookings(page: number, when: BookingsWhen): Promise<Page<Booking>> {
   return api.get<Page<Booking>>('/api/bookings', {
-    query: { page, size: BOOKINGS_PAGE_SIZE },
+    query: { when, page, size: BOOKINGS_PAGE_SIZE },
   })
 }
 

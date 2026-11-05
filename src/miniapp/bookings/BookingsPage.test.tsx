@@ -51,14 +51,40 @@ describe('Oʻyinlarim — bookings', () => {
     expect(within(items[2] as HTMLElement).getByText('Bekor qilingan')).toBeInTheDocument()
   })
 
-  it('shows Kelgusi / Oʻtgan as coming soon and never asks for ?when', async () => {
+  it('opens on Kelgusi and asks the server for ?when=upcoming', async () => {
     const api = stubApi({ 'GET /api/games/my': page([]), [LIST]: page([confirmed]) })
     renderApp('/games')
     await screen.findByText('Bunyodkor Arena')
-    expect(screen.getByRole('tab', { name: 'Kelgusi' })).toBeDisabled()
-    expect(screen.getByRole('tab', { name: 'Oʻtgan' })).toBeDisabled()
-    expect(screen.getByText(/tez orada/)).toBeInTheDocument()
-    expect(api.queries(LIST).every((q) => !('when' in q))).toBe(true)
+    expect(screen.getByRole('tab', { name: 'Kelgusi' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Oʻtgan' })).toHaveAttribute('aria-selected', 'false')
+    expect(api.queries(LIST).map((q) => q.when)).toEqual(['upcoming'])
+  })
+
+  it('switches to Oʻtgan: ?when=past, its own list and empty state, kept in the URL', async () => {
+    // Upcoming has one booking, past none.
+    const api = stubApi({
+      'GET /api/games/my': page([]),
+      [LIST]: (_body: unknown, query: URLSearchParams) =>
+        query.get('when') === 'past' ? page([]) : page([confirmed]),
+    })
+    const { router } = renderApp('/games')
+    await screen.findByText('Bunyodkor Arena')
+    fireEvent.click(screen.getByRole('tab', { name: 'Oʻtgan' }))
+    expect(await screen.findByText('Oʻtgan bronlar yoʻq')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Oʻtgan' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.queryByText('Bunyodkor Arena')).toBeNull()
+    expect(router.state.location.search).toBe('?tab=past')
+    expect(api.queries(LIST).at(-1)?.when).toBe('past')
+    fireEvent.click(screen.getByRole('tab', { name: 'Kelgusi' }))
+    expect(await screen.findByText('Bunyodkor Arena')).toBeInTheDocument()
+    expect(router.state.location.search).toBe('')
+  })
+
+  it('opens straight on Oʻtgan from ?tab=past', async () => {
+    const api = stubApi({ 'GET /api/games/my': page([]), [LIST]: page([cancelled]) })
+    renderApp('/games?tab=past')
+    expect(await screen.findByText('Chilonzor Arena')).toBeInTheDocument()
+    expect(api.queries(LIST).map((q) => q.when)).toEqual(['past'])
   })
 
   it('opens a booking', async () => {

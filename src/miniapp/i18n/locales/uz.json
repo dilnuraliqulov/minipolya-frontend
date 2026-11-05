@@ -332,10 +332,11 @@
     },
     "upcoming": "Kelgusi",
     "past": "Oʻtgan",
-    "filterSoon": "Kelgusi va oʻtgan boʻyicha ajratish tez orada",
     "listLabel": "Bronlar",
     "emptyTitle": "Hali bronlar yoʻq",
     "emptyText": "Maydon tanlab, birinchi bronni qiling.",
+    "emptyPastTitle": "Oʻtgan bronlar yoʻq",
+    "emptyPastText": "Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi.",
     "findPitch": "Maydon topish",
     "more": "Yana koʻrsatish"
   },
