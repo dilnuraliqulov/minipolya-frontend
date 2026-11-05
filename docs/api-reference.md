@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `5cc6ef6` (_R38: owner dashboard: unpaid bookings filter and paid in app/cash/outstanding_; was `253f585` — dev sign-in requires `X-Dev-Login-Key`, 2026-11-02) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers) |
-| Endpoints documented | **120** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
+| Commit | `9e9acb5` (_Payments: lock and re-check before any reverse, never reverse twice_, 2026-11-05; was `5cc6ef6` — R38 owner dashboard) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`) |
+| Endpoints documented | **121** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
 
 ---
 
@@ -52,7 +52,7 @@ Every endpoint — success or error — answers with the same wrapper
 
 | Field | Type | Notes |
 |---|---|---|
-| `success` | `boolean` | `true` on 2xx, `false` on every error |
+| `success` | `boolean` | `true` on a success, `false` on every error — **and on the one 2xx that is not a success**, 202 `PAYMENT_PENDING` (below) |
 | `data` | `T \| null` | the payload; `null` on an error, and `null` on endpoints that return nothing |
 | `message` | `string \| null` | human-readable; `null` on a plain success, always set on an error |
 | `code` | `string`? | machine-readable; **present only on the few errors that carry one** (table below), absent everywhere else |
@@ -69,6 +69,12 @@ Every endpoint — success or error — answers with the same wrapper
 | `ACCOUNT_BLOCKED` | 403 | `{ reason?, blockedAt? }` | **any** authenticated request (`JwtAuthFilter`), `POST /api/auth/telegram`, `POST /api/auth/admin/login` — `data` from the latest `USER_BLOCKED` audit entry: the reason as the admin typed it (absent when none) and when (UTC); either may be absent |
 | `TOKEN_REVOKED` | 401 | — | **any** authenticated request (§1.5) |
 | `PHONE_TAKEN` | 409 | — | `PATCH /api/users/me` — the phone belongs to another account |
+| `CARD_NOT_SUPPORTED`, `CARD_EXPIRY_INVALID`, `CARD_EXPIRED`, `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`, `SMS_RESEND_TOO_EARLY`, `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` | 400 | — | `POST /api/cards`, `/api/cards/resend`, `/api/cards/confirm` (`CardBindingException`, since `9e9acb5`) — §7.1 |
+| `PAYMENT_PENDING` | **202**, `success: false` | — | `POST /api/games/{id}/join` (team game): paid, the other team's capture has no clear answer yet (`PaymentPendingException`) — §9 |
+
+A 202 `PAYMENT_PENDING` is a **2xx with `success: false`**: a client that only
+checks `response.ok` would read it as a success with `data: null`. Check
+`success` (the Mini App's client throws an `ApiError` with status 202 and the code).
 
 Everywhere else the frontend still branches on the **HTTP status** plus, where
 it has to, the exact `message` string — see
@@ -181,6 +187,8 @@ These apply to every endpoint and are not repeated below.
 | 413 | `"File too large"` | an upload over 10 MB (`spring.servlet.multipart.max-file-size`, or the service's own check) |
 | 415 | `"Unsupported media type"` | a body type the endpoint does not take (e.g. JSON to the photo upload) |
 | 410 | `"Booking has expired"` | `BookingExpiredException` |
+| 502 | `"To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring"` (Uzbek, like Q7) | since `9e9acb5`: the payment provider could not be reached (HTTP 5xx, or ATMOS `STPIMS-ERR-024/-026/-041/-094/-102`) while **creating** a charge or hold, or on any card-binding call. **Nothing was charged, held or bound** — the request may simply be sent again. Not a decline. Any card call: `POST /api/cards`, `/resend`, `/confirm`, `POST /api/bookings`, the two `pay-remainder`s, `POST /api/games` (team), `POST /api/games/{id}/join` (team) |
+| 502 | `"Payment provider unavailable"` | admin refund retry only (§10.9) |
 | 500 | `"Internal server error"` | anything unhandled |
 
 Source: `exception/GlobalExceptionHandler.java`.
@@ -1011,8 +1019,8 @@ never stored, logged or returned.
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | the only handle the client ever uses |
-| `maskedNumber` | string | e.g. `"8600 •••• 1234"` |
-| `cardType` | string | |
+| `maskedNumber` | string | `"8600 •••• •••• 1234"` (`provider/CardMask`, both providers, since `9e9acb5`); cards saved earlier keep `"8600 •••• 1234"` — the client must show both |
+| `cardType` | string | `uzcard` (8600…) \| `humo` (9860…) \| `unknown` |
 | `expiry` | string | `MM/YY` as the provider reports it |
 | `isActive` | boolean | |
 | `createdAt` | timestamp (UTC) | |
@@ -1028,11 +1036,44 @@ There is **no token field** — payment calls take `cardId`.
 | `cardNumber` | string | yes | `@Pattern(\d{16})` — `"cardNumber must be 16 digits"` |
 | `expiry` | string | yes | `@Pattern(\d{2}/\d{2})` — `"expiry must be MM/YY"` |
 
-**Response** — `{ "bindingId": string, "maskedPhone": string }` (where the
-SMS went, e.g. `"********9999"`), `message: "SMS code sent"`. Nothing
-is persisted yet; an abandoned binding expires at the provider.
+Only **Uzcard (`8600…`) and Humo (`9860…`)** are bound; the expiry must not have
+passed. No Luhn check.
 
-**Errors** — 400 validation; 404 `"User not found"`.
+**Response** — `{ "bindingId": string, "maskedPhone": string }` (where the
+SMS went: `"+998 ** *** ** 58"` from the fake provider, `"********9999"` from
+ATMOS), `message: "SMS code sent"`. Nothing is persisted yet; an abandoned
+binding expires at the provider.
+
+**Errors** — 400 validation; 400 with a `code` (below); 404 `"User not found"`;
+502 provider unreachable (§1.7).
+
+**Card binding errors** (`CardBindingException`, 400, all three card calls).
+The `message` is Uzbek Latin with `'` for ʻ/ʼ; branch on `code`:
+
+| `code` | When | `message` |
+|---|---|---|
+| `CARD_NOT_SUPPORTED` | not Uzcard / Humo (ATMOS `STPIMS-ERR-117`, `-050`) | `"Faqat Uzcard va Humo kartalari qabul qilinadi"` |
+| `CARD_EXPIRY_INVALID` | the expiry does not match the card (`-090`, `-004`) | `"Karta raqami yoki amal qilish muddati noto'g'ri"` |
+| `CARD_EXPIRED` | the card has expired (`-067`) | `"Kartaning amal qilish muddati tugagan"` |
+| `SMS_CODE_WRONG` | wrong SMS code (`-098`); the binding stays open | `"SMS kod noto'g'ri"` |
+| `SMS_CODE_EXPIRED` | the code is no longer valid (fake: after 180 s) — resend it | `"SMS kodning muddati tugagan. Kodni qayta yuboring"` |
+| `SMS_RESEND_TOO_EARLY` | `/resend` within 60 s of the last code | `"Kodni qayta yuborish uchun biroz kuting"` |
+| `SMS_RESEND_UNAVAILABLE` | the provider cannot resend — **always, with real ATMOS** (no binding resend is documented): enter the card again | `"Kodni qayta olish uchun karta ma'lumotlarini qaytadan kiriting"` |
+| `BINDING_NOT_FOUND` | unknown or already confirmed binding — start again | `"Karta qo'shish jarayoni topilmadi. Qaytadan boshlang"` |
+| `CARD_BINDING_FAILED` | any other refusal | `"Kartani qo'shib bo'lmadi. Boshqa karta bilan urinib ko'ring"` |
+
+#### `POST /api/cards/resend` — user
+
+_Since `9e9acb5`._ The SMS code again, for the same binding.
+
+**Body** — `{ "bindingId": string }` (`@NotBlank`).
+
+**Response** — `{ "bindingId": string, "maskedPhone": string }` (the same
+shape as `POST /api/cards`), `message: "SMS code sent"`.
+
+**Errors** — 400 validation; 400 `SMS_RESEND_TOO_EARLY` (before the 60 s
+cooldown), `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`; 404
+`"User not found"`; 502 (§1.7).
 
 #### `POST /api/cards/confirm` — user
 
@@ -1040,9 +1081,34 @@ is persisted yet; an abandoned binding expires at the provider.
 
 **Response** — `SavedCardResponse`, `message: "Card saved"`.
 
-**Errors** — 400 validation; 404 `"User not found"`; a wrong SMS code or
-unknown binding comes from the provider (with the fake provider the code is
-always `111111`).
+**Errors** — 400 validation; 400 `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`,
+`BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` (above); 404 `"User not found"`;
+502 (§1.7).
+
+**Fake provider (dev and tests, since `9e9acb5`).** It answers like ATMOS and
+keeps its state across restarts. Any 16 digits starting `8600`/`9860` with an
+expiry not passed bind (`13/29` → `CARD_EXPIRY_INVALID`, last month →
+`CARD_EXPIRED`, `4111…` → `CARD_NOT_SUPPORTED`); **any 6-digit code** confirms,
+`000000` → `SMS_CODE_WRONG`, `999999` → `SMS_CODE_EXPIRED`. Card endings pick a
+payment scenario: `0002` declined, `0051` insufficient funds, `0054` expired at
+payment, `0091`/`0092` lost answer (did / did not charge), `0099` provider down
+(502), `0098` refunds refused, `0097` (team game creator) capture refused.
+The table is "To simulate X in dev" in the backend `CLAUDE.md`.
+
+**Dev-only: `GET /api/dev/fake-payments?limit=`** — `dev` profile with the fake
+provider only, `X-Dev-Login-Key` like §2, **no JWT**; 404 `"Not found"`
+otherwise. Not counted in the endpoint total. `limit` 1–100 per list (default
+20). `DevFakePaymentsResponse`: `cards` (`cardId`, `maskedPan`, `cardType`,
+`expiry`, `cardHolder`, `maskedPhone`, `balance` tiyin, `scenario`,
+`isActive`, `createdAt`, `removedAt`), `charges` and `holds` (`id`,
+`account` = our payment id, `cardId`, `maskedPan`, `status` PENDING / SUCCESS /
+FAILED / REVERSED / HELD / CAPTURED / RELEASED, `errorCode`, `amount`,
+`commission`, `holdTill`, `succeededAt`, `createdAt`, `updatedAt`, `splits`
+[`transactionId`, `recipient` owner / platform, `recipientId`, `amount`,
+`commission`, `recipientReceives`, `successTransId`, `reversedAt`]) and
+`reverses` (`id`, `operationId`, `transactionId`, `amount`, `outcome`
+REVERSED / REFUSED, `errorCode`, `reason`, `createdAt`). Newest first; no token
+anywhere. The Mini App does not call it.
 
 #### `GET /api/cards` — user
 
@@ -1072,6 +1138,10 @@ Soft delete (`isActive = false`) so past payments stay explainable.
 | `status` | string | §1.9 |
 | `refundReason` | string? | |
 | `createdAt` | timestamp (UTC) | |
+
+A `failed` row does **not** say why (insufficient funds, expired card, blocked):
+`failure_reason` is kept only for the admin (`AdminPaymentResponse`). Requested
+as R44.
 
 #### `POST /api/payments/initiate` — user
 
@@ -1315,12 +1385,31 @@ Games the caller is in, latest `startsAt` first. **Response** — paged `GameRes
 ### `POST /api/games/{id}/join` — user
 
 **Body** — `JoinGameRequest`, and the **body as a whole is optional** (an
-invited casual player or team member can POST with no body at all).
+invited casual player can POST with no body at all).
+
+**Team games (since `eabfd85`/`2816c90`).** Only the joining team's **leader**
+joins, with `teamId` + `cardId`, and always pays; an invited **member cannot**
+join through this endpoint (403). **The server picks the side** — the free one
+(A when the team left behind is on B). `side` is optional; `"b"` is still
+accepted from older clients, any other side that is not the free one → 400. The
+join runs in committed steps (the team as `joining`, the slot, the joiner's
+charge, then the capture of the waiting team's hold), so a crash or an unclear
+answer leaves a record the reconcile job finishes:
+
+- the joiner's card declined → 400, the game keeps waiting;
+- the capture refused → the game is cancelled (`cancelled_slot_taken`), the
+  joiner's charge reversed and the hold released → 400 (below);
+- the capture without a clear answer → **202 `PAYMENT_PENDING`**, `success:
+  false`, `data: null`, message `"To'lov tasdiqlanmoqda. O'yin tasdiqlangani yoki
+  bekor qilingani haqida xabar beramiz"`. The joiner **has paid**; the reconcile
+  job (every ~5 min) confirms or undoes the game and notifies both teams. Never
+  pay again. Meanwhile the game stays `open` and is **still listed** on
+  `GET /api/games/challenges` (R45).
 
 | Field | Type | Required | Validation |
 |---|---|---|---|
 | `gameId` | UUID | see note | `@NotNull` **but the path value is what is used** |
-| `side` | `"a"` \| `"b"` | no | `@Pattern(a\|b)` |
+| `side` | `"a"` \| `"b"` | no | `@Pattern(a\|b)`; team games: optional, the server picks the free side; `"b"` or the free side accepted |
 | `teamId` | UUID | required when a leader joins a `team_vs_team` game | caller must lead it |
 | `cardId` | UUID | required when a leader joins a `team_vs_team` game | |
 
@@ -1337,10 +1426,14 @@ invited casual player or team member can POST with no body at all).
 | Status | `message` |
 |---|---|
 | 400 | `"Game is not open for joining"`, `"You have already joined this game"`, `"Game is already full"` |
-| 400 | `"teamId is required to join as team B"`, `"cardId is required to join a team game"` |
+| 400 | `"cardId is required to join a team game"`, `"The opposing team joins as side <a\|b>"` (a side that is neither `b` nor the free one) |
+| 400 | `"Card payment was declined; the game is still looking for an opponent"` |
+| 400 | `"The card payment could not be confirmed; the game is still looking for an opponent. If the money was taken it will be returned in full"`, `"The other team's payment is still being confirmed; try again in a few minutes"`, `"The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full"` |
 | 400 | `"A team cannot play against itself"`, `"This game already has an opponent"` |
-| 400 | `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"` — past the 3-hour point (**the only Uzbek message the API returns**; see [Q7](#11-questions-about-the-backend)) |
-| 403 | `"Only the team leader can accept"` |
+| 400 | `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"` — past the 3-hour point (Uzbek; see [Q7](#11-questions-about-the-backend)) |
+| 403 | `"Only the joining team's leader can join a team game, with their team and a card"` — a team game joined by anyone but the leader of `teamId`, or without `teamId` (an invited member) |
+| 202 | `code: "PAYMENT_PENDING"` — see above |
+| 502 | the payment provider is unreachable (§1.7); the join is dropped, nothing charged |
 | 404 | `"Game not found"` / `"Team not found"` / `"Card not found"` |
 | 409 | `"That time slot is already booked"` |
 
@@ -1369,7 +1462,7 @@ after the game.
 
 **Response** — the refreshed `GameDetailResponse`, `message: "Remainder paid"`.
 
-**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"`; 404 `"Game not found"` / `"Card not found"`.
+**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"`; 404 `"Game not found"` / `"Card not found"`; 502 (§1.7).
 
 ### `POST /api/games/{id}/cash` — owner (the stadium's owner)
 
@@ -2205,6 +2298,12 @@ R38, R39, R41, R42 and R43 from `docs/backend-requests.md`. Q11 still stands:
 R42 only lets a not-yet-owner add and list stadiums; the rest of
 `/api/owner/**` still needs a fresh token after approval.
 
+**`5cc6ef6..9e9acb5`:** resolves nothing listed here. Q1 is answered a little
+further (card binding and `PAYMENT_PENDING` carry a `code`; payment declines
+still do not — R44). Q3 stands. New: a game being joined stays on the
+challenge board (R45); with real ATMOS `/api/cards/resend` always answers
+`SMS_RESEND_UNAVAILABLE` (no binding resend documented by ATMOS).
+
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and
 `TOKEN_REVOKED` set it; everything else is prose only. Clients that want to react
@@ -2257,7 +2356,10 @@ machinery. But `BookingController` has no `cash` mapping — only
 `TeamGameService.TOO_LATE_TO_JOIN` is
 `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"`. Every other
 API message is English, so the frontend's translation layer has to special-case
-this one. It also writes "3" into the text while the cutoff itself is
+this one. _Since `9e9acb5` it is no longer the only one: the card-binding
+messages (§7.1), the 502 "To'lov tizimi vaqtincha ishlamayapti…" (§1.7) and the 202
+`PAYMENT_PENDING` message are Uzbek too. The card ones and the 202 carry a `code`; the Mini App matches the
+502 on its exact text, to tell it from a proxy's 502 whose outcome is unknown._ It also writes "3" into the text while the cutoff itself is
 configurable (`app.game.opponent-deadline-hours`), so changing the setting
 makes the message wrong.
 
