@@ -93,6 +93,7 @@
     "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
     "paymentPending": "Your payment is being confirmed. You'll get the result in a notification.",
     "hasOpponent": "This game already has an opponent.",
+    "onlyLeaderJoins": "Only the team captain can accept a challenge — they pay for the team.",
     "minimumTooLow": "The deposit must be at least 500 soʻm.",
     "alreadyPaid": "This payment is already recorded.",
     "imageType": "Only JPG, PNG or WebP images can be uploaded.",
@@ -427,6 +428,7 @@
     "cancel": "Cancel",
     "challenges": "Teams looking for an opponent",
     "challengesEmpty": "No team is looking for an opponent right now.",
+    "leaderAccepts": "The team captain accepts challenges.",
     "payNow": "Your team pays: {{amount}}",
     "accept": "Accept",
     "more": "Show more",
@@ -515,7 +517,8 @@
     "tooLateTitle": "Less than 3 hours to the game",
     "backToTeam": "Back to my team",
     "pendingTitle": "Payment being confirmed",
-    "openGame": "Open the game"
+    "openGame": "Open the game",
+    "leaderOnlyTitle": "Only the captain can accept"
   },
   "choice": {
     "title": "How do you want to book?",

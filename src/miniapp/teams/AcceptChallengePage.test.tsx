@@ -211,6 +211,41 @@ describe('Raqibni qabul qilish', () => {
     expect(await screen.findByText('Bu chaqiriq endi mavjud emas')).toBeInTheDocument()
   })
 
+  it('tells a member that only the captain accepts, with no pay button', async () => {
+    const api = stub({
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: 'someone-else',
+        members: [],
+      },
+    })
+    renderApp(URL)
+    expect(await screen.findByText('Faqat sardor qabul qila oladi')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeNull()
+    expect(api.calls(JOIN)).toHaveLength(0)
+  })
+
+  it('shows the leader-only message when the backend answers 403', async () => {
+    stub({
+      [JOIN]: jsonResponse(
+        403,
+        null,
+        "Only the joining team's leader can join a team game, with their team and a card",
+      ),
+    })
+    renderApp(URL)
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: /Toʻlash va qabul qilish/ }))
+    expect(await screen.findByText('Faqat sardor qabul qila oladi')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeNull()
+  })
+
   it('says the challenge is gone when it is not on the board', async () => {
     stub({ 'GET /api/games/challenges': page([]) })
     renderApp(URL)

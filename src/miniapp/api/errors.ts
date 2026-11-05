@@ -44,6 +44,7 @@ export type ErrorMessageKey =
   | 'errors.paymentUnclear'
   | 'errors.paymentPending'
   | 'errors.hasOpponent'
+  | 'errors.onlyLeaderJoins'
   | 'errors.unknown'
 
 /** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
@@ -112,6 +113,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
     case 401:
       return 'errors.session'
     case 403:
+      // A team game is joined by the joining team's leader only.
+      if (error.message === API_MESSAGES.onlyLeadersJoin) return 'errors.onlyLeaderJoins'
       return 'errors.forbidden'
     case 404:
       return 'errors.notFound'

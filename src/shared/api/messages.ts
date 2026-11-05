@@ -90,6 +90,12 @@ export const API_MESSAGES = {
   minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
   /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
   joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
+  /**
+   * 403 from `POST /api/games/{id}/join` on a team game from anyone but the joining
+   * team's leader (an invited member, or no `teamId`): only the leader joins, and pays.
+   */
+  onlyLeadersJoin:
+    "Only the joining team's leader can join a team game, with their team and a card",
   /** 400 from `POST /api/games/{id}/join` when another team has joined (or is joining) first. */
   joinHasOpponent: 'This game already has an opponent',
   /** 400 from `POST /api/games/{id}/join` when the joining team's card is declined. */

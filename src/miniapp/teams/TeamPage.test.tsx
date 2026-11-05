@@ -88,6 +88,7 @@ describe('Jamoam', () => {
       'href',
       '/challenges/g1?team=t1',
     )
+    expect(within(board).queryByText('Chaqiriqlarni jamoa sardori qabul qiladi.')).toBeNull()
   })
 
   it('switches teams; a member sees no accept, remove or delete', async () => {
@@ -99,6 +100,7 @@ describe('Jamoam', () => {
     ).toBeInTheDocument()
     expect(await screen.findByText('Yunusobod United')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Qabul qilish' })).not.toBeInTheDocument()
+    expect(screen.getByText('Chaqiriqlarni jamoa sardori qabul qiladi.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /amallar/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Jamoani oʻchirish' })).not.toBeInTheDocument()
   })

@@ -1,5 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, CalendarX, Clock, Hourglass, Info, MapPin, SearchX } from 'lucide-react'
+import {
+  CalendarDays,
+  CalendarX,
+  Clock,
+  Hourglass,
+  Info,
+  MapPin,
+  SearchX,
+  ShieldAlert,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
@@ -78,12 +87,19 @@ export function AcceptChallengePage() {
   const challenge = board.data.pages
     .flatMap((page) => page.content)
     .find((c) => c.gameId === gameId)
-  // Only a team this player captains can accept.
-  const team = led.teams.find((x) => x.id === search.get('team'))
-  if (!challenge || !team) {
+  if (!challenge) {
     return (
       <Screen header={header}>
         <Gone />
+      </Screen>
+    )
+  }
+  // Only a team this player captains can accept; an invited member cannot (403).
+  const team = led.teams.find((x) => x.id === search.get('team'))
+  if (!team) {
+    return (
+      <Screen header={header}>
+        <LeaderOnly />
       </Screen>
     )
   }
@@ -101,6 +117,18 @@ function JoinPending({ gameId }: { gameId: string }) {
       description={t('errors.paymentPending')}
       actionLabel={t('accept.openGame')}
       onAction={() => navigate(`/games/${gameId}`, { replace: true })}
+    />
+  )
+}
+
+/** A member (or anyone not leading the team) cannot accept: only the leader joins, and pays. */
+function LeaderOnly() {
+  const { t } = useTranslation()
+  return (
+    <Gone
+      icon={ShieldAlert}
+      title={t('accept.leaderOnlyTitle')}
+      text={t('errors.onlyLeaderJoins')}
     />
   )
 }
@@ -173,6 +201,13 @@ function AcceptForm({
     return (
       <Screen header={header}>
         <JoinPending gameId={challenge.gameId} />
+      </Screen>
+    )
+  }
+  if (failure === 'errors.onlyLeaderJoins') {
+    return (
+      <Screen header={header}>
+        <LeaderOnly />
       </Screen>
     )
   }

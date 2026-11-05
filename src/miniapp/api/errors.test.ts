@@ -18,6 +18,13 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
     ],
     [new ApiError('x', 202, 'PAYMENT_PENDING'), 'errors.paymentPending'],
     [new ApiError('This game already has an opponent', 400), 'errors.hasOpponent'],
+    [
+      new ApiError(
+        "Only the joining team's leader can join a team game, with their team and a card",
+        403,
+      ),
+      'errors.onlyLeaderJoins',
+    ],
     [new ApiError('x', 400, 'CARD_NOT_SUPPORTED'), 'errors.cardNotSupported'],
     [new ApiError('x', 400, 'CARD_EXPIRY_INVALID'), 'errors.cardExpiryInvalid'],
     [new ApiError('x', 400, 'CARD_EXPIRED'), 'errors.cardExpired'],

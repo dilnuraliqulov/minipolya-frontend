@@ -11,7 +11,8 @@ import { TeamAvatar } from './TeamAvatar'
 
 /**
  * "Raqib qidirayotgan jamoalar": the challenge board in the server's order.
- * Only a captain (`acceptAs` = the team they lead) gets "Qabul qilish".
+ * Only a captain (`acceptAs` = the team they lead) gets "Qabul qilish"; a member
+ * is told only the captain accepts (the join endpoint refuses members, 403).
  */
 export function ChallengeBoard({ acceptAs }: { acceptAs?: string }) {
   const { t } = useTranslation()
@@ -23,6 +24,7 @@ export function ChallengeBoard({ acceptAs }: { acceptAs?: string }) {
       <h3 id="challenges-title" className="text-lg font-semibold text-primary">
         {t('team.challenges')}
       </h3>
+      {!acceptAs && <p className="text-sm text-secondary">{t('team.leaderAccepts')}</p>}
       {board.isPending ? (
         <SkeletonList count={2} variant="item" />
       ) : board.isError ? (

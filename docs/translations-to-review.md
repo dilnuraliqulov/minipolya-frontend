@@ -81,6 +81,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.paymentUnclear` | Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring. | Оплата не подтвердилась. Если деньги списались, они вернутся полностью — проверьте «Мои игры». | The payment was not confirmed. If money was taken, it comes back in full — check My games. |
 | `errors.paymentPending` | Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi. | Платёж подтверждается. Результат придёт в уведомлении. | Your payment is being confirmed. You'll get the result in a notification. |
 | `errors.hasOpponent` | Bu oʻyinga raqib allaqachon topilgan. | У этой игры уже есть соперник. | This game already has an opponent. |
+| `errors.onlyLeaderJoins` | Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi. | Принять вызов может только капитан команды — он платит за команду. | Only the team captain can accept a challenge — they pay for the team. |
 | `errors.minimumTooLow` | Oldindan toʻlov kamida 500 soʻm boʻlishi kerak. | Предоплата должна быть не меньше 500 сум. | The deposit must be at least 500 soʻm. |
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
@@ -371,6 +372,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `team.cancel` | Bekor qilish | Отмена | Cancel |
 | `team.challenges` | Raqib qidirayotgan jamoalar | Команды ищут соперника | Teams looking for an opponent |
 | `team.challengesEmpty` | Hozircha raqib qidirayotgan jamoa yoʻq. | Сейчас никто не ищет соперника. | No team is looking for an opponent right now. |
+| `team.leaderAccepts` | Chaqiriqlarni jamoa sardori qabul qiladi. | Вызовы принимает капитан команды. | The team captain accepts challenges. |
 | `team.payNow` | Jamoangiz toʻlaydi: {{amount}} | Ваша команда платит: {{amount}} | Your team pays: {{amount}} |
 | `team.accept` | Qabul qilish | Принять | Accept |
 | `team.more` | Yana koʻrsatish | Показать ещё | Show more |
@@ -452,6 +454,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `accept.backToTeam` | Jamoamga qaytish | Вернуться в команду | Back to my team |
 | `accept.pendingTitle` | Toʻlov tasdiqlanmoqda | Платёж подтверждается | Payment being confirmed |
 | `accept.openGame` | Oʻyinni ochish | Открыть игру | Open the game |
+| `accept.leaderOnlyTitle` | Faqat sardor qabul qila oladi | Принять может только капитан | Only the captain can accept |
 | `choice.title` | Qanday band qilasiz? | Как бронируете? | How do you want to book? |
 | `choice.self` | Oʻzim band qilaman | Забронирую сам | Book it myself |
 | `choice.selfText` | Oddiy bron · {{price}} | Обычная бронь · {{price}} | A regular booking · {{price}} |

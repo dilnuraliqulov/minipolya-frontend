@@ -93,6 +93,7 @@
     "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring.",
     "paymentPending": "Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi.",
     "hasOpponent": "Bu oʻyinga raqib allaqachon topilgan.",
+    "onlyLeaderJoins": "Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi.",
     "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak.",
     "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
     "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
@@ -427,6 +428,7 @@
     "cancel": "Bekor qilish",
     "challenges": "Raqib qidirayotgan jamoalar",
     "challengesEmpty": "Hozircha raqib qidirayotgan jamoa yoʻq.",
+    "leaderAccepts": "Chaqiriqlarni jamoa sardori qabul qiladi.",
     "payNow": "Jamoangiz toʻlaydi: {{amount}}",
     "accept": "Qabul qilish",
     "more": "Yana koʻrsatish",
@@ -515,7 +517,8 @@
     "tooLateTitle": "Oʻyinga 3 soatdan kam qoldi",
     "backToTeam": "Jamoamga qaytish",
     "pendingTitle": "Toʻlov tasdiqlanmoqda",
-    "openGame": "Oʻyinni ochish"
+    "openGame": "Oʻyinni ochish",
+    "leaderOnlyTitle": "Faqat sardor qabul qila oladi"
   },
   "choice": {
     "title": "Qanday band qilasiz?",
