@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  cardBrand,
+  cardNumberProblem,
   digitsOnly,
+  expiryProblem,
   formatExpiry,
   groupCardNumber,
   isCardNumberComplete,
@@ -38,5 +41,34 @@ describe('cardInput', () => {
     expect(formatExpiry('122')).toBe('12/2')
     expect(formatExpiry('12/27')).toBe('12/27')
     expect(formatExpiry('122789')).toBe('12/27')
+  })
+})
+
+describe('card checks before sending', () => {
+  it('names the card system from the first four digits', () => {
+    expect(cardBrand('8600')).toBe('uzcard')
+    expect(cardBrand('9860123412341234')).toBe('humo')
+    expect(cardBrand('860')).toBeNull()
+    expect(cardBrand('4111111111111111')).toBeNull()
+  })
+
+  it('refuses another prefix at once, and a short number', () => {
+    expect(cardNumberProblem('4111')).toBe('brand')
+    expect(cardNumberProblem('8601123412341234')).toBe('brand')
+    expect(cardNumberProblem('860')).toBe('length')
+    expect(cardNumberProblem('860012341234123')).toBe('length')
+    expect(cardNumberProblem('8600123412341234')).toBeNull()
+    expect(cardNumberProblem('9860123412341234')).toBeNull()
+  })
+
+  it('needs MM/YY of a month that has not ended', () => {
+    const today = '2026-11-05'
+    expect(expiryProblem('11/2', today)).toBe('shape')
+    expect(expiryProblem('13/27', today)).toBe('shape')
+    expect(expiryProblem('10/26', today)).toBe('past')
+    expect(expiryProblem('12/25', today)).toBe('past')
+    // Valid through the last day of its month.
+    expect(expiryProblem('11/26', today)).toBeNull()
+    expect(expiryProblem('01/27', today)).toBeNull()
   })
 })

@@ -67,6 +67,50 @@ describe('AddCardSheet', () => {
     expect(next).toBeEnabled()
   })
 
+  it('shows Uzcard or Humo from the first four digits', () => {
+    stubApi({})
+    setup()
+    const number = screen.getByLabelText('Karta raqami')
+    fireEvent.change(number, { target: { value: '8600' } })
+    expect(screen.getByText('UZCARD')).toBeInTheDocument()
+    fireEvent.change(number, { target: { value: '9860 12' } })
+    expect(screen.getByText('HUMO')).toBeInTheDocument()
+    expect(screen.queryByText('UZCARD')).not.toBeInTheDocument()
+  })
+
+  it('refuses another card system and a past month before sending', () => {
+    const api = stubApi({})
+    setup()
+    fillForm('4111 1111 1111 1111', '10/20')
+    expect(
+      screen.getByText('Faqat Uzcard (8600…) va Humo (9860…) kartalari qabul qilinadi'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Kartaning amal qilish muddati tugagan')).toBeInTheDocument()
+    expect(screen.getByLabelText('Karta raqami')).toHaveAttribute('aria-invalid', 'true')
+    const next = screen.getByRole('button', { name: 'Davom etish' })
+    expect(next).toBeDisabled()
+    fireEvent.click(next)
+    expect(api).not.toHaveBeenCalled()
+  })
+
+  it('says a short number or an unfinished expiry once the field is left', () => {
+    stubApi({})
+    setup()
+    const number = screen.getByLabelText('Karta raqami')
+    const expiry = screen.getByLabelText('Amal qilish muddati (OO/YY)')
+    fireEvent.change(number, { target: { value: '8600 1234' } })
+    expect(screen.queryByText('Karta raqami 16 ta raqamdan iborat boʻlishi kerak')).toBeNull()
+    fireEvent.blur(number)
+    expect(
+      screen.getByText('Karta raqami 16 ta raqamdan iborat boʻlishi kerak'),
+    ).toBeInTheDocument()
+    fireEvent.change(expiry, { target: { value: '1' } })
+    fireEvent.blur(expiry)
+    expect(
+      screen.getByText('Muddatni OO/YY koʻrinishida kiriting, masalan 08/28'),
+    ).toBeInTheDocument()
+  })
+
   it('accepts a pasted spaced number', async () => {
     stubApi({})
     setup()

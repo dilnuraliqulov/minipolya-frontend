@@ -250,6 +250,10 @@ Placeholders such as `{{count}}` must stay as they are.
 | `cards.privacy` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi. | Данные карты не хранятся в MiniPolya. | Card details are not stored in MiniPolya. |
 | `cards.footer` | Karta maʼlumotlari MiniPolyaʼda saqlanmaydi — faqat toʻlov tokeni saqlanadi. | Данные карты не хранятся в MiniPolya — сохраняется только платёжный токен. | Card details are not stored in MiniPolya — only a payment token is kept. |
 | `cards.wrongNumber` | Karta raqami yoki amal qilish muddati notoʻgʻri | Неверный номер карты или срок действия | The card number or expiry date is wrong |
+| `cards.numberLength` | Karta raqami 16 ta raqamdan iborat boʻlishi kerak | Номер карты должен состоять из 16 цифр | The card number must have 16 digits |
+| `cards.numberBrand` | Faqat Uzcard (8600…) va Humo (9860…) kartalari qabul qilinadi | Принимаются только карты Uzcard (8600…) и Humo (9860…) | Only Uzcard (8600…) and Humo (9860…) cards are accepted |
+| `cards.expiryShape` | Muddatni OO/YY koʻrinishida kiriting, masalan 08/28 | Введите срок в формате ММ/ГГ, например 08/28 | Enter the expiry as MM/YY, e.g. 08/28 |
+| `cards.expiryPast` | Kartaning amal qilish muddati tugagan | Срок действия карты истёк | This card has expired |
 | `cards.wrongCode` | Kod notoʻgʻri. Qaytadan kiriting. | Неверный код. Введите ещё раз. | Wrong code. Enter it again. |
 | `cards.codeExpired` | Kod muddati tugadi — yangi kod soʻrang | Срок действия кода истёк — запросите новый | The code has expired — request a new one |
 | `cards.noInternet` | Internet aloqasi yoʻq | Нет подключения к интернету | No internet connection |

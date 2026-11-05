@@ -6,12 +6,15 @@ import { isApiError } from '../../shared/api'
 import { CARDS_KEY, confirmCard, startCardBinding, type SavedCard } from '../api/cards'
 import { errorMessage } from '../api/errors'
 import { BottomSheet, Button, cx, Input, useToast } from '../components'
+import { tashkentToday } from '../../shared/format'
+import { CardBrandTile } from './CardBrandTile'
 import {
+  cardBrand,
+  cardNumberProblem,
   digitsOnly,
+  expiryProblem,
   formatExpiry,
   groupCardNumber,
-  isCardNumberComplete,
-  isExpiryShape,
 } from './cardInput'
 
 interface AddCardSheetProps {
@@ -59,6 +62,8 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
   const toast = useToast()
   const [number, setNumber] = useState('')
   const [expiry, setExpiry] = useState('')
+  /** A field's incomplete-value error shows once the player has left it. */
+  const [touched, setTouched] = useState({ number: false, expiry: false })
   const [binding, setBinding] = useState<{ id: string; phone: string; round: number } | null>(null)
   const [code, setCode] = useState('')
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS)
@@ -91,7 +96,25 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     if (round !== undefined) codeInput.current?.focus()
   }, [round])
 
-  const formReady = isCardNumberComplete(number) && isExpiryShape(expiry)
+  const numberProblem = cardNumberProblem(number)
+  const expiryIssue = expiryProblem(expiry, tashkentToday())
+  const formReady = numberProblem === null && expiryIssue === null
+  const brand = cardBrand(number)
+  // A wrong prefix or a past month is certain at once; "too short" only after leaving the field.
+  const numberError =
+    numberProblem === 'brand'
+      ? t('cards.numberBrand')
+      : numberProblem === 'length' && touched.number && number.length > 0
+        ? t('cards.numberLength')
+        : problem?.kind === 'number'
+          ? t('cards.wrongNumber')
+          : undefined
+  const expiryError =
+    expiryIssue === 'past'
+      ? t('cards.expiryPast')
+      : expiryIssue === 'shape' && touched.expiry && expiry.length > 0
+        ? t('cards.expiryShape')
+        : undefined
   const expired = binding !== null && secondsLeft === 0
 
   const requestCode = async () => {
@@ -186,17 +209,27 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
         <Input
           label={t('cards.number')}
           value={groupCardNumber(number)}
-          onChange={(event) => setNumber(digitsOnly(event.target.value).slice(0, 16))}
+          onChange={(event) => {
+            if (problem?.kind === 'number') setProblem(null)
+            setNumber(digitsOnly(event.target.value).slice(0, 16))
+          }}
+          onBlur={() => setTouched((x) => ({ ...x, number: true }))}
           inputMode="numeric"
           autoComplete="cc-number"
-          error={problem?.kind === 'number' ? t('cards.wrongNumber') : undefined}
+          error={numberError}
+          trailing={brand && <CardBrandTile cardType={brand} />}
         />
         <Input
           label={t('cards.expiry')}
           value={expiry}
-          onChange={(event) => setExpiry(formatExpiry(event.target.value))}
+          onChange={(event) => {
+            if (problem?.kind === 'number') setProblem(null)
+            setExpiry(formatExpiry(event.target.value))
+          }}
+          onBlur={() => setTouched((x) => ({ ...x, expiry: true }))}
           inputMode="numeric"
           autoComplete="cc-exp"
+          error={expiryError}
         />
         {privacy}
       </BottomSheet>

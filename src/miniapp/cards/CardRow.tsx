@@ -1,7 +1,8 @@
-import { CreditCard, Ellipsis } from 'lucide-react'
+import { Ellipsis } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { lastFour, type SavedCard } from '../api/cards'
 import { cx } from '../components'
+import { CardBrandTile } from './CardBrandTile'
 
 interface CardRowProps {
   card: SavedCard
@@ -12,23 +13,6 @@ interface CardRowProps {
   onMore?: () => void
   /** Outlined in danger (a declined payment). */
   invalid?: boolean
-}
-
-/** HUMO / UZCARD get a text tile; any other `cardType` a card icon. Tokens only. */
-function BrandTile({ cardType }: { cardType: string }) {
-  const type = cardType.toLowerCase()
-  const base = 'flex h-8 w-11 shrink-0 items-center justify-center rounded-sm'
-  if (type.includes('humo')) {
-    return <span className={cx(base, 'bg-accent text-2xs font-bold text-on-accent')}>HUMO</span>
-  }
-  if (type.includes('uzcard')) {
-    return <span className={cx(base, 'bg-success text-2xs font-bold text-on-accent')}>UZCARD</span>
-  }
-  return (
-    <span className={cx(base, 'bg-surface text-secondary')}>
-      <CreditCard size={18} aria-hidden />
-    </span>
-  )
 }
 
 function Details({ card }: { card: SavedCard }) {
@@ -59,7 +43,7 @@ export function CardRow({ card, selected, onSelect, onMore, invalid }: CardRowPr
         onClick={onSelect}
         className={frame}
       >
-        <BrandTile cardType={card.cardType} />
+        <CardBrandTile cardType={card.cardType} />
         <Details card={card} />
         <span
           aria-hidden
@@ -73,7 +57,7 @@ export function CardRow({ card, selected, onSelect, onMore, invalid }: CardRowPr
   }
   return (
     <div className={frame}>
-      <BrandTile cardType={card.cardType} />
+      <CardBrandTile cardType={card.cardType} />
       <Details card={card} />
       {onMore && (
         <button
