@@ -769,11 +769,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.terms.playerPays` | Oʻyinchilar uchun: {{amount}} | Для игроков: {{amount}} | Players pay: {{amount}} |
 | `owner.terms.title` | Bron shartlari | Условия бронирования | Booking terms |
 | `owner.terms.agreed` | Platforma bilan kelishilgan | Согласованы с платформой | Agreed with the platform |
-| `owner.terms.full` | Toʻliq toʻlov | Полная оплата | Full payment |
 | `owner.terms.cancel` | Bepul bekor qilish | Бесплатная отмена | Free cancellation |
 | `owner.terms.cancelValue` | Boshlanishiga {{count}} soat qolguncha | До {{count}} ч до начала | Up to {{count}} h before the start |
 | `owner.terms.note` | Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing. | Предоплату и условия отмены согласовывают с платформой по телефону. Чтобы изменить их, напишите нам. | The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us. |
 | `owner.terms.support` | Qoʻllab-quvvatlashga yozish | Написать в поддержку | Write to support |
+| `owner.terms.platformDefault` | Platforma standarti | Стандарт платформы | Platform default |
 | `owner.photos.text` | Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova. | От 3 до 10 фото. Первое — обложка. | 3 to 10 photos. The first is the cover. |
 | `owner.photos.uploaded` | Rasm yuklandi | Фото загружено | Photo uploaded |
 | `owner.photos.deleted` | Rasm oʻchirildi | Фото удалено | Photo deleted |

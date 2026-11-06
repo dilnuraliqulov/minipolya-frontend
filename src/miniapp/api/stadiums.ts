@@ -80,7 +80,7 @@ export interface StadiumDetail extends Omit<Stadium, 'coverPhotoUrl'> {
   /** `"09:00:00"`, Tashkent */
   openTime: string
   closeTime: string
-  /** Tiyin. Absent ⇒ the player pays in full. */
+  /** Tiyin, player price: the stadium's own minimum or the platform default (always sent since T1). */
   minBookingAmount?: number
   /** "Moʻljal": a landmark near the pitch. */
   landmark?: string

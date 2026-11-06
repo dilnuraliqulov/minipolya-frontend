@@ -46,20 +46,21 @@ export function BookingTermsCard({ stadium }: { stadium: OwnerStadiumDetail }) {
         </div>
         <dl className="flex flex-col gap-3">
           <Row icon={<Wallet size={18} aria-hidden />} label={t('owner.terms.minimum')}>
-            {stadium.minBookingAmount === undefined ? (
-              t('owner.terms.full')
-            ) : (
-              <>
-                <span>{formatMoney(stadium.minBookingAmount)}</span>
-                {stadium.playerMinBookingAmount !== undefined && (
-                  <span className="text-sm font-normal text-secondary">
-                    {t('owner.terms.playerPays', {
-                      amount: formatMoney(stadium.playerMinBookingAmount),
-                    })}
-                  </span>
-                )}
-              </>
-            )}
+            {/* T1: no minimum of its own = the platform default; the player price is always sent. */}
+            <>
+              <span>
+                {stadium.minBookingAmount === undefined
+                  ? t('owner.terms.platformDefault')
+                  : formatMoney(stadium.minBookingAmount)}
+              </span>
+              {stadium.playerMinBookingAmount !== undefined && (
+                <span className="text-sm font-normal text-secondary">
+                  {t('owner.terms.playerPays', {
+                    amount: formatMoney(stadium.playerMinBookingAmount),
+                  })}
+                </span>
+              )}
+            </>
           </Row>
           <Row icon={<Clock size={18} aria-hidden />} label={t('owner.terms.cancel')}>
             {t('owner.terms.cancelValue', { count: hours })}

@@ -94,6 +94,8 @@ describe('Checkout', () => {
 
   it('offers only full payment, with no choice, when the slot has no deposit', async () => {
     // The stadium's own minimum is not read: only the slot's depositAmount counts (E12).
+    // Since T1 every stadium has a minimum, so this is the slot whose deposit would be
+    // its whole price (T3) — the backend then sends no depositAmount.
     const api = stub({
       [AVAILABILITY]: { ...availability, slots: [makeSlot('20:00', { pricePerHour: 15_500_000 })] },
       [BOOK]: makeBooking({ paymentStatus: 'paid' }),

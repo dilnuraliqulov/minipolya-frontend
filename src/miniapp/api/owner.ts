@@ -333,9 +333,9 @@ export interface OwnerStadiumDetail extends OwnerStadium {
   /** `"08:00:00"` */
   openTime: string
   closeTime: string
-  /** Tiyin, the owner's own minimum; absent = full payment only. */
+  /** Tiyin, the owner's own minimum; absent = the platform default (T1). */
   minBookingAmount?: number
-  /** Tiyin, what a player pays as that minimum. */
+  /** Tiyin, what a player pays as the effective minimum (own or default); always sent since T1. */
   playerMinBookingAmount?: number
   cancellationPolicy?: { cancellationHours: number }
   photos?: StadiumPhoto[]

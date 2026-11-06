@@ -886,11 +886,11 @@
       "playerPays": "Oʻyinchilar uchun: {{amount}}",
       "title": "Bron shartlari",
       "agreed": "Platforma bilan kelishilgan",
-      "full": "Toʻliq toʻlov",
       "cancel": "Bepul bekor qilish",
       "cancelValue": "Boshlanishiga {{count}} soat qolguncha",
       "note": "Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing.",
-      "support": "Qoʻllab-quvvatlashga yozish"
+      "support": "Qoʻllab-quvvatlashga yozish",
+      "platformDefault": "Platforma standarti"
     },
     "photos": {
       "text": "Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova.",

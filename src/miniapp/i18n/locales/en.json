@@ -886,11 +886,11 @@
       "playerPays": "Players pay: {{amount}}",
       "title": "Booking terms",
       "agreed": "Agreed with the platform",
-      "full": "Full payment",
       "cancel": "Free cancellation",
       "cancelValue": "Up to {{count}} h before the start",
       "note": "The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us.",
-      "support": "Write to support"
+      "support": "Write to support",
+      "platformDefault": "Platform default"
     },
     "photos": {
       "text": "3 to 10 photos. The first is the cover.",

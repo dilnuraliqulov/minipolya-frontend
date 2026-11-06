@@ -107,17 +107,19 @@ describe('Maydonim — Bron shartlari (read-only)', () => {
     expect(screen.queryByRole('button', { name: 'Saqlash' })).toBeNull()
   })
 
-  it('says "Toʻliq toʻlov" with no minimum, and 24 h when the API sends no policy', async () => {
+  it('says "Platforma standarti" with no minimum of its own, and 24 h when the API sends no policy', async () => {
     stub({
       'GET /api/owner/stadiums/s1': {
         ...detail,
         minBookingAmount: undefined,
-        playerMinBookingAmount: undefined,
+        playerMinBookingAmount: 5_500_000,
         cancellationPolicy: undefined,
       },
     })
     renderApp('/owner/stadium/s1/terms', { session })
-    expect(await screen.findByText('Toʻliq toʻlov')).toBeInTheDocument()
+    expect(await screen.findByText('Platforma standarti')).toBeInTheDocument()
+    expect(screen.getByText('Oʻyinchilar uchun: 55 000 soʻm')).toBeInTheDocument()
+    expect(screen.queryByText('Toʻliq toʻlov')).toBeNull()
     expect(screen.getByText('Boshlanishiga 24 soat qolguncha')).toBeInTheDocument()
   })
 })
