@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
-import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError, mediaUrl } from '../../../shared/api'
 import { formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { isAvailable } from '../../api/missing'
@@ -59,12 +59,16 @@ import {
   LEGAL_TYPE_LABELS,
   REJECT_REASONS,
 } from './labels'
+import { BookingTermsCard } from './BookingTermsCard'
 import { OwnerDetailsModal } from './OwnerDetailsModal'
 import { mapLink } from '../../../shared/map'
 
 const StadiumMap = lazy(() => import('./StadiumMap'))
 
 const HISTORY_SIZE = 10
+/** Approval needs this many photos (D7). */
+const MIN_PHOTOS = 3
+const TOO_FEW_PHOTOS = 'Tasdiqlash uchun kamida 3 ta rasm kerak'
 
 function Card({
   title,
@@ -149,7 +153,7 @@ function Gallery({ stadium }: { stadium: StadiumDetail }) {
   return (
     <div className="flex flex-col gap-2">
       <img
-        src={current.url}
+        src={mediaUrl(current.url)}
         alt={`${stadium.name} — ${active + 1}-rasm`}
         className="aspect-[3/2] w-full rounded-lg object-cover"
       />
@@ -167,7 +171,7 @@ function Gallery({ stadium }: { stadium: StadiumDetail }) {
                 i === active ? 'border-accent' : 'border-transparent opacity-70 hover:opacity-100',
               )}
             >
-              <img src={photo.url} alt="" className="size-full object-cover" />
+              <img src={mediaUrl(photo.url)} alt="" className="size-full object-cover" />
             </button>
           ))}
         </div>
@@ -209,6 +213,7 @@ function InfoSection({
               </a>
             </span>
           </Row>
+          {extras && stadium.landmark && <Row label="Moʻljal">{stadium.landmark}</Row>}
           {extras && stadium.district && <Row label="Tuman">{stadium.district}</Row>}
           {extras && stadium.phone && <Row label="Telefon">{stadium.phone}</Row>}
           <Row label="Format">{formatPitch(stadium.format)}</Row>
@@ -229,6 +234,12 @@ function InfoSection({
               </span>
             </Row>
           )}
+          {extras && stadium.description && (
+            <Row label="Qoʻshimcha maʼlumot">
+              <span className="whitespace-pre-line">{stadium.description}</span>
+            </Row>
+          )}
+          {extras && <Row label="Rasmlar">{`${stadium.photos?.length ?? 0} ta`}</Row>}
           <Row label="Qoʻshilgan">{formatDateTime(stadium.createdAt)}</Row>
           <Row label="Bronlar">{formatNumber(stadium.totalBookings)} ta</Row>
           {!extras && <Row label="Ish vaqti, qulayliklar">{SOON}</Row>}
@@ -301,32 +312,7 @@ function TermsSection({ stadium, extras }: { stadium: StadiumDetail; extras: boo
           </table>
         )}
       </Card>
-      <Card title="Bron shartlari">
-        <dl className="flex flex-col gap-2.5">
-          <Row label="Minimal toʻlov">
-            <span className="flex flex-col gap-0.5">
-              {stadium.minBookingAmount === undefined ? (
-                'Toʻliq toʻlov'
-              ) : (
-                <>
-                  <span>Egasining: {formatSom(stadium.minBookingAmount)}</span>
-                  {stadium.playerMinBookingAmount !== undefined && (
-                    <span>Oʻyinchilar uchun: {formatSom(stadium.playerMinBookingAmount)}</span>
-                  )}
-                </>
-              )}
-              <span className="text-xs text-secondary">
-                Bron qilishda oʻyinchi toʻlaydigan eng kam summa
-              </span>
-            </span>
-          </Row>
-          <Row label="Bekor qilish">
-            {stadium.cancellationHours === undefined
-              ? '—'
-              : `Boshlanishidan ${stadium.cancellationHours} soat oldingacha`}
-          </Row>
-        </dl>
-      </Card>
+      <BookingTermsCard stadium={stadium} row={Row} />
     </div>
   )
 }
@@ -607,7 +593,9 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
           ? 'Maydon topilmadi'
           : isApiError(error) && error.message === API_MESSAGES.contractNotSigned
             ? 'Egasining ATMOS shartnomasi imzolanmagan'
-            : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
+            : isApiError(error) && error.message === API_MESSAGES.tooFewPhotos
+              ? TOO_FEW_PHOTOS
+              : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
       )
     },
   })
@@ -619,6 +607,16 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
     isAvailable(LEGAL_DETAILS_GET) &&
     stadium.ownerContractStatus !== undefined &&
     stadium.ownerContractStatus !== 'signed'
+  // Approval needs at least 3 photos (D7); said up front when the photos are known.
+  const fewPhotos =
+    isAvailable(STADIUM_DETAIL_FIELDS) &&
+    stadium.photos !== undefined &&
+    stadium.photos.length < MIN_PHOTOS
+  const blocker = unsigned
+    ? 'Egasining ATMOS shartnomasi imzolanmagan'
+    : fewPhotos
+      ? TOO_FEW_PHOTOS
+      : null
   const last = decision.data
   const shownStatus = stadium.status
 
@@ -628,7 +626,7 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
     <Button
       icon={Check}
       className="w-full"
-      disabled={unsigned || change.isPending}
+      disabled={blocker !== null || change.isPending}
       onClick={() => setDialog('approve')}
     >
       Tasdiqlash
@@ -636,17 +634,17 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
   )
   const approve = (
     <>
-      {unsigned ? (
-        <DisabledHint hint="Egasining ATMOS shartnomasi imzolanmagan" className="w-full">
+      {blocker ? (
+        <DisabledHint hint={blocker} className="w-full">
           {approveButton}
         </DisabledHint>
       ) : (
         approveButton
       )}
-      {unsigned && (
+      {blocker && (
         <p className="flex items-center gap-2 text-sm text-warning">
           <TriangleAlert size={16} aria-hidden />
-          Egasining ATMOS shartnomasi imzolanmagan
+          {blocker}
         </p>
       )}
     </>

@@ -52,6 +52,11 @@ export interface Amenities {
   cafe: boolean
   equipmentRental: boolean
   tribune: boolean
+  toilet: boolean
+  /** Covered or indoor. */
+  covered: boolean
+  bibs: boolean
+  drinkingWater: boolean
 }
 
 /** `GET /api/admin/stadiums/{id}` — the public detail's fields, for any status, in the owner's prices. */
@@ -61,6 +66,8 @@ export interface StadiumDetailFields extends StadiumListFields {
   longitude?: number
   phone?: string
   description?: string
+  /** "Moʻljal": a landmark near the pitch. */
+  landmark?: string
   ownerPhone?: string
   /** `LocalTime`. */
   openTime?: string
@@ -71,6 +78,7 @@ export interface StadiumDetailFields extends StadiumListFields {
   /** Tiyin — that deposit as players pay it. */
   playerMinBookingAmount?: number
   cancellationHours?: number
+  cancellationPolicy?: { cancellationHours: number }
   pricingRules?: PricingRule[]
 }
 
@@ -138,6 +146,21 @@ export function setStadiumStatus(
   reason?: string,
 ): Promise<AdminStadium> {
   return api.put<AdminStadium>(`/api/admin/stadiums/${id}/status`, { status, reason })
+}
+
+export interface BookingTerms {
+  /** Tiyin, the owner's own minimum: at least 50 000 and at most `pricePerHour`; null = full payment. */
+  minBookingAmount: number | null
+  /** 0–168. */
+  cancellationHours: number
+}
+
+/**
+ * `PUT /api/admin/stadiums/{id}/booking-terms` (design D3): the whole terms each
+ * time, any status. Answers the admin detail; audited as STADIUM_BOOKING_TERMS_CHANGED.
+ */
+export function setBookingTerms(id: string, terms: BookingTerms): Promise<StadiumDetail> {
+  return api.put<StadiumDetail>(`/api/admin/stadiums/${id}/booking-terms`, terms)
 }
 
 /** The audit actions that change a stadium's status. */

@@ -21,7 +21,7 @@ import {
   STADIUM_STATUSES,
   SURFACE_TYPES,
 } from '../statuses'
-import { CONTRACT_LABELS, LEGAL_TYPE_LABELS } from '../pages/stadiums/labels'
+import { AMENITY_LABELS, CONTRACT_LABELS, LEGAL_TYPE_LABELS } from '../pages/stadiums/labels'
 
 const PAYMENT_STATUS_LABELS = Object.fromEntries(
   Object.entries(PAYMENT_STATUSES).map(([k, v]) => [k, v.label]),
@@ -43,6 +43,7 @@ export const ACTION_LABELS: Record<string, string> = {
   USER_ROLE_CHANGED: 'Foydalanuvchi rolini oʻzgartirdi',
   OWNER_LEGAL_DETAILS_CHANGED: 'Egasining yuridik maʼlumotlarini oʻzgartirdi',
   STADIUM_NOTE_ADDED: 'Maydonga ichki izoh qoʻshdi',
+  STADIUM_BOOKING_TERMS_CHANGED: 'Bron shartlarini oʻzgartirdi',
   SETTINGS_CHANGED: 'Sozlamalarni oʻzgartirdi',
   PLATFORM_SETTINGS_UPDATED: 'Sozlamalarni oʻzgartirdi',
   // Owner
@@ -219,7 +220,8 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   latitude: { label: 'Kenglik', kind: 'text' },
   longitude: { label: 'Uzunlik', kind: 'text' },
   phone: { label: 'Telefon', kind: 'text' },
-  description: { label: 'Tavsif', kind: 'text' },
+  description: { label: 'Qoʻshimcha maʼlumot', kind: 'text' },
+  landmark: { label: 'Moʻljal', kind: 'text' },
   format: { label: 'Format', kind: 'text' },
   surfaceType: { label: 'Qoplama', kind: 'enum', values: SURFACE_TYPES },
   openTime: { label: 'Ochilish vaqti', kind: 'time' },
@@ -227,14 +229,9 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   minBookingAmount: { label: 'Minimal toʻlov', kind: 'money' },
   cancellationHours: { label: 'Bekor qilish muddati', kind: 'hours' },
   photos: { label: 'Rasmlar', kind: 'list' },
-  'amenities.parking': AMENITY('Avtoturargoh'),
-  'amenities.lighting': AMENITY('Yoritish'),
-  'amenities.showers': AMENITY('Dush'),
-  'amenities.lockerRoom': AMENITY('Kiyinish xonasi'),
-  'amenities.wifi': AMENITY('Wi-Fi'),
-  'amenities.cafe': AMENITY('Kafe'),
-  'amenities.equipmentRental': AMENITY('Jihoz ijarasi'),
-  'amenities.tribune': AMENITY('Tribuna'),
+  ...Object.fromEntries(
+    Object.entries(AMENITY_LABELS).map(([key, label]) => [`amenities.${key}`, AMENITY(label)]),
+  ),
 }
 
 const DAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']

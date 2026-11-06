@@ -14,15 +14,20 @@ export const LEGAL_TYPE_LABELS: Record<LegalType, string> = {
   self_employed: 'Oʻzini oʻzi band qilgan',
 }
 
+/** Every amenity of the API, in the Mini App's order (wifi and cafe last: no longer offered, D9). */
 export const AMENITY_LABELS: Record<keyof Amenities, string> = {
+  parking: 'Avtoturargoh',
   lockerRoom: 'Kiyinish xonasi',
   showers: 'Dush',
-  parking: 'Avtoturargoh',
-  lighting: 'Yoritish',
-  tribune: 'Tribuna',
+  toilet: 'Hojatxona',
+  lighting: 'Yoritish (kechki oʻyin)',
+  covered: 'Yopiq / usti yopiq',
+  equipmentRental: 'Toʻp ijarasi',
+  bibs: 'Maykalar (manishka)',
+  drinkingWater: 'Ichimlik suvi',
+  tribune: 'Tomoshabin oʻrindiqlari',
   wifi: 'Wi-Fi',
   cafe: 'Kafe',
-  equipmentRental: 'Jihoz ijarasi',
 }
 
 export { WEEKDAYS_SHORT as DAYS_SHORT } from '../../format'
