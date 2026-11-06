@@ -71,10 +71,11 @@ waits on; the panel shows "Tez orada" for those until they ship.
 `src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists
 hold only the entries of requests that are still open.
 
-R24, R25 and R27–R31 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
+R24, R25, R31 and R33 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
 requests neither R24 nor R25 and shows no "Yaqin atrofda" or "Boʻsh maydonlar"
-section yet. R27–R31 are the booking flow (checkout, Oʻyinlarim, booking detail):
-the screens show "Tez orada" or hide the field until they ship.
+section yet. R31 is the booking flow (Oʻyinlarim, booking detail): the screens
+hide the field until it ships. R27 was superseded by the per-slot
+`depositAmount` / `remainderAmount` and R30 shipped (both under Done).
 
 ### R24 — Sort the stadium list by distance or rating
 
@@ -147,74 +148,6 @@ window; 400 for `freeOnly=true` without `date`.
 **Priority**
 Medium — blocks the "Boʻsh maydonlar · N" section; the chosen date already
 travels to the stadium page.
-
-### R27 — Quote before paying for a booking
-
-**What's needed**
-Checkout must show the price, the deposit a `MINIMUM` payment charges, the
-remainder and the cancellation deadline **before** the booking exists. Today
-they only arrive on the `BookingResponse` after `POST /api/bookings` has already
-charged the card. The client must not compute them (deposit = capped minimum,
-promotions, deadline).
-
-**Which screen needs it**
-Mini App player — checkout ("Bronni tasdiqlash"), the payment-option choice
-and the amount shown on the pay button.
-
-**Proposed endpoint**
-`GET /api/stadiums/{id}/quote` — logged-in user
-
-Request — path `id`, query:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, in the bookable window, same rules as `POST /api/bookings` |
-| `paymentOption` | `"MINIMUM"` \| `"FULL"` | yes | uppercase; `MINIMUM` on a stadium with no minimum is 400 |
-
-Response — `data`:
-
-| Field | Type | Notes |
-|---|---|---|
-| `price` | number | **tiyin**; the player price D for that hour, promotions applied |
-| `deposit` | number | **tiyin**; what `paymentOption` charges now (`price` for `FULL`) |
-| `remainder` | number | **tiyin**; `price - deposit` as the backend would book it |
-| `cancellationDeadline` | timestamp (UTC) | last moment a cancellation still refunds |
-
-Error cases — 400 same messages as `POST /api/bookings` (`"Booking must start
-on the hour"`, `"Cannot book more than 4 weeks ahead"`, `"This stadium requires
-full payment; it has no minimum booking amount"`, closed, outside hours); 404
-`"Stadium not available"`; 409 `"Slot is already booked"`.
-
-**Priority**
-Medium — checkout works from the availability price; the deposit and deadline
-lines wait on it.
-
-### R30 — Cash taken on a booking, on the player response
-
-**What's needed**
-`paidAmount` mixes card and cash, so the client cannot tell the player how much
-was paid in the app and how much in cash, nor explain why a cancellation refund
-(card money only) is smaller than `paidAmount`.
-
-**Which screen needs it**
-Mini App player — booking detail, the Toʻlov card.
-
-**Proposed endpoint**
-`GET /api/bookings`, `GET /api/bookings/{id}` and the other player
-`BookingResponse` endpoints — logged-in user, new response field.
-
-Request — unchanged.
-
-Response — `BookingResponse`:
-
-| Field | Type | Notes |
-|---|---|---|
-| `paidInCash` | number | optional; **tiyin** taken in cash by the owner; omitted when 0 |
-
-Error cases — none new.
-
-**Priority**
-Low — the Toʻlov card shows `paidAmount` without the split.
 
 ### R31 — Stadium photo, district and format on a booking
 
@@ -338,6 +271,78 @@ High — guards against double holds and double charges.
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
 where the backend differs from it — the backend is what counts, and
 `docs/api-reference.md` documents it.
+
+### R30 — Cash taken on a booking, on the player response _(shipped in `32afe9f`)_
+
+**Shipped as:** `paidInCash` on every `BookingResponse` view, **always present** (0 when none; a cash row voided by an undo does not count), together with `remainderMark` (design E4).
+
+**What's needed**
+`paidAmount` mixes card and cash, so the client cannot tell the player how much
+was paid in the app and how much in cash, nor explain why a cancellation refund
+(card money only) is smaller than `paidAmount`.
+
+**Which screen needs it**
+Mini App player — booking detail, the Toʻlov card.
+
+**Proposed endpoint**
+`GET /api/bookings`, `GET /api/bookings/{id}` and the other player
+`BookingResponse` endpoints — logged-in user, new response field.
+
+Request — unchanged.
+
+Response — `BookingResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `paidInCash` | number | optional; **tiyin** taken in cash by the owner; omitted when 0 |
+
+Error cases — none new.
+
+**Priority**
+Low — the Toʻlov card shows `paidAmount` without the split.
+
+### R27 — Quote before paying for a booking _(superseded in `6a838e7`, not built)_
+
+**Superseded:** no quote endpoint. Each free `TimeSlot` of `GET /api/stadiums/{id}/availability` carries `depositAmount` and `remainderAmount` (design E3) — the same figure `POST /api/bookings` with `MINIMUM` charges; absent means full payment only. Checkout reads them from the slot; the cancellation rule stays the stadium's `cancellationPolicy`.
+
+**What's needed**
+Checkout must show the price, the deposit a `MINIMUM` payment charges, the
+remainder and the cancellation deadline **before** the booking exists. Today
+they only arrive on the `BookingResponse` after `POST /api/bookings` has already
+charged the card. The client must not compute them (deposit = capped minimum,
+promotions, deadline).
+
+**Which screen needs it**
+Mini App player — checkout ("Bronni tasdiqlash"), the payment-option choice
+and the amount shown on the pay button.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/quote` — logged-in user
+
+Request — path `id`, query:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, in the bookable window, same rules as `POST /api/bookings` |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | yes | uppercase; `MINIMUM` on a stadium with no minimum is 400 |
+
+Response — `data`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number | **tiyin**; the player price D for that hour, promotions applied |
+| `deposit` | number | **tiyin**; what `paymentOption` charges now (`price` for `FULL`) |
+| `remainder` | number | **tiyin**; `price - deposit` as the backend would book it |
+| `cancellationDeadline` | timestamp (UTC) | last moment a cancellation still refunds |
+
+Error cases — 400 same messages as `POST /api/bookings` (`"Booking must start
+on the hour"`, `"Cannot book more than 4 weeks ahead"`, `"This stadium requires
+full payment; it has no minimum booking amount"`, closed, outside hours); 404
+`"Stadium not available"`; 409 `"Slot is already booked"`.
+
+**Priority**
+Medium — checkout works from the availability price; the deposit and deadline
+lines wait on it.
 
 ### R45 — Keep a game that is being joined off the challenge board _(shipped in `b896a07`)_
 
