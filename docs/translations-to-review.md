@@ -773,7 +773,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.photos.left` | {{n}}-rasmni chapga surish | Сдвинуть фото {{n}} влево | Move photo {{n}} left |
 | `owner.photos.right` | {{n}}-rasmni oʻngga surish | Сдвинуть фото {{n}} вправо | Move photo {{n}} right |
 | `owner.photos.add` | Rasm qoʻshish | Добавить фото | Add a photo |
-| `owner.photos.hint` | JPG, PNG yoki WebP · har biri 5 MB gacha | JPG, PNG или WebP · до 5 МБ каждое | JPG, PNG or WebP · up to 5 MB each |
+| `owner.photos.hint` | Telefondagi istalgan rasm · yuklashdan oldin siqiladi | Любое фото с телефона · сжимается перед загрузкой | Any photo from your phone · compressed before upload |
 | `owner.photos.counter` | {{count}}/{{max}} | {{count}}/{{max}} | {{count}}/{{max}} |
 | `owner.photos.notImage` | Bu fayl rasm emas | Этот файл — не изображение | This file is not an image |
 | `owner.photos.tooLarge` | Rasm 5 MB dan katta | Фото больше 5 МБ | The photo is larger than 5 MB |
@@ -802,7 +802,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.location.denied` | Joylashuvga ruxsat berilmadi. Telegram sozlamalarida ruxsat bering yoki xaritada belgilang. | Доступ к геолокации не разрешён. Разрешите его в настройках Telegram или отметьте место на карте. | Location access was not allowed. Allow it in Telegram settings or mark the place on the map. |
 | `owner.location.unavailable` | Joylashuvni aniqlab boʻlmadi. Xaritada belgilang. | Не удалось определить местоположение. Отметьте место на карте. | Couldn't find your location. Mark the place on the map. |
 | `owner.location.linkLabel` | Xarita havolasi | Ссылка на карту | Map link |
-| `owner.location.linkPlaceholder` | Google yoki Yandex xarita havolasini qoʻying | Вставьте ссылку Google или Яндекс Карт | Paste a Google or Yandex Maps link |
+| `owner.location.linkPlaceholder` | Google yoki Yandex havolasi | Ссылка Google или Яндекс Карт | Google or Yandex Maps link |
 | `owner.location.linkShort` | Toʻliq havolani qoʻying yoki xaritada belgilang | Вставьте полную ссылку или отметьте место на карте | Paste the full link or mark the place on the map |
 | `owner.location.linkInvalid` | Havoladan joyni topib boʻlmadi. Xaritada belgilang. | По ссылке не удалось найти место. Отметьте его на карте. | Couldn't find a place in this link. Mark it on the map. |
 | `owner.location.zoomIn` | Yaqinlashtirish | Приблизить | Zoom in |
