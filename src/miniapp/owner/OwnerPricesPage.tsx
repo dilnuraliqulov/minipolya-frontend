@@ -172,7 +172,7 @@ function RuleRow({
         aria-label={t('owner.removeItem', { item: label })}
         disabled={busy}
         onClick={onRemove}
-        className="flex size-11 items-center justify-center text-danger disabled:opacity-50"
+        className="flex size-11 items-center justify-center text-danger-text disabled:opacity-50"
       >
         <Trash2 size={18} aria-hidden />
       </button>
@@ -261,7 +261,7 @@ function RuleSheet({
         onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 9))}
       />
       {add.isError && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errorMessage(add.error)}
         </p>
       )}
@@ -312,7 +312,7 @@ function BasePriceSheet({ stadium, onClose }: { stadium: OwnerStadium; onClose: 
         onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 9))}
       />
       {save.isError && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errorMessage(save.error)}
         </p>
       )}

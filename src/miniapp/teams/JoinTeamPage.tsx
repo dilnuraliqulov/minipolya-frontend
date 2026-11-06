@@ -113,7 +113,7 @@ export function JoinTeamPage() {
           </p>
         </Card>
         {join.isError && (
-          <p className="text-center text-sm text-danger">{errorMessage(join.error)}</p>
+          <p className="text-center text-sm text-danger-text">{errorMessage(join.error)}</p>
         )}
       </>
     )

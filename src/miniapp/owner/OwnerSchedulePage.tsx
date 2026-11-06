@@ -117,7 +117,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
           {(day?.waitingGames ?? []).map((game) => (
             <li
               key={game.gameId}
-              className="flex items-center gap-3 rounded-xl bg-warning-soft p-3 text-sm text-warning"
+              className="flex items-center gap-3 rounded-xl bg-warning-soft p-3 text-sm text-warning-text"
             >
               <Swords size={18} aria-hidden />
               {`${formatTime(game.startsAt)}–${formatTime(game.endsAt)} · ${t(
@@ -243,7 +243,8 @@ function SlotRow({
     <div
       className={cx(
         'flex min-h-12 w-full items-center rounded-xl border border-dashed border-border',
-        !free && 'opacity-55',
+        // Closed / past: a surface fill, not faded text — the label must stay readable.
+        !free && 'bg-surface',
       )}
     >
       <button
@@ -528,7 +529,7 @@ function WalkInSheet({
         />
       )}
       {waitingAt.has(hour) && (
-        <p role="alert" className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
+        <p role="alert" className="rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
           {t('owner.schedule.waitingWarning')}
         </p>
       )}
@@ -545,7 +546,7 @@ function WalkInSheet({
         onChange={(e) => setPhone(e.target.value)}
       />
       {create.isError && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errorMessage(create.error)}
         </p>
       )}

@@ -146,7 +146,7 @@ export function DistrictField({
         onClick={() => setOpen(true)}
         className={cx(
           'flex h-12 items-center gap-2 rounded-xl border bg-background px-4 text-left text-lg',
-          error ? 'border-danger' : 'border-border',
+          error ? 'border-danger-text' : 'border-border',
         )}
       >
         <span className={cx('min-w-0 flex-1 truncate', value ? 'text-primary' : 'text-secondary')}>
@@ -155,7 +155,7 @@ export function DistrictField({
         <ChevronDown size={18} className="shrink-0 text-secondary" aria-hidden />
       </button>
       {error && (
-        <p id={noteId} className="text-xs text-danger">
+        <p id={noteId} className="text-xs text-danger-text">
           {error}
         </p>
       )}
@@ -204,7 +204,7 @@ export function TextAreaField({
       <div
         className={cx(
           'flex flex-col gap-1 rounded-xl border bg-background px-4 py-3 focus-within:border-accent',
-          error ? 'border-danger' : 'border-border',
+          error ? 'border-danger-text' : 'border-border',
         )}
       >
         <textarea
@@ -221,7 +221,7 @@ export function TextAreaField({
           {t('owner.field.counter', { count: value.length, max })}
         </span>
       </div>
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   )
 }
@@ -273,7 +273,7 @@ export function FacilityChips({
               className={cx(
                 'flex min-h-11 items-center gap-2 rounded-full border px-3.5 text-base font-medium transition-colors',
                 on
-                  ? 'border-accent bg-accent-soft text-link'
+                  ? 'border-accent bg-accent-soft text-link-text'
                   : 'border-border bg-background text-primary',
               )}
             >

@@ -284,7 +284,7 @@ function TeamCard({ team }: { team: AdminGameTeam }) {
           <dd
             className={cx(
               'font-medium',
-              team.remainderStatus === 'paid' ? 'text-success' : 'text-warning',
+              team.remainderStatus === 'paid' ? 'text-success-text' : 'text-warning-text',
             )}
           >
             {team.remainderStatus === 'paid' ? 'Toʻlangan' : formatSom(team.remainderAmount)}
@@ -336,7 +336,7 @@ function GameBody({ g }: { g: AdminGameDetail }) {
               <TeamCard key={team.side} team={team} />
             ))}
             {g.teams.length === 1 && (
-              <p className="rounded-md bg-warning-soft px-3.5 py-2.5 text-sm text-warning">
+              <p className="rounded-md bg-warning-soft px-3.5 py-2.5 text-sm text-warning-text">
                 Raqib kutilmoqda
               </p>
             )}

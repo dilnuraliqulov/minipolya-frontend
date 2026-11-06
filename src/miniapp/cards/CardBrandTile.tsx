@@ -12,7 +12,9 @@ export function CardBrandTile({ cardType }: { cardType: string }) {
     return <span className={cx(base, 'bg-accent text-2xs font-bold text-on-accent')}>HUMO</span>
   }
   if (type.includes('uzcard')) {
-    return <span className={cx(base, 'bg-success text-2xs font-bold text-on-accent')}>UZCARD</span>
+    return (
+      <span className={cx(base, 'bg-success-fill text-2xs font-bold text-on-accent')}>UZCARD</span>
+    )
   }
   return (
     <span className={cx(base, 'bg-surface text-secondary')}>

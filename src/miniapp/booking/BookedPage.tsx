@@ -24,7 +24,7 @@ export function BookedPage() {
       }
     >
       <div className="flex flex-col items-center gap-3 pt-6 text-center">
-        <span className="flex size-20 items-center justify-center rounded-full bg-success-soft text-success">
+        <span className="flex size-20 items-center justify-center rounded-full bg-success-soft text-success-text">
           <Check size={40} strokeWidth={3} aria-hidden />
         </span>
         <h2 className="text-3xl font-bold text-primary">{t('booked.title')}</h2>

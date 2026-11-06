@@ -37,7 +37,7 @@ export function PaymentSummary({ booking, children }: { booking: Booking; childr
           <dt className="text-secondary">{t('booking.paid')}</dt>
           <dd className="flex items-center gap-1 text-primary">
             {formatMoney(booking.paidAmount)}
-            {settled && <CircleCheck size={16} className="text-success" aria-hidden />}
+            {settled && <CircleCheck size={16} className="text-success-text" aria-hidden />}
           </dd>
         </div>
         {owes ? (
@@ -58,7 +58,7 @@ export function PaymentSummary({ booking, children }: { booking: Booking; childr
       </dl>
       {state === 'cashReceived' && (
         <div className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 rounded-xl bg-success-soft p-3 text-sm font-semibold text-success">
+          <p className="flex items-center gap-2 rounded-xl bg-success-soft p-3 text-sm font-semibold text-success-text">
             <Banknote size={16} className="shrink-0" aria-hidden />
             {t('booking.paidCash')}
           </p>

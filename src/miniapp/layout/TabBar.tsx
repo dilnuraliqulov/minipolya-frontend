@@ -56,7 +56,7 @@ export function TabBar({
               className={({ isActive }) =>
                 cx(
                   'flex h-full flex-col items-center justify-center gap-1 text-2xs',
-                  isActive ? 'font-semibold text-accent' : 'font-medium text-secondary',
+                  isActive ? 'font-semibold text-link' : 'font-medium text-secondary',
                 )
               }
             >

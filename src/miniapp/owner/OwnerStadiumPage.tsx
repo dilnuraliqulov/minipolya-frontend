@@ -92,8 +92,8 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
           role="status"
           className={
             status.key === 'pending'
-              ? 'rounded-xl bg-warning-soft p-3 text-sm text-warning'
-              : 'rounded-xl bg-danger-soft p-3 text-sm text-danger'
+              ? 'rounded-xl bg-warning-soft p-3 text-sm text-warning-text'
+              : 'rounded-xl bg-danger-soft p-3 text-sm text-danger-text'
           }
         >
           <p>{t(`owner.banner.${status.key}`)}</p>

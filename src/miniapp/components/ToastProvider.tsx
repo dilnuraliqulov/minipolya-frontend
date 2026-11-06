@@ -36,8 +36,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className={cx(
                 'flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium shadow-lg',
                 toast.tone === 'danger'
-                  ? 'bg-danger-soft text-danger'
-                  : 'bg-success-soft text-success',
+                  ? 'bg-danger-soft text-danger-text'
+                  : 'bg-success-soft text-success-text',
               )}
             >
               <Icon size={18} className="shrink-0" aria-hidden />

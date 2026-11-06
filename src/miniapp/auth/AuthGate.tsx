@@ -82,7 +82,7 @@ function BlockedScreen({ details }: { details: BlockDetails }) {
   return (
     <Screen header={<Header title={t('app.name')} />} className="justify-center">
       <div className="flex flex-col items-center gap-4 p-6 text-center">
-        <div className="flex size-22 items-center justify-center rounded-full bg-danger-soft text-danger">
+        <div className="flex size-22 items-center justify-center rounded-full bg-danger-soft text-danger-text">
           <Ban size={44} aria-hidden />
         </div>
         <h2 className="text-3xl font-bold text-primary">{t('blocked.title')}</h2>
@@ -116,7 +116,7 @@ function NoTelegramScreen() {
         description={t('auth.noTelegramText')}
       >
         {import.meta.env.DEV && (
-          <p className="w-full rounded-lg bg-warning-soft p-3 text-sm text-warning">
+          <p className="w-full rounded-lg bg-warning-soft p-3 text-sm text-warning-text">
             {t('auth.noTelegramDev')}
           </p>
         )}

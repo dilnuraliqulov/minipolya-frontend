@@ -15,7 +15,9 @@ export function Stars({ rating, label }: { rating: number; label: string }) {
           key={n}
           size={14}
           aria-hidden
-          className={cx(n <= rating ? 'fill-warning text-warning' : 'fill-border text-border')}
+          className={cx(
+            n <= rating ? 'fill-warning-text text-warning-text' : 'fill-border text-border',
+          )}
         />
       ))}
     </span>

@@ -18,8 +18,8 @@ interface ToastItem {
 }
 
 const TONES = {
-  success: { icon: CircleCheck, className: 'text-success' },
-  error: { icon: CircleX, className: 'text-danger' },
+  success: { icon: CircleCheck, className: 'text-success-text' },
+  error: { icon: CircleX, className: 'text-danger-text' },
   info: { icon: Info, className: 'text-link' },
 }
 

@@ -130,11 +130,11 @@ describe('Foydalanuvchilar — list', () => {
     expect(within(row).getByText('Maydon egasi')).toBeInTheDocument()
     expect(within(row).getByText('+998 93 210 98 76')).toBeInTheDocument()
     expect(within(row).getByText('10.10.2026')).toBeInTheDocument()
-    expect(within(row).getByText('Faol')).toHaveClass('text-success')
+    expect(within(row).getByText('Faol')).toHaveClass('text-success-text')
     const adminRow = within(table).getByText(admin.name).closest('tr')!
-    expect(within(adminRow).getByText('Admin')).toHaveClass('text-link')
+    expect(within(adminRow).getByText('Admin')).toHaveClass('text-link-text')
     const blockedRow = within(table).getByText('Umid Karimov').closest('tr')!
-    expect(within(blockedRow).getByText('Bloklangan')).toHaveClass('text-danger')
+    expect(within(blockedRow).getByText('Bloklangan')).toHaveClass('text-danger-text')
     expect(within(blockedRow).getByText('Oʻyinchi')).toBeInTheDocument()
   })
 

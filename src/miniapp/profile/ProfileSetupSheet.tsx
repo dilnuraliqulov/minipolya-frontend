@@ -33,7 +33,7 @@ export function ProfileSetupSheet({
       }
     >
       <ProfileFields form={form} layout="sheet" />
-      {form.saveError && <p className="text-sm text-danger">{errorMessage(form.saveError)}</p>}
+      {form.saveError && <p className="text-sm text-danger-text">{errorMessage(form.saveError)}</p>}
     </BottomSheet>
   )
 }

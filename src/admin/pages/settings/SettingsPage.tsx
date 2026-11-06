@@ -363,7 +363,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           aria-label="Saqlanmagan oʻzgarishlar"
           className="sticky bottom-4 z-10 flex items-center gap-3 rounded-xl border border-border bg-background px-6 py-4 shadow-lg"
         >
-          <TriangleAlert size={18} aria-hidden className="text-warning" />
+          <TriangleAlert size={18} aria-hidden className="text-warning-text" />
           <p className="flex-1 text-base font-medium text-primary">Saqlanmagan oʻzgarishlar bor</p>
           <Button
             variant="secondary"

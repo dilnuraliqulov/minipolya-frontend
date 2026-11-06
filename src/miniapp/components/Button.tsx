@@ -9,9 +9,9 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'dang
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-accent text-on-accent',
   secondary: 'border border-border bg-background text-primary',
-  danger: 'bg-danger text-on-accent',
+  danger: 'bg-danger-fill text-on-accent',
   ghost: 'text-link',
-  'danger-outline': 'border border-border text-danger',
+  'danger-outline': 'border border-border text-danger-text',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

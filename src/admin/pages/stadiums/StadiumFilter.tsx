@@ -93,12 +93,12 @@ export function StadiumFilter({
           'flex h-9 items-center gap-2 rounded-md border pr-2.5 pl-3 text-base whitespace-nowrap',
           'focus-visible:outline-2 focus-visible:outline-accent',
           isSet
-            ? 'border-accent bg-accent-soft text-accent'
+            ? 'border-accent bg-accent-soft text-link'
             : 'border-border bg-background text-primary',
         )}
       >
         Maydon: {label}
-        <ChevronDown size={16} aria-hidden className={isSet ? 'text-accent' : 'text-secondary'} />
+        <ChevronDown size={16} aria-hidden className={isSet ? 'text-link' : 'text-secondary'} />
       </button>
       {open && (
         <div className="absolute top-full left-0 z-20 mt-1 flex w-72 flex-col gap-1 rounded-lg border border-border bg-background p-2 shadow-md">
@@ -135,7 +135,7 @@ export function StadiumFilter({
                 className={cx(
                   'cursor-pointer truncate rounded-sm px-2.5 py-2 text-base',
                   i === active ? 'bg-hover' : '',
-                  option.value === value ? 'font-semibold text-accent' : 'text-primary',
+                  option.value === value ? 'font-semibold text-link' : 'text-primary',
                 )}
               >
                 {option.label}
@@ -145,7 +145,7 @@ export function StadiumFilter({
               <li className="px-2.5 py-2 text-sm text-secondary">Yuklanmoqda…</li>
             )}
             {results.isError && (
-              <li className="px-2.5 py-2 text-sm text-danger">Yuklab boʻlmadi</li>
+              <li className="px-2.5 py-2 text-sm text-danger-text">Yuklab boʻlmadi</li>
             )}
             {results.data?.length === 0 && (
               <li className="px-2.5 py-2 text-sm text-secondary">Hech narsa topilmadi</li>

@@ -366,7 +366,15 @@ encrypted and the content is meaningless as bytes.
   | `text-primary`, `text-secondary` | `text`, `text-secondary` | **text colours** (not brand) |
   | `bg-accent`, `bg-accent-soft`, `text-on-accent` | `accent`, `accent-soft`, white | brand |
   | `text-link` | `link` | links and accent icons (#60A5FA in dark) |
-  | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status |
+  | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status fills |
+  | `text-success-text`, `text-warning-text`, `text-danger-text` (also `border-`/`fill-`) | `success-text` … | status **text, icons, borders** — never the bright fills |
+  | `text-link-text` | `link-text` | link-coloured text on `bg-accent-soft` |
+  | `bg-success-fill`, `bg-danger-fill` | same | fills under white text |
+
+  Every pair is checked for WCAG AA (4.5:1 text, 3:1 icons/boundaries) in
+  light and dark by `src/shared/theme/contrast.test.ts`; add a pair there when
+  a new combination appears. `text-secondary` is darkened from the design's
+  #6B7280 to #5F6673 for AA on surface.
 
   Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 16
   · `xl` 17 · `2xl` 20 · `3xl` 22 · `4xl` 24 · `5xl` 30 · `6xl` 32 px;

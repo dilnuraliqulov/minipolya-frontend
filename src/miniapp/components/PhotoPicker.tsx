@@ -187,7 +187,7 @@ export function PhotoPicker({
                 haptic.light()
                 input.current?.click()
               }}
-              className="flex aspect-4/3 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-accent bg-accent-soft text-sm font-semibold text-link disabled:opacity-50"
+              className="flex aspect-4/3 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-accent bg-accent-soft text-sm font-semibold text-link-text disabled:opacity-50"
             >
               <ImagePlus size={24} aria-hidden />
               {t('owner.photos.add')}
@@ -199,7 +199,7 @@ export function PhotoPicker({
         {t('owner.photos.hint')}
       </p>
       {shownError && (
-        <p role="alert" className="rounded-xl bg-danger-soft p-3 text-sm text-danger">
+        <p role="alert" className="rounded-xl bg-danger-soft p-3 text-sm text-danger-text">
           {shownError}
         </p>
       )}
@@ -273,7 +273,7 @@ function PhotoTile({
         </button>
       )}
       {photo.state === 'failed' ? (
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-danger px-2 py-1 text-xs font-semibold text-on-accent">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-danger-fill px-2 py-1 text-xs font-semibold text-on-accent">
           <span className="truncate">{t('owner.photos.failed')}</span>
           {onRetry && (
             <button

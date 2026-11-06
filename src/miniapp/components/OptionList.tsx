@@ -39,7 +39,7 @@ export function OptionList<T extends string>({
           >
             <span className="flex-1 text-md font-medium text-primary">{option.label}</span>
             {checked ? (
-              <CircleCheck size={22} className="text-accent" aria-hidden />
+              <CircleCheck size={22} className="text-link" aria-hidden />
             ) : (
               <span className="size-5.5 rounded-full border border-border" aria-hidden />
             )}

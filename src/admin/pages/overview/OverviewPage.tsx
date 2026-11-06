@@ -31,8 +31,8 @@ const KPI_GRID = 'grid grid-cols-2 gap-4 xl:grid-cols-4'
 const LAST_WEEK = 'oʻtgan haftaga nisbatan'
 
 const TILE_TONES = {
-  warning: 'bg-warning-soft text-warning',
-  danger: 'bg-danger-soft text-danger',
+  warning: 'bg-warning-soft text-warning-text',
+  danger: 'bg-danger-soft text-danger-text',
 }
 
 function TodoTile({
@@ -177,7 +177,7 @@ export function OverviewPage() {
           Kutilayotgan ishlar
         </h2>
         {failedRefunds === 0 && pendingStadiums === 0 ? (
-          <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3.5 py-2.5 text-base font-medium text-success">
+          <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3.5 py-2.5 text-base font-medium text-success-text">
             <CircleCheck size={16} aria-hidden />
             Hammasi bajarilgan, kutilayotgan ish yoʻq
           </p>

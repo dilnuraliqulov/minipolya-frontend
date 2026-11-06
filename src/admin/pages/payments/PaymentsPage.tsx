@@ -109,7 +109,7 @@ const COLUMNS: Column<AdminPayment>[] = [
     header: 'Summa',
     width: 140,
     render: (p) => (
-      <span className={cx('whitespace-nowrap', p.amount < 0 && 'text-danger')}>
+      <span className={cx('whitespace-nowrap', p.amount < 0 && 'text-danger-text')}>
         {money(p.amount)}
       </span>
     ),
@@ -203,7 +203,7 @@ function Summary({ from, to }: { from: string; to: string }) {
                   <span className="text-sm font-medium text-secondary">{parts.unit}</span>
                 </span>
               ) : summary.isError ? (
-                <span className="text-sm text-danger">Yuklab boʻlmadi</span>
+                <span className="text-sm text-danger-text">Yuklab boʻlmadi</span>
               ) : (
                 <Skeleton className="h-6 w-28" />
               )}

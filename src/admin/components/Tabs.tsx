@@ -55,18 +55,18 @@ export function Tabs<V extends string>({
               '-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-base font-medium',
               'focus-visible:outline-2 focus-visible:outline-accent',
               active
-                ? 'border-accent text-accent'
+                ? 'border-accent text-link'
                 : 'border-transparent text-secondary hover:text-primary',
             )}
           >
             {tab.label}
             {active && tab.count !== undefined && (
-              <span className="rounded-full bg-accent-soft px-1.5 py-px text-xs font-semibold text-accent">
+              <span className="rounded-full bg-accent-soft px-1.5 py-px text-xs font-semibold text-link">
                 {formatNumber(tab.count)}
               </span>
             )}
             {!!tab.alert && (
-              <span className="rounded-full bg-danger-soft px-1.5 py-px text-xs font-semibold text-danger">
+              <span className="rounded-full bg-danger-soft px-1.5 py-px text-xs font-semibold text-danger-text">
                 {formatNumber(tab.alert)}
               </span>
             )}

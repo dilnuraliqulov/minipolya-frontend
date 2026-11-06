@@ -19,8 +19,8 @@ export function Notice({ tone = 'danger', children, className }: NoticeProps) {
       className={cx(
         'flex gap-3 rounded-xl border p-3 text-sm',
         tone === 'warning'
-          ? 'border-warning bg-warning-soft text-warning'
-          : 'border-danger bg-danger-soft text-danger',
+          ? 'border-warning-text bg-warning-soft text-warning-text'
+          : 'border-danger-text bg-danger-soft text-danger-text',
         className,
       )}
     >

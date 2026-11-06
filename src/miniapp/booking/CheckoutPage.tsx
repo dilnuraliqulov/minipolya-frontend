@@ -396,7 +396,7 @@ function CheckoutForm({
       {declined && (
         <div
           role="alert"
-          className="flex gap-3 rounded-xl border border-danger bg-danger-soft p-3 text-danger"
+          className="flex gap-3 rounded-xl border border-danger-text bg-danger-soft p-3 text-danger-text"
         >
           <CircleAlert size={20} className="mt-0.5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1">

@@ -4,9 +4,9 @@ import { cx } from './cx'
 export type BadgeTone = 'success' | 'warning' | 'danger' | 'neutral' | 'accent'
 
 const TONES: Record<BadgeTone, string> = {
-  success: 'bg-success-soft text-success',
-  warning: 'bg-warning-soft text-warning',
-  danger: 'bg-danger-soft text-danger',
+  success: 'bg-success-soft text-success-text',
+  warning: 'bg-warning-soft text-warning-text',
+  danger: 'bg-danger-soft text-danger-text',
   neutral: 'bg-neutral-soft text-secondary',
   accent: 'bg-accent text-on-accent',
 }

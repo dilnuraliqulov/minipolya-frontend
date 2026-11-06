@@ -135,17 +135,17 @@ function BookingContent({ booking }: { booking: Booking }) {
         // E10: what is still owed, up top — pay it in the app or in cash at the pitch.
         <section
           aria-labelledby="booking-remainder"
-          className="flex flex-col gap-3 rounded-2xl border border-warning bg-warning-soft p-4"
+          className="flex flex-col gap-3 rounded-2xl border border-warning-text bg-warning-soft p-4"
         >
           <h3
             id="booking-remainder"
             className="flex items-center gap-2 text-lg font-bold text-primary"
           >
-            <Wallet size={20} className="shrink-0 text-warning" aria-hidden />
+            <Wallet size={20} className="shrink-0 text-warning-text" aria-hidden />
             {t('booking.remainderTitle', { amount: formatMoney(booking.remainingAmount) })}
           </h3>
           {settling || processing ? (
-            <p className="text-sm text-warning">
+            <p className="text-sm text-warning-text">
               {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
             </p>
           ) : (
@@ -278,7 +278,7 @@ function PendingBanner({ expiresAt }: { expiresAt: string }) {
   const { t } = useTranslation()
   const hold = useCountdown(expiresAt)
   return (
-    <div className="flex gap-3 rounded-xl bg-warning-soft p-3 text-warning">
+    <div className="flex gap-3 rounded-xl bg-warning-soft p-3 text-warning-text">
       <Clock size={18} className="mt-0.5 shrink-0" aria-hidden />
       <div className="flex flex-col gap-1 text-sm">
         <p className="font-semibold">

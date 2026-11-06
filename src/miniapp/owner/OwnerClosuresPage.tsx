@@ -89,7 +89,7 @@ function Closures({ stadium }: { stadium: OwnerStadium }) {
                     aria-label={t('owner.removeItem', { item: label })}
                     disabled={remove.isPending}
                     onClick={() => remove.mutate(closure.id)}
-                    className="flex size-11 items-center justify-center text-danger disabled:opacity-50"
+                    className="flex size-11 items-center justify-center text-danger-text disabled:opacity-50"
                   >
                     <Trash2 size={18} aria-hidden />
                   </button>
@@ -170,7 +170,7 @@ function AddClosureSheet({ stadiumId, onClose }: { stadiumId: string; onClose: (
         onChange={(e) => setReason(e.target.value)}
       />
       {add.isError && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errorMessage(add.error)}
         </p>
       )}

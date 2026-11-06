@@ -40,7 +40,7 @@ export function UploadProgress({
             {t('owner.wizard.uploadedCount', { done, total })}
           </span>
           {failed > 0 && (
-            <span className="font-medium text-danger">
+            <span className="font-medium text-danger-text">
               {t('owner.wizard.failedCount', { count: failed })}
             </span>
           )}
@@ -90,13 +90,13 @@ function UploadRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="truncate text-base font-medium text-primary">{name}</span>
         {item.state === 'done' && (
-          <span className="flex items-center gap-1 text-xs text-success">
+          <span className="flex items-center gap-1 text-xs text-success-text">
             <CircleCheck size={14} aria-hidden />
             {t('owner.wizard.status.done')}
           </span>
         )}
         {item.state === 'failed' && (
-          <span className="flex items-center gap-1 text-xs text-danger">
+          <span className="flex items-center gap-1 text-xs text-danger-text">
             <CircleX size={14} aria-hidden />
             {item.error ?? t('owner.wizard.status.failed')}
           </span>
@@ -118,13 +118,15 @@ function UploadRow({
           </span>
         )}
       </div>
-      {item.state === 'done' && <Check size={18} className="shrink-0 text-success" aria-hidden />}
+      {item.state === 'done' && (
+        <Check size={18} className="shrink-0 text-success-text" aria-hidden />
+      )}
       {item.state === 'failed' && (
         <button
           type="button"
           onClick={onRetry}
           aria-label={t('owner.photos.retry', { n })}
-          className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg bg-danger-soft px-3 text-sm font-semibold text-danger"
+          className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg bg-danger-soft px-3 text-sm font-semibold text-danger-text"
         >
           <RotateCw size={14} aria-hidden />
           {t('common.retry')}
@@ -159,7 +161,7 @@ export function Sent({
   return (
     <>
       <div className="flex flex-col items-center gap-3 pt-6 text-center">
-        <span className="flex size-18 items-center justify-center rounded-full bg-success-soft text-success motion-safe:animate-rise">
+        <span className="flex size-18 items-center justify-center rounded-full bg-success-soft text-success-text motion-safe:animate-rise">
           <Check size={36} strokeWidth={2.5} aria-hidden />
         </span>
         <h2 className="text-3xl font-bold text-primary">{t('owner.wizard.sentTitle')}</h2>
@@ -191,7 +193,7 @@ export function Sent({
               <span
                 className={cx(
                   'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-                  'bg-accent-soft text-link',
+                  'bg-accent-soft text-link-text',
                 )}
                 aria-hidden
               >

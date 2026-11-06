@@ -62,7 +62,7 @@ export function NumberField({
       <div
         className={cx(
           'flex h-10 w-55 items-center gap-2 rounded-md border bg-background px-3',
-          error ? 'border-danger' : 'border-border focus-within:border-accent',
+          error ? 'border-danger-text' : 'border-border focus-within:border-accent',
         )}
       >
         <input
@@ -84,7 +84,7 @@ export function NumberField({
         <span className="text-base text-secondary">{suffix}</span>
       </div>
       {(error || helper) && (
-        <p id={described} className={cx('text-sm', error ? 'text-danger' : 'text-secondary')}>
+        <p id={described} className={cx('text-sm', error ? 'text-danger-text' : 'text-secondary')}>
           {error ?? helper}
         </p>
       )}

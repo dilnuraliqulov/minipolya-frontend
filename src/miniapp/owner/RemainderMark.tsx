@@ -154,16 +154,16 @@ export function MarkedState({
     <div
       className={
         cash
-          ? 'flex flex-col gap-2 rounded-xl border border-success bg-background p-3'
-          : 'flex flex-col gap-2 rounded-xl border border-danger bg-background p-3'
+          ? 'flex flex-col gap-2 rounded-xl border border-success-text bg-background p-3'
+          : 'flex flex-col gap-2 rounded-xl border border-danger-text bg-background p-3'
       }
     >
       {/* Neutral card + coloured border and icon: the text keeps its contrast in both themes. */}
       <p className="flex items-center gap-2 text-md font-semibold text-primary">
         {cash ? (
-          <Banknote size={18} className="shrink-0 text-success" aria-hidden />
+          <Banknote size={18} className="shrink-0 text-success-text" aria-hidden />
         ) : (
-          <CircleX size={18} className="shrink-0 text-danger" aria-hidden />
+          <CircleX size={18} className="shrink-0 text-danger-text" aria-hidden />
         )}
         {cash
           ? booking.paidInCash

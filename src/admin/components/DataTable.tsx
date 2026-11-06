@@ -202,7 +202,7 @@ export function DataTable<T>({
                       <SortIcon
                         size={14}
                         aria-hidden
-                        className={active ? 'text-accent' : 'text-secondary'}
+                        className={active ? 'text-link' : 'text-secondary'}
                       />
                     </button>
                   ) : (

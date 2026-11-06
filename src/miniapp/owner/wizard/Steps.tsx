@@ -189,7 +189,7 @@ export function HoursStep({ draft, dispatch, errors }: StepProps) {
         />
       </div>
       {errors.hours ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errors.hours}
         </p>
       ) : (

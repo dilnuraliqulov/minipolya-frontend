@@ -236,7 +236,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     problem?.kind === 'network' ? (
       <div
         role="alert"
-        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger"
+        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger-text"
       >
         <WifiOff size={18} className="mt-0.5 shrink-0" aria-hidden />
         <div className="flex flex-col gap-1 text-sm">
@@ -327,7 +327,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
               className={cx(
                 'flex h-14 flex-1 items-center justify-center rounded-xl border bg-background text-2xl font-semibold text-primary',
                 wrongCode || expired
-                  ? 'border-danger'
+                  ? 'border-danger-text'
                   : i === code.length
                     ? 'border-accent'
                     : 'border-border',
@@ -353,13 +353,13 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
         />
       </div>
       {wrongCode && (
-        <p role="alert" className="flex items-center gap-2 text-sm text-danger">
+        <p role="alert" className="flex items-center gap-2 text-sm text-danger-text">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
           {t(wrongCode)}
         </p>
       )}
       {expired && (
-        <p role="alert" className="flex items-center gap-2 text-sm text-danger">
+        <p role="alert" className="flex items-center gap-2 text-sm text-danger-text">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
           {t('errors.smsCodeExpired')}
         </p>

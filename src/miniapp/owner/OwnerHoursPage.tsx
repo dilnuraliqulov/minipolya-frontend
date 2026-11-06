@@ -65,7 +65,7 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
         <HourStepper label={t('owner.wizard.close')} value={close} min={1} onChange={setClose} />
       </div>
       {rule ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {t(rule)}
         </p>
       ) : (

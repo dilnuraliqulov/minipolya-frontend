@@ -237,7 +237,9 @@ describe('Checkout', () => {
       expect(await screen.findByRole('alert')).toHaveTextContent('Karta rad etildi')
       expect(screen.getByText(/Bron 09:(29|30) davomida saqlanadi/)).toBeInTheDocument()
       // The declined card is outlined; the list stays locked until "Boshqa karta".
-      expect(screen.getByRole('radio', { name: /•••• 1234/ }).className).toContain('border-danger')
+      expect(screen.getByRole('radio', { name: /•••• 1234/ }).className).toContain(
+        'border-danger-text',
+      )
       fireEvent.click(screen.getByRole('button', { name: 'Qayta urinish' }))
       await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
       expect(api.calls(PAY)).toEqual([{ cardId: 'c1' }])

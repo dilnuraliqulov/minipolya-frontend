@@ -308,7 +308,7 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
     const last = block.data
     body = (
       <>
-        <p className="text-base font-semibold text-danger">Bloklangan</p>
+        <p className="text-base font-semibold text-danger-text">Bloklangan</p>
         {block.isPending ? (
           <Skeleton className="h-14 w-full rounded-md" />
         ) : last ? (

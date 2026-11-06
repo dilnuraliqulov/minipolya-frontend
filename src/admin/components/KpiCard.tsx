@@ -12,8 +12,8 @@ export interface KpiDelta {
 }
 
 const TRENDS = {
-  up: { icon: TrendingUp, className: 'text-success' },
-  down: { icon: TrendingDown, className: 'text-danger' },
+  up: { icon: TrendingUp, className: 'text-success-text' },
+  down: { icon: TrendingDown, className: 'text-danger-text' },
   flat: { icon: Minus, className: 'text-secondary' },
 }
 

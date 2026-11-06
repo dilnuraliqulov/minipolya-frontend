@@ -153,7 +153,7 @@ describe('Toʻlovlar', () => {
 
     const table = screen.getByRole('grid')
     const refundRow = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
-    expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger')
+    expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger-text')
     expect(within(refundRow).getByText('Egaga: −190 000')).toBeInTheDocument()
     expect(within(refundRow).getByText('Platformaga: −10 000')).toBeInTheDocument()
     expect(within(refundRow).getByText('Muvaffaqiyatsiz')).toBeInTheDocument()
@@ -182,7 +182,7 @@ describe('Toʻlovlar', () => {
     signIn()
     renderAt('/tolovlar')
     const refundsTab = await screen.findByRole('tab', { name: /Qaytarishlar/ })
-    expect(await within(refundsTab).findByText('1')).toHaveClass('text-danger')
+    expect(await within(refundsTab).findByText('1')).toHaveClass('text-danger-text')
     fireEvent.click(refundsTab)
     await waitFor(() => expect(last(requests, '/api/admin/payments').get('type')).toBe('refund'))
     expect(screen.queryByLabelText('Turi')).not.toBeInTheDocument()

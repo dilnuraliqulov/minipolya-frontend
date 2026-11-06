@@ -95,7 +95,10 @@ export function LoginPage() {
           Kirish
         </Button>
         {message && (
-          <p role="alert" className="rounded-lg bg-danger-soft px-3.5 py-2.5 text-sm text-danger">
+          <p
+            role="alert"
+            className="rounded-lg bg-danger-soft px-3.5 py-2.5 text-sm text-danger-text"
+          >
             {message}
           </p>
         )}

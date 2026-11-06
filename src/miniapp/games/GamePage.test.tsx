@@ -136,7 +136,9 @@ describe('Oʻyin — a team game', () => {
     expect(await within(sheet).findByRole('alert')).toHaveTextContent(
       'Kartada mablagʻ yetarli emas',
     )
-    expect(within(sheet).getByRole('radio', { checked: true }).className).toContain('border-danger')
+    expect(within(sheet).getByRole('radio', { checked: true }).className).toContain(
+      'border-danger-text',
+    )
   })
 
   it('cancels with the refund the API shows for my team', async () => {

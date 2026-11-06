@@ -139,7 +139,7 @@ function GameContent({ game }: { game: GameDetail }) {
       {joining && (
         <div
           role="status"
-          className="flex gap-3 rounded-xl border border-warning bg-warning-soft p-3 text-warning"
+          className="flex gap-3 rounded-xl border border-warning-text bg-warning-soft p-3 text-warning-text"
         >
           <Hourglass size={18} className="mt-0.5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1 text-sm">
@@ -150,7 +150,7 @@ function GameContent({ game }: { game: GameDetail }) {
       )}
 
       {game.status === 'open' && !joining && (
-        <p className="flex gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
+        <p className="flex gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
           <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
           {t('game.waitingText')}
         </p>
@@ -318,12 +318,12 @@ function GameRefundLine({ team }: { team: GameTeam }) {
   const { t } = useTranslation()
   const refund = team.refundIfCancelledNow ?? 0
   return refund > 0 ? (
-    <p className="flex items-start gap-2 rounded-xl bg-success-soft p-3 text-sm text-success">
+    <p className="flex items-start gap-2 rounded-xl bg-success-soft p-3 text-sm text-success-text">
       <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
       {t('game.refundNow', { amount: formatMoney(refund) })}
     </p>
   ) : (
-    <p className="flex items-start gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
+    <p className="flex items-start gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
       <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
       {t('game.noRefundNow')}
     </p>

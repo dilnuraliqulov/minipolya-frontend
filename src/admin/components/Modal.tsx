@@ -204,7 +204,7 @@ export function ReasonModal({
                 'rounded-full border px-3 py-1.5 text-sm font-medium',
                 'focus-visible:outline-2 focus-visible:outline-accent',
                 reason === chip
-                  ? 'border-accent bg-accent-soft text-accent'
+                  ? 'border-accent bg-accent-soft text-link'
                   : 'border-border bg-surface text-primary hover:bg-hover',
               )}
             >
@@ -215,7 +215,7 @@ export function ReasonModal({
       )}
       <div className="flex flex-col gap-1.5">
         <label htmlFor={fieldId} className="text-sm font-medium text-primary">
-          Sabab (kamida {minLength} ta belgi) <span className="text-danger">*</span>
+          Sabab (kamida {minLength} ta belgi) <span className="text-danger-text">*</span>
         </label>
         <textarea
           ref={textarea}

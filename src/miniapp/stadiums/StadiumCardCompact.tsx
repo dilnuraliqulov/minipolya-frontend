@@ -69,7 +69,7 @@ export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCom
             <span className="flex size-9 items-center justify-center rounded-full border border-on-accent/20 bg-image-overlay text-on-accent">
               <Heart
                 size={18}
-                className={favorite.favorited ? 'fill-danger text-danger' : undefined}
+                className={favorite.favorited ? 'fill-danger-text text-danger-text' : undefined}
                 aria-hidden
               />
             </span>

@@ -174,8 +174,8 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   )
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-danger bg-danger-soft p-4">
-      <p className="flex items-center gap-2 text-base font-semibold text-danger">
+    <div className="flex flex-col gap-3 rounded-lg border border-danger-text bg-danger-soft p-4">
+      <p className="flex items-center gap-2 text-base font-semibold text-danger-text">
         <TriangleAlert size={18} aria-hidden />
         Qaytarish amalga oshmadi
       </p>
@@ -283,7 +283,7 @@ export function PaymentPanel({
               )}
               <PanelRow label="Turi">{refund ? 'Qaytarish (toʻliq)' : type}</PanelRow>
               <PanelRow label="Summa">
-                <span className={refund ? 'text-danger' : undefined}>{money(p.amount)}</span>
+                <span className={refund ? 'text-danger-text' : undefined}>{money(p.amount)}</span>
               </PanelRow>
               <PanelRow label="Usul">
                 {PAYMENT_METHODS[p.method] ?? p.method}

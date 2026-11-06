@@ -191,7 +191,11 @@ function FavoriteButton({ stadium }: { stadium: StadiumDetail }) {
       }
       className="flex size-11 items-center justify-center text-primary disabled:opacity-60"
     >
-      <Heart size={24} className={on ? 'fill-danger text-danger' : undefined} aria-hidden />
+      <Heart
+        size={24}
+        className={on ? 'fill-danger-text text-danger-text' : undefined}
+        aria-hidden
+      />
     </button>
   )
 }

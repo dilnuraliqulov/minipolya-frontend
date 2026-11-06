@@ -503,7 +503,7 @@ function NotesCard({ stadiumId }: { stadiumId: string }) {
       {notes.isPending ? (
         <Skeleton className="h-12 w-full rounded-md" />
       ) : notes.isError ? (
-        <p className="text-sm text-danger">Izohlarni yuklab boʻlmadi</p>
+        <p className="text-sm text-danger-text">Izohlarni yuklab boʻlmadi</p>
       ) : notes.data.length === 0 ? (
         <p className="text-sm text-secondary">Hali izoh yoʻq</p>
       ) : (
@@ -642,7 +642,7 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
         approveButton
       )}
       {blocker && (
-        <p className="flex items-center gap-2 text-sm text-warning">
+        <p className="flex items-center gap-2 text-sm text-warning-text">
           <TriangleAlert size={16} aria-hidden />
           {blocker}
         </p>
@@ -693,7 +693,7 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
     const rejected = shownStatus === 'rejected'
     body = (
       <>
-        <p className="text-base font-semibold text-danger">
+        <p className="text-base font-semibold text-danger-text">
           {rejected ? 'Rad etilgan' : 'Bloklangan'}
         </p>
         <dl className="flex flex-col gap-2">

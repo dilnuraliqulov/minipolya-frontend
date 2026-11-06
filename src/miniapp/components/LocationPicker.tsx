@@ -91,7 +91,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
           {value ? formatPoint(value) : t('owner.location.noPoint')}
         </p>
         {error && (
-          <p role="alert" className="text-xs text-danger">
+          <p role="alert" className="text-xs text-danger-text">
             {error}
           </p>
         )}
@@ -105,7 +105,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
         {t('owner.location.myLocation')}
       </Button>
       {locateError && (
-        <p role="alert" className="text-xs text-danger">
+        <p role="alert" className="text-xs text-danger-text">
           {locateError}
         </p>
       )}

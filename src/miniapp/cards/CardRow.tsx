@@ -34,7 +34,7 @@ export function CardRow({ card, selected, onSelect, onMore, invalid }: CardRowPr
   const { t } = useTranslation()
   const frame = cx(
     'flex min-h-16 w-full items-center gap-3 rounded-xl border bg-background px-4 py-3',
-    invalid ? 'border-danger' : selected ? 'border-accent' : 'border-border',
+    invalid ? 'border-danger-text' : selected ? 'border-accent' : 'border-border',
   )
   if (onSelect) {
     return (
