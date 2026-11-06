@@ -21,6 +21,9 @@ const teamA: GameTeam = {
   price: 8_800_000,
   remainderAmount: 8_000_000,
   remainderStatus: 'unpaid',
+  paymentOption: 'minimum',
+  paidAmount: 8_800_000,
+  remainingAmount: 8_000_000,
   paidInApp: 8_800_000,
   heldAmount: 0,
   cancellationDeadline: '2099-11-05T15:00:00Z',
@@ -64,6 +67,11 @@ const tigers: TeamDetail = {
   members: [{ userId: RIVAL, userName: 'Rustam', role: 'leader' }],
 }
 
+/** The `dl` row whose label is `label` (its `dt` and `dd` together). */
+function row(container: HTMLElement, label: string): HTMLElement {
+  return within(container).getByText(label, { selector: 'dt' }).parentElement!
+}
+
 function stub(game: GameDetail = confirmed, overrides: Record<string, unknown> = {}) {
   return stubApi({
     'GET /api/games/g1': game,
@@ -85,20 +93,26 @@ describe('Oʻyin — a team game', () => {
     expect(screen.getByRole('link', { name: /Chat/ })).toHaveAttribute('href', '/games/g1/chat')
     expect(await screen.findByText('Bobur')).toBeInTheDocument()
     const pay = screen.getByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('88 000 soʻm')).toBeInTheDocument()
-    expect(within(pay).getByText('80 000 soʻm')).toBeInTheDocument()
-    expect(within(pay).getByText('Toʻlanmagan')).toBeInTheDocument()
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('88 000 soʻm')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
+    expect(within(pay).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(within(pay).getByText('yoki maydonda naqd')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
+    expect(within(pay).queryByText('Raqib topilmasa, toʻliq qaytariladi.')).toBeNull()
   })
 
   it('a captain pays the team remainder', async () => {
     const api = stub(confirmed, {
       'POST /api/games/g1/pay-remainder': {
         ...confirmed,
-        teams: [{ ...teamA, remainderStatus: 'paid' }, teamB],
+        teams: [
+          { ...teamA, remainderStatus: 'paid', paidAmount: 16_800_000, remainingAmount: 0 },
+          teamB,
+        ],
       },
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 80 000 soʻm' }))
     expect(await screen.findByText('Qolgan summa toʻlandi')).toBeInTheDocument()
@@ -114,7 +128,7 @@ describe('Oʻyin — a team game', () => {
       ),
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
@@ -130,7 +144,7 @@ describe('Oʻyin — a team game', () => {
       ),
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await within(sheet).findByRole('alert')).toHaveTextContent(
@@ -171,7 +185,7 @@ describe('Oʻyin — a team game', () => {
       ),
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await screen.findByText(/qayta toʻlamang/)).toBeInTheDocument()
@@ -201,35 +215,105 @@ describe('Oʻyin — a team game', () => {
     expect(screen.queryByRole('button', { name: 'Oʻyinni bekor qilish' })).not.toBeInTheDocument()
   })
 
-  it('shows no unpaid badge or pay button when nothing is owed', async () => {
-    stub({ ...confirmed, teams: [{ ...teamA, remainderAmount: 0 }, teamB] })
-    renderApp('/games/g1')
-    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('0 soʻm')).toBeInTheDocument()
-    expect(within(pay).queryByText('Toʻlanmagan')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).not.toBeInTheDocument()
-  })
-
-  it('says what is on hold on the card while the money is only held', async () => {
+  it('says "Toʻliq toʻlangan" with no remainder row or pay button when nothing is owed', async () => {
     stub({
       ...confirmed,
-      status: 'open',
-      teams: [{ ...teamA, paidInApp: 0, heldAmount: 4_980_000 }],
+      teams: [
+        {
+          ...teamA,
+          paymentOption: 'full',
+          price: 13_000_000,
+          remainderAmount: 0,
+          paidAmount: 13_000_000,
+          remainingAmount: 0,
+        },
+        teamB,
+      ],
     })
     renderApp('/games/g1')
     const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('Kartangizda band qilingan')).toBeInTheDocument()
-    expect(within(pay).getByText('49 800 soʻm')).toBeInTheDocument()
-    expect(within(pay).queryByText('Ilovada toʻlangan')).not.toBeInTheDocument()
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('130 000 soʻm')
+    expect(within(pay).queryByText('Qolgan summa')).toBeNull()
+    expect(within(pay).getByText('Toʻliq toʻlangan')).toBeInTheDocument()
+    expect(within(pay).queryByText('yoki maydonda naqd')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
-  it('shows the paid amount once the hold is captured', async () => {
-    stub({ ...confirmed, teams: [{ ...teamA, paidInApp: 4_980_000, heldAmount: 0 }, teamB] })
+  it('says "Naqd olindi" when the owner took the rest in cash', async () => {
+    stub({
+      ...confirmed,
+      teams: [
+        {
+          ...teamA,
+          remainderStatus: 'paid',
+          paidAmount: 16_800_000,
+          remainingAmount: 0,
+          remainderMark: 'cash_received',
+          remainderMarkedAt: '2026-11-06T17:00:00Z',
+        },
+        teamB,
+      ],
+    })
     renderApp('/games/g1')
     const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('Ilovada toʻlangan')).toBeInTheDocument()
-    expect(within(pay).getByText('49 800 soʻm')).toBeInTheDocument()
-    expect(within(pay).queryByText('Kartangizda band qilingan')).not.toBeInTheDocument()
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('168 000 soʻm')
+    expect(within(pay).getByText('Naqd olindi')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
+    expect(within(pay).queryByText('Qolgan summa')).toBeNull()
+  })
+
+  it('says "Toʻlanmadi" when the owner marked the rest unpaid, and still lets the captain pay', async () => {
+    stub({
+      ...confirmed,
+      teams: [
+        { ...teamA, remainderMark: 'not_paid', remainderMarkedAt: '2026-11-06T17:00:00Z' },
+        teamB,
+      ],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('Toʻlanmadi')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
+    expect(within(pay).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+  })
+
+  it('shows what is paid while only held, and that it all comes back without an opponent', async () => {
+    stub({
+      ...confirmed,
+      status: 'open',
+      teams: [
+        {
+          ...teamA,
+          paidInApp: 5_500_000,
+          heldAmount: 5_500_000,
+          paidAmount: 5_500_000,
+          remainingAmount: 7_500_000,
+        },
+      ],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('55 000 soʻm')
+    expect(within(pay).getByText('Raqib topilmasa, toʻliq qaytariladi.')).toBeInTheDocument()
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('75 000 soʻm')
+    expect(within(pay).queryByText('Kartangizda band qilingan')).toBeNull()
+    // Nothing to pay before an opponent arrives.
+    expect(within(pay).queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
+  })
+
+  it('reads a game from before T9 (no paidAmount or remainingAmount)', async () => {
+    const legacy: GameTeam = {
+      ...teamA,
+      paymentOption: undefined,
+      paidAmount: undefined,
+      remainingAmount: undefined,
+      paidInApp: 4_980_000,
+    }
+    stub({ ...confirmed, teams: [legacy, teamB] })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('49 800 soʻm')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
   })
 
   it('a waiting game shows the opponent placeholder and no chat', async () => {
@@ -262,7 +346,7 @@ describe('Oʻyin — a team game', () => {
       stub({ ...confirmed, joinPending: true })
       renderApp('/games/g1')
       await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')
-      expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
     })
 
     it('re-reads the game until the backend settles it, then shows the confirmed game', async () => {
@@ -276,7 +360,7 @@ describe('Oʻyin — a team game', () => {
       await vi.advanceTimersByTimeAsync(10_500)
       expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
       expect(screen.queryByText('Raqib jamoa toʻlovi tasdiqlanmoqda')).toBeNull()
-      expect(screen.getByRole('button', { name: 'Qolganini toʻlash' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
       // Settled: no more polling.
       await vi.advanceTimersByTimeAsync(30_000)
       expect(reads).toBe(2)

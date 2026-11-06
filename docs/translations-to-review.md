@@ -456,14 +456,14 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.teams` | Jamoalar | Команды | Teams |
 | `game.captain` | Sardor: {{name}} | Капитан: {{name}} | Captain: {{name}} |
 | `game.myPayment` | Jamoangiz toʻlovi | Оплата вашей команды | Your team's payment |
-| `game.joinPrice` | Qoʻshilishda toʻlov | Оплата при вступлении | Paid on joining |
-| `game.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
-| `game.heldOnCard` | Kartangizda band qilingan | Заблокировано на вашей карте | On hold on your card |
+| `game.paid` | Toʻlangan | Оплачено | Paid |
+| `game.refundIfNoOpponent` | Raqib topilmasa, toʻliq qaytariladi. | Если соперник не найдётся, всё вернётся полностью. | If no opponent is found, it is refunded in full. |
 | `game.remainder` | Qolgan summa | Остаток | Left to pay |
-| `game.remainderPaid` | Toʻlangan | Оплачено | Paid |
-| `game.remainderUnpaid` | Toʻlanmagan | Не оплачено | Unpaid |
-| `game.payRest` | Qolganini toʻlash | Доплатить | Pay the rest |
-| `game.cashNote` | yoki maydonda naqd toʻlashingiz mumkin | или оплатите наличными на поле | or pay in cash at the pitch |
+| `game.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
+| `game.cashReceived` | Naqd olindi | Получено наличными | Paid in cash |
+| `game.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
+| `game.payRest` | Ilovada toʻlash | Оплатить в приложении | Pay in the app |
+| `game.cashNote` | yoki maydonda naqd | или наличными на поле | or in cash at the pitch |
 | `game.restPaid` | Qolgan summa toʻlandi | Остаток оплачен | The rest is paid |
 | `game.declined` | Karta rad etildi. Boshqa karta tanlang. | Карта отклонена. Выберите другую. | The card was declined. Choose another. |
 | `game.rules` | Bekor qilish shartlari | Условия отмены | Cancellation terms |

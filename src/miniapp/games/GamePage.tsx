@@ -182,19 +182,15 @@ function GameContent({ game }: { game: GameDetail }) {
       )}
 
       {myTeam && (
-        <MyPayment team={myTeam}>
-          {isLeader &&
-            !joining &&
-            myTeam.remainderStatus === 'unpaid' &&
-            myTeam.remainderAmount > 0 &&
-            PAYABLE.has(game.status) && (
-              <>
-                <Button haptic onClick={() => setSheet('pay')}>
-                  {t('game.payRest')}
-                </Button>
-                <p className="text-center text-sm text-secondary">{t('game.cashNote')}</p>
-              </>
-            )}
+        <MyPayment team={myTeam} waiting={game.status === 'open'}>
+          {isLeader && !joining && teamRemaining(myTeam) > 0 && PAYABLE.has(game.status) && (
+            <>
+              <Button haptic onClick={() => setSheet('pay')}>
+                {t('game.payRest')}
+              </Button>
+              <p className="text-center text-sm text-secondary">{t('game.cashNote')}</p>
+            </>
+          )}
         </MyPayment>
       )}
 
@@ -278,12 +274,37 @@ function TeamMembers({ team }: { team: GameTeam }) {
   )
 }
 
-function MyPayment({ team, children }: { team: GameTeam; children?: ReactNode }) {
+/**
+ * What the team still owes now (T9 `remainingAmount`). A backend from before T9 sent
+ * only `remainderAmount` and `remainderStatus`: the rest is owed while unpaid.
+ */
+function teamRemaining(team: GameTeam): number {
+  if (team.remainingAmount !== undefined) return team.remainingAmount
+  return team.remainderStatus === 'paid' ? 0 : team.remainderAmount
+}
+
+/**
+ * "Jamoangiz toʻlovi" (T12): "Toʻlangan: X" — held on the card or arrived, card or
+ * cash (`paidAmount`) — and while waiting, that it all comes back without an
+ * opponent; then "Qolgan summa" while something is owed, or how it was settled:
+ * "Naqd olindi" (the owner's mark) or "Toʻliq toʻlangan". "Toʻlanmadi" when the
+ * owner marked the rest as not paid.
+ */
+function MyPayment({
+  team,
+  waiting,
+  children,
+}: {
+  team: GameTeam
+  waiting: boolean
+  children?: ReactNode
+}) {
   const { t } = useTranslation()
-  const paid = team.remainderStatus === 'paid'
-  // While the money is only on hold, say so with the held amount; once the hold
-  // is captured (heldAmount 0) the paid amount takes over.
+  // Before T9 the backend had no paidAmount: the hold while held, then what was paid.
   const held = team.heldAmount ?? 0
+  const paid = team.paidAmount ?? (held > 0 ? held : team.paidInApp)
+  const remaining = teamRemaining(team)
+  const mark = team.remainderMark
   return (
     <Card className="flex flex-col gap-3 p-4" role="region" aria-labelledby="game-payment">
       <h3 id="game-payment" className="text-lg font-semibold text-primary">
@@ -291,24 +312,27 @@ function MyPayment({ team, children }: { team: GameTeam; children?: ReactNode })
       </h3>
       <dl className="flex flex-col gap-2 text-base">
         <div className="flex justify-between gap-3">
-          <dt className="text-secondary">
-            {held > 0 ? t('game.heldOnCard') : t('game.paidInApp')}
-          </dt>
-          <dd className="text-primary">{formatMoney(held > 0 ? held : team.paidInApp)}</dd>
+          <dt className="text-secondary">{t('game.paid')}</dt>
+          <dd className="text-primary">{formatMoney(paid)}</dd>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-secondary">{t('game.remainder')}</dt>
-          <dd className="flex items-center gap-2 text-primary">
-            {formatMoney(team.remainderAmount)}
-            {/* Nothing owed (the advance covered it): no status badge. */}
-            {(paid || team.remainderAmount > 0) && (
-              <Badge tone={paid ? 'success' : 'warning'}>
-                {paid ? t('game.remainderPaid') : t('game.remainderUnpaid')}
-              </Badge>
-            )}
-          </dd>
-        </div>
+        {remaining > 0 && (
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-secondary">{t('game.remainder')}</dt>
+            <dd className="flex items-center gap-2 text-primary">
+              {mark === 'not_paid' && <Badge tone="danger">{t('game.notPaid')}</Badge>}
+              {formatMoney(remaining)}
+            </dd>
+          </div>
+        )}
       </dl>
+      {waiting && <p className="text-sm text-secondary">{t('game.refundIfNoOpponent')}</p>}
+      {remaining === 0 && !waiting && (
+        <div className="flex">
+          <Badge tone="success">
+            {mark === 'cash_received' ? t('game.cashReceived') : t('game.paidInFull')}
+          </Badge>
+        </div>
+      )}
       {children}
     </Card>
   )
@@ -379,7 +403,7 @@ function PayTeamRemainderSheet({
           loading={pay.isPending}
           onClick={() => card && pay.mutate(card.id)}
         >
-          {t('game.payButton', { amount: formatMoney(team.remainderAmount) })}
+          {t('game.payButton', { amount: formatMoney(teamRemaining(team)) })}
         </Button>
       }
     >
