@@ -24,6 +24,7 @@ import { formatSlot } from '../../format'
 import { usePageHeader } from '../../layout/pageHeader'
 import { BOOKING_STATUSES, GAME_STATUSES, gameStatus, statusOf } from '../../statuses'
 import { BookingPanel, GamePanel } from './panels'
+import { RemainderChip } from './RemainderChip'
 import { StadiumFilter } from '../stadiums/StadiumFilter'
 
 const PAGE_SIZE = 20
@@ -81,8 +82,11 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
     width: 170,
     // Both in the player's terms: `paidAmount` is what was paid of `price`.
     render: (b) => (
-      <span className="whitespace-nowrap" title="Toʻlangan / oʻyinchi narxi, soʻm">
-        {som(b.paidAmount)} / {som(b.price)}
+      <span className="flex flex-col items-start gap-1">
+        <span className="whitespace-nowrap" title="Toʻlangan / oʻyinchi narxi, soʻm">
+          {som(b.paidAmount)} / {som(b.price)}
+        </span>
+        <RemainderChip booking={b} />
       </span>
     ),
   },

@@ -47,6 +47,12 @@ export interface AdminBooking {
   cashReceived?: number
   /** UTC — when the owner marked it. */
   cashReceivedAt?: string
+  /** Tiyin — cash that arrived and still counts (a cash row voided by an undo does not); 0 when none. */
+  paidInCash?: number
+  /** E8 — the owner's mark on the remainder: `cash_received` | `not_paid`; absent when none. */
+  remainderMark?: string
+  /** UTC — when the mark was set; absent with no mark. */
+  remainderMarkedAt?: string
   clientName?: string
   clientPhone?: string
   isWalkin: boolean
@@ -170,6 +176,15 @@ export function listGames(filters: BookingFilters): Promise<Page<AdminGame>> {
 
 export function getGame(id: string): Promise<AdminGameDetail> {
   return api.get<AdminGameDetail>(`/api/admin/games/${id}`)
+}
+
+/**
+ * E6: the admin undoes a booking's remainder mark at any time — a `cash_received` mark's
+ * cash row is voided (status `cancelled`, not a refund) and the booking's paid amount and
+ * status go back. 409 "This booking has no remainder mark".
+ */
+export function undoRemainderMark(id: string): Promise<AdminBooking> {
+  return api.delete<AdminBooking>(`/api/admin/bookings/${id}/remainder-mark`)
 }
 
 /** The status timeline of a booking or game: its audit entries, oldest first. */

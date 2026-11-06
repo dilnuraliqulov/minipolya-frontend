@@ -1,3 +1,4 @@
+import type { RemainderState } from '../shared/payments/remainder'
 import type { BadgeTone } from './components/StatusBadge'
 
 /**
@@ -28,6 +29,20 @@ export const BOOKING_PAYMENT_STATUSES: StatusMap = {
   paid: { label: 'Toʻlangan', tone: 'success' },
 }
 
+/** Design E10: a booking's remainder chip (`remainderState` in shared/payments). */
+export const REMAINDER_CHIPS: Record<RemainderState, StatusLabel> = {
+  paidInFull: { label: 'Toʻliq toʻlangan', tone: 'success' },
+  cashReceived: { label: 'Naqd olindi', tone: 'success' },
+  notPaid: { label: 'Toʻlanmadi', tone: 'danger' },
+  remainder: { label: 'Qoldiq', tone: 'warning' },
+}
+
+/** The owner's remainder marks, for the audit log's field values. */
+export const REMAINDER_MARKS: Record<string, string> = {
+  cash_received: 'Naqd olindi',
+  not_paid: 'Toʻlanmadi',
+}
+
 export const GAME_STATUSES: StatusMap = {
   open: { label: 'Kutilmoqda', tone: 'warning' },
   confirmed: { label: 'Rejalashtirilgan', tone: 'accent' },
@@ -56,6 +71,8 @@ export const PAYMENT_STATUSES: StatusMap = {
   // In flight at the provider; the backend's reconcile job settles them.
   processing: { label: 'Jarayonda', tone: 'warning' },
   capture_pending: { label: 'Yechilmoqda', tone: 'warning' },
+  // A cash row voided when the owner or an admin undid "Naqd olindi" — never a refund.
+  cancelled: { label: 'Bekor qilingan', tone: 'neutral' },
   return_pending: { label: 'Qaytarilmoqda', tone: 'warning' },
   /** The original of a refund the provider declined: the money is still owed. */
   refund_failed: { label: 'Qaytarish oʻtmadi', tone: 'danger' },

@@ -18,6 +18,7 @@ import {
   PAYMENT_METHODS,
   PAYMENT_PROVIDERS,
   PAYMENT_STATUSES,
+  REMAINDER_MARKS,
   STADIUM_STATUSES,
   SURFACE_TYPES,
 } from '../statuses'
@@ -58,6 +59,8 @@ export const ACTION_LABELS: Record<string, string> = {
   PROMOTION_DEACTIVATED: 'Aksiyani toʻxtatdi',
   MANUAL_BOOKING_CREATED: 'Qoʻlda bron qoʻshdi',
   CASH_RECEIVED: 'Naqd pulni qabul qildi',
+  REMAINDER_NOT_PAID: 'Qoldiqni toʻlanmadi deb belgiladi',
+  REMAINDER_MARK_UNDONE: 'Qoldiq belgisini bekor qildi',
   BOOKING_CANCELLED_BY_OWNER: 'Bronni bekor qildi',
   // Player
   BOOKING_CREATED: 'Bron qildi',
@@ -148,6 +151,7 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
     ),
   },
   paidAmount: { label: 'Toʻlangan', kind: 'money' },
+  remainderMark: { label: 'Qoldiq belgisi', kind: 'enum', values: REMAINDER_MARKS },
   price: { label: 'Narx', kind: 'money' },
   totalPrice: { label: 'Umumiy narx', kind: 'money' },
   amount: { label: 'Summa', kind: 'money' },
@@ -316,6 +320,8 @@ export const TIMELINE_LABELS: Record<string, string> = {
   BOOKING_CONFIRMED: 'Tasdiqlandi',
   BOOKING_REMAINDER_PAID: 'Qoldiq toʻlandi',
   CASH_RECEIVED: 'Ega naqd pulni qabul qildi',
+  REMAINDER_NOT_PAID: 'Toʻlanmadi deb belgilandi',
+  REMAINDER_MARK_UNDONE: 'Belgi bekor qilindi',
   BOOKING_COMPLETED: 'Yakunlandi',
   BOOKING_EXPIRED: 'Muddati oʻtdi',
   BOOKING_CANCELLED_BY_USER: 'Mijoz bekor qildi',

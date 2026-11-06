@@ -1,7 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Undo2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { formatDate, formatSom, formatTimeRange, toTashkentParts } from '../../../shared/format'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
+import {
+  formatDate,
+  formatDateTime,
+  formatSom,
+  formatTimeRange,
+  toTashkentParts,
+} from '../../../shared/format'
 import {
   getBooking,
   getGame,
@@ -9,16 +17,21 @@ import {
   type AdminGameDetail,
   type AdminGameTeam,
   type GamePlayer,
+  undoRemainderMark,
 } from '../../api/bookings'
 import { StatusTimeline } from '../../audit/StatusTimeline'
 import { Avatar } from '../../components/Avatar'
+import { Button } from '../../components/Button'
+import { ConfirmModal } from '../../components/Modal'
 import { cx } from '../../components/cx'
 import { PanelRow, PanelSection, SidePanel } from '../../components/SidePanel'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
 import { StatusBadge } from '../../components/StatusBadge'
+import { useToast } from '../../components/Toast'
 import { WEEKDAYS_SHORT } from '../../format'
-import { BOOKING_STATUSES, gameStatus, GAME_TYPES, statusOf } from '../../statuses'
+import { BOOKING_STATUSES, gameStatus, GAME_TYPES, REMAINDER_MARKS, statusOf } from '../../statuses'
+import { RemainderChip } from './RemainderChip'
 
 const linkClass =
   'rounded-xs text-link hover:underline focus-visible:outline-2 focus-visible:outline-accent'
@@ -68,19 +81,29 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
   })
   const b = booking.data
   const status = b && statusOf(BOOKING_STATUSES, b.status)
-
-  let paymentNote: ReactNode = null
-  if (b) {
-    if (b.remainingAmount > 0) {
-      paymentNote = (
-        <StatusBadge tone="warning">{formatSom(b.remainingAmount)} toʻlanmagan</StatusBadge>
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [undoing, setUndoing] = useState(false)
+  // E6: the admin may undo the owner's mark at any time.
+  const undo = useMutation({
+    mutationFn: () => undoRemainderMark(id),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['admin', 'bookings', 'detail', id], updated)
+      toast.success('Belgi bekor qilindi')
+    },
+    onError: (error) => {
+      toast.error(
+        isApiError(error) && error.message === API_MESSAGES.noRemainderMark
+          ? 'Bu bronda belgi yoʻq — u allaqachon bekor qilingan'
+          : 'Belgini bekor qilib boʻlmadi. Qayta urinib koʻring',
       )
-    } else if (b.cashReceived) {
-      paymentNote = <StatusBadge tone="success">Egasi qabul qildi</StatusBadge>
-    } else {
-      paymentNote = <StatusBadge tone="success">Toʻliq toʻlangan</StatusBadge>
-    }
-  }
+    },
+    onSettled: () => {
+      setUndoing(false)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+    },
+  })
+  const mark = b?.remainderMark
 
   return (
     <SidePanel
@@ -137,13 +160,33 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
               <PanelRow label="Qolgan summa">
                 <span className="flex flex-wrap items-center gap-2">
                   {formatSom(b.remainingAmount)}
-                  {paymentNote}
+                  <RemainderChip booking={b} />
                 </span>
               </PanelRow>
               <PanelRow label="Egasiga tushadi">{amount(b.ownerReceives)}</PanelRow>
               <PanelRow label="ATMOS komissiyasi">{amount(b.atmosFee)}</PanelRow>
             </dl>
           </PanelSection>
+
+          {mark && (
+            <PanelSection title="Qoldiq belgisi">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-base font-medium text-primary">
+                    {REMAINDER_MARKS[mark] ?? mark}
+                  </span>
+                  {b.remainderMarkedAt && (
+                    <span className="text-sm text-secondary">
+                      Ega belgiladi: {formatDateTime(b.remainderMarkedAt)}
+                    </span>
+                  )}
+                </span>
+                <Button variant="secondary" icon={Undo2} onClick={() => setUndoing(true)}>
+                  Belgini bekor qilish
+                </Button>
+              </div>
+            </PanelSection>
+          )}
 
           {b.cancellationReason && (
             <PanelSection title="Bekor qilish sababi">
@@ -160,6 +203,21 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
               error={timeline.isError}
             />
           </PanelSection>
+          <ConfirmModal
+            open={undoing}
+            title="Belgini bekor qilish"
+            message={
+              mark === 'cash_received'
+                ? 'Egasining «Naqd olindi» belgisi bekor qilinadi: naqd toʻlov yozuvi bekor qilinadi (pul qaytarilmaydi) va bronning qoldigʻi qayta ochiladi.'
+                : 'Egasining «Toʻlanmadi» belgisi bekor qilinadi. Bronning qoldigʻi oʻzgarmaydi.'
+            }
+            confirmLabel="Belgini bekor qilish"
+            busy={undo.isPending}
+            onConfirm={() => undo.mutate()}
+            onClose={() => {
+              if (!undo.isPending) setUndoing(false)
+            }}
+          />
         </>
       )}
     </SidePanel>
