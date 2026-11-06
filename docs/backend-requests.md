@@ -546,6 +546,8 @@ Medium — an owner who tries deposits is stuck with them.
 
 **Shipped as** — as proposed.
 
+**Superseded** (2026-11-06, add-stadium rework D2/D3, backend `a8e66d4` / `010da76`): the owner no longer edits booking terms at all — `clearMinBookingAmount`, `minBookingAmount` and `cancellationHours` are ignored on the owner's requests, and an admin sets them with `PUT /api/admin/stadiums/{id}/booking-terms` (`minBookingAmount: null` = full payment). The Mini App shows them read-only.
+
 ### R39 — The owner's contract and payout status _(shipped in `74c8d41`)_
 
 **What's needed**
@@ -632,6 +634,8 @@ Error cases — 400 `"Unsupported image type"`, 413 `"File too large"`; 403; 404
 Medium — stadiums can be created without photos; players see the logo instead.
 
 **Shipped as** — magic-byte check (JPEG/PNG/WebP) → 400 "Unsupported image type"; > 10 MB → 413 "File too large"; at most 10 → 400 "A stadium can have at most 10 photos". Stored under `UPLOADS_DIR` and served publicly at `GET /api/uploads/stadiums/{stadiumId}/{file}` (the stored `url` is that relative path — the Mini App shows it through `mediaUrl`). Also `DELETE …/photos/{photoId}` ("Photo deleted", 404 "Photo not found") and `PUT …/photos/order` `{ photoIds }` (every photo exactly once, else 400 "photoIds must list every photo of the stadium exactly once") → `PhotoResponse[]`; the first is the cover. Audited `STADIUM_UPDATED`.
+
+**Changed** (2026-11-06, add-stadium rework D5/D6, backend `7cf837a`): ≤ **5 MB** (413 "File too large"), re-encoded to JPEG (≤ 2000 px, quality 0.85, no EXIF), 400 "Image is too large" over 40 megapixels, and open to any signed-in user for their own stadium. The `photos` URL list left the create/update requests. The Mini App downscales on the device before uploading.
 
 ### R35 — The owner's own stadium detail _(shipped in `bcb73a2`)_
 

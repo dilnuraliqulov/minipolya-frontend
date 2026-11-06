@@ -56,7 +56,7 @@ src/
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
 │   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen
-│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, prices, closures), Hisobot, Profil, add-stadium wizard
+│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, facilities, photos, prices, closures, read-only terms), Hisobot, Profil; wizard/ = Maydon qoʻshish (6 steps); stadiumRules.ts mirrors the backend StadiumRules
 │   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
 │   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
@@ -83,7 +83,7 @@ src/
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
 │   ├── brand/        #   logoMark.ts, logo-mark.svg (LogoMark, LogoSpinner, favicon)
 │   ├── format/       #   formatSom, soʻm input ⇄ tiyin, Tashkent date/time helpers, tashkentToday
-│   ├── map/          #   mapLink (OpenStreetMap "Xaritada ochish" link)
+│   ├── map/          #   mapLink (OSM), yandexMapsLink / googleMapsLink, parseMapLink, isInUzbekistan
 │   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
 └── test/setup.ts     # Vitest setup
 ```
@@ -119,8 +119,10 @@ plain browser; the page still renders and follows the computer's theme.
   `somToTiyin` (whole soʻm) or `somInputToTiyin` / `tiyinToSomInput` (up to two
   decimals, no rounding). **Dates:** `formatDate`, `formatTime`,
   `formatDateTime`, `formatTimeRange`, `toTashkentParts` (`dayOfWeek` 0 =
-  Monday), `tashkentToday` from `shared/format`. **Map links:** `mapLink` from
-  `shared/map`.
+  Monday), `tashkentToday` from `shared/format`. **Map links:** `mapLink`,
+  `yandexMapsLink`, `googleMapsLink` and `parseMapLink` (a pasted Google / Yandex
+  link → coordinates) from `shared/map`. **Uploads with progress:**
+  `uploadWithProgress` (XHR, same base URL and token) from `shared/api`.
 - **Endpoint types** go next to the feature that uses them, not in `shared/api`.
 - **JWT claims:** `readJwtClaims` / `isJwtExpired` from `shared/api` — for
   client decisions only (skip an expired token, notice role changes); the
