@@ -82,7 +82,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.paymentPending` | Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi. | Платёж подтверждается. Результат придёт в уведомлении. | Your payment is being confirmed. You'll get the result in a notification. |
 | `errors.hasOpponent` | Bu oʻyinga raqib allaqachon topilgan. | У этой игры уже есть соперник. | This game already has an opponent. |
 | `errors.onlyLeaderJoins` | Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi. | Принять вызов может только капитан команды — он платит за команду. | Only the team captain can accept a challenge — they pay for the team. |
-| `errors.minimumTooLow` | Oldindan toʻlov kamida 500 soʻm boʻlishi kerak. | Предоплата должна быть не меньше 500 сум. | The deposit must be at least 500 soʻm. |
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
 | `errors.tooManyPhotos` | Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin. | У поля может быть не больше 10 фото. | A pitch can have at most 10 photos. |
@@ -553,9 +552,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.field.close` | Yopilish | Закрытие | Closes |
 | `owner.field.price` | Soatlik narx (soʻm) | Цена за час (сум) | Price per hour (soʻm) |
 | `owner.field.priceHint` | Oʻyinchilar uchun narx karta toʻlovi bilan biroz yuqoriroq koʻrinadi. | Игроки увидят цену немного выше — с учётом оплаты картой. | Players see a slightly higher price that covers the card payment. |
-| `owner.field.minimum` | Oldindan toʻlov (soʻm, ixtiyoriy) | Предоплата (сум, необязательно) | Deposit (soʻm, optional) |
-| `owner.field.minimumHint` | Boʻsh qolsa — faqat toʻliq toʻlov. Kamida 500 soʻm. | Пусто — только полная оплата. Минимум 500 сум. | Empty means full payment only. At least 500 soʻm. |
-| `owner.field.cancelHours` | Bepul bekor qilish (soat) | Бесплатная отмена (часов) | Free cancellation (hours) |
 | `owner.field.day` | Kun | День | Day |
 | `owner.field.from` | Dan | С | From |
 | `owner.field.to` | Gacha | До | To |
@@ -566,7 +562,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.field.clientPhone` | Mijoz telefoni | Телефон клиента | Client phone |
 | `owner.field.time` | Vaqt | Время | Time |
 | `owner.field.cashPaid` | Naqd toʻlandi | Оплачено наличными | Paid in cash |
-| `owner.field.hoursUnit` | {{count}} soat | {{count}} ч | {{count}} h |
 | `owner.field.descriptionPlaceholder` | Masalan: kirish joyi, oʻyin qoidalari, boshqa qulayliklar | Например: где вход, правила игры, другие удобства | For example: where the entrance is, house rules, other facilities |
 | `owner.field.landmark` | Moʻljal (ixtiyoriy) | Ориентир (необязательно) | Landmark (optional) |
 | `owner.field.landmarkPlaceholder` | Masalan: Novza metro bekati yonida | Например: рядом с метро «Новза» | For example: next to Novza metro station |
@@ -580,9 +575,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.prices.player` | Oʻyinchiga: {{price}} | Для игрока: {{price}} | For players: {{price}} |
 | `owner.prices.added` | Narx qoidasi qoʻshildi | Правило добавлено | Price rule added |
 | `owner.prices.removed` | Narx qoidasi oʻchirildi | Правило удалено | Price rule removed |
-| `owner.prices.minimum` | Oldindan toʻlov | Предоплата | Deposit |
-| `owner.prices.minimumField` | Eng kam toʻlov (soʻm) | Минимальная оплата (сум) | Minimum payment (soʻm) |
-| `owner.prices.minimumText` | Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada. | При бронировании игрок платит не меньше этой суммы, остальное позже. Не меньше 500 сум. Текущее значение пока не показывается — скоро. | Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon. |
 | `owner.prices.edit` | Narx qoidasini oʻzgartirish | Изменить правило цены | Edit price rule |
 | `owner.prices.updated` | Narx qoidasi saqlandi | Правило цены сохранено | Price rule saved |
 | `owner.prices.editBase` | Asosiy narxni oʻzgartirish | Изменить базовую цену | Change the base price |
@@ -652,21 +644,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.profile.count` | {{count}} ta | {{count}} | {{count}} |
 | `owner.profile.switchStadium` | Maydonni tanlang | Выберите поле | Choose a pitch |
 | `owner.wizard.title` | Maydon qoʻshish | Добавить поле | Add a pitch |
-| `owner.wizard.step` | {{n}}-qadam / {{total}} · {{name}} | Шаг {{n}} из {{total}} · {{name}} | Step {{n}} of {{total}} · {{name}} |
-| `owner.wizard.basics` | Asosiy | Основное | Basics |
-| `owner.wizard.place` | Manzil | Адрес | Location |
-| `owner.wizard.hours` | Ish vaqti | Часы работы | Opening hours |
-| `owner.wizard.price` | Narx va shartlar | Цена и условия | Price and terms |
-| `owner.wizard.review` | Koʻrib chiqish | Проверка | Review |
 | `owner.wizard.next` | Davom etish | Продолжить | Continue |
-| `owner.wizard.back` | Ortga | Назад | Back |
 | `owner.wizard.submit` | Tekshiruvga yuborish | Отправить на проверку | Send for review |
-| `owner.wizard.photosSoon` | Rasmlarni maydon yuborilgach, Maydonim → Rasmlar boʻlimida yuklaysiz. | Фото загрузите после отправки поля, в разделе Моё поле → Фото. | Upload photos after sending the pitch, in My pitch → Photos. |
-| `owner.wizard.hoursError` | Yopilish vaqti ochilishdan keyin boʻlishi kerak. | Время закрытия должно быть позже открытия. | Closing time must be after opening time. |
 | `owner.wizard.sentTitle` | Arizangiz qabul qilindi | Заявка принята | Application received |
 | `owner.wizard.sentText` | Barcha rasmlar yuklandi. Administrator maydoningizni tekshirib, siz bilan telefon orqali bogʻlanadi. | Все фото загружены. Администратор проверит поле и свяжется с вами по телефону. | All photos are uploaded. An administrator will review your pitch and call you. |
 | `owner.wizard.toStadium` | Maydonimni koʻrish | Посмотреть моё поле | View my pitch |
-| `owner.wizard.onTheHour` | Vaqt butun soatda boʻlishi kerak (masalan, 08:00). | Время должно быть ровно в начале часа (например, 08:00). | Times must be on the hour (e.g. 08:00). |
 | `owner.wizard.toProfile` | Profilga qaytish | Вернуться в профиль | Back to Profile |
 | `owner.wizard.progress` | {{n}}/{{total}} · {{name}} | {{n}}/{{total}} · {{name}} | {{n}}/{{total}} · {{name}} |
 | `owner.wizard.progressLabel` | {{total}} qadamdan {{n}}-qadam | Шаг {{n}} из {{total}} | Step {{n}} of {{total}} |
@@ -771,14 +753,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.hours.note` | Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping. | Почасовые брони открываются в этом промежутке. Отдельные дни закрывайте в разделе «Закрытые дни». | Hourly bookings open within these hours. Close single days in “Closed days”. |
 | `owner.hours.saved` | Ish vaqti saqlandi | Часы работы сохранены | Opening hours saved |
 | `owner.terms.minimum` | Oldindan toʻlov | Предоплата | Deposit |
-| `owner.terms.minimumOn` | Oʻyinchi band qilishda kamida shu summani oldindan toʻlaydi, qolganini keyin. | При бронировании игрок платит не меньше этой суммы, остальное — потом. | When booking, the player pays at least this amount up front and the rest later. |
-| `owner.terms.minimumOff` | Minimum yoʻq — oʻyinchi band qilishda toʻliq toʻlaydi. | Без минимума — игрок платит полностью при бронировании. | No minimum — the player pays in full when booking. |
 | `owner.terms.playerPays` | Oʻyinchilar uchun: {{amount}} | Для игроков: {{amount}} | Players pay: {{amount}} |
-| `owner.terms.cancelTitle` | Bekor qilish muddati | Срок отмены | Cancellation period |
-| `owner.terms.cancelText` | Oʻyin boshlanishiga shuncha soat qolguncha bekor qilinsa, toʻlov toʻliq qaytariladi. | Если отменить не позже чем за столько часов до игры, оплата возвращается полностью. | Cancelled at least this many hours before the game, the payment is refunded in full. |
-| `owner.terms.hours` | {{count}} soat | {{count}} ч | {{count}} h |
-| `owner.terms.less` | Bir soat kamroq | На час меньше | One hour less |
-| `owner.terms.more` | Bir soat koʻproq | На час больше | One hour more |
 | `owner.terms.title` | Bron shartlari | Условия бронирования | Booking terms |
 | `owner.terms.agreed` | Platforma bilan kelishilgan | Согласованы с платформой | Agreed with the platform |
 | `owner.terms.full` | Toʻliq toʻlov | Полная оплата | Full payment |
@@ -787,7 +762,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.terms.note` | Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing. | Предоплату и условия отмены согласовывают с платформой по телефону. Чтобы изменить их, напишите нам. | The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us. |
 | `owner.terms.support` | Qoʻllab-quvvatlashga yozish | Написать в поддержку | Write to support |
 | `owner.photos.text` | Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova. | От 3 до 10 фото. Первое — обложка. | 3 to 10 photos. The first is the cover. |
-| `owner.photos.upload` | Rasm yuklash | Загрузить фото | Upload a photo |
 | `owner.photos.uploaded` | Rasm yuklandi | Фото загружено | Photo uploaded |
 | `owner.photos.deleted` | Rasm oʻchirildi | Фото удалено | Photo deleted |
 | `owner.photos.emptyTitle` | Hozircha rasm yoʻq | Фото пока нет | No photos yet |
@@ -798,7 +772,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.photos.delete` | {{n}}-rasmni oʻchirish | Удалить фото {{n}} | Delete photo {{n}} |
 | `owner.photos.left` | {{n}}-rasmni chapga surish | Сдвинуть фото {{n}} влево | Move photo {{n}} left |
 | `owner.photos.right` | {{n}}-rasmni oʻngga surish | Сдвинуть фото {{n}} вправо | Move photo {{n}} right |
-| `owner.photos.limits` | {{count}} / {{max}} · JPG, PNG yoki WebP, 10 MB gacha | {{count}} / {{max}} · JPG, PNG или WebP, до 10 МБ | {{count}} / {{max}} · JPG, PNG or WebP, up to 10 MB |
 | `owner.photos.add` | Rasm qoʻshish | Добавить фото | Add a photo |
 | `owner.photos.hint` | JPG, PNG yoki WebP · har biri 5 MB gacha | JPG, PNG или WebP · до 5 МБ каждое | JPG, PNG or WebP · up to 5 MB each |
 | `owner.photos.counter` | {{count}}/{{max}} | {{count}}/{{max}} | {{count}}/{{max}} |
@@ -809,6 +782,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.photos.progress` | {{percent}}% | {{percent}}% | {{percent}}% |
 | `owner.photos.failed` | Yuklanmadi | Не загружено | Not uploaded |
 | `owner.photos.retry` | {{n}}-rasmni qayta yuklash | Загрузить фото {{n}} снова | Upload photo {{n}} again |
+| `owner.photos.makeCoverN` | {{n}}-rasmni muqova qilish | Сделать фото {{n}} обложкой | Make photo {{n}} the cover |
 | `owner.rules.nameLength` | Nomi 3 dan 150 belgigacha boʻlsin | Название — от 3 до 150 символов | The name must be 3 to 150 characters |
 | `owner.rules.addressLength` | Manzil 5 dan 300 belgigacha boʻlsin | Адрес — от 5 до 300 символов | The address must be 5 to 300 characters |
 | `owner.rules.districtRequired` | Tumanni tanlang | Выберите район | Choose a district |

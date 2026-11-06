@@ -1,6 +1,6 @@
-import { api, type Page } from '../../shared/api'
+import { api, uploadWithProgress, type Page } from '../../shared/api'
 import type { Booking } from './bookings'
-import type { Review } from './stadiums'
+import type { Amenities, Review } from './stadiums'
 
 /** `StadiumResponse` in the owner's view — the owner's own prices (§1.10). */
 export interface OwnerStadium {
@@ -19,6 +19,8 @@ export interface OwnerStadium {
   status: string
   /** Why a stadium is rejected or blocked. */
   statusReason?: string
+  /** "Moʻljal". */
+  landmark?: string
   isActive?: boolean
   averageRating?: number
   reviewCount?: number
@@ -128,33 +130,49 @@ export interface StadiumBasics {
   surfaceType?: string
 }
 
-/** `PUT /api/owner/stadiums/{id}`: only non-null fields change. */
+/**
+ * `PUT /api/owner/stadiums/{id}`: only non-null fields change, each checked like on
+ * create. Booking terms are the admin's (design D2/D3) and photos go through the upload.
+ */
 export interface UpdateStadiumBody extends StadiumBasics {
-  /** Tiyin, the owner's own base hourly price. */
+  /** `+998XXXXXXXXX`. */
+  phone?: string
+  /** At most 500 characters. */
+  description?: string
+  /** At most 150 characters; blank clears it. */
+  landmark?: string
+  /** Both or neither, inside Uzbekistan. */
+  latitude?: number
+  longitude?: number
+  /** Tiyin, the owner's own base hourly price: 1 000 000–500 000 000. */
   pricePerHour?: number
-  /** Tiyin, the owner's amount; at least 50 000. */
-  minBookingAmount?: number
-  /** R41: true sets "full payment only" (no minimum); never together with minBookingAmount. */
-  clearMinBookingAmount?: boolean
-  /** `"09:00:00"` — whole hours. */
+  /** `"09:00:00"` — whole hours, close after open. */
   openTime?: string
   closeTime?: string
-  cancellationHours?: number
+  /** The whole block replaces the old one: send all twelve flags. */
+  amenities?: Amenities
 }
 
-export interface CreateStadiumBody extends Required<
-  Pick<StadiumBasics, 'name' | 'address' | 'format' | 'surfaceType'>
-> {
-  district?: string
-  phone?: string
+/** `POST /api/owner/stadiums` (design D1, D8–D15). */
+export interface CreateStadiumBody {
+  name: string
+  address: string
+  /** One of `DISTRICTS`. */
+  district: string
+  landmark?: string
+  latitude: number
+  longitude: number
+  /** `+998XXXXXXXXX`. */
+  phone: string
   description?: string
+  format: string
+  surfaceType: string
   /** `"09:00:00"` */
   openTime: string
   closeTime: string
-  /** Tiyin. */
+  /** Tiyin, the owner's own price. */
   pricePerHour: number
-  minBookingAmount?: number
-  cancellationHours?: number
+  amenities: Amenities
 }
 
 export const OWNER_STADIUMS = 'GET /api/owner/stadiums'
@@ -320,6 +338,9 @@ export interface OwnerStadiumDetail extends OwnerStadium {
   playerMinBookingAmount?: number
   cancellationPolicy?: { cancellationHours: number }
   photos?: StadiumPhoto[]
+  latitude?: number
+  longitude?: number
+  amenities?: Amenities
 }
 
 export const ownerStadiumKey = (id: string) => ['owner', 'stadium', id] as const
@@ -328,11 +349,22 @@ export function getOwnerStadium(id: string): Promise<OwnerStadiumDetail> {
   return api.get<OwnerStadiumDetail>(`/api/owner/stadiums/${id}`)
 }
 
-/** R36: JPEG/PNG/WebP up to 10 MB, at most 10 per stadium; goes last. */
-export function uploadStadiumPhoto(stadiumId: string, file: File): Promise<StadiumPhoto> {
+/**
+ * R36 / D5: JPEG/PNG/WebP up to 5 MB, at most 10 per stadium; goes last. Any
+ * signed-in user for their own stadium (D6). `onProgress` gets 0–1 as it uploads.
+ */
+export function uploadStadiumPhoto(
+  stadiumId: string,
+  file: Blob,
+  onProgress?: (fraction: number) => void,
+  signal?: AbortSignal,
+): Promise<StadiumPhoto> {
   const body = new FormData()
-  body.append('file', file)
-  return api.post<StadiumPhoto>(`/api/owner/stadiums/${stadiumId}/photos`, body)
+  body.append('file', file, file instanceof File ? file.name : 'photo.jpg')
+  return uploadWithProgress<StadiumPhoto>(`/api/owner/stadiums/${stadiumId}/photos`, body, {
+    onProgress,
+    signal,
+  })
 }
 
 export function deleteStadiumPhoto(stadiumId: string, photoId: string): Promise<null> {

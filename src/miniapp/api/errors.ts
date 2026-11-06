@@ -22,8 +22,19 @@ export type ErrorMessageKey =
   | 'errors.tooMany'
   | 'errors.alreadyReviewed'
   | 'errors.reviewNotPlayed'
-  | 'errors.minimumTooLow'
   | 'errors.imageType'
+  | 'errors.imageTooLarge'
+  | 'errors.nameLength'
+  | 'errors.addressLength'
+  | 'errors.districtRequired'
+  | 'errors.phoneFormat'
+  | 'errors.descriptionLength'
+  | 'errors.landmarkLength'
+  | 'errors.locationRequired'
+  | 'errors.outsideUzbekistan'
+  | 'errors.priceRange'
+  | 'errors.onTheHour'
+  | 'errors.hoursOrder'
   | 'errors.tooManyPhotos'
   | 'errors.fileTooLarge'
   | 'errors.cardDeclined'
@@ -61,6 +72,23 @@ const CARD_CODES: Record<string, ErrorMessageKey> = {
   // R44: a refused card payment (team-game 400s). CARD_EXPIRED above reads the same.
   [API_CODES.cardDeclined]: 'errors.cardDeclined',
   [API_CODES.insufficientFunds]: 'errors.insufficientFunds',
+}
+
+/** The 400s of `POST` / `PUT /api/owner/stadiums` (backend `StadiumRules`) → their text. */
+const STADIUM_MESSAGES: Record<string, ErrorMessageKey> = {
+  [API_MESSAGES.stadiumNameLength]: 'errors.nameLength',
+  [API_MESSAGES.stadiumAddressLength]: 'errors.addressLength',
+  [API_MESSAGES.stadiumDistrictRequired]: 'errors.districtRequired',
+  [API_MESSAGES.invalidDistrict]: 'errors.districtRequired',
+  [API_MESSAGES.stadiumPhoneFormat]: 'errors.phoneFormat',
+  [API_MESSAGES.stadiumDescriptionLength]: 'errors.descriptionLength',
+  [API_MESSAGES.stadiumLandmarkLength]: 'errors.landmarkLength',
+  [API_MESSAGES.stadiumLocationRequired]: 'errors.locationRequired',
+  [API_MESSAGES.stadiumLocationPair]: 'errors.locationRequired',
+  [API_MESSAGES.stadiumOutsideUzbekistan]: 'errors.outsideUzbekistan',
+  [API_MESSAGES.stadiumPriceRange]: 'errors.priceRange',
+  [API_MESSAGES.stadiumHoursOnTheHour]: 'errors.onTheHour',
+  [API_MESSAGES.stadiumHoursOrder]: 'errors.hoursOrder',
 }
 
 /**
@@ -113,11 +141,15 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       // POST /api/reviews: two 400s the review form tells apart.
       if (error.message === API_MESSAGES.alreadyReviewed) return 'errors.alreadyReviewed'
       if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
-      // Owner stadium forms: the minimum booking amount's floor.
-      if (error.message === API_MESSAGES.minimumTooLow) return 'errors.minimumTooLow'
       // Stadium photo upload.
       if (error.message === API_MESSAGES.unsupportedImage) return 'errors.imageType'
       if (error.message === API_MESSAGES.tooManyPhotos) return 'errors.tooManyPhotos'
+      if (error.message === API_MESSAGES.imageTooLarge) return 'errors.imageTooLarge'
+      {
+        // Owner stadium forms (create / update): the backend's StadiumRules.
+        const stadiumKey = STADIUM_MESSAGES[error.message]
+        if (stadiumKey) return stadiumKey
+      }
       // Team games: a declined card and the 3-hour cut-off are 400s too.
       if (
         error.message === API_MESSAGES.joinDeclined ||

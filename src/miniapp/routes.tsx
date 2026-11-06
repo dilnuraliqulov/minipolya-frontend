@@ -15,9 +15,10 @@ import { ProfilePage } from './profile/ProfilePage'
 import { FavoritesPage } from './stadiums/FavoritesPage'
 import { ReviewsPage } from './stadiums/ReviewsPage'
 import { StadiumPage } from './stadiums/StadiumPage'
-import { AddStadiumPage } from './owner/AddStadiumPage'
+import { AddStadiumPage } from './owner/wizard/AddStadiumPage'
 import { OwnerClosuresPage } from './owner/OwnerClosuresPage'
 import { OwnerContractPage } from './owner/OwnerContractPage'
+import { OwnerFacilitiesPage } from './owner/OwnerFacilitiesPage'
 import { OwnerHoursPage } from './owner/OwnerHoursPage'
 import { OwnerInfoPage } from './owner/OwnerInfoPage'
 import { OwnerPhotosPage } from './owner/OwnerPhotosPage'
@@ -179,6 +180,7 @@ const screens: RouteObject[] = [
       ['/owner', <OwnerSchedulePage />],
       ['/owner/stadium', <OwnerStadiumPage />],
       ['/owner/stadium/:id/info', <OwnerInfoPage />],
+      ['/owner/stadium/:id/facilities', <OwnerFacilitiesPage />],
       ['/owner/stadium/:id/prices', <OwnerPricesPage />],
       ['/owner/stadium/:id/closures', <OwnerClosuresPage />],
       ['/owner/stadium/:id/reviews', <OwnerReviewsPage />],

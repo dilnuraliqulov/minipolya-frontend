@@ -8,16 +8,13 @@ import {
   updateStadium,
   type OwnerStadiumDetail,
 } from '../api/owner'
-import { BottomBar, Button, Input, Screen, useToast } from '../components'
+import { BottomBar, Button, Screen, useToast } from '../components'
 import { useGoBack } from '../lib/useGoBack'
 import { OwnerDetailPage } from './OwnerDetailPage'
+import { HourStepper } from './StadiumFields'
+import { checkHours, hourLabel, hourToTime, timeToHour } from './stadiumRules'
 
-/** `"08:00:00"` → `"08:00"` */
-const hhmm = (time: string) => time.slice(0, 5)
-/** Bookings start on the hour, so opening hours must too. */
-const onTheHour = (time: string) => time.endsWith(':00')
-
-/** Maydonim → Ish vaqti: opening and closing time (PUT /api/owner/stadiums/{id}). */
+/** Maydonim → Ish vaqti: opening and closing hour, whole hours (D14, D15). */
 export function OwnerHoursPage() {
   const { t } = useTranslation()
   return (
@@ -33,19 +30,14 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
   const toast = useToast()
   const goBack = useGoBack('/owner/stadium')
   const queryClient = useQueryClient()
-  const [open, setOpen] = useState(hhmm(stadium.openTime))
-  const [close, setClose] = useState(hhmm(stadium.closeTime))
-  const error =
-    open >= close
-      ? t('owner.wizard.hoursError')
-      : !onTheHour(open) || !onTheHour(close)
-        ? t('owner.wizard.onTheHour')
-        : undefined
+  const [open, setOpen] = useState(timeToHour(stadium.openTime))
+  const [close, setClose] = useState(timeToHour(stadium.closeTime))
+  const rule = checkHours(open, close)
   const save = useMutation({
     mutationFn: () =>
-      updateStadium(stadium.id, { openTime: `${open}:00`, closeTime: `${close}:00` }),
+      updateStadium(stadium.id, { openTime: hourToTime(open), closeTime: hourToTime(close) }),
     onSuccess: () => {
-      toast.show(t('owner.saved'), 'success')
+      toast.show(t('owner.hours.saved'), 'success')
       void queryClient.invalidateQueries({ queryKey: ownerStadiumKey(stadium.id) })
       void queryClient.invalidateQueries({ queryKey: OWNER_STADIUMS_KEY })
       goBack()
@@ -59,7 +51,7 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
         <BottomBar>
           <Button
             haptic
-            disabled={Boolean(error)}
+            disabled={rule !== null}
             loading={save.isPending}
             onClick={() => save.mutate()}
           >
@@ -68,23 +60,24 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
         </BottomBar>
       }
     >
-      <div className="grid grid-cols-2 gap-3">
-        <Input
-          label={t('owner.field.open')}
-          type="time"
-          step={3600}
-          value={open}
-          onChange={(e) => setOpen(e.target.value)}
-        />
-        <Input
-          label={t('owner.field.close')}
-          type="time"
-          step={3600}
-          value={close}
-          onChange={(e) => setClose(e.target.value)}
-          error={error}
-        />
+      <div className="flex gap-3">
+        <HourStepper label={t('owner.wizard.open')} value={open} max={22} onChange={setOpen} />
+        <HourStepper label={t('owner.wizard.close')} value={close} min={1} onChange={setClose} />
       </div>
+      {rule ? (
+        <p role="alert" className="text-sm text-danger">
+          {t(rule)}
+        </p>
+      ) : (
+        <p className="text-sm font-medium text-primary">
+          {t('owner.wizard.everyDayHours', {
+            open: hourLabel(open),
+            close: hourLabel(close),
+            count: close - open,
+          })}
+        </p>
+      )}
+      <p className="text-xs text-secondary">{t('owner.wizard.hoursNote')}</p>
       <p className="text-sm text-secondary">{t('owner.hours.note')}</p>
     </Screen>
   )

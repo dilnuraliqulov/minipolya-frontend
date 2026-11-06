@@ -86,11 +86,46 @@ export const API_MESSAGES = {
   unsupportedImage: 'Unsupported image type',
   /** 400 from `POST /api/owner/stadiums/{id}/photos`: the stadium already has 10 photos. */
   tooManyPhotos: 'A stadium can have at most 10 photos',
+  /** 400 from `POST /api/owner/stadiums/{id}/photos`: over 40 megapixels (decompression-bomb guard). */
+  imageTooLarge: 'Image is too large',
+  // Stadium create / update (`StadiumRules`, design D1 and D10–D15). Create checks in this order.
+  /** 400: `name` trimmed outside 3–150 characters. */
+  stadiumNameLength: 'name must be between 3 and 150 characters',
+  /** 400: `address` trimmed outside 5–300 characters. */
+  stadiumAddressLength: 'address must be between 5 and 300 characters',
+  /** 400 on create without a district. */
+  stadiumDistrictRequired: 'district is required',
+  /** 400: not one of the twelve districts. */
+  invalidDistrict: 'Invalid district',
+  /** 400: the stadium's phone is not `+998XXXXXXXXX`. */
+  stadiumPhoneFormat: 'phone must be in the format +998XXXXXXXXX',
+  /** 400: `description` over 500 characters. */
+  stadiumDescriptionLength: 'description must be at most 500 characters',
+  /** 400: `landmark` over 150 characters. */
+  stadiumLandmarkLength: 'landmark must be at most 150 characters',
+  /** 400 on create without coordinates. */
+  stadiumLocationRequired: 'latitude and longitude are required',
+  /** 400 on update with only one coordinate. */
+  stadiumLocationPair: 'Send both latitude and longitude',
+  /** 400: outside lat 37.1–45.6, lon 55.9–73.2. */
+  stadiumOutsideUzbekistan: 'Location must be inside Uzbekistan',
+  /** 400: `pricePerHour` outside 1 000 000–500 000 000 tiyin. */
+  stadiumPriceRange: "pricePerHour must be between 10 000 and 5 000 000 so'm",
+  /** 400: an opening or closing time off the hour (D15). */
+  stadiumHoursOnTheHour: 'openTime and closeTime must be on the hour',
+  /** 400: closing not after opening; closing after midnight is not supported (D14). */
+  stadiumHoursOrder: 'closeTime must be after openTime; closing after midnight is not supported',
+  /** 400 from `PUT /api/admin/stadiums/{id}/booking-terms`: a minimum above the owner's hourly price. */
+  minimumAbovePrice: 'minBookingAmount must not be more than pricePerHour',
+  /** 400 from `PUT /api/admin/stadiums/{id}/booking-terms`: hours outside 0–168. */
+  cancellationHoursRange: 'cancellationHours must be between 0 and 168',
+  /** 400 from `PUT /api/admin/stadiums/{id}/status` approving a stadium with fewer than 3 photos. */
+  tooFewPhotos: 'A stadium needs at least 3 photos to be approved',
   /** 400 from `POST /api/reviews` when the caller already reviewed this stadium. */
   alreadyReviewed: 'You have already reviewed this stadium',
   /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
   reviewNotPlayed: 'You can only review a stadium you have played at',
-  /** 400 from `POST` / `PUT /api/owner/stadiums` when `minBookingAmount` is under the 50 000-tiyin floor. */
+  /** 400 from `PUT /api/admin/stadiums/{id}/booking-terms` when `minBookingAmount` is under the 50 000-tiyin floor. */
   minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
   /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
   joinTooLate: "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",

@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Plus,
   ShieldCheck,
+  Sparkles,
   Tag,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -110,6 +111,12 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
           label={t('owner.section.info')}
           sub={t('owner.section.infoText')}
           onClick={() => navigate(`${base}/info`)}
+        />
+        <ListRow
+          icon={Sparkles}
+          label={t('owner.section.facilities')}
+          sub={t('owner.section.facilitiesText')}
+          onClick={() => navigate(`${base}/facilities`)}
         />
         <ListRow
           icon={Tag}

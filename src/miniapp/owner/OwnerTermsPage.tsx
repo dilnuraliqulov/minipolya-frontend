@@ -1,143 +1,94 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Minus, Plus } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Clock, MessageCircle, ShieldCheck, Wallet } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { somToTiyin } from '../../shared/format'
-import { errorMessage } from '../api/errors'
-import {
-  OWNER_STADIUMS_KEY,
-  ownerStadiumKey,
-  updateStadium,
-  type OwnerStadiumDetail,
-} from '../api/owner'
-import { BottomBar, Button, Card, Input, Screen, Switch, useToast } from '../components'
+import type { OwnerStadiumDetail } from '../api/owner'
+import { Badge, Button, Card, Screen } from '../components'
 import { formatMoney } from '../format'
-import { useGoBack } from '../lib/useGoBack'
+import { openSupport, supportUsername } from '../telegram'
 import { OwnerDetailPage } from './OwnerDetailPage'
 
-/** Up to 999 999 999 soʻm. */
-const moneyInput = (value: string) => value.replace(/\D/g, '').slice(0, 9)
-const MAX_HOURS = 168
+/** The backend's default for a stadium whose terms an admin has not set (D4). */
+const DEFAULT_CANCELLATION_HOURS = 24
 
 /**
- * Maydonim → Bron shartlari: the minimum the player pays when booking ("Minimum
- * yoʻq" = full payment, R41) with what players pay for it from the API, and the
- * cancellation hours.
+ * Maydonim → Bron shartlari, read-only (D21): the deposit (or full payment) and
+ * the free-cancellation hours are agreed with the platform by phone and set by
+ * an admin. Shown exactly as the API returns them.
  */
 export function OwnerTermsPage() {
   const { t } = useTranslation()
   return (
     <OwnerDetailPage
-      title={t('owner.section.terms')}
-      screen={(stadium, header) => <TermsForm key={stadium.id} stadium={stadium} header={header} />}
+      title={t('owner.terms.title')}
+      screen={(stadium, header) => <Terms stadium={stadium} header={header} />}
     />
   )
 }
 
-function TermsForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: ReactNode }) {
-  const { t } = useTranslation()
-  const toast = useToast()
-  const goBack = useGoBack('/owner/stadium')
-  const queryClient = useQueryClient()
-  const saved = stadium.minBookingAmount
-  const [hasMinimum, setHasMinimum] = useState(saved !== undefined)
-  const [amount, setAmount] = useState(saved !== undefined ? String(Math.floor(saved / 100)) : '')
-  const [hours, setHours] = useState(stadium.cancellationPolicy?.cancellationHours ?? 24)
-  const som = Number(amount || '0')
-  const save = useMutation({
-    mutationFn: () =>
-      updateStadium(stadium.id, {
-        ...(hasMinimum ? { minBookingAmount: somToTiyin(som) } : { clearMinBookingAmount: true }),
-        cancellationHours: hours,
-      }),
-    onSuccess: () => {
-      toast.show(t('owner.saved'), 'success')
-      void queryClient.invalidateQueries({ queryKey: ownerStadiumKey(stadium.id) })
-      void queryClient.invalidateQueries({ queryKey: OWNER_STADIUMS_KEY })
-      goBack()
-    },
-  })
+function Terms({ stadium, header }: { stadium: OwnerStadiumDetail; header: ReactNode }) {
   return (
-    <Screen
-      header={header}
-      footer={
-        <BottomBar>
-          <Button
-            haptic
-            disabled={hasMinimum && som <= 0}
-            loading={save.isPending}
-            onClick={() => save.mutate()}
-          >
-            {t('owner.save')}
-          </Button>
-        </BottomBar>
-      }
-    >
-      <Card className="flex flex-col gap-3 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-1 flex-col gap-1">
-            <p className="text-md font-semibold text-primary">{t('owner.terms.minimum')}</p>
-            <p className="text-sm text-secondary">
-              {hasMinimum ? t('owner.terms.minimumOn') : t('owner.terms.minimumOff')}
-            </p>
-          </div>
-          <Switch label={t('owner.terms.minimum')} checked={hasMinimum} onChange={setHasMinimum} />
-        </div>
-        {hasMinimum && (
-          <>
-            <Input
-              label={t('owner.field.minimum')}
-              inputMode="numeric"
-              value={amount}
-              hint={t('owner.field.minimumHint')}
-              onChange={(e) => setAmount(moneyInput(e.target.value))}
-            />
-            {saved !== undefined && stadium.playerMinBookingAmount !== undefined && (
-              <p className="text-sm text-primary">
-                {t('owner.terms.playerPays', {
-                  amount: formatMoney(stadium.playerMinBookingAmount),
-                })}
-              </p>
-            )}
-          </>
-        )}
-      </Card>
-
-      <Card className="flex flex-col gap-3 p-4">
-        <p className="text-md font-semibold text-primary">{t('owner.terms.cancelTitle')}</p>
-        <p className="text-sm text-secondary">{t('owner.terms.cancelText')}</p>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            aria-label={t('owner.terms.less')}
-            disabled={hours <= 0}
-            onClick={() => setHours(Math.max(0, hours - 1))}
-            className="flex size-11 items-center justify-center rounded-xl bg-surface text-primary disabled:opacity-40"
-          >
-            <Minus size={20} aria-hidden />
-          </button>
-          <output
-            className="flex-1 text-center text-lg font-semibold text-primary"
-            aria-live="polite"
-          >
-            {t('owner.terms.hours', { count: hours })}
-          </output>
-          <button
-            type="button"
-            aria-label={t('owner.terms.more')}
-            disabled={hours >= MAX_HOURS}
-            onClick={() => setHours(Math.min(MAX_HOURS, hours + 1))}
-            className="flex size-11 items-center justify-center rounded-xl bg-surface text-primary disabled:opacity-40"
-          >
-            <Plus size={20} aria-hidden />
-          </button>
-        </div>
-      </Card>
-      {save.isError && (
-        <p role="alert" className="text-sm text-danger">
-          {errorMessage(save.error)}
-        </p>
-      )}
+    <Screen header={header}>
+      <BookingTermsCard stadium={stadium} />
     </Screen>
+  )
+}
+
+/** The "Bron shartlari" card: also used where the owner reviews the stadium. */
+export function BookingTermsCard({ stadium }: { stadium: OwnerStadiumDetail }) {
+  const { t } = useTranslation()
+  const hours = stadium.cancellationPolicy?.cancellationHours ?? DEFAULT_CANCELLATION_HOURS
+  return (
+    <>
+      <Card className="flex flex-col gap-4 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-md font-semibold text-primary">{t('owner.terms.title')}</h2>
+          <Badge tone="success">{t('owner.terms.agreed')}</Badge>
+        </div>
+        <dl className="flex flex-col gap-3">
+          <Row icon={<Wallet size={18} aria-hidden />} label={t('owner.terms.minimum')}>
+            {stadium.minBookingAmount === undefined ? (
+              t('owner.terms.full')
+            ) : (
+              <>
+                <span>{formatMoney(stadium.minBookingAmount)}</span>
+                {stadium.playerMinBookingAmount !== undefined && (
+                  <span className="text-sm font-normal text-secondary">
+                    {t('owner.terms.playerPays', {
+                      amount: formatMoney(stadium.playerMinBookingAmount),
+                    })}
+                  </span>
+                )}
+              </>
+            )}
+          </Row>
+          <Row icon={<Clock size={18} aria-hidden />} label={t('owner.terms.cancel')}>
+            {t('owner.terms.cancelValue', { count: hours })}
+          </Row>
+        </dl>
+      </Card>
+      <p className="flex gap-2 text-sm text-secondary">
+        <ShieldCheck size={16} className="mt-0.5 shrink-0 text-link" aria-hidden />
+        {t('owner.terms.note')}
+      </p>
+      {supportUsername() && (
+        <Button variant="secondary" icon={MessageCircle} onClick={openSupport}>
+          {t('owner.terms.support')}
+        </Button>
+      )}
+    </>
+  )
+}
+
+function Row({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-link">
+        {icon}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <dt className="text-sm text-secondary">{label}</dt>
+        <dd className="flex flex-col text-md font-semibold text-primary">{children}</dd>
+      </div>
+    </div>
   )
 }

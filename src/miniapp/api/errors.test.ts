@@ -95,6 +95,35 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
     expect(isUnclearPaymentError(new ApiError('x', 202, 'PAYMENT_PENDING'))).toBe(true)
   })
 
+  it('maps every add-stadium rule and photo message (backend StadiumRules) to its text', () => {
+    const cases: Array<[string, number, string]> = [
+      ['name must be between 3 and 150 characters', 400, 'errors.nameLength'],
+      ['address must be between 5 and 300 characters', 400, 'errors.addressLength'],
+      ['district is required', 400, 'errors.districtRequired'],
+      ['Invalid district', 400, 'errors.districtRequired'],
+      ['phone must be in the format +998XXXXXXXXX', 400, 'errors.phoneFormat'],
+      ['description must be at most 500 characters', 400, 'errors.descriptionLength'],
+      ['landmark must be at most 150 characters', 400, 'errors.landmarkLength'],
+      ['latitude and longitude are required', 400, 'errors.locationRequired'],
+      ['Send both latitude and longitude', 400, 'errors.locationRequired'],
+      ['Location must be inside Uzbekistan', 400, 'errors.outsideUzbekistan'],
+      ["pricePerHour must be between 10 000 and 5 000 000 so'm", 400, 'errors.priceRange'],
+      ['openTime and closeTime must be on the hour', 400, 'errors.onTheHour'],
+      [
+        'closeTime must be after openTime; closing after midnight is not supported',
+        400,
+        'errors.hoursOrder',
+      ],
+      ['Image is too large', 400, 'errors.imageTooLarge'],
+      ['Unsupported image type', 400, 'errors.imageType'],
+      ['File too large', 413, 'errors.fileTooLarge'],
+    ]
+    for (const [message, status, key] of cases) {
+      expect(errorMessageKey(new ApiError(message, status))).toBe(key)
+    }
+    expect(i18n.t('errors.fileTooLarge')).toContain('5 MB')
+  })
+
   it('treats anything that is not an ApiError as unknown', () => {
     expect(errorMessageKey(new Error('boom'))).toBe('errors.unknown')
     expect(errorMessageKey(undefined)).toBe('errors.unknown')

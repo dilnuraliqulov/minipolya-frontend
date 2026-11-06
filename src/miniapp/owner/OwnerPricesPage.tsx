@@ -28,6 +28,7 @@ import { formatMoney } from '../format'
 import { OwnerStadiumSubPage } from './OwnerStadiumSubPage'
 import { usePricing } from './queries'
 import { SelectField } from './SelectField'
+import { checkPrice } from './stadiumRules'
 
 const WEEKDAY_KEYS = [
   'weekdays.long.mon',
@@ -291,7 +292,12 @@ function BasePriceSheet({ stadium, onClose }: { stadium: OwnerStadium; onClose: 
         if (!save.isPending) onClose()
       }}
       actions={
-        <Button haptic disabled={som <= 0} loading={save.isPending} onClick={() => save.mutate()}>
+        <Button
+          haptic
+          disabled={checkPrice(som) !== null}
+          loading={save.isPending}
+          onClick={() => save.mutate()}
+        >
           {t('owner.save')}
         </Button>
       }
@@ -301,6 +307,8 @@ function BasePriceSheet({ stadium, onClose }: { stadium: OwnerStadium; onClose: 
         label={t('owner.field.price')}
         inputMode="numeric"
         value={price}
+        hint={t('owner.wizard.priceHint')}
+        error={price !== '' && checkPrice(som) ? t('owner.rules.priceRange') : undefined}
         onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 9))}
       />
       {save.isError && (

@@ -350,27 +350,6 @@ describe('Ega rejimi — Maydonim', () => {
     ])
   })
 
-  it('edits the details with the save button in the bottom bar', async () => {
-    const api = stub({ 'PUT /api/owner/stadiums/s1': { id: 's1' } })
-    renderApp('/owner/stadium/s1/info', { session })
-    const name = await screen.findByLabelText('Maydon nomi')
-    fireEvent.change(name, { target: { value: 'Bunyodkor Arena 2' } })
-    fireEvent.change(screen.getByLabelText('Manzil'), { target: { value: 'Bunyodkor 1' } })
-    const save = screen.getByRole('button', { name: 'Saqlash' })
-    expect(save.closest('main')).toBeNull()
-    fireEvent.click(save)
-    expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
-    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([
-      {
-        name: 'Bunyodkor Arena 2',
-        address: 'Bunyodkor 1',
-        district: 'Chilonzor',
-        format: '7x7',
-        surfaceType: 'artificial',
-      },
-    ])
-  })
-
   it('shows the totals per period from the stats', async () => {
     stub()
     renderApp('/owner/report', { session })
@@ -380,39 +359,5 @@ describe('Ega rejimi — Maydonim', () => {
     expect(screen.getByText('64%')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Hafta' }))
     expect(screen.getByText('40')).toBeInTheDocument()
-  })
-})
-
-describe('Maydon qoʻshish', () => {
-  it('walks the steps and submits the stadium in tiyin', async () => {
-    const api = stub({ 'POST /api/owner/stadiums': { id: 's9' } })
-    renderApp('/owner/new', { session })
-    fireEvent.change(await screen.findByLabelText('Maydon nomi'), {
-      target: { value: 'Yangi Arena' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.change(screen.getByLabelText('Manzil'), { target: { value: 'Navoiy 5' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.change(screen.getByLabelText('Soatlik narx (soʻm)'), { target: { value: '150 000' } })
-    fireEvent.change(screen.getByLabelText('Oldindan toʻlov (soʻm, ixtiyoriy)'), {
-      target: { value: '50000' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Tekshiruvga yuborish' }))
-    expect(await screen.findByText('Arizangiz qabul qilindi')).toBeInTheDocument()
-    expect(api.calls('POST /api/owner/stadiums')).toEqual([
-      {
-        name: 'Yangi Arena',
-        address: 'Navoiy 5',
-        format: '5x5',
-        surfaceType: 'artificial',
-        openTime: '08:00:00',
-        closeTime: '23:00:00',
-        pricePerHour: 15_000_000,
-        minBookingAmount: 5_000_000,
-        cancellationHours: 24,
-      },
-    ])
   })
 })

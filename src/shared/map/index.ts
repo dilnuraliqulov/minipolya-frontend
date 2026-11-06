@@ -6,5 +6,5 @@ export {
   UZBEKISTAN_BOUNDS,
   yandexMapsLink,
 } from './mapLink'
-export { parseMapLink } from './parseMapLink'
+export { formatPoint, parseMapLink } from './parseMapLink'
 export type { LatLon } from './parseMapLink'

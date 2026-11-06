@@ -79,3 +79,6 @@ export function parseMapLink(input: string): LatLon | 'short' | null {
   }
   return null
 }
+
+/** `41.29950, 69.24010` — five decimals, about a metre. */
+export const formatPoint = (point: LatLon) => `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)}`
