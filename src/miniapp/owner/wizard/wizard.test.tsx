@@ -246,6 +246,8 @@ describe('Maydon qoʻshish — the wizard', () => {
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Keyinroq tugatish' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/owner/stadium'))
+    // Maydonim opens on the stadium just created, not the first one.
+    expect(router.state.location.search).toBe('?stadium=s9')
     expect(api.calls('POST /api/owner/stadiums')).toHaveLength(1)
   })
 

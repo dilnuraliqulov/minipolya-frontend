@@ -60,6 +60,8 @@ export function AddStadiumPage() {
   const [finished, setFinished] = useState(false)
   const completion = useRef<string[]>([])
   const photoIds = useRef(new Map<string, string>())
+  // An owner lands on the new stadium in Maydonim, not on whichever one is first.
+  const stadiumHome = isOwner && stadiumId ? `/owner/stadium?stadium=${stadiumId}` : home
   const uploads = usePhotoUploads(stadiumId, (photo, key) => {
     completion.current.push(key)
     photoIds.current.set(key, photo.id)
@@ -131,7 +133,7 @@ export function AddStadiumPage() {
   const back = () => {
     if (create.isPending) return
     if (stadiumId) {
-      navigate(home, { replace: true })
+      navigate(stadiumHome, { replace: true })
       return
     }
     if (index > 0) go(STEPS[index - 1] ?? 'basics')
@@ -148,7 +150,7 @@ export function AddStadiumPage() {
         <Sent
           phone={profilePhone ?? toWirePhone(draft.phone)}
           fromProfile={profilePhone !== undefined}
-          stadiumLink={home}
+          stadiumLink={stadiumHome}
           stadiumLabel={isOwner ? t('owner.wizard.toStadium') : t('owner.wizard.toProfile')}
           homeLink={isOwner ? '/owner' : '/'}
         />
@@ -162,7 +164,7 @@ export function AddStadiumPage() {
         header={header}
         footer={
           <BottomBar>
-            <Button variant="secondary" onClick={() => navigate(home, { replace: true })}>
+            <Button variant="secondary" onClick={() => navigate(stadiumHome, { replace: true })}>
               {t('owner.wizard.finishLater')}
             </Button>
           </BottomBar>
