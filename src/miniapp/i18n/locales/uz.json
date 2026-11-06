@@ -705,9 +705,10 @@
       "title": "Bron tafsilotlari",
       "player": "Oʻyinchi (ilova)",
       "walkIn": "Qoʻlda",
-      "price": "Narx",
+      "price": "Sizning narxingiz",
       "paidInApp": "Ilovada toʻlangan",
-      "remaining": "Qoldiq",
+      "cashDue": "Naqd olinadi",
+      "cashReceived": "Naqd olindi",
       "receives": "Sizga tushadi",
       "cash": "Naqd olindi",
       "call": "Qoʻngʻiroq",
@@ -735,9 +736,9 @@
       "chartTotal": "Davr boʻyicha jami",
       "bookingCount": "{{count}} ta bron",
       "date": "Sana",
-      "inApp": "Ilova orqali olingan",
-      "inCash": "Naqd olingan",
-      "outstanding": "Toʻlanmagan qoldiq",
+      "inApp": "Ilovada toʻlangan",
+      "inCash": "Naqd olindi",
+      "outstanding": "Naqd olinadi",
       "unpaidEmpty": "Toʻlanmagan qoldiqlar yoʻq.",
       "owes": "Qolgan: {{amount}}",
       "cash": "Naqd olindi"
@@ -840,7 +841,7 @@
     "editItem": "{{item}} — oʻzgartirish",
     "gameCash": {
       "title": "Jamoalar toʻlovi",
-      "owes": "{{team}} · Qolgani: {{amount}}",
+      "owes": "{{team}} · Naqd olinadi: {{amount}}",
       "paid": "{{team}} · Toʻlangan",
       "button": "Naqd olindi · {{amount}}",
       "confirmTitle": "Naqd toʻlovni tasdiqlash",
@@ -954,7 +955,7 @@
         "paidInFull": "Toʻliq toʻlangan",
         "cashReceived": "Naqd olindi",
         "notPaid": "Toʻlanmadi",
-        "remainder": "Qoldiq: {{amount}}"
+        "remainder": "Naqd olinadi: {{amount}}"
       },
       "cash": "Naqd olindi",
       "notPaid": "Toʻlanmadi",

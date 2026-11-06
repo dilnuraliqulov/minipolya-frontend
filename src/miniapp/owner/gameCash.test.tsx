@@ -91,7 +91,7 @@ describe('Ega rejimi — team game cash', () => {
     })
     const sheet = await openBooking()
     expect(
-      await within(sheet).findByText('Chilonzor Lions · Qolgani: 80 000 soʻm'),
+      await within(sheet).findByText('Chilonzor Lions · Naqd olinadi: 80 000 soʻm'),
     ).toBeInTheDocument()
     expect(within(sheet).getByText('Yunusobod Tigers · Toʻlangan')).toBeInTheDocument()
     // Only the unpaid team has a button.

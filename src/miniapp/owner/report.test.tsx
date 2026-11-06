@@ -59,7 +59,7 @@ describe('Hisobot', () => {
   it('shows the app / cash split and what is still owed for the period', async () => {
     stub()
     renderApp('/owner/report', { session })
-    expect(await screen.findByText('Ilova orqali olingan')).toBeInTheDocument()
+    expect(await screen.findByText('Ilovada toʻlangan')).toBeInTheDocument()
     expect(screen.getByText('200 000 soʻm')).toBeInTheDocument()
     expect(screen.getByText('100 000 soʻm')).toBeInTheDocument()
     expect(screen.getByText('50 000 soʻm')).toBeInTheDocument()
@@ -89,7 +89,7 @@ describe('Hisobot', () => {
           : { stadiumId: 's1', dailyRevenue: days(7) },
     })
     renderApp('/owner/report', { session })
-    await screen.findByText('Ilova orqali olingan')
+    await screen.findByText('Ilovada toʻlangan')
     const retry = await screen.findByRole('button', { name: 'Qayta urinish' })
     fail = false
     fireEvent.click(retry)
@@ -107,7 +107,7 @@ describe('Hisobot', () => {
       },
     })
     renderApp('/owner/report', { session })
-    expect(await screen.findByText('Qoldiq: 90 000 soʻm')).toBeInTheDocument()
+    expect(await screen.findByText('Naqd olinadi: 90 000 soʻm')).toBeInTheDocument()
     expect(api.queries(UNPAID)[0]).toMatchObject({ unpaid: 'true' })
     fireEvent.click(screen.getByRole('button', { name: 'Naqd olindi' }))
     const sheet = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })

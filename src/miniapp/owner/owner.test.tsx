@@ -145,25 +145,31 @@ describe('Ega rejimi — Jadval', () => {
     expect(api.calls('DELETE /api/owner/bookings/b1')).toHaveLength(1)
   })
 
-  it('shows the owner’s own price, and the player price only as “Oʻyinchi toʻlaydi”', async () => {
+  it('labels every amount, in order: own price, player price, app, cash, owner share', async () => {
     const own = makeBooking({
       ...day.bookings[0],
       id: 'b1',
       ownerPrice: 14_000_000,
       price: 15_000_000,
+      paidInApp: 5_000_000,
+      remainingAmount: 10_000_000,
+      ownerReceives: 4_500_000,
     })
     stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [own] }] })
     renderApp('/owner', { session })
     const row = await screen.findByRole('button', { name: /Sardor aka/ })
-    expect(row).toHaveTextContent('140 000 soʻm')
+    expect(row).toHaveTextContent('Sizning narxingiz140 000 soʻm')
     expect(row).not.toHaveTextContent('150 000 soʻm')
     fireEvent.click(row)
     const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
-    const price = within(sheet).getByText('Narx').closest('div')!
-    expect(price).toHaveTextContent('140 000 soʻm')
-    expect(within(sheet).getByText('Oʻyinchi toʻlaydi').closest('div')).toHaveTextContent(
-      '150 000 soʻm',
-    )
+    const rows = Array.from(sheet.querySelectorAll('dl > div')).map((d) => d.textContent)
+    expect(rows).toEqual([
+      'Sizning narxingiz140 000 soʻm',
+      'Oʻyinchi toʻlaydi150 000 soʻm',
+      'Ilovada toʻlangan50 000 soʻm',
+      'Naqd olinadi100 000 soʻm',
+      'Sizga tushadi45 000 soʻm',
+    ])
   })
 
   it('never shows the player price as the owner’s when ownerPrice is missing', async () => {
@@ -175,8 +181,11 @@ describe('Ega rejimi — Jadval', () => {
     expect(row).not.toHaveTextContent('150 000 soʻm')
     fireEvent.click(row)
     const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
-    expect(within(sheet).queryByText('Narx')).not.toBeInTheDocument()
-    expect(sheet).not.toHaveTextContent('150 000 soʻm')
+    expect(within(sheet).queryByText('Sizning narxingiz')).not.toBeInTheDocument()
+    // The player price appears only under its own label.
+    expect(within(sheet).getByText('Oʻyinchi toʻlaydi').closest('div')).toHaveTextContent(
+      '150 000 soʻm',
+    )
   })
 
   it('shows the error state and retries', async () => {

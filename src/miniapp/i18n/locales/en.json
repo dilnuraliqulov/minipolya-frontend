@@ -705,9 +705,10 @@
       "title": "Booking details",
       "player": "Player (app)",
       "walkIn": "Walk-in",
-      "price": "Price",
+      "price": "Your price",
       "paidInApp": "Paid in the app",
-      "remaining": "Left to pay",
+      "cashDue": "To collect in cash",
+      "cashReceived": "Cash received",
       "receives": "You receive",
       "cash": "Cash received",
       "call": "Call",
@@ -735,9 +736,9 @@
       "chartTotal": "Total for the period",
       "bookingCount": "{{count}} bookings",
       "date": "Date",
-      "inApp": "Received in the app",
-      "inCash": "Received in cash",
-      "outstanding": "Still owed",
+      "inApp": "Paid in the app",
+      "inCash": "Cash received",
+      "outstanding": "To collect in cash",
       "unpaidEmpty": "Nothing is still owed.",
       "owes": "Still owed: {{amount}}",
       "cash": "Cash received"
@@ -840,7 +841,7 @@
     "editItem": "{{item}} — edit",
     "gameCash": {
       "title": "Team payments",
-      "owes": "{{team}} · Still owed: {{amount}}",
+      "owes": "{{team}} · To collect in cash: {{amount}}",
       "paid": "{{team}} · Paid",
       "button": "Cash received · {{amount}}",
       "confirmTitle": "Confirm cash payment",
@@ -954,7 +955,7 @@
         "paidInFull": "Paid in full",
         "cashReceived": "Cash received",
         "notPaid": "Not paid",
-        "remainder": "Left: {{amount}}"
+        "remainder": "To collect in cash: {{amount}}"
       },
       "cash": "Cash received",
       "notPaid": "Not paid",

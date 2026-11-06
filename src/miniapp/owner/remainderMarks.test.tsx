@@ -69,7 +69,7 @@ async function openSheet(name = /Aziz Karimov/) {
 }
 
 describe('Jadval — remainder status chips (E10)', () => {
-  it('shows Qoldiq, Naqd olindi, Toʻlanmadi and Toʻliq toʻlangan from the API fields', async () => {
+  it('shows Naqd olinadi, Naqd olindi, Toʻlanmadi and Toʻliq toʻlangan from the API fields', async () => {
     stub([
       partial,
       makeBooking({
@@ -92,7 +92,9 @@ describe('Jadval — remainder status chips (E10)', () => {
     ])
     renderApp('/owner', { session })
     const row = async (name: RegExp) => screen.findByRole('button', { name })
-    expect(within(await row(/Aziz Karimov/)).getByText('Qoldiq: 100 000 soʻm')).toBeInTheDocument()
+    expect(
+      within(await row(/Aziz Karimov/)).getByText('Naqd olinadi: 100 000 soʻm'),
+    ).toBeInTheDocument()
     expect(within(await row(/Cash Client/)).getByText('Naqd olindi')).toBeInTheDocument()
     expect(within(await row(/Unpaid Client/)).getByText('Toʻlanmadi')).toBeInTheDocument()
     expect(within(await row(/Full Client/)).getByText('Toʻliq toʻlangan')).toBeInTheDocument()
@@ -103,9 +105,11 @@ describe('Jadval — Naqd olindi / Toʻlanmadi (E5–E8)', () => {
   it('offers both marks on a booking that still owes', async () => {
     stub([partial])
     const sheet = await openSheet()
-    // The Qoldiq row already shows the amount, so no "Qoldiq: X" chip repeats it.
-    expect(within(sheet).getByText('100 000 soʻm')).toBeInTheDocument()
-    expect(within(sheet).queryByText('Qoldiq: 100 000 soʻm')).not.toBeInTheDocument()
+    // The "Naqd olinadi" row already shows the amount, so no chip repeats it.
+    expect(within(sheet).getByText('Naqd olinadi').closest('div')).toHaveTextContent(
+      'Naqd olinadi100 000 soʻm',
+    )
+    expect(within(sheet).queryByText('Naqd olinadi: 100 000 soʻm')).not.toBeInTheDocument()
     expect(within(sheet).getByRole('button', { name: 'Naqd olindi' })).toBeInTheDocument()
     expect(within(sheet).getByRole('button', { name: 'Toʻlanmadi' })).toBeInTheDocument()
   })
@@ -186,6 +190,10 @@ describe('Jadval — Naqd olindi / Toʻlanmadi (E5–E8)', () => {
     })
     const sheet = await openSheet()
     expect(within(sheet).getByText('Naqd olindi · 100 000 soʻm')).toBeInTheDocument()
+    // Cash received: the cash row says so, with paidInCash.
+    expect(
+      within(sheet).getByText('Naqd olindi', { selector: 'dt' }).closest('div'),
+    ).toHaveTextContent('Naqd olindi100 000 soʻm')
     expect(within(sheet).getByText(/gacha bekor qilish mumkin/)).toBeInTheDocument()
     expect(within(sheet).queryByRole('button', { name: 'Toʻlanmadi' })).not.toBeInTheDocument()
     fireEvent.click(within(sheet).getByRole('button', { name: 'Bekor qilish' }))

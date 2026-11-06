@@ -3,6 +3,7 @@ import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc, tashkentToday } from '../../shared/format'
+import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
 import { recordGameCash, type GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
@@ -205,10 +206,13 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
           <RemainderChip booking={booking} />
         </span>
       </span>
-      {/* The owner's own price only: `price` is what the player pays. */}
+      {/* The owner's own price, labelled: `price` (the player's) is only in the sheet. */}
       {booking.ownerPrice !== undefined && (
-        <span className="text-sm font-semibold text-primary">
-          {formatMoney(booking.ownerPrice)}
+        <span className="flex shrink-0 flex-col items-end">
+          <span className="text-xs text-secondary">{t('owner.booking.price')}</span>
+          <span className="text-sm font-semibold text-primary">
+            {formatMoney(booking.ownerPrice)}
+          </span>
         </span>
       )}
     </button>
@@ -331,15 +335,17 @@ function OwnerBookingSheet({
       void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
     },
   })
-  const rows: Array<[string, number | undefined]> = [
-    // The owner's own price; the player price only under its own label.
-    [t('owner.booking.price'), booking.ownerPrice],
-    ...(booking.ownerPrice !== undefined && booking.ownerPrice !== booking.price
-      ? ([[t('owner.booking.playerPays'), booking.price]] as Array<[string, number]>)
-      : []),
-    [t('owner.booking.paidInApp'), booking.paidInApp],
-    [t('owner.booking.remaining'), booking.remainingAmount],
-    [t('owner.booking.receives'), booking.ownerReceives],
+  // Every amount under its own label, in one fixed order; a row is hidden only when the
+  // API leaves its field out. The cash row is what the owner collects, player-side.
+  const cashReceived = remainderState(booking) === 'cashReceived'
+  const rows: Array<{ key: string; label: string; value: number | undefined }> = [
+    { key: 'ownerPrice', label: t('owner.booking.price'), value: booking.ownerPrice },
+    { key: 'price', label: t('owner.booking.playerPays'), value: booking.price },
+    { key: 'paidInApp', label: t('owner.booking.paidInApp'), value: booking.paidInApp },
+    cashReceived
+      ? { key: 'cash', label: t('owner.booking.cashReceived'), value: booking.paidInCash }
+      : { key: 'cash', label: t('owner.booking.cashDue'), value: booking.remainingAmount },
+    { key: 'ownerReceives', label: t('owner.booking.receives'), value: booking.ownerReceives },
   ]
   if (marking) {
     return (
@@ -427,15 +433,13 @@ function OwnerBookingSheet({
           </Card>
           <dl className="flex flex-col gap-2 text-base">
             {rows
-              .filter(([, value]) => value !== undefined)
-              .map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between gap-3">
+              .filter((row) => row.value !== undefined)
+              .map(({ key, label, value }) => (
+                <div key={key} className="flex items-center justify-between gap-3">
                   <dt className="text-secondary">{label}</dt>
                   <dd className="flex items-center gap-2 text-primary">
+                    {key === 'cash' && <RemainderChip booking={booking} besideAmount />}
                     {formatMoney(value ?? 0)}
-                    {label === t('owner.booking.remaining') && (
-                      <RemainderChip booking={booking} besideAmount />
-                    )}
                   </dd>
                 </div>
               ))}

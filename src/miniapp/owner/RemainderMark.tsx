@@ -22,9 +22,9 @@ const TONES: Record<RemainderState, BadgeTone> = {
 }
 
 /**
- * "Toʻliq toʻlangan" · "Naqd olindi" · "Toʻlanmadi" · "Qoldiq: X" — or nothing.
- * `besideAmount`: the chip sits next to the remaining amount already, so a bare
- * "Qoldiq: X" would only repeat it and is left out.
+ * "Toʻliq toʻlangan" · "Naqd olindi" · "Toʻlanmadi" · "Naqd olinadi: X" — or nothing.
+ * `besideAmount`: the chip sits on the sheet's cash row, whose label already says
+ * "Naqd olinadi" / "Naqd olindi" with the amount, so those two are left out.
  */
 export function RemainderChip({
   booking,
@@ -37,7 +37,7 @@ export function RemainderChip({
   // A team game's remainders are the teams' own (GameCash), not the booking's.
   if (booking.gameId) return null
   const state = remainderState(booking)
-  if (!state || (besideAmount && state === 'remainder')) return null
+  if (!state || (besideAmount && (state === 'remainder' || state === 'cashReceived'))) return null
   return (
     <Badge tone={TONES[state]}>
       {state === 'remainder'

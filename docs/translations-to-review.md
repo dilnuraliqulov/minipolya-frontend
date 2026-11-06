@@ -616,9 +616,10 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.booking.title` | Bron tafsilotlari | Детали брони | Booking details |
 | `owner.booking.player` | Oʻyinchi (ilova) | Игрок (приложение) | Player (app) |
 | `owner.booking.walkIn` | Qoʻlda | Вручную | Walk-in |
-| `owner.booking.price` | Narx | Цена | Price |
+| `owner.booking.price` | Sizning narxingiz | Ваша цена | Your price |
 | `owner.booking.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
-| `owner.booking.remaining` | Qoldiq | Остаток | Left to pay |
+| `owner.booking.cashDue` | Naqd olinadi | Получить наличными | To collect in cash |
+| `owner.booking.cashReceived` | Naqd olindi | Получено наличными | Cash received |
 | `owner.booking.receives` | Sizga tushadi | Вы получите | You receive |
 | `owner.booking.cash` | Naqd olindi | Наличные получены | Cash received |
 | `owner.booking.call` | Qoʻngʻiroq | Позвонить | Call |
@@ -644,9 +645,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.report.chartTotal` | Davr boʻyicha jami | Всего за период | Total for the period |
 | `owner.report.bookingCount` | {{count}} ta bron | броней: {{count}} | {{count}} bookings |
 | `owner.report.date` | Sana | Дата | Date |
-| `owner.report.inApp` | Ilova orqali olingan | Получено через приложение | Received in the app |
-| `owner.report.inCash` | Naqd olingan | Получено наличными | Received in cash |
-| `owner.report.outstanding` | Toʻlanmagan qoldiq | Неоплаченный остаток | Still owed |
+| `owner.report.inApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
+| `owner.report.inCash` | Naqd olindi | Получено наличными | Cash received |
+| `owner.report.outstanding` | Naqd olinadi | Получить наличными | To collect in cash |
 | `owner.report.unpaidEmpty` | Toʻlanmagan qoldiqlar yoʻq. | Неоплаченных остатков нет. | Nothing is still owed. |
 | `owner.report.owes` | Qolgan: {{amount}} | Осталось: {{amount}} | Still owed: {{amount}} |
 | `owner.report.cash` | Naqd olindi | Получено наличными | Cash received |
@@ -735,7 +736,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.discount.removed` | Chegirma olib tashlandi | Скидка убрана | Discount removed |
 | `owner.editItem` | {{item}} — oʻzgartirish | {{item}} — изменить | {{item}} — edit |
 | `owner.gameCash.title` | Jamoalar toʻlovi | Оплата команд | Team payments |
-| `owner.gameCash.owes` | {{team}} · Qolgani: {{amount}} | {{team}} · Осталось: {{amount}} | {{team}} · Still owed: {{amount}} |
+| `owner.gameCash.owes` | {{team}} · Naqd olinadi: {{amount}} | {{team}} · Получить наличными: {{amount}} | {{team}} · To collect in cash: {{amount}} |
 | `owner.gameCash.paid` | {{team}} · Toʻlangan | {{team}} · Оплачено | {{team}} · Paid |
 | `owner.gameCash.button` | Naqd olindi · {{amount}} | Получено наличными · {{amount}} | Cash received · {{amount}} |
 | `owner.gameCash.confirmTitle` | Naqd toʻlovni tasdiqlash | Подтвердите оплату наличными | Confirm cash payment |
@@ -896,7 +897,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.mark.chip.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
 | `owner.mark.chip.cashReceived` | Naqd olindi | Получено наличными | Cash received |
 | `owner.mark.chip.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
-| `owner.mark.chip.remainder` | Qoldiq: {{amount}} | Остаток: {{amount}} | Left: {{amount}} |
+| `owner.mark.chip.remainder` | Naqd olinadi: {{amount}} | Получить наличными: {{amount}} | To collect in cash: {{amount}} |
 | `owner.mark.cash` | Naqd olindi | Получено наличными | Cash received |
 | `owner.mark.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
 | `owner.mark.back` | Ortga | Назад | Back |
