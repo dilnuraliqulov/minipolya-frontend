@@ -1,5 +1,4 @@
 import { BOOKING_STADIUM_FIELDS } from './bookings'
-import { TEAM_GAME_QUOTE } from './games'
 import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
 
 /**
@@ -13,7 +12,7 @@ import { STADIUMS_FREE_ON_DATE, STADIUMS_NEARBY } from './stadiums'
  *
  * Open: R24 (list sorted by distance/rating), R25 (list filtered to stadiums
  * free on a date), R31 (stadium photo, district and format on a booking),
- * R33 (team game quote), and R34 (server guard, nothing to gate). R32,
+ * and R34 (server guard, nothing to gate). R32, R33 (team game quotes),
  * R35–R39, R41–R43, R44, R28, R29, R45 and R30 (`paidInCash`) shipped; R27
  * (booking quote) is superseded by the per-slot `depositAmount` /
  * `remainderAmount` (design E3) (docs/backend-requests.md, Done). R20, R21 and R23
@@ -23,7 +22,6 @@ export const MISSING_ENDPOINTS: Record<string, string> = {
   [STADIUMS_NEARBY]: 'R24',
   [STADIUMS_FREE_ON_DATE]: 'R25',
   [BOOKING_STADIUM_FIELDS]: 'R31',
-  [TEAM_GAME_QUOTE]: 'R33',
 }
 
 export type Availability = 'available' | 'soon'

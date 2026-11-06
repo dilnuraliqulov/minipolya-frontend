@@ -281,6 +281,7 @@
     "total": "Jami",
     "paymentType": "Toʻlov turi",
     "deposit": "Oldindan toʻlov: {{amount}}",
+    "minimum": "Minimal toʻlov: {{amount}}",
     "full": "Toʻliq toʻlov: {{amount}}",
     "remainderNote": "Qolgan {{amount}}ni keyin ilovada yoki maydonda naqd toʻlaysiz.",
     "remainderNoteGeneric": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
@@ -467,6 +468,7 @@
     "challengesEmpty": "Hozircha raqib qidirayotgan jamoa yoʻq.",
     "leaderAccepts": "Chaqiriqlarni jamoa sardori qabul qiladi.",
     "payNow": "Jamoangiz toʻlaydi: {{amount}}",
+    "payFrom": "Jamoangiz toʻlaydi: {{amount}}dan",
     "accept": "Qabul qilish",
     "more": "Yana koʻrsatish",
     "createTitle": "Jamoa yaratish",
@@ -545,9 +547,6 @@
   },
   "accept": {
     "title": "Raqibni qabul qilish",
-    "payNow": "Jamoangiz hozir toʻlaydi",
-    "remainder": "Qolgan summa",
-    "remainderNote": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
     "rule": "Oʻyin boshlanishiga 3 soatdan kam qolganda qabul qilib boʻlmaydi.",
     "submit": "Toʻlash va qabul qilish · {{amount}}",
     "done": "Raqib qabul qilindi — maydon band qilindi",
@@ -572,10 +571,8 @@
   "opponent": {
     "title": "Raqib qidirish",
     "whichTeam": "Qaysi jamoa bilan?",
-    "slotPrice": "Maydon narxi",
-    "quoteSoon": "Jamoangiz toʻlaydigan summa oʻyin yaratilgach koʻrinadi (tez orada — oldindan).",
     "rules": "Raqib topilguncha kartangizda summa band qilinadi, maydon esa band qilinmaydi. Raqib topilmasa, pul toʻliq qaytariladi.",
-    "submit": "Raqib qidirishni boshlash",
+    "submit": "Raqib qidirishni boshlash · {{amount}}",
     "started": "Raqib qidirish boshlandi",
     "noLedTeam": "Raqib qidirish uchun jamoa sardori boʻlishingiz kerak."
   },

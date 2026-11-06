@@ -48,6 +48,7 @@ const challenge: Challenge = {
   totalPrice: 31_000_000,
   amountToPayNow: 8_800_000,
   remainderAmount: 8_000_000,
+  fullAmount: 8_800_000,
 }
 const page = <T,>(content: T[], totalPages = 1) => ({
   content,

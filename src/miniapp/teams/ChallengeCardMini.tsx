@@ -6,7 +6,7 @@ import { mediaUrl } from '../../shared/api'
 import type { Challenge } from '../api/games'
 import { bookingWhen } from '../bookings/when'
 import { LogoMark } from '../components'
-import { formatMoney } from '../format'
+import { challengePrice } from './challengePrice'
 import { TeamAvatar } from './TeamAvatar'
 
 /**
@@ -54,9 +54,7 @@ export function ChallengeCardMini({
           <TeamAvatar name={team} size="xs" />
           <span className="truncate text-sm font-medium text-primary">{team}</span>
         </span>
-        <span className="text-sm font-semibold text-primary">
-          {t('team.payNow', { amount: formatMoney(challenge.amountToPayNow) })}
-        </span>
+        <span className="text-sm font-semibold text-primary">{challengePrice(t, challenge)}</span>
       </span>
       <span className="mt-auto">
         {acceptAs ? (

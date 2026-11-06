@@ -9,6 +9,9 @@ import { formatMoney } from '../format'
  * `remainderAmount` straight from the availability) the player chooses between
  * Oldindan toʻlov and Toʻliq toʻlov; without one there is no choice — only the
  * full price, shown as the one option.
+ *
+ * A team game (T12) uses the same cards with its quote's amounts; there the part
+ * payment is called "Minimal toʻlov" (`kind="team"`).
  */
 export function PaymentOptions({
   value,
@@ -17,6 +20,7 @@ export function PaymentOptions({
   deposit,
   remainder,
   disabled,
+  kind = 'booking',
 }: {
   value: PaymentOption
   onChange: (option: PaymentOption) => void
@@ -24,6 +28,8 @@ export function PaymentOptions({
   deposit?: number
   remainder?: number
   disabled?: boolean
+  /** `team`: the part payment reads "Minimal toʻlov" instead of "Oldindan toʻlov". */
+  kind?: 'booking' | 'team'
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -44,7 +50,9 @@ export function PaymentOptions({
   const options: Array<{ option: PaymentOption; label: string; note?: string }> = [
     {
       option: 'MINIMUM',
-      label: t('checkout.deposit', { amount: formatMoney(deposit) }),
+      label: t(kind === 'team' ? 'checkout.minimum' : 'checkout.deposit', {
+        amount: formatMoney(deposit),
+      }),
       note:
         remainder !== undefined
           ? t('checkout.remainderNote', { amount: formatMoney(remainder) })

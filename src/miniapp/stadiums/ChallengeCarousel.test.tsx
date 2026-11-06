@@ -76,6 +76,23 @@ describe('Bosh sahifa — Raqib qidirayotgan jamoalar (E11)', () => {
     )
   })
 
+  it('says "… dan" when the team may pay the minimum or in full (T8)', async () => {
+    stub({
+      [CHALLENGES]: page([
+        {
+          ...challenge,
+          amountToPayNow: 5_500_000,
+          remainderAmount: 7_500_000,
+          fullAmount: 13_000_000,
+        },
+      ]),
+    })
+    renderApp('/')
+    const section = (await carousel()).closest('section')!
+    const card = within(section).getByRole('link', { name: /Bunyodkor Arena/ })
+    expect(card).toHaveTextContent('Jamoangiz toʻlaydi: 55 000 soʻmdan')
+  })
+
   it('gives a captain "Qabul qilish" for the team they lead', async () => {
     stub()
     renderApp('/')

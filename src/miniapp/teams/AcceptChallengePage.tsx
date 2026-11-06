@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarDays,
   CalendarX,
@@ -9,14 +9,18 @@ import {
   SearchX,
   ShieldAlert,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { errorMessageKey, errorTone, isDeclineKey, isUnclearPaymentError } from '../api/errors'
+import type { PaymentOption } from '../api/bookings'
 import {
   acceptChallenge,
   CHALLENGES_KEY,
   gameKey,
+  getJoinQuote,
+  joinQuoteKey,
   MY_GAMES_KEY,
   type Challenge,
 } from '../api/games'
@@ -42,10 +46,13 @@ import { formatLabel } from '../stadiums/labels'
 import { markJoinPending, usePendingJoins } from './pendingJoins'
 import { useChallenges, useLedTeams } from './queries'
 import { TeamAvatar } from './TeamAvatar'
+import { chosenAmount, chosenOption, quoteChoice } from './teamQuote'
+import { TeamPaymentChoice } from './TeamPaymentChoice'
 
 /**
- * Raqibni qabul qilish: the captain's team takes on a waiting team. Every
- * figure comes from the challenge board (`amountToPayNow`, `remainderAmount`).
+ * Raqibni qabul qilish: the captain's team takes on a waiting team. The game
+ * comes from the challenge board; what the team may pay — the minimum or the
+ * full amount — from the join quote (T7/T12, `GET /api/games/{id}/join-quote`).
  */
 export function AcceptChallengePage() {
   const { t } = useTranslation()
@@ -170,8 +177,15 @@ function AcceptForm({
   const queryClient = useQueryClient()
   const goBack = useGoBack('/team')
   const choice = useCardChoice()
+  const quote = useQuery({
+    queryKey: joinQuoteKey(challenge.gameId),
+    queryFn: () => getJoinQuote(challenge.gameId),
+    refetchOnWindowFocus: false,
+  })
+  const [picked, setPicked] = useState<PaymentOption | null>(null)
   const accept = useMutation({
-    mutationFn: (cardId: string) => acceptChallenge(challenge.gameId, teamId, cardId),
+    mutationFn: (vars: { cardId: string; paymentOption: PaymentOption }) =>
+      acceptChallenge(challenge.gameId, teamId, vars.cardId, vars.paymentOption),
     onSuccess: () => {
       toast.show(t('accept.done'), 'success')
       void queryClient.invalidateQueries({ queryKey: CHALLENGES_KEY })
@@ -240,6 +254,39 @@ function AcceptForm({
     )
   }
 
+  if (quote.isPending) {
+    return (
+      <Screen header={header}>
+        <SkeletonList count={3} />
+      </Screen>
+    )
+  }
+  const options = quote.data ? quoteChoice(quote.data) : null
+  if (quote.isError || !quote.data || !options) {
+    // 400: past the 3-hour point, or no longer open for joining; 404: gone.
+    const key = quote.isError ? errorMessageKey(quote.error) : null
+    if (key === 'errors.tooLate') {
+      return (
+        <Screen header={header}>
+          <Gone icon={Clock} title={t('accept.tooLateTitle')} text={t('errors.tooLate')} />
+        </Screen>
+      )
+    }
+    if (key === 'errors.invalid' || key === 'errors.notFound') {
+      return (
+        <Screen header={header}>
+          <Gone />
+        </Screen>
+      )
+    }
+    return (
+      <Screen header={header} className="justify-center">
+        <ErrorState onRetry={() => void quote.refetch()} />
+      </Screen>
+    )
+  }
+  const option = chosenOption(options, picked)
+
   const waiting = challenge.waitingTeamName ?? t('team.anonymous')
   const footer = (
     <BottomBar>
@@ -247,9 +294,11 @@ function AcceptForm({
         haptic
         disabled={!choice.card}
         loading={accept.isPending}
-        onClick={() => choice.card && accept.mutate(choice.card.id)}
+        onClick={() =>
+          choice.card && accept.mutate({ cardId: choice.card.id, paymentOption: option })
+        }
       >
-        {t('accept.submit', { amount: formatMoney(challenge.amountToPayNow) })}
+        {t('accept.submit', { amount: formatMoney(chosenAmount(options, option)) })}
       </Button>
     </BottomBar>
   )
@@ -279,24 +328,13 @@ function AcceptForm({
         </p>
       </Card>
 
-      <Card className="flex flex-col gap-2 p-4" role="region" aria-labelledby="accept-pay">
-        <h3 id="accept-pay" className="text-lg font-semibold text-primary">
-          {t('booking.payment')}
-        </h3>
-        <dl className="flex flex-col gap-2 text-base">
-          <div className="flex justify-between gap-3">
-            <dt className="text-secondary">{t('accept.payNow')}</dt>
-            <dd className="font-semibold text-primary">{formatMoney(challenge.amountToPayNow)}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-secondary">{t('accept.remainder')}</dt>
-            <dd className="text-primary">{formatMoney(challenge.remainderAmount)}</dd>
-          </div>
-        </dl>
-        {challenge.remainderAmount > 0 && (
-          <p className="text-sm text-secondary">{t('accept.remainderNote')}</p>
-        )}
-      </Card>
+      <TeamPaymentChoice
+        quote={quote.data}
+        choice={options}
+        value={option}
+        onChange={setPicked}
+        disabled={accept.isPending}
+      />
 
       <p className="flex gap-2 text-sm text-secondary">
         <Info size={16} className="mt-0.5 shrink-0 text-link" aria-hidden />

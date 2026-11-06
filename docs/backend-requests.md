@@ -71,11 +71,11 @@ waits on; the panel shows "Tez orada" for those until they ship.
 `src/miniapp/api/missing.ts` is the same list for the Mini App. Both lists
 hold only the entries of requests that are still open.
 
-R24, R25, R31 and R33 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
+R24, R25 and R31 are listed in `src/miniapp/api/missing.ts`; Bosh sahifa
 requests neither R24 nor R25 and shows no "Yaqin atrofda" or "Boʻsh maydonlar"
 section yet. R31 is the booking flow (Oʻyinlarim, booking detail): the screens
 hide the field until it ships. R27 was superseded by the per-slot
-`depositAmount` / `remainderAmount` and R30 shipped (both under Done).
+`depositAmount` / `remainderAmount`; R30 and R33 shipped (all under Done).
 
 ### R24 — Sort the stadium list by distance or rating
 
@@ -179,42 +179,6 @@ Error cases — none new.
 Low — the list shows the logo mark instead of a photo; the detail page fetches
 the stadium.
 
-### R33 — A team game's price before it is created
-
-**What's needed**
-"Raqib qidirish" shows what the leader's team pays now and its remainder
-before the game exists. Only the created game carries them
-(`GameDetailResponse.teams[].price` / `remainderAmount`); computing them in the
-client would re-implement the team-game split (`TeamGameSplit`).
-
-**Which screen needs it**
-Mini App player — Raqib qidirish (find an opponent) form.
-
-**Proposed endpoint**
-`GET /api/stadiums/{id}/team-game-quote` — logged-in user.
-
-Request:
-
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, a free slot |
-
-Response:
-
-| Field | Type | Notes |
-|---|---|---|
-| `price` | number **(tiyin)** | what each team pays in the app on joining (player price) |
-| `remainderAmount` | number **(tiyin)** | what each team owes afterwards, the same in the app or in cash |
-| `totalPrice` | number **(tiyin)** | both teams together |
-| `cancellationDeadline` | timestamp (UTC) | when free cancellation ends |
-
-Error cases — 400 when `startsAt` is not a bookable hour; 404 `"Stadium not
-found"`.
-
-**Priority**
-Medium — the form shows the slot's price only and the team sees its exact
-figures on the game page right after starting.
-
 ### R34 — Refuse a second remainder charge while one is processing
 
 **What's needed**
@@ -271,6 +235,44 @@ High — guards against double holds and double charges.
 In the order they were asked for, by priority. Each entry keeps its original contract; **Shipped as** notes
 where the backend differs from it — the backend is what counts, and
 `docs/api-reference.md` documents it.
+
+### R33 — A team game's price before it is created _(shipped in `f9ac033`)_
+
+**Shipped as:** two quotes answering `TeamGameQuoteResponse { options: [{ option: "minimum" | "full", amount, remainderAmount }], cancellationDeadline }` (player amounts; `minimum` only when the stadium offers it, `full` always, last) — `GET /api/stadiums/{id}/team-game-quote?startsAt=` (public, creating) and `GET /api/games/{id}/join-quote` (accepting, the free side). Each team chooses `paymentOption` `MINIMUM` / `FULL` on `POST /api/games` and `POST /api/games/{id}/join` (backend `docs/frontend-field-changes-2026-11-06-team-payments.md`). Raqib qidirish and Raqibni qabul qilish show the options as choice cards.
+
+**What's needed**
+"Raqib qidirish" shows what the leader's team pays now and its remainder
+before the game exists. Only the created game carries them
+(`GameDetailResponse.teams[].price` / `remainderAmount`); computing them in the
+client would re-implement the team-game split (`TeamGameSplit`).
+
+**Which screen needs it**
+Mini App player — Raqib qidirish (find an opponent) form.
+
+**Proposed endpoint**
+`GET /api/stadiums/{id}/team-game-quote` — logged-in user.
+
+Request:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| `startsAt` | timestamp (UTC) | yes | on the hour in Tashkent, a free slot |
+
+Response:
+
+| Field | Type | Notes |
+|---|---|---|
+| `price` | number **(tiyin)** | what each team pays in the app on joining (player price) |
+| `remainderAmount` | number **(tiyin)** | what each team owes afterwards, the same in the app or in cash |
+| `totalPrice` | number **(tiyin)** | both teams together |
+| `cancellationDeadline` | timestamp (UTC) | when free cancellation ends |
+
+Error cases — 400 when `startsAt` is not a bookable hour; 404 `"Stadium not
+found"`.
+
+**Priority**
+Medium — the form shows the slot's price only and the team sees its exact
+figures on the game page right after starting.
 
 ### R30 — Cash taken on a booking, on the player response _(shipped in `32afe9f`)_
 

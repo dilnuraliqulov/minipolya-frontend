@@ -23,9 +23,20 @@ const challenge: Challenge = {
   endsAt: '2026-11-06T16:00:00Z',
   durationHours: 1,
   totalPrice: 31_000_000,
-  amountToPayNow: 8_800_000,
-  remainderAmount: 8_000_000,
+  amountToPayNow: 5_500_000,
+  remainderAmount: 7_500_000,
+  fullAmount: 13_000_000,
 }
+/** T7: the minimum and the full option, as in the design's example. */
+const quote = {
+  options: [
+    { option: 'minimum', amount: 5_500_000, remainderAmount: 7_500_000 },
+    { option: 'full', amount: 13_000_000, remainderAmount: 0 },
+  ],
+  cancellationDeadline: '2099-11-05T15:00:00Z',
+}
+const fullOnly = { ...quote, options: [quote.options[1]] }
+const QUOTE = 'GET /api/games/g1/join-quote'
 const page = <T,>(content: T[]) => ({
   content,
   page: 0,
@@ -51,6 +62,7 @@ const JOIN = 'POST /api/games/g1/join'
 function stub(overrides: Record<string, unknown> = {}) {
   return stubApi({
     'GET /api/games/challenges': page([challenge]),
+    [QUOTE]: quote,
     'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions', memberCount: 3 }],
     'GET /api/teams/t1': {
       id: 't1',
@@ -67,18 +79,89 @@ function stub(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Raqibni qabul qilish', () => {
-  it('shows both teams and the board figures, then accepts with the chosen card', async () => {
+  it('shows both teams and the quote’s options, then accepts the minimum with the chosen card', async () => {
     const api = stub({ [JOIN]: { id: 'p1' }, 'GET /api/games/g1': jsonResponse(404, null, 'x') })
     const { router } = renderApp(URL)
     expect(await screen.findByText('Chilonzor Lions')).toBeInTheDocument()
     expect(screen.getByText('Yunusobod United')).toBeInTheDocument()
-    const pay = screen.getByRole('region', { name: 'Toʻlov' })
-    expect(within(pay).getByText('88 000 soʻm')).toBeInTheDocument()
-    expect(within(pay).getByText('80 000 soʻm')).toBeInTheDocument()
+    const types = screen.getByRole('radiogroup', { name: 'Toʻlov turi' })
+    const minimum = within(types).getByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' })
+    expect(minimum).toBeChecked()
+    expect(minimum).toHaveAccessibleDescription(
+      'Qolgan 75 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.',
+    )
+    expect(
+      within(types).getByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' }),
+    ).not.toBeChecked()
+    expect(screen.queryByText('Maydon narxi')).toBeNull()
+    expect(
+      screen.getByText(/gacha bekor qilsangiz, jamoangiz toʻlagani toʻliq qaytariladi/),
+    ).toBeInTheDocument()
     fireEvent.click(await screen.findByRole('radio', { name: /•••• 5678/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 88 000 soʻm' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 55 000 soʻm' }))
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/games/g1'))
-    expect(api.calls(JOIN)).toEqual([{ gameId: 'g1', side: 'b', teamId: 't1', cardId: 'c2' }])
+    expect(api.calls(JOIN)).toEqual([
+      { gameId: 'g1', side: 'b', teamId: 't1', cardId: 'c2', paymentOption: 'MINIMUM' },
+    ])
+  })
+
+  it('pays in full when the captain picks it, and the button shows that amount', async () => {
+    const api = stub({ [JOIN]: { id: 'p1' }, 'GET /api/games/g1': jsonResponse(404, null, 'x') })
+    renderApp(URL)
+    fireEvent.click(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' }))
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130 000 soʻm' }))
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+    expect(api.calls(JOIN)[0]).toMatchObject({ paymentOption: 'FULL' })
+  })
+
+  it('offers no choice when only the full payment is offered', async () => {
+    const api = stub({
+      [QUOTE]: fullOnly,
+      [JOIN]: { id: 'p1' },
+      'GET /api/games/g1': jsonResponse(404, null, 'x'),
+    })
+    renderApp(URL)
+    expect(await screen.findByText('Toʻliq toʻlov: 130 000 soʻm')).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Toʻlov turi' })).toBeNull()
+    expect(screen.queryByText(/Minimal toʻlov/)).toBeNull()
+    await screen.findByRole('radio', { name: /•••• 1234/ })
+    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130 000 soʻm' }))
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+    expect(api.calls(JOIN)[0]).toMatchObject({ paymentOption: 'FULL' })
+  })
+
+  it('explains the 3-hour cut-off when the quote refuses it', async () => {
+    stub({
+      [QUOTE]: jsonResponse(
+        400,
+        null,
+        "O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi",
+      ),
+    })
+    renderApp(URL)
+    expect(await screen.findByText('Oʻyinga 3 soatdan kam qoldi')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Toʻlash va qabul qilish/ })).toBeNull()
+  })
+
+  it('says the challenge is gone when the quote says it is no longer open', async () => {
+    stub({ [QUOTE]: jsonResponse(400, null, 'Game is not open for joining') })
+    renderApp(URL)
+    expect(await screen.findByText('Bu chaqiriq endi mavjud emas')).toBeInTheDocument()
+  })
+
+  it('retries a quote that failed to load', async () => {
+    let fail = true
+    stub({
+      [QUOTE]: () => (fail ? jsonResponse(500, null, 'Internal server error') : quote),
+    })
+    renderApp(URL)
+    const retry = await screen.findByRole('button', { name: 'Qayta urinish' })
+    fail = false
+    fireEvent.click(retry)
+    expect(
+      await screen.findByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' }),
+    ).toBeInTheDocument()
   })
 
   it('shows a declined card and stays', async () => {

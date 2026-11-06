@@ -2,9 +2,9 @@ import { CalendarDays, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { Challenge } from '../api/games'
 import { Button, ButtonLink, Card, ErrorState, SkeletonList } from '../components'
-import { formatMoney } from '../format'
 import { bookingWhen } from '../bookings/when'
 import { formatLabel } from '../stadiums/labels'
+import { challengePrice } from './challengePrice'
 import { useChallenges } from './queries'
 import { TeamAvatar } from './TeamAvatar'
 
@@ -76,9 +76,7 @@ function ChallengeCard({ challenge, acceptAs }: { challenge: Challenge; acceptAs
         <CalendarDays size={16} className="shrink-0 text-link" aria-hidden />
         {bookingWhen(challenge)}
       </p>
-      <p className="text-base font-semibold text-primary">
-        {t('team.payNow', { amount: formatMoney(challenge.amountToPayNow) })}
-      </p>
+      <p className="text-base font-semibold text-primary">{challengePrice(t, challenge)}</p>
       {acceptAs && (
         <ButtonLink to={`/challenges/${challenge.gameId}?team=${acceptAs}`}>
           {t('team.accept')}

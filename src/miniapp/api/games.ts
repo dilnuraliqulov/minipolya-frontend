@@ -1,4 +1,5 @@
 import { api, type Page } from '../../shared/api'
+import type { PaymentOption } from './bookings'
 
 export type GameType = 'casual' | 'open' | 'team_vs_team'
 export type GameSide = 'a' | 'b'
@@ -30,9 +31,24 @@ export interface GameTeam {
   leaderName?: string
   /** What this team pays in the app on joining. */
   price: number
-  /** What this team owes after joining — the same in the app or in cash. */
+  /** What this team owes after joining — the same in the app or in cash, paid yet or not. */
   remainderAmount: number
   remainderStatus: 'unpaid' | 'paid' | string
+  /** T9: what the team chose on joining; absent on games created before the choice existed. */
+  paymentOption?: 'minimum' | 'full' | string
+  /**
+   * T9: player money the team has put in — held on its card or arrived, card or cash
+   * ("Toʻlangan: X", also while held).
+   */
+  paidAmount?: number
+  /** T9: what the team still owes now (`remainderAmount` while unpaid, else 0). */
+  remainingAmount?: number
+  /** T10: the stadium owner's mark on the remainder; absent when none. */
+  remainderMark?: 'cash_received' | 'not_paid' | string
+  /** UTC, with the mark. */
+  remainderMarkedAt?: string
+  /** UTC, the stadium's owner only: until when the owner may undo the mark. */
+  remainderMarkUndoableUntil?: string
   /** Everything this team has paid through the app so far. */
   paidInApp: number
   /**
@@ -102,10 +118,31 @@ export interface Challenge {
   durationHours: number
   /** Tiyin: both teams together. */
   totalPrice: number
-  /** Tiyin: what the joining team pays now. */
+  /**
+   * Tiyin: the least the joining team pays now — the minimum option's amount (T8), or
+   * the full one when the stadium offers no minimum for this game.
+   */
   amountToPayNow: number
-  /** Tiyin: what the joining team still owes afterwards. */
+  /** Tiyin: what the joining team still owes after `amountToPayNow`. */
   remainderAmount: number
+  /** Tiyin, T8: what the joining team pays in full (nothing left afterwards). */
+  fullAmount?: number
+}
+
+/** One choice of a team-game quote (T7), player amounts. */
+export interface TeamQuoteOption {
+  option: 'minimum' | 'full' | string
+  /** Tiyin: what the team pays now (held when creating, charged when joining). */
+  amount: number
+  /** Tiyin: what is left to pay after it, in the app or in cash; 0 for `full`. */
+  remainderAmount: number
+}
+
+/** `TeamGameQuoteResponse`: `minimum` only when offered, `full` always, last. */
+export interface TeamGameQuote {
+  options: TeamQuoteOption[]
+  /** UTC: the last moment the team could cancel and get its money back. */
+  cancellationDeadline: string
 }
 
 /** `GameMessageResponse`. */
@@ -118,9 +155,6 @@ export interface GameMessage {
   createdAt: string
 }
 
-/** R33: a team game's price before it is created. Not shipped; nothing calls it. */
-export const TEAM_GAME_QUOTE = 'GET /api/stadiums/{id}/team-game-quote'
-
 export const GAMES_PAGE_SIZE = 20
 /** `@Size(max = 1000)` on a chat message. */
 export const MESSAGE_MAX = 1000
@@ -129,6 +163,21 @@ export const MY_GAMES_KEY = ['games', 'my'] as const
 export const CHALLENGES_KEY = ['games', 'challenges'] as const
 export const gameKey = (id: string) => ['game', id] as const
 export const messagesKey = (id: string) => ['game', id, 'messages'] as const
+export const teamQuoteKey = (stadiumId: string, startsAt: string) =>
+  ['team-game-quote', stadiumId, startsAt] as const
+export const joinQuoteKey = (gameId: string) => ['game', gameId, 'join-quote'] as const
+
+/** T7 (R33): what a team creating a team game at this hour may pay. Public. */
+export function getTeamGameQuote(stadiumId: string, startsAt: string): Promise<TeamGameQuote> {
+  return api.get<TeamGameQuote>(`/api/stadiums/${stadiumId}/team-game-quote`, {
+    query: { startsAt },
+  })
+}
+
+/** T7: what the free side of a waiting team game may pay to join it. */
+export function getJoinQuote(gameId: string): Promise<TeamGameQuote> {
+  return api.get<TeamGameQuote>(`/api/games/${gameId}/join-quote`)
+}
 
 export function getMyGames(page: number): Promise<Page<Game>> {
   return api.get<Page<Game>>('/api/games/my', { query: { page, size: GAMES_PAGE_SIZE } })
@@ -150,6 +199,8 @@ export interface CreateTeamGameBody {
   startsAt: string
   teamAId: string
   cardId: string
+  /** T6: `MINIMUM` (the backend's default) or `FULL`. */
+  paymentOption: PaymentOption
 }
 
 /**
@@ -166,12 +217,18 @@ export function createTeamGame(body: CreateTeamGameBody): Promise<GameDetail> {
  * optional now but kept for now: older backends require it and newer ones
  * accept it from any client. Drop it once every backend decides the side itself.
  */
-export function acceptChallenge(gameId: string, teamId: string, cardId: string) {
+export function acceptChallenge(
+  gameId: string,
+  teamId: string,
+  cardId: string,
+  paymentOption: PaymentOption,
+) {
   return api.post<GameParticipant>(`/api/games/${gameId}/join`, {
     gameId,
     side: 'b',
     teamId,
     cardId,
+    paymentOption,
   })
 }
 
@@ -196,8 +253,22 @@ export function sendMessage(gameId: string, message: string): Promise<GameMessag
 
 /**
  * The stadium's owner records one team's remainder as received in cash
- * (`remainderAmount`). 400 `"Already paid"` when card or cash came first.
+ * (`remainderAmount`) and marks it `cash_received` (T10). 409 `"Already paid"` when
+ * card or cash came first (400 from older backends).
  */
 export function recordGameCash(id: string, side: GameSide): Promise<GameDetail> {
   return api.post<GameDetail>(`/api/games/${id}/cash`, { side })
+}
+
+/** T10: the owner marks one team's remainder "Toʻlanmadi" — no charge, no penalty. */
+export function markGameNotPaid(id: string, side: GameSide): Promise<GameDetail> {
+  return api.post<GameDetail>(`/api/games/${id}/not-paid`, { side })
+}
+
+/**
+ * T10: the owner undoes their mark on one team, until `remainderMarkUndoableUntil`;
+ * undoing cash voids that cash row and the rest is owed again.
+ */
+export function undoGameRemainderMark(id: string, side: GameSide): Promise<GameDetail> {
+  return api.delete<GameDetail>(`/api/games/${id}/remainder-mark`, { query: { side } })
 }

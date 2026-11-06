@@ -281,6 +281,7 @@
     "total": "Total",
     "paymentType": "Payment",
     "deposit": "Deposit: {{amount}}",
+    "minimum": "Minimum payment: {{amount}}",
     "full": "Full payment: {{amount}}",
     "remainderNote": "Pay the remaining {{amount}} later in the app or in cash at the pitch.",
     "remainderNoteGeneric": "Pay the rest later in the app or in cash at the pitch.",
@@ -467,6 +468,7 @@
     "challengesEmpty": "No team is looking for an opponent right now.",
     "leaderAccepts": "The team captain accepts challenges.",
     "payNow": "Your team pays: {{amount}}",
+    "payFrom": "Your team pays: from {{amount}}",
     "accept": "Accept",
     "more": "Show more",
     "createTitle": "Create a team",
@@ -545,9 +547,6 @@
   },
   "accept": {
     "title": "Accept the challenge",
-    "payNow": "Your team pays now",
-    "remainder": "Left to pay",
-    "remainderNote": "Pay the rest later in the app or in cash at the pitch.",
     "rule": "A challenge cannot be accepted less than 3 hours before the game.",
     "submit": "Pay and accept · {{amount}}",
     "done": "Challenge accepted — the pitch is booked",
@@ -572,10 +571,8 @@
   "opponent": {
     "title": "Find an opponent",
     "whichTeam": "With which team?",
-    "slotPrice": "Pitch price",
-    "quoteSoon": "Your team's amount shows once the game is created (coming soon — beforehand).",
     "rules": "Until an opponent is found, the amount is held on your card and the pitch is not booked. If nobody accepts, you get everything back.",
-    "submit": "Start looking for an opponent",
+    "submit": "Start looking for an opponent · {{amount}}",
     "started": "Looking for an opponent",
     "noLedTeam": "Only a team captain can look for an opponent."
   },

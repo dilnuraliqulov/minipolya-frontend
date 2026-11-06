@@ -6,7 +6,8 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
 import { errorMessageKey, errorTone, isDeclineKey, isUnclearPaymentError } from '../api/errors'
-import { createTeamGame, MY_GAMES_KEY } from '../api/games'
+import type { PaymentOption } from '../api/bookings'
+import { createTeamGame, getTeamGameQuote, MY_GAMES_KEY, teamQuoteKey } from '../api/games'
 import { getAvailability } from '../api/stadiums'
 import { parseCheckoutParams, type CheckoutParams } from '../booking/checkoutParams'
 import { CardPicker } from '../cards/CardPicker'
@@ -32,11 +33,13 @@ import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { useLedTeams } from './queries'
 import { TeamAvatar } from './TeamAvatar'
+import { chosenAmount, chosenOption, quoteChoice } from './teamQuote'
+import { TeamPaymentChoice } from './TeamPaymentChoice'
 
 /**
- * Raqib qidirish: a captain starts a team game on a free hour. The team's own
- * price exists only once the game is created (R33), so the form shows the
- * pitch price and the game page shows the team's figures.
+ * Raqib qidirish: a captain starts a team game on a free hour, choosing how much
+ * the team puts on hold now — the minimum or the full amount, from the quote
+ * (T7/T12, `GET /api/stadiums/{id}/team-game-quote`).
  */
 export function OpponentPage() {
   const { t } = useTranslation()
@@ -95,16 +98,19 @@ function Opponent({ params }: { params: CheckoutParams }) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
+  const startsAt = tashkentToUtc(params.date, params.start)
+  const quote = useQuery({
+    queryKey: teamQuoteKey(params.stadiumId, startsAt),
+    queryFn: () => getTeamGameQuote(params.stadiumId, startsAt),
+    refetchOnWindowFocus: false,
+  })
   const led = useLedTeams()
   const choice = useCardChoice()
   const [teamId, setTeamId] = useState<string | null>(null)
+  const [picked, setPicked] = useState<PaymentOption | null>(null)
   const create = useMutation({
-    mutationFn: (vars: { teamAId: string; cardId: string }) =>
-      createTeamGame({
-        stadiumId: params.stadiumId,
-        startsAt: tashkentToUtc(params.date, params.start),
-        ...vars,
-      }),
+    mutationFn: (vars: { teamAId: string; cardId: string; paymentOption: PaymentOption }) =>
+      createTeamGame({ stadiumId: params.stadiumId, startsAt, ...vars }),
     onSuccess: (game) => {
       toast.show(t('opponent.started'), 'success')
       void queryClient.invalidateQueries({ queryKey: MY_GAMES_KEY })
@@ -122,20 +128,23 @@ function Opponent({ params }: { params: CheckoutParams }) {
     />
   )
 
-  if (stadium.isPending || availability.isPending || led.isPending) {
+  if (stadium.isPending || availability.isPending || led.isPending || quote.isPending) {
     return (
       <Screen header={header}>
         <SkeletonList count={3} />
       </Screen>
     )
   }
-  if (stadium.isError || availability.isError) {
+  // The quote refuses an hour that cannot be booked (400): the slot is gone.
+  const quoteRefused = quote.isError && isApiError(quote.error) && quote.error.status === 400
+  if (stadium.isError || availability.isError || (quote.isError && !quoteRefused)) {
     return (
       <Screen header={header} className="justify-center">
         <ErrorState
           onRetry={() => {
             if (stadium.isError) void stadium.refetch()
             if (availability.isError) void availability.refetch()
+            if (quote.isError) void quote.refetch()
           }}
         />
       </Screen>
@@ -152,7 +161,8 @@ function Opponent({ params }: { params: CheckoutParams }) {
     (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
   )
   const slotTaken = create.isError && isApiError(create.error) && create.error.status === 409
-  if (!slot || slot.pricePerHour === undefined || slotTaken) {
+  const options = quote.data ? quoteChoice(quote.data) : null
+  if (!slot || !quote.data || !options || slotTaken) {
     return (
       <Screen header={header}>
         <ChooseTimeState
@@ -173,6 +183,7 @@ function Opponent({ params }: { params: CheckoutParams }) {
   }
   const team = led.teams.find((x) => x.id === teamId) ?? led.teams[0]
   const failure = create.isError ? errorMessageKey(create.error) : null
+  const option = chosenOption(options, picked)
   const footer = (
     <BottomBar>
       <Button
@@ -180,10 +191,12 @@ function Opponent({ params }: { params: CheckoutParams }) {
         disabled={!team || !choice.card}
         loading={create.isPending}
         onClick={() =>
-          team && choice.card && create.mutate({ teamAId: team.id, cardId: choice.card.id })
+          team &&
+          choice.card &&
+          create.mutate({ teamAId: team.id, cardId: choice.card.id, paymentOption: option })
         }
       >
-        {t('opponent.submit')}
+        {t('opponent.submit', { amount: formatMoney(chosenAmount(options, option)) })}
       </Button>
     </BottomBar>
   )
@@ -230,7 +243,6 @@ function Opponent({ params }: { params: CheckoutParams }) {
               [t('checkout.date'), dayTitle(params.date)],
               [t('checkout.time'), slotLabel(slot)],
               [t('stadiums.format'), formatLabel(stadium.data.format)],
-              [t('opponent.slotPrice'), formatMoney(slot.pricePerHour)],
             ] as const
           ).map(([label, value]) => (
             <div key={label} className="flex justify-between gap-3">
@@ -239,8 +251,15 @@ function Opponent({ params }: { params: CheckoutParams }) {
             </div>
           ))}
         </dl>
-        <p className="text-xs text-secondary">{t('opponent.quoteSoon')}</p>
       </Card>
+
+      <TeamPaymentChoice
+        quote={quote.data}
+        choice={options}
+        value={option}
+        onChange={setPicked}
+        disabled={create.isPending}
+      />
 
       <p className="flex gap-2 text-sm text-secondary">
         <Info size={16} className="mt-0.5 shrink-0 text-link" aria-hidden />

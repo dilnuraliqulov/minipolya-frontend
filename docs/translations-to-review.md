@@ -245,6 +245,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `checkout.total` | Jami | Итого | Total |
 | `checkout.paymentType` | Toʻlov turi | Способ оплаты | Payment |
 | `checkout.deposit` | Oldindan toʻlov: {{amount}} | Предоплата: {{amount}} | Deposit: {{amount}} |
+| `checkout.minimum` | Minimal toʻlov: {{amount}} | Минимальная оплата: {{amount}} | Minimum payment: {{amount}} |
 | `checkout.full` | Toʻliq toʻlov: {{amount}} | Полная оплата: {{amount}} | Full payment: {{amount}} |
 | `checkout.remainderNote` | Qolgan {{amount}}ni keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток {{amount}} оплатите позже в приложении или наличными на поле. | Pay the remaining {{amount}} later in the app or in cash at the pitch. |
 | `checkout.remainderNoteGeneric` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток оплатите позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
@@ -411,6 +412,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `team.challengesEmpty` | Hozircha raqib qidirayotgan jamoa yoʻq. | Сейчас никто не ищет соперника. | No team is looking for an opponent right now. |
 | `team.leaderAccepts` | Chaqiriqlarni jamoa sardori qabul qiladi. | Вызовы принимает капитан команды. | The team captain accepts challenges. |
 | `team.payNow` | Jamoangiz toʻlaydi: {{amount}} | Ваша команда платит: {{amount}} | Your team pays: {{amount}} |
+| `team.payFrom` | Jamoangiz toʻlaydi: {{amount}}dan | Ваша команда платит: от {{amount}} | Your team pays: from {{amount}} |
 | `team.accept` | Qabul qilish | Принять | Accept |
 | `team.more` | Yana koʻrsatish | Показать ещё | Show more |
 | `team.createTitle` | Jamoa yaratish | Создание команды | Create a team |
@@ -481,9 +483,6 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.unclearText` | Javob kelmadi. Toʻlov oʻtgan boʻlishi mumkin — Oʻyinlarim boʻlimida tekshiring, qayta urinmang. | Ответ не пришёл. Оплата могла пройти — проверьте «Мои игры», не повторяйте. | No answer came back. The payment may have gone through — check My games instead of trying again. |
 | `game.toGames` | Oʻyinlarimga oʻtish | Перейти в «Мои игры» | Go to My games |
 | `accept.title` | Raqibni qabul qilish | Принять вызов | Accept the challenge |
-| `accept.payNow` | Jamoangiz hozir toʻlaydi | Ваша команда платит сейчас | Your team pays now |
-| `accept.remainder` | Qolgan summa | Остаток | Left to pay |
-| `accept.remainderNote` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток — позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
 | `accept.rule` | Oʻyin boshlanishiga 3 soatdan kam qolganda qabul qilib boʻlmaydi. | Меньше чем за 3 часа до игры принять вызов нельзя. | A challenge cannot be accepted less than 3 hours before the game. |
 | `accept.submit` | Toʻlash va qabul qilish · {{amount}} | Оплатить и принять · {{amount}} | Pay and accept · {{amount}} |
 | `accept.done` | Raqib qabul qilindi — maydon band qilindi | Вызов принят — поле забронировано | Challenge accepted — the pitch is booked |
@@ -504,10 +503,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `choice.back` | Ortga | Назад | Back |
 | `opponent.title` | Raqib qidirish | Поиск соперника | Find an opponent |
 | `opponent.whichTeam` | Qaysi jamoa bilan? | Какой командой? | With which team? |
-| `opponent.slotPrice` | Maydon narxi | Цена поля | Pitch price |
-| `opponent.quoteSoon` | Jamoangiz toʻlaydigan summa oʻyin yaratilgach koʻrinadi (tez orada — oldindan). | Сумма для вашей команды появится после создания игры (скоро — заранее). | Your team's amount shows once the game is created (coming soon — beforehand). |
 | `opponent.rules` | Raqib topilguncha kartangizda summa band qilinadi, maydon esa band qilinmaydi. Raqib topilmasa, pul toʻliq qaytariladi. | Пока соперник не найден, сумма удерживается на карте, а поле не бронируется. Если соперник не найдётся, деньги вернутся полностью. | Until an opponent is found, the amount is held on your card and the pitch is not booked. If nobody accepts, you get everything back. |
-| `opponent.submit` | Raqib qidirishni boshlash | Начать поиск соперника | Start looking for an opponent |
+| `opponent.submit` | Raqib qidirishni boshlash · {{amount}} | Начать поиск соперника · {{amount}} | Start looking for an opponent · {{amount}} |
 | `opponent.started` | Raqib qidirish boshlandi | Поиск соперника начат | Looking for an opponent |
 | `opponent.noLedTeam` | Raqib qidirish uchun jamoa sardori boʻlishingiz kerak. | Искать соперника может только капитан команды. | Only a team captain can look for an opponent. |
 | `chat.title` | Chat | Чат | Chat |
@@ -824,6 +821,26 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.location.zoomIn` | Yaqinlashtirish | Приблизить | Zoom in |
 | `owner.location.zoomOut` | Uzoqlashtirish | Отдалить | Zoom out |
 | `owner.facilities.saved` | Qulayliklar saqlandi | Удобства сохранены | Facilities saved |
+| `owner.mark.chip.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
+| `owner.mark.chip.cashReceived` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.chip.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
+| `owner.mark.chip.remainder` | Naqd olinadi: {{amount}} | Получить наличными: {{amount}} | To collect in cash: {{amount}} |
+| `owner.mark.cash` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
+| `owner.mark.back` | Ortga | Назад | Back |
+| `owner.mark.about` | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. |
+| `owner.mark.cashNote` | Tasdiqlangach bron «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin. | После подтверждения бронь будет отмечена «Получено наличными». Отменить можно до конца дня. | Once confirmed the booking shows “Cash received”. You can undo it until the end of today. |
+| `owner.mark.notPaidTitle` | Toʻlanmadi deb belgilash | Отметить как неоплаченную | Mark as not paid |
+| `owner.mark.notPaidText` | Mijoz qolgan {{amount}}ni toʻlamaganini belgilaysizmi? | Отметить, что клиент не заплатил остаток {{amount}}? | Mark that the client did not pay the remaining {{amount}}? |
+| `owner.mark.notPaidNote` | Jarima olinmaydi, oʻyinchi qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin. | Штраф не взимается, игрок может оплатить остаток позже в приложении. Отменить можно до конца дня. | No penalty is charged; the player can still pay the rest in the app. You can undo it until the end of today. |
+| `owner.mark.notPaidDone` | Toʻlanmadi deb belgilandi | Отмечено как неоплаченное | Marked as not paid |
+| `owner.mark.undoDone` | Belgi bekor qilindi | Отметка отменена | Mark undone |
+| `owner.mark.cashMarked` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.cashMarkedAmount` | Naqd olindi · {{amount}} | Получено наличными · {{amount}} | Cash received · {{amount}} |
+| `owner.mark.notPaidMarked` | Toʻlanmadi deb belgilangan | Отмечено как неоплаченное | Marked as not paid |
+| `owner.mark.undoUntil` | Bugun {{time}} gacha bekor qilish mumkin | Можно отменить сегодня до {{time}} | You can undo it until {{time}} today |
+| `owner.mark.undo` | Bekor qilish | Отменить | Undo |
+| `owner.mark.adminOnly` | Belgini endi faqat administrator oʻzgartira oladi | Изменить отметку теперь может только администратор | Only an admin can change the mark now |
 | `notifications.title` | Bildirishnomalar | Уведомления | Notifications |
 | `notifications.unreadValue` | {{count}} ta yangi | новых: {{count}} | {{count}} new |
 | `notifications.unread` | oʻqilmagan | не прочитано | unread |
@@ -894,23 +911,3 @@ Placeholders such as `{{count}}` must stay as they are.
 | `legal.privacy.keep.text` | Maʼlumotlar xizmat ishlashi uchun kerak boʻlgan muddat davomida saqlanadi. | Данные хранятся столько, сколько нужно для работы сервиса. | Data is kept for as long as the service needs it to work. |
 | `legal.privacy.contact.title` | Bogʻlanish | Связь | Contact |
 | `legal.privacy.contact.text` | Maʼlumotlaringiz boʻyicha savollar uchun Yordam boʻlimidagi qoʻllab-quvvatlash chatiga yozing. | По вопросам о ваших данных пишите в чат поддержки в разделе «Помощь». | For questions about your data, write to the support chat in Help. |
-| `owner.mark.chip.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
-| `owner.mark.chip.cashReceived` | Naqd olindi | Получено наличными | Cash received |
-| `owner.mark.chip.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
-| `owner.mark.chip.remainder` | Naqd olinadi: {{amount}} | Получить наличными: {{amount}} | To collect in cash: {{amount}} |
-| `owner.mark.cash` | Naqd olindi | Получено наличными | Cash received |
-| `owner.mark.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
-| `owner.mark.back` | Ortga | Назад | Back |
-| `owner.mark.about` | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. |
-| `owner.mark.cashNote` | Tasdiqlangach bron «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin. | После подтверждения бронь будет отмечена «Получено наличными». Отменить можно до конца дня. | Once confirmed the booking shows “Cash received”. You can undo it until the end of today. |
-| `owner.mark.notPaidTitle` | Toʻlanmadi deb belgilash | Отметить как неоплаченную | Mark as not paid |
-| `owner.mark.notPaidText` | Mijoz qolgan {{amount}}ni toʻlamaganini belgilaysizmi? | Отметить, что клиент не заплатил остаток {{amount}}? | Mark that the client did not pay the remaining {{amount}}? |
-| `owner.mark.notPaidNote` | Jarima olinmaydi, oʻyinchi qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin. | Штраф не взимается, игрок может оплатить остаток позже в приложении. Отменить можно до конца дня. | No penalty is charged; the player can still pay the rest in the app. You can undo it until the end of today. |
-| `owner.mark.notPaidDone` | Toʻlanmadi deb belgilandi | Отмечено как неоплаченное | Marked as not paid |
-| `owner.mark.undoDone` | Belgi bekor qilindi | Отметка отменена | Mark undone |
-| `owner.mark.cashMarked` | Naqd olindi | Получено наличными | Cash received |
-| `owner.mark.cashMarkedAmount` | Naqd olindi · {{amount}} | Получено наличными · {{amount}} | Cash received · {{amount}} |
-| `owner.mark.notPaidMarked` | Toʻlanmadi deb belgilangan | Отмечено как неоплаченное | Marked as not paid |
-| `owner.mark.undoUntil` | Bugun {{time}} gacha bekor qilish mumkin | Можно отменить сегодня до {{time}} | You can undo it until {{time}} today |
-| `owner.mark.undo` | Bekor qilish | Отменить | Undo |
-| `owner.mark.adminOnly` | Belgini endi faqat administrator oʻzgartira oladi | Изменить отметку теперь может только администратор | Only an admin can change the mark now |
