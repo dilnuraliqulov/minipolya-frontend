@@ -40,6 +40,12 @@ export default defineConfig({
     // In dev the apps call /api on their own origin and Vite forwards it to the
     // local backend, so no CORS is needed. Production builds use VITE_API_URL.
     proxy: { '/api': 'http://localhost:8080' },
+    // Tunnels for testing inside Telegram (Cloudflare quick tunnels, ngrok).
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app'],
+  },
+  preview: {
+    proxy: { '/api': 'http://localhost:8080' },
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app'],
   },
   build: {
     rollupOptions: {
