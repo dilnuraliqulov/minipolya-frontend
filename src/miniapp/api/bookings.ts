@@ -27,6 +27,12 @@ export type DeclineReason = 'INSUFFICIENT_FUNDS' | 'CARD_EXPIRED' | 'CARD_DECLIN
  */
 export type BookingPaymentState = 'paid' | 'processing' | 'declined' | 'failed' | 'none'
 
+/**
+ * E5: the owner's mark on what was left to pay — "Naqd olindi" (`POST …/cash`) or
+ * "Toʻlanmadi" (`POST …/not-paid`).
+ */
+export type RemainderMark = 'cash_received' | 'not_paid'
+
 /** Request side only: uppercase. */
 export type PaymentOption = 'MINIMUM' | 'FULL'
 
@@ -73,18 +79,20 @@ export interface Booking {
   /** Absent only from a backend older than `ccfa4d5`. */
   paymentState?: BookingPaymentState | string
   createdAt: string
-  /** R30: tiyin taken in cash. Not shipped; the client does not read it. */
+  /** E4 (R30): tiyin that arrived in cash at the pitch; absent or 0 when none. */
   paidInCash?: number
+  /** E4/E8: the owner's mark on the remainder; absent when none. */
+  remainderMark?: RemainderMark | string
+  /** E8, owner and admin views: when the mark was set (UTC). */
+  remainderMarkedAt?: string
+  /** E8, owner view only: the owner may undo the mark until then (UTC); later only an admin. */
+  remainderMarkUndoableUntil?: string
   /** R31: not shipped; the client does not read these. */
   stadiumCoverPhotoUrl?: string
   stadiumDistrict?: string
   stadiumFormat?: string
 }
 
-/** R27: `GET /api/stadiums/{id}/quote` — price, deposit, remainder, deadline before paying. */
-export const BOOKING_QUOTE = 'GET /api/stadiums/{id}/quote'
-/** R30: `paidInCash` on the player `BookingResponse`. */
-export const BOOKING_CASH_PAID = 'BookingResponse.paidInCash'
 /** R31: `stadiumCoverPhotoUrl`, `stadiumDistrict`, `stadiumFormat` on `BookingResponse`. */
 export const BOOKING_STADIUM_FIELDS = 'BookingResponse.stadiumCoverPhotoUrl'
 

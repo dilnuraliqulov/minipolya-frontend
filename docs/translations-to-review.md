@@ -238,8 +238,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `checkout.paymentType` | Toʻlov turi | Способ оплаты | Payment |
 | `checkout.deposit` | Oldindan toʻlov: {{amount}} | Предоплата: {{amount}} | Deposit: {{amount}} |
 | `checkout.full` | Toʻliq toʻlov: {{amount}} | Полная оплата: {{amount}} | Full payment: {{amount}} |
-| `checkout.remainderNote` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток оплатите позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
-| `checkout.fullOnly` | Bu maydon toʻliq toʻlovni talab qiladi. | Это поле требует полной оплаты. | This pitch requires full payment. |
+| `checkout.remainderNote` | Qolgan {{amount}}ni keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток {{amount}} оплатите позже в приложении или наличными на поле. | Pay the remaining {{amount}} later in the app or in cash at the pitch. |
+| `checkout.remainderNoteGeneric` | Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz. | Остаток оплатите позже в приложении или наличными на поле. | Pay the rest later in the app or in cash at the pitch. |
+| `checkout.fullOnly` | Bu vaqt uchun faqat toʻliq toʻlov mavjud. | Для этого времени доступна только полная оплата. | Only full payment is available for this time. |
 | `checkout.card` | Karta | Карта | Card |
 | `checkout.addCardFirst` | Toʻlash uchun avval karta qoʻshing | Чтобы оплатить, сначала добавьте карту | Add a card to pay |
 | `checkout.cancelNote` | Oʻyin boshlanishidan {{hours}} soat oldingacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi. | При отмене не позднее чем за {{hours}} ч до начала игры оплата вернётся полностью. Позже — не возвращается. | Cancel at least {{hours}} hours before the game and you get a full refund. After that, nothing is refunded. |

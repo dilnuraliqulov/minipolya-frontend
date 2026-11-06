@@ -33,7 +33,14 @@ const availability = {
   stadiumId: ID,
   stadiumName: 'Bunyodkor Arena',
   date: DATE,
-  slots: [makeSlot('19:00'), makeSlot('20:00', { pricePerHour: 15_500_000 })],
+  slots: [
+    makeSlot('19:00'),
+    makeSlot('20:00', {
+      pricePerHour: 15_500_000,
+      depositAmount: 5_500_000,
+      remainderAmount: 10_000_000,
+    }),
+  ],
 }
 const cards = [
   makeCard({ id: 'c1', maskedNumber: '8600 •••• 1234', cardType: 'humo' }),
@@ -73,22 +80,54 @@ describe('Checkout', () => {
     const full = screen.getByRole('radio', { name: 'Toʻliq toʻlov: 155 000 soʻm' })
     expect(deposit).toBeChecked()
     expect(full).not.toBeChecked()
-    expect(screen.getByText(/Qolgan summani keyin ilovada/)).toBeInTheDocument()
+    expect(
+      screen.getByText('Qolgan 100 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.'),
+    ).toBeInTheDocument()
+    expect(deposit).toHaveAccessibleDescription(/Qolgan 100 000 soʻmni/)
     expect(screen.getByText(/24 soat oldingacha bekor qilsangiz/)).toBeInTheDocument()
     expect(await payButton()).toHaveTextContent('Toʻlash · 55 000 soʻm')
 
     fireEvent.click(full)
     expect(full).toBeChecked()
-    expect(screen.queryByText(/Qolgan summani keyin ilovada/)).not.toBeInTheDocument()
     expect(await payButton()).toHaveTextContent('Toʻlash · 155 000 soʻm')
   })
 
-  it('offers only full payment when the stadium has no minimum', async () => {
-    stub({ [DETAIL]: makeDetail({ id: ID, minBookingAmount: undefined }) })
+  it('offers only full payment, with no choice, when the slot has no deposit', async () => {
+    // The stadium's own minimum is not read: only the slot's depositAmount counts (E12).
+    const api = stub({
+      [AVAILABILITY]: { ...availability, slots: [makeSlot('20:00', { pricePerHour: 15_500_000 })] },
+      [BOOK]: makeBooking({ paymentStatus: 'paid' }),
+    })
     renderApp(URL)
-    expect(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 155 000 soʻm' })).toBeChecked()
-    expect(screen.queryByRole('radio', { name: /Oldindan toʻlov/ })).not.toBeInTheDocument()
-    expect(screen.getByText('Bu maydon toʻliq toʻlovni talab qiladi.')).toBeInTheDocument()
+    expect(await screen.findByText('Toʻliq toʻlov: 155 000 soʻm')).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Toʻlov turi' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/Oldindan toʻlov/)).not.toBeInTheDocument()
+    expect(screen.getByText('Bu vaqt uchun faqat toʻliq toʻlov mavjud.')).toBeInTheDocument()
+    expect(screen.getByText(/24 soat oldingacha bekor qilsangiz/)).toBeInTheDocument()
+    fireEvent.click(await payButton())
+    expect(await payButton()).toHaveTextContent('Toʻlash · 155 000 soʻm')
+    await vi.waitFor(() =>
+      expect(api.calls(BOOK)).toEqual([expect.objectContaining({ paymentOption: 'FULL' })]),
+    )
+  })
+
+  it('takes the deposit from the slot, not from the stadium minimum', async () => {
+    stub({
+      [DETAIL]: makeDetail({ id: ID, minBookingAmount: 3_000_000 }),
+      [AVAILABILITY]: {
+        ...availability,
+        slots: [
+          makeSlot('20:00', {
+            pricePerHour: 15_500_000,
+            depositAmount: 5_500_000,
+            remainderAmount: 10_000_000,
+          }),
+        ],
+      },
+    })
+    renderApp(URL)
+    expect(await screen.findByRole('radio', { name: 'Oldindan toʻlov: 55 000 soʻm' })).toBeChecked()
+    expect(screen.queryByText(/30 000 soʻm/)).not.toBeInTheDocument()
   })
 
   it('creates and pays the booking with the chosen card and option', async () => {

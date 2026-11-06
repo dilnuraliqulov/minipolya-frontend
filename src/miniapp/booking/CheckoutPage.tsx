@@ -176,10 +176,8 @@ function CheckoutForm({
   const goBack = useGoBack()
   const payment = usePayment()
   const { state } = payment
-  const deposit =
-    stadium.minBookingAmount !== undefined && stadium.minBookingAmount < price
-      ? stadium.minBookingAmount
-      : undefined
+  // E3/E12: the deposit and the rest come with the slot; the client never works them out.
+  const deposit = slot.depositAmount
   const [option, setOption] = useState<PaymentOption>(deposit !== undefined ? 'MINIMUM' : 'FULL')
   const [cardId, setCardId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
@@ -363,15 +361,9 @@ function CheckoutForm({
           onChange={setOption}
           price={price}
           deposit={deposit}
+          remainder={slot.remainderAmount}
           disabled={paying || held !== null}
         />
-        <p className="px-1 text-sm text-secondary">
-          {deposit === undefined
-            ? t('checkout.fullOnly')
-            : option === 'MINIMUM'
-              ? t('checkout.remainderNote')
-              : null}
-        </p>
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="pay-card">

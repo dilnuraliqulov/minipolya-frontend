@@ -104,6 +104,13 @@ export interface TimeSlot {
   pricePerHour?: number
   /** Tiyin; the price before a promotion. */
   originalPrice?: number
+  /**
+   * E3: tiyin, what "Oldindan toʻlov" charges for this hour — the same figure
+   * `POST /api/bookings` takes with `MINIMUM`. Absent when only full payment exists.
+   */
+  depositAmount?: number
+  /** E3: tiyin, what is left to pay after the deposit. Sent together with `depositAmount`. */
+  remainderAmount?: number
   discountPercent?: number
   promotionName?: string
   hasWaitingGame: boolean
