@@ -103,7 +103,9 @@ describe('Jadval — Naqd olindi / Toʻlanmadi (E5–E8)', () => {
   it('offers both marks on a booking that still owes', async () => {
     stub([partial])
     const sheet = await openSheet()
-    expect(within(sheet).getByText('Qoldiq: 100 000 soʻm')).toBeInTheDocument()
+    // The Qoldiq row already shows the amount, so no "Qoldiq: X" chip repeats it.
+    expect(within(sheet).getByText('100 000 soʻm')).toBeInTheDocument()
+    expect(within(sheet).queryByText('Qoldiq: 100 000 soʻm')).not.toBeInTheDocument()
     expect(within(sheet).getByRole('button', { name: 'Naqd olindi' })).toBeInTheDocument()
     expect(within(sheet).getByRole('button', { name: 'Toʻlanmadi' })).toBeInTheDocument()
   })

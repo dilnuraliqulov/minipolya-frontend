@@ -47,7 +47,10 @@ export function UnpaidList({ stadiumId, stadiumName }: { stadiumId: string; stad
                   {booking.clientName ?? t('owner.booking.player')}
                 </span>
                 <span className="text-sm text-secondary">
-                  {`${formatLongDate(booking.startsAt)}, ${formatTime(booking.startsAt)}–${formatTime(booking.endsAt)}`}
+                  {`${formatLongDate(booking.startsAt)}, `}
+                  <span className="whitespace-nowrap">
+                    {`${formatTime(booking.startsAt)}–${formatTime(booking.endsAt)}`}
+                  </span>
                 </span>
                 <span>
                   <RemainderChip booking={booking} />

@@ -21,13 +21,23 @@ const TONES: Record<RemainderState, BadgeTone> = {
   remainder: 'warning',
 }
 
-/** "Toʻliq toʻlangan" · "Naqd olindi" · "Toʻlanmadi" · "Qoldiq: X" — or nothing. */
-export function RemainderChip({ booking }: { booking: Booking }) {
+/**
+ * "Toʻliq toʻlangan" · "Naqd olindi" · "Toʻlanmadi" · "Qoldiq: X" — or nothing.
+ * `besideAmount`: the chip sits next to the remaining amount already, so a bare
+ * "Qoldiq: X" would only repeat it and is left out.
+ */
+export function RemainderChip({
+  booking,
+  besideAmount = false,
+}: {
+  booking: Booking
+  besideAmount?: boolean
+}) {
   const { t } = useTranslation()
   // A team game's remainders are the teams' own (GameCash), not the booking's.
   if (booking.gameId) return null
   const state = remainderState(booking)
-  if (!state) return null
+  if (!state || (besideAmount && state === 'remainder')) return null
   return (
     <Badge tone={TONES[state]}>
       {state === 'remainder'
@@ -144,15 +154,17 @@ export function MarkedState({
     <div
       className={
         cash
-          ? 'flex flex-col gap-2 rounded-xl border border-success bg-success-soft p-3'
-          : 'flex flex-col gap-2 rounded-xl border border-danger bg-danger-soft p-3'
+          ? 'flex flex-col gap-2 rounded-xl border border-success bg-background p-3'
+          : 'flex flex-col gap-2 rounded-xl border border-danger bg-background p-3'
       }
     >
-      <p
-        className={
-          cash ? 'text-md font-semibold text-success' : 'text-md font-semibold text-danger'
-        }
-      >
+      {/* Neutral card + coloured border and icon: the text keeps its contrast in both themes. */}
+      <p className="flex items-center gap-2 text-md font-semibold text-primary">
+        {cash ? (
+          <Banknote size={18} className="shrink-0 text-success" aria-hidden />
+        ) : (
+          <CircleX size={18} className="shrink-0 text-danger" aria-hidden />
+        )}
         {cash
           ? booking.paidInCash
             ? t('owner.mark.cashMarkedAmount', { amount: formatMoney(booking.paidInCash) })

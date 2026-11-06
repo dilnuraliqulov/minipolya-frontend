@@ -433,7 +433,9 @@ function OwnerBookingSheet({
                   <dt className="text-secondary">{label}</dt>
                   <dd className="flex items-center gap-2 text-primary">
                     {formatMoney(value ?? 0)}
-                    {label === t('owner.booking.remaining') && <RemainderChip booking={booking} />}
+                    {label === t('owner.booking.remaining') && (
+                      <RemainderChip booking={booking} besideAmount />
+                    )}
                   </dd>
                 </div>
               ))}
