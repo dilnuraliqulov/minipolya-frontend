@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
-import { LogoMark } from '../components'
+import { Badge, LogoMark } from '../components'
 import { formatMoney } from '../format'
 import { BookingStatusBadge } from './BookingStatusBadge'
 import { bookingWhen } from './when'
@@ -32,9 +32,9 @@ export function BookingCard({ booking }: { booking: Booking }) {
         <span className="flex flex-wrap items-center gap-2">
           <BookingStatusBadge status={booking.status} />
           {owes && (
-            <span className="text-sm font-semibold text-warning">
+            <Badge tone="warning">
               {t('bookings.remainder', { amount: formatMoney(booking.remainingAmount) })}
-            </span>
+            </Badge>
           )}
         </span>
       </span>

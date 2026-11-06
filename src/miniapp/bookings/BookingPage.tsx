@@ -155,7 +155,7 @@ function BookingContent({ booking }: { booking: Booking }) {
               </Button>
             )
           )}
-          <p className="text-center text-sm text-secondary">{t('booking.cashNote')}</p>
+          <p className="text-center text-sm text-primary">{t('booking.cashNote')}</p>
         </section>
       )}
       <Details booking={booking} stadium={stadium} />

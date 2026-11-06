@@ -76,7 +76,10 @@ export function PaymentOptions({
                 {label}
               </span>
               {note && (
-                <span id={`${id}-${option}-note`} className="text-sm text-secondary">
+                <span
+                  id={`${id}-${option}-note`}
+                  className={cx('text-sm', checked ? 'text-primary' : 'text-secondary')}
+                >
                   {note}
                 </span>
               )}
