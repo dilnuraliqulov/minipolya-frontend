@@ -400,7 +400,7 @@ describe('Maydon qoʻshish', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
     fireEvent.click(screen.getByRole('button', { name: 'Tekshiruvga yuborish' }))
-    expect(await screen.findByText('Maydon tekshiruvga yuborildi')).toBeInTheDocument()
+    expect(await screen.findByText('Arizangiz qabul qilindi')).toBeInTheDocument()
     expect(api.calls('POST /api/owner/stadiums')).toEqual([
       {
         name: 'Yangi Arena',

@@ -81,7 +81,7 @@ describe('Maydonim — Bron shartlari', () => {
   it('"Minimum yoʻq" clears the minimum, with the cancellation hours', async () => {
     const api = stub({ 'PUT /api/owner/stadiums/s1': detail })
     renderApp('/owner/stadium/s1/terms', { session })
-    fireEvent.click(await screen.findByRole('switch', { name: 'Minimal toʻlov' }))
+    fireEvent.click(await screen.findByRole('switch', { name: 'Oldindan toʻlov' }))
     expect(screen.getByText(/Minimum yoʻq/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Bir soat koʻproq' }))
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
@@ -116,7 +116,7 @@ describe('Maydonim — Bron shartlari', () => {
   it('starts with "Minimum yoʻq" when no minimum is set', async () => {
     stub({ 'GET /api/owner/stadiums/s1': { ...detail, minBookingAmount: undefined } })
     renderApp('/owner/stadium/s1/terms', { session })
-    expect(await screen.findByRole('switch', { name: 'Minimal toʻlov' })).not.toBeChecked()
+    expect(await screen.findByRole('switch', { name: 'Oldindan toʻlov' })).not.toBeChecked()
   })
 })
 
@@ -188,7 +188,7 @@ describe('Maydonim — Rasmlar', () => {
     Object.defineProperty(big, 'size', { value: 11 * 1024 * 1024 })
     fireEvent.change(screen.getByTestId('photo-input'), { target: { files: [big] } })
     expect(
-      await screen.findByText('Rasm juda katta — 10 MB gacha boʻlishi kerak.'),
+      await screen.findByText('Rasm juda katta — 5 MB gacha boʻlishi kerak.'),
     ).toBeInTheDocument()
     expect(api.calls('POST /api/owner/stadiums/s1/photos')).toHaveLength(0)
   })

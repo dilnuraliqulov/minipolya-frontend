@@ -86,7 +86,19 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
 | `errors.tooManyPhotos` | Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin. | У поля может быть не больше 10 фото. | A pitch can have at most 10 photos. |
-| `errors.fileTooLarge` | Rasm juda katta — 10 MB gacha boʻlishi kerak. | Фото слишком большое — до 10 МБ. | The photo is too large — up to 10 MB. |
+| `errors.fileTooLarge` | Rasm juda katta — 5 MB gacha boʻlishi kerak. | Фото слишком большое — до 5 МБ. | The photo is too large — up to 5 MB. |
+| `errors.imageTooLarge` | Rasm oʻlchami juda katta. Kichikroq rasm tanlang. | Слишком большое разрешение фото. Выберите фото поменьше. | The image is too big. Choose a smaller one. |
+| `errors.phoneFormat` | Raqamni toʻliq kiriting, masalan: +998 90 123 45 67 | Введите номер полностью, например: +998 90 123 45 67 | Enter the full number, for example: +998 90 123 45 67 |
+| `errors.outsideUzbekistan` | Joy Oʻzbekiston hududida boʻlishi kerak. | Место должно быть в Узбекистане. | The location must be in Uzbekistan. |
+| `errors.priceRange` | Narx 10 000 dan 5 000 000 soʻmgacha boʻlishi kerak. | Цена должна быть от 10 000 до 5 000 000 сум. | The price must be between 10 000 and 5 000 000 UZS. |
+| `errors.hoursOrder` | Yopilish vaqti ochilishdan keyin boʻlishi kerak. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi. | Закрытие должно быть позже открытия. Работа после полуночи не поддерживается. | Closing must be after opening. Closing after midnight is not supported. |
+| `errors.onTheHour` | Vaqt butun soatda boʻlishi kerak (masalan, 08:00). | Время должно быть целым часом (например, 08:00). | Times must be on the hour (for example, 08:00). |
+| `errors.nameLength` | Maydon nomi 3 dan 150 belgigacha boʻlishi kerak. | Название должно быть от 3 до 150 символов. | The name must be 3 to 150 characters. |
+| `errors.addressLength` | Manzil 5 dan 300 belgigacha boʻlishi kerak. | Адрес должен быть от 5 до 300 символов. | The address must be 5 to 300 characters. |
+| `errors.districtRequired` | Tumanni tanlang. | Выберите район. | Choose a district. |
+| `errors.descriptionLength` | Qoʻshimcha maʼlumot koʻpi bilan 500 belgi boʻlishi mumkin. | Дополнительная информация — не более 500 символов. | More details can be at most 500 characters. |
+| `errors.landmarkLength` | Moʻljal koʻpi bilan 150 belgi boʻlishi mumkin. | Ориентир — не более 150 символов. | The landmark can be at most 150 characters. |
+| `errors.locationRequired` | Maydon joyini xaritada belgilang. | Отметьте поле на карте. | Mark the pitch on the map. |
 | `languages.uz` | Oʻzbekcha | Oʻzbekcha | Oʻzbekcha |
 | `languages.ru` | Русский | Русский | Русский |
 | `languages.en` | English | English | English |
@@ -158,14 +170,18 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.surface.natural` | Tabiiy gazon | Натуральный газон | Natural grass |
 | `stadium.surface.artificial` | Sunʼiy gazon | Искусственный газон | Artificial turf |
 | `stadium.surface.hybrid` | Gibrid gazon | Гибридный газон | Hybrid turf |
-| `stadium.amenity.lighting` | Yoritish | Освещение | Lighting |
+| `stadium.amenity.lighting` | Yoritish (kechki oʻyin) | Освещение (вечерние игры) | Lighting (evening games) |
 | `stadium.amenity.lockerRoom` | Kiyinish xonasi | Раздевалка | Changing room |
 | `stadium.amenity.showers` | Dush | Душ | Showers |
 | `stadium.amenity.parking` | Avtoturargoh | Парковка | Parking |
-| `stadium.amenity.tribune` | Tribuna | Трибуна | Stand |
-| `stadium.amenity.equipmentRental` | Toʻp ijarasi | Прокат мячей | Ball rental |
+| `stadium.amenity.tribune` | Tomoshabin oʻrindiqlari | Места для зрителей | Spectator seating |
+| `stadium.amenity.equipmentRental` | Toʻp ijarasi | Аренда мяча | Ball rental |
 | `stadium.amenity.wifi` | Wi-Fi | Wi-Fi | Wi-Fi |
 | `stadium.amenity.cafe` | Kafe | Кафе | Café |
+| `stadium.amenity.toilet` | Hojatxona | Туалет | Toilet |
+| `stadium.amenity.covered` | Yopiq / usti yopiq | Крытое / под навесом | Indoor / covered |
+| `stadium.amenity.bibs` | Maykalar (manishka) | Манишки | Bibs |
+| `stadium.amenity.drinkingWater` | Ichimlik suvi | Питьевая вода | Drinking water |
 | `stadium.amenities` | Qulayliklar | Удобства | Amenities |
 | `stadium.address` | Manzil | Адрес | Address |
 | `stadium.openMap` | Xaritada ochish | Открыть на карте | Open in maps |
@@ -182,6 +198,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.photoAlt` | {{name}}, {{n}}-rasm | {{name}}, фото {{n}} | {{name}}, photo {{n}} |
 | `stadium.notFoundTitle` | Maydon topilmadi | Поле не найдено | Pitch not found |
 | `stadium.notFoundText` | Bu maydon endi mavjud emas yoki yopilgan. | Этого поля больше нет или оно закрыто. | This pitch no longer exists or has been closed. |
+| `stadium.landmark` | Moʻljal | Ориентир | Landmark |
+| `stadium.openYandex` | Yandex Mapsʼda ochish | Открыть в Яндекс Картах | Open in Yandex Maps |
+| `stadium.openGoogle` | Google Mapsʼda ochish | Открыть в Google Картах | Open in Google Maps |
 | `weekdays.short.mon` | Dush | Пн | Mon |
 | `weekdays.short.tue` | Sesh | Вт | Tue |
 | `weekdays.short.wed` | Chor | Ср | Wed |
@@ -503,7 +522,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.banner.blocked` | Maydon bloklangan va oʻyinchilarga koʻrinmaydi. | Поле заблокировано и не видно игрокам. | The pitch is blocked and hidden from players. |
 | `owner.banner.reason` | Sabab: {{reason}} | Причина: {{reason}} | Reason: {{reason}} |
 | `owner.section.info` | Maʼlumotlar | Данные | Details |
-| `owner.section.infoText` | Nomi, manzili, tumani, format, qoplama | Название, адрес, район, формат, покрытие | Name, address, district, format, surface |
+| `owner.section.infoText` | Nomi, telefon, joylashuv, manzil | Название, телефон, расположение, адрес | Name, phone, location, address |
 | `owner.section.photos` | Rasmlar | Фото | Photos |
 | `owner.section.hours` | Ish vaqti | Часы работы | Opening hours |
 | `owner.section.prices` | Narxlar | Цены | Prices |
@@ -512,8 +531,10 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.section.closures` | Yopiq kunlar | Закрытые дни | Closed days |
 | `owner.section.closuresText` | Rejalashtirilgan yopilishlar | Запланированные закрытия | Planned closures |
 | `owner.section.hoursText` | Ochilish va yopilish vaqti | Время открытия и закрытия | Opening and closing time |
-| `owner.section.termsText` | Oldindan toʻlov va bekor qilish muddati | Предоплата и срок отмены | Deposit and cancellation period |
-| `owner.section.photosText` | Koʻpi bilan 10 ta, birinchisi — muqova | До 10 фото, первое — обложка | Up to 10, the first is the cover |
+| `owner.section.termsText` | Platforma bilan kelishilgan | Согласованы с платформой | Agreed with the platform |
+| `owner.section.photosText` | Kamida 3 ta, koʻpi bilan 10 ta, birinchisi — muqova | От 3 до 10, первое — обложка | 3 to 10, the first is the cover |
+| `owner.section.facilities` | Qulayliklar | Удобства | Facilities |
+| `owner.section.facilitiesText` | Qulayliklar va qoʻshimcha maʼlumot | Удобства и дополнительная информация | Facilities and more details |
 | `owner.soonDetail` | Tez orada — server bu maʼlumotni egaga hali bermaydi | Скоро — сервер пока не отдаёт эти данные владельцу | Coming soon — the server does not give the owner this yet |
 | `owner.save` | Saqlash | Сохранить | Save |
 | `owner.saved` | Saqlandi | Сохранено | Saved |
@@ -526,8 +547,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.field.district` | Tuman | Район | District |
 | `owner.field.format` | Format | Формат | Format |
 | `owner.field.surface` | Qoplama | Покрытие | Surface |
-| `owner.field.phone` | Telefon (ixtiyoriy) | Телефон (необязательно) | Phone (optional) |
-| `owner.field.description` | Tavsif (ixtiyoriy) | Описание (необязательно) | Description (optional) |
+| `owner.field.phone` | Telefon | Телефон | Phone |
+| `owner.field.description` | Qoʻshimcha maʼlumot | Дополнительная информация | More details |
 | `owner.field.open` | Ochilish | Открытие | Opens |
 | `owner.field.close` | Yopilish | Закрытие | Closes |
 | `owner.field.price` | Soatlik narx (soʻm) | Цена за час (сум) | Price per hour (soʻm) |
@@ -546,6 +567,13 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.field.time` | Vaqt | Время | Time |
 | `owner.field.cashPaid` | Naqd toʻlandi | Оплачено наличными | Paid in cash |
 | `owner.field.hoursUnit` | {{count}} soat | {{count}} ч | {{count}} h |
+| `owner.field.descriptionPlaceholder` | Masalan: kirish joyi, oʻyin qoidalari, boshqa qulayliklar | Например: где вход, правила игры, другие удобства | For example: where the entrance is, house rules, other facilities |
+| `owner.field.landmark` | Moʻljal (ixtiyoriy) | Ориентир (необязательно) | Landmark (optional) |
+| `owner.field.landmarkPlaceholder` | Masalan: Novza metro bekati yonida | Например: рядом с метро «Новза» | For example: next to Novza metro station |
+| `owner.field.districtPlaceholder` | Tumanni tanlang | Выберите район | Choose a district |
+| `owner.field.counter` | {{count}}/{{max}} | {{count}}/{{max}} | {{count}}/{{max}} |
+| `owner.field.addressPlaceholder` | Masalan: Bunyodkor koʻchasi 12 | Например: улица Бунёдкор, 12 | For example: 12 Bunyodkor street |
+| `owner.field.namePlaceholder` | Masalan: Chilonzor Sport Maydoni | Например: Chilonzor Sport Maydoni | For example: Chilonzor Sport Maydoni |
 | `owner.prices.title` | Narxlar | Цены | Prices |
 | `owner.prices.empty` | Alohida narx qoidalari yoʻq — asosiy narx amal qiladi. | Отдельных правил нет — действует базовая цена. | No special rules — the base price applies. |
 | `owner.prices.add` | Narx qoidasi qoʻshish | Добавить правило цены | Add a price rule |
@@ -623,23 +651,81 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.profile.myStadiums` | Maydonlarim | Мои поля | My pitches |
 | `owner.profile.count` | {{count}} ta | {{count}} | {{count}} |
 | `owner.profile.switchStadium` | Maydonni tanlang | Выберите поле | Choose a pitch |
-| `owner.wizard.title` | Maydon qoʻshish | Добавление поля | Add a pitch |
+| `owner.wizard.title` | Maydon qoʻshish | Добавить поле | Add a pitch |
 | `owner.wizard.step` | {{n}}-qadam / {{total}} · {{name}} | Шаг {{n}} из {{total}} · {{name}} | Step {{n}} of {{total}} · {{name}} |
 | `owner.wizard.basics` | Asosiy | Основное | Basics |
 | `owner.wizard.place` | Manzil | Адрес | Location |
 | `owner.wizard.hours` | Ish vaqti | Часы работы | Opening hours |
 | `owner.wizard.price` | Narx va shartlar | Цена и условия | Price and terms |
 | `owner.wizard.review` | Koʻrib chiqish | Проверка | Review |
-| `owner.wizard.next` | Davom etish | Далее | Next |
+| `owner.wizard.next` | Davom etish | Продолжить | Continue |
 | `owner.wizard.back` | Ortga | Назад | Back |
 | `owner.wizard.submit` | Tekshiruvga yuborish | Отправить на проверку | Send for review |
 | `owner.wizard.photosSoon` | Rasmlarni maydon yuborilgach, Maydonim → Rasmlar boʻlimida yuklaysiz. | Фото загрузите после отправки поля, в разделе Моё поле → Фото. | Upload photos after sending the pitch, in My pitch → Photos. |
 | `owner.wizard.hoursError` | Yopilish vaqti ochilishdan keyin boʻlishi kerak. | Время закрытия должно быть позже открытия. | Closing time must be after opening time. |
-| `owner.wizard.sentTitle` | Maydon tekshiruvga yuborildi | Поле отправлено на проверку | The pitch was sent for review |
-| `owner.wizard.sentText` | Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi. | После одобрения админом игроки смогут его увидеть и забронировать. | Once an admin approves it, players can see and book it. |
-| `owner.wizard.toStadium` | Maydonimga oʻtish | Перейти к полю | Go to my pitch |
+| `owner.wizard.sentTitle` | Arizangiz qabul qilindi | Заявка принята | Application received |
+| `owner.wizard.sentText` | Barcha rasmlar yuklandi. Administrator maydoningizni tekshirib, siz bilan telefon orqali bogʻlanadi. | Все фото загружены. Администратор проверит поле и свяжется с вами по телефону. | All photos are uploaded. An administrator will review your pitch and call you. |
+| `owner.wizard.toStadium` | Maydonimni koʻrish | Посмотреть моё поле | View my pitch |
 | `owner.wizard.onTheHour` | Vaqt butun soatda boʻlishi kerak (masalan, 08:00). | Время должно быть ровно в начале часа (например, 08:00). | Times must be on the hour (e.g. 08:00). |
 | `owner.wizard.toProfile` | Profilga qaytish | Вернуться в профиль | Back to Profile |
+| `owner.wizard.progress` | {{n}}/{{total}} · {{name}} | {{n}}/{{total}} · {{name}} | {{n}}/{{total}} · {{name}} |
+| `owner.wizard.progressLabel` | {{total}} qadamdan {{n}}-qadam | Шаг {{n}} из {{total}} | Step {{n}} of {{total}} |
+| `owner.wizard.steps.basics` | Asosiy | Основное | Basics |
+| `owner.wizard.steps.location` | Joylashuv | Расположение | Location |
+| `owner.wizard.steps.photos` | Rasmlar | Фото | Photos |
+| `owner.wizard.steps.facilities` | Qulayliklar | Удобства | Facilities |
+| `owner.wizard.steps.hours` | Ish vaqti va narx | Часы работы и цена | Hours and price |
+| `owner.wizard.steps.review` | Koʻrib chiqish | Проверка | Review |
+| `owner.wizard.titles.basics` | Maydon haqida | О поле | About the pitch |
+| `owner.wizard.titles.location` | Maydon qayerda? | Где находится поле? | Where is the pitch? |
+| `owner.wizard.titles.photos` | Maydon rasmlari | Фото поля | Pitch photos |
+| `owner.wizard.titles.facilities` | Maydonda nimalar bor? | Что есть на поле? | What does the pitch have? |
+| `owner.wizard.titles.hours` | Qachon ochiq va necha pul? | Когда открыто и сколько стоит? | When is it open and what does it cost? |
+| `owner.wizard.titles.review` | Hammasi toʻgʻrimi? | Всё верно? | Is everything right? |
+| `owner.wizard.facilitiesText` | Maydoningizda bor narsalarni belgilang | Отметьте, что есть на вашем поле | Tick what your pitch has |
+| `owner.wizard.edit` | Tahrirlash | Изменить | Edit |
+| `owner.wizard.editSection` | {{section}} — tahrirlash | {{section}} — изменить | {{section}} — edit |
+| `owner.wizard.open` | Ochilish | Открытие | Opens |
+| `owner.wizard.close` | Yopilish | Закрытие | Closes |
+| `owner.wizard.earlier` | {{label}}: bir soat oldin | {{label}}: на час раньше | {{label}}: one hour earlier |
+| `owner.wizard.later` | {{label}}: bir soat keyin | {{label}}: на час позже | {{label}}: one hour later |
+| `owner.wizard.everyDay` | Har kuni {{open}} – {{close}} | Ежедневно {{open}} – {{close}} | Every day {{open}} – {{close}} |
+| `owner.wizard.everyDayHours` | Har kuni {{open}} – {{close}} · {{count}} soat | Ежедневно {{open}} – {{close}} · {{count}} ч | Every day {{open}} – {{close}} · {{count}} h |
+| `owner.wizard.hoursNote` | Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi. | Только целые часы, 24-часовой формат. Работа после полуночи не поддерживается. | Whole hours only, 24-hour format. Closing after midnight is not supported. |
+| `owner.wizard.yourPrice` | Sizning narxingiz (1 soat) | Ваша цена (1 час) | Your price (1 hour) |
+| `owner.wizard.priceHint` | 10 000 dan 5 000 000 soʻmgacha | От 10 000 до 5 000 000 сум | From 10 000 to 5 000 000 UZS |
+| `owner.wizard.playerPriceNote` | Oʻyinchilar karta toʻlovi hisobiga biroz yuqoriroq narxni koʻradi. | Игроки видят немного более высокую цену — из-за оплаты картой. | Players see a slightly higher price because of the card payment. |
+| `owner.wizard.reviewHours` | Ish vaqti | Часы работы | Opening hours |
+| `owner.wizard.reviewPrice` | Sizning narxingiz | Ваша цена | Your price |
+| `owner.wizard.perHour` | {{price}} / soat | {{price}} / час | {{price}} / hour |
+| `owner.wizard.photosCount` | Rasmlar · {{count}} | Фото · {{count}} | Photos · {{count}} |
+| `owner.wizard.noFacilities` | Belgilanmagan | Не отмечено | None ticked |
+| `owner.wizard.mapPreview` | Maydon joyi xaritada | Место поля на карте | The pitch on the map |
+| `owner.wizard.termsNote` | Oldindan toʻlov va bekor qilish shartlari platforma bilan kelishiladi. | Предоплата и условия отмены согласовываются с платформой. | The deposit and cancellation terms are agreed with the platform. |
+| `owner.wizard.leaveTitle` | Maydon qoʻshishni toʻxtatasizmi? | Прервать добавление поля? | Stop adding the pitch? |
+| `owner.wizard.leaveText` | Kiritgan maʼlumotlaringiz saqlanmaydi. | Введённые данные не сохранятся. | What you entered will not be saved. |
+| `owner.wizard.leave` | Chiqish | Выйти | Leave |
+| `owner.wizard.stay` | Davom etish | Продолжить | Keep going |
+| `owner.wizard.created` | Maydon yaratildi | Поле создано | Pitch created |
+| `owner.wizard.uploadingTitle` | Rasmlar yuklanmoqda | Загружаем фото | Uploading photos |
+| `owner.wizard.uploadingText` | Rasmlar birma-bir yuklanmoqda. Hammasi yuklangach, ariza tekshiruvga yuboriladi. | Фото загружаются по одному. Когда загрузятся все, заявка уйдёт на проверку. | The photos upload one by one. Once all are uploaded, the application goes for review. |
+| `owner.wizard.uploadedCount` | {{done}}/{{total}} yuklandi | Загружено {{done}} из {{total}} | {{done}} of {{total}} uploaded |
+| `owner.wizard.failedCount` | {{count}} ta xato | Ошибок: {{count}} | {{count}} failed |
+| `owner.wizard.photoN` | Rasm {{n}} | Фото {{n}} | Photo {{n}} |
+| `owner.wizard.photoCover` | Rasm {{n}} · Muqova | Фото {{n}} · Обложка | Photo {{n}} · Cover |
+| `owner.wizard.status.done` | Yuklandi | Загружено | Uploaded |
+| `owner.wizard.status.failed` | Yuklanmadi | Не загружено | Not uploaded |
+| `owner.wizard.status.queued` | Navbatda | В очереди | Waiting |
+| `owner.wizard.leaveNote` | Chiqib ketsangiz ham boʻladi — qolgan rasmlarni Maydonim → Rasmlar boʻlimida yuklaysiz. | Можно выйти — оставшиеся фото загрузите в разделе Моё поле → Фото. | You can leave — upload the rest in My pitch → Photos. |
+| `owner.wizard.finishLater` | Keyinroq tugatish | Закончить позже | Finish later |
+| `owner.wizard.callNumber` | Shu raqamga qoʻngʻiroq qilamiz | Позвоним на этот номер | We will call this number |
+| `owner.wizard.wrongNumber` | Raqam notoʻgʻrimi? | Номер неверный? | Wrong number? |
+| `owner.wizard.updateInProfile` | Profilda yangilang | Обновите в профиле | Update it in Profile |
+| `owner.wizard.nextSteps` | Keyingi qadamlar | Что дальше | Next steps |
+| `owner.wizard.stepCall` | Qoʻngʻiroq | Звонок | A call |
+| `owner.wizard.stepContract` | Shartnoma | Договор | Contract |
+| `owner.wizard.stepLive` | Maydon ilovada chiqadi | Поле появляется в приложении | The pitch appears in the app |
+| `owner.wizard.toHome` | Bosh sahifa | Главная | Home |
 | `owner.discount.title` | Narxni oʻzgartirish | Изменить цену | Change price |
 | `owner.discount.open` | {{time}} narxini oʻzgartirish | Изменить цену на {{time}} | Change the {{time}} price |
 | `owner.discount.percent` | Chegirma (%) | Скидка (%) | Discount (%) |
@@ -683,7 +769,8 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.reviews.send` | Yuborish | Отправить | Send |
 | `owner.reviews.sent` | Javob yuborildi | Ответ отправлен | Reply sent |
 | `owner.hours.note` | Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping. | Почасовые брони открываются в этом промежутке. Отдельные дни закрывайте в разделе «Закрытые дни». | Hourly bookings open within these hours. Close single days in “Closed days”. |
-| `owner.terms.minimum` | Minimal toʻlov | Минимальная оплата | Minimum payment |
+| `owner.hours.saved` | Ish vaqti saqlandi | Часы работы сохранены | Opening hours saved |
+| `owner.terms.minimum` | Oldindan toʻlov | Предоплата | Deposit |
 | `owner.terms.minimumOn` | Oʻyinchi band qilishda kamida shu summani oldindan toʻlaydi, qolganini keyin. | При бронировании игрок платит не меньше этой суммы, остальное — потом. | When booking, the player pays at least this amount up front and the rest later. |
 | `owner.terms.minimumOff` | Minimum yoʻq — oʻyinchi band qilishda toʻliq toʻlaydi. | Без минимума — игрок платит полностью при бронировании. | No minimum — the player pays in full when booking. |
 | `owner.terms.playerPays` | Oʻyinchilar uchun: {{amount}} | Для игроков: {{amount}} | Players pay: {{amount}} |
@@ -692,7 +779,14 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.terms.hours` | {{count}} soat | {{count}} ч | {{count}} h |
 | `owner.terms.less` | Bir soat kamroq | На час меньше | One hour less |
 | `owner.terms.more` | Bir soat koʻproq | На час больше | One hour more |
-| `owner.photos.text` | Birinchi rasm muqova boʻladi. Tartibni oʻqlar bilan oʻzgartiring. | Первое фото — обложка. Меняйте порядок стрелками. | The first photo is the cover. Change the order with the arrows. |
+| `owner.terms.title` | Bron shartlari | Условия бронирования | Booking terms |
+| `owner.terms.agreed` | Platforma bilan kelishilgan | Согласованы с платформой | Agreed with the platform |
+| `owner.terms.full` | Toʻliq toʻlov | Полная оплата | Full payment |
+| `owner.terms.cancel` | Bepul bekor qilish | Бесплатная отмена | Free cancellation |
+| `owner.terms.cancelValue` | Boshlanishiga {{count}} soat qolguncha | До {{count}} ч до начала | Up to {{count}} h before the start |
+| `owner.terms.note` | Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing. | Предоплату и условия отмены согласовывают с платформой по телефону. Чтобы изменить их, напишите нам. | The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us. |
+| `owner.terms.support` | Qoʻllab-quvvatlashga yozish | Написать в поддержку | Write to support |
+| `owner.photos.text` | Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova. | От 3 до 10 фото. Первое — обложка. | 3 to 10 photos. The first is the cover. |
 | `owner.photos.upload` | Rasm yuklash | Загрузить фото | Upload a photo |
 | `owner.photos.uploaded` | Rasm yuklandi | Фото загружено | Photo uploaded |
 | `owner.photos.deleted` | Rasm oʻchirildi | Фото удалено | Photo deleted |
@@ -705,6 +799,41 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.photos.left` | {{n}}-rasmni chapga surish | Сдвинуть фото {{n}} влево | Move photo {{n}} left |
 | `owner.photos.right` | {{n}}-rasmni oʻngga surish | Сдвинуть фото {{n}} вправо | Move photo {{n}} right |
 | `owner.photos.limits` | {{count}} / {{max}} · JPG, PNG yoki WebP, 10 MB gacha | {{count}} / {{max}} · JPG, PNG или WebP, до 10 МБ | {{count}} / {{max}} · JPG, PNG or WebP, up to 10 MB |
+| `owner.photos.add` | Rasm qoʻshish | Добавить фото | Add a photo |
+| `owner.photos.hint` | JPG, PNG yoki WebP · har biri 5 MB gacha | JPG, PNG или WebP · до 5 МБ каждое | JPG, PNG or WebP · up to 5 MB each |
+| `owner.photos.counter` | {{count}}/{{max}} | {{count}}/{{max}} | {{count}}/{{max}} |
+| `owner.photos.notImage` | Bu fayl rasm emas | Этот файл — не изображение | This file is not an image |
+| `owner.photos.tooLarge` | Rasm 5 MB dan katta | Фото больше 5 МБ | The photo is larger than 5 MB |
+| `owner.photos.tooMany` | Koʻpi bilan 10 ta rasm | Не больше 10 фото | At most 10 photos |
+| `owner.photos.preparing` | Tayyorlanmoqda | Подготовка | Preparing |
+| `owner.photos.progress` | {{percent}}% | {{percent}}% | {{percent}}% |
+| `owner.photos.failed` | Yuklanmadi | Не загружено | Not uploaded |
+| `owner.photos.retry` | {{n}}-rasmni qayta yuklash | Загрузить фото {{n}} снова | Upload photo {{n}} again |
+| `owner.rules.nameLength` | Nomi 3 dan 150 belgigacha boʻlsin | Название — от 3 до 150 символов | The name must be 3 to 150 characters |
+| `owner.rules.addressLength` | Manzil 5 dan 300 belgigacha boʻlsin | Адрес — от 5 до 300 символов | The address must be 5 to 300 characters |
+| `owner.rules.districtRequired` | Tumanni tanlang | Выберите район | Choose a district |
+| `owner.rules.phoneFormat` | Raqamni toʻliq kiriting, masalan: +998 90 123 45 67 | Введите номер полностью, например: +998 90 123 45 67 | Enter the full number, for example: +998 90 123 45 67 |
+| `owner.rules.locationRequired` | Maydon joyini xaritada belgilang | Отметьте поле на карте | Mark the pitch on the map |
+| `owner.rules.outsideUzbekistan` | Joy Oʻzbekiston hududida boʻlishi kerak | Место должно быть в Узбекистане | The location must be in Uzbekistan |
+| `owner.rules.priceRange` | Narx 10 000 dan 5 000 000 soʻmgacha boʻlsin | Цена — от 10 000 до 5 000 000 сум | The price must be between 10 000 and 5 000 000 UZS |
+| `owner.rules.hoursOrder` | Yopilish vaqti ochilishdan keyin boʻlsin. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi. | Закрытие должно быть позже открытия. Работа после полуночи не поддерживается. | Closing must be after opening. Closing after midnight is not supported. |
+| `owner.rules.descriptionLength` | Koʻpi bilan 500 belgi | Не более 500 символов | At most 500 characters |
+| `owner.rules.landmarkLength` | Koʻpi bilan 150 belgi | Не более 150 символов | At most 150 characters |
+| `owner.rules.photosMin` | Kamida 3 ta rasm qoʻshing | Добавьте не меньше 3 фото | Add at least 3 photos |
+| `owner.location.mapTitle` | Xaritada belgilang | Отметьте на карте | Mark it on the map |
+| `owner.location.mapLabel` | Xarita: maydon joyini belgilash uchun bosing | Карта: нажмите, чтобы отметить поле | Map: tap to mark the pitch |
+| `owner.location.pin` | Maydon joyi | Место поля | Pitch location |
+| `owner.location.noPoint` | Joy belgilanmagan — xaritaga bosing | Место не отмечено — нажмите на карту | No location yet — tap the map |
+| `owner.location.myLocation` | Joriy joylashuvim | Моё местоположение | My location |
+| `owner.location.denied` | Joylashuvga ruxsat berilmadi. Telegram sozlamalarida ruxsat bering yoki xaritada belgilang. | Доступ к геолокации не разрешён. Разрешите его в настройках Telegram или отметьте место на карте. | Location access was not allowed. Allow it in Telegram settings or mark the place on the map. |
+| `owner.location.unavailable` | Joylashuvni aniqlab boʻlmadi. Xaritada belgilang. | Не удалось определить местоположение. Отметьте место на карте. | Couldn't find your location. Mark the place on the map. |
+| `owner.location.linkLabel` | Xarita havolasi | Ссылка на карту | Map link |
+| `owner.location.linkPlaceholder` | Google yoki Yandex xarita havolasini qoʻying | Вставьте ссылку Google или Яндекс Карт | Paste a Google or Yandex Maps link |
+| `owner.location.linkShort` | Toʻliq havolani qoʻying yoki xaritada belgilang | Вставьте полную ссылку или отметьте место на карте | Paste the full link or mark the place on the map |
+| `owner.location.linkInvalid` | Havoladan joyni topib boʻlmadi. Xaritada belgilang. | По ссылке не удалось найти место. Отметьте его на карте. | Couldn't find a place in this link. Mark it on the map. |
+| `owner.location.zoomIn` | Yaqinlashtirish | Приблизить | Zoom in |
+| `owner.location.zoomOut` | Uzoqlashtirish | Отдалить | Zoom out |
+| `owner.facilities.saved` | Qulayliklar saqlandi | Удобства сохранены | Facilities saved |
 | `notifications.title` | Bildirishnomalar | Уведомления | Notifications |
 | `notifications.unreadValue` | {{count}} ta yangi | новых: {{count}} | {{count}} new |
 | `notifications.unread` | oʻqilmagan | не прочитано | unread |

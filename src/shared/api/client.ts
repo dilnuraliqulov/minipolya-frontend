@@ -107,11 +107,20 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   const envelope = await readEnvelope<T>(response)
+  return unwrap(response.ok, response.status, response.statusText, envelope)
+}
 
-  if (!response.ok || !envelope?.success) {
+/** The envelope's `data`, or the `ApiError` for a failure (after the 401 / blocked hooks). */
+function unwrap<T>(
+  ok: boolean,
+  status: number,
+  statusText: string,
+  envelope: ApiEnvelope<T> | null,
+): T {
+  if (!ok || !envelope?.success) {
     const error = new ApiError(
-      envelope?.message || response.statusText || 'Request failed',
-      response.status,
+      envelope?.message || statusText || 'Request failed',
+      status,
       envelope?.code,
       envelope?.data ?? undefined,
     )
@@ -121,8 +130,59 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
     throw error
   }
-
   return envelope.data as T
+}
+
+export interface UploadOptions {
+  /** 0–1, as the request body goes out. */
+  onProgress?: (fraction: number) => void
+  signal?: AbortSignal
+}
+
+/**
+ * `POST` a multipart body with upload progress — `fetch` cannot report it, so
+ * this one request type uses `XMLHttpRequest`. Same base URL, bearer token,
+ * envelope and errors as `apiRequest`.
+ */
+export function uploadWithProgress<T>(
+  path: string,
+  body: FormData,
+  { onProgress, signal }: UploadOptions = {},
+): Promise<T> {
+  const url = buildUrl(path)
+  return new Promise<T>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url)
+    xhr.setRequestHeader('Accept', 'application/json')
+    const token = config.tokenStore.get()
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) onProgress?.(event.loaded / event.total)
+    }
+    xhr.onload = () => {
+      let envelope: ApiEnvelope<T> | null
+      try {
+        envelope = JSON.parse(xhr.responseText) as ApiEnvelope<T>
+      } catch {
+        envelope = null
+      }
+      try {
+        const ok = xhr.status >= 200 && xhr.status < 300
+        resolve(unwrap(ok, xhr.status, xhr.statusText, envelope))
+      } catch (error) {
+        reject(error)
+      }
+    }
+    xhr.onerror = () => reject(new ApiError('Network request failed', 0))
+    xhr.ontimeout = xhr.onerror
+    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'))
+    signal?.addEventListener('abort', () => xhr.abort(), { once: true })
+    xhr.send(body)
+  })
 }
 
 export const api = {

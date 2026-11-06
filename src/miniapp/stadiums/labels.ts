@@ -1,5 +1,3 @@
-import type { Amenities } from '../api/stadiums'
-
 /** `"7x7"` → `"7×7"`, as the design writes formats. */
 export function formatLabel(format: string): string {
   return format.replace('x', '×')
@@ -28,15 +26,3 @@ export function surfaceLabel(
 ): string {
   return isKnownSurface(value) ? t(SURFACE_KEYS[value]) : value
 }
-
-/** The amenities the API reports, in the design's order, with their labels. */
-export const AMENITY_KEYS = {
-  lighting: 'stadium.amenity.lighting',
-  lockerRoom: 'stadium.amenity.lockerRoom',
-  showers: 'stadium.amenity.showers',
-  parking: 'stadium.amenity.parking',
-  tribune: 'stadium.amenity.tribune',
-  equipmentRental: 'stadium.amenity.equipmentRental',
-  wifi: 'stadium.amenity.wifi',
-  cafe: 'stadium.amenity.cafe',
-} as const satisfies Record<keyof Amenities, string>

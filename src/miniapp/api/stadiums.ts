@@ -64,6 +64,11 @@ export interface Amenities {
   cafe: boolean
   equipmentRental: boolean
   tribune: boolean
+  toilet: boolean
+  /** Covered or indoor. */
+  covered: boolean
+  bibs: boolean
+  drinkingWater: boolean
 }
 
 /** `StadiumDetailResponse`. */
@@ -77,6 +82,8 @@ export interface StadiumDetail extends Omit<Stadium, 'coverPhotoUrl'> {
   closeTime: string
   /** Tiyin. Absent ⇒ the player pays in full. */
   minBookingAmount?: number
+  /** "Moʻljal": a landmark near the pitch. */
+  landmark?: string
   cancellationPolicy: { cancellationHours: number }
   photos: Photo[]
   amenities: Amenities

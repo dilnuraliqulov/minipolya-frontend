@@ -56,6 +56,8 @@ export interface TelegramWebApp {
    * through the bot, never from here.
    */
   requestContact?(callback?: (shared: boolean) => void): void
+  /** Bot API 8.0+: the device location, after the user allows it. */
+  LocationManager?: TelegramLocationManager
   BackButton: {
     isVisible: boolean
     show(): void
@@ -68,6 +70,24 @@ export interface TelegramWebApp {
     notificationOccurred(type: 'error' | 'success' | 'warning'): void
     selectionChanged(): void
   }
+}
+
+/** `LocationData` (Bot API 8.0); only the fields the app reads. */
+export interface TelegramLocationData {
+  latitude: number
+  longitude: number
+}
+
+/** `WebApp.LocationManager` (Bot API 8.0). */
+export interface TelegramLocationManager {
+  isInited: boolean
+  isLocationAvailable: boolean
+  isAccessRequested: boolean
+  isAccessGranted: boolean
+  init(callback?: () => void): TelegramLocationManager
+  /** `null` when the user refused (or had refused) access. */
+  getLocation(callback: (data: TelegramLocationData | null) => void): TelegramLocationManager
+  openSettings(): void
 }
 
 declare global {

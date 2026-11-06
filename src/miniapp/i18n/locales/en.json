@@ -98,7 +98,19 @@
     "alreadyPaid": "This payment is already recorded.",
     "imageType": "Only JPG, PNG or WebP images can be uploaded.",
     "tooManyPhotos": "A pitch can have at most 10 photos.",
-    "fileTooLarge": "The photo is too large — up to 10 MB."
+    "fileTooLarge": "The photo is too large — up to 5 MB.",
+    "imageTooLarge": "The image is too big. Choose a smaller one.",
+    "phoneFormat": "Enter the full number, for example: +998 90 123 45 67",
+    "outsideUzbekistan": "The location must be in Uzbekistan.",
+    "priceRange": "The price must be between 10 000 and 5 000 000 UZS.",
+    "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+    "onTheHour": "Times must be on the hour (for example, 08:00).",
+    "nameLength": "The name must be 3 to 150 characters.",
+    "addressLength": "The address must be 5 to 300 characters.",
+    "districtRequired": "Choose a district.",
+    "descriptionLength": "More details can be at most 500 characters.",
+    "landmarkLength": "The landmark can be at most 150 characters.",
+    "locationRequired": "Mark the pitch on the map."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -183,14 +195,18 @@
       "hybrid": "Hybrid turf"
     },
     "amenity": {
-      "lighting": "Lighting",
+      "lighting": "Lighting (evening games)",
       "lockerRoom": "Changing room",
       "showers": "Showers",
       "parking": "Parking",
-      "tribune": "Stand",
+      "tribune": "Spectator seating",
       "equipmentRental": "Ball rental",
       "wifi": "Wi-Fi",
-      "cafe": "Café"
+      "cafe": "Café",
+      "toilet": "Toilet",
+      "covered": "Indoor / covered",
+      "bibs": "Bibs",
+      "drinkingWater": "Drinking water"
     },
     "amenities": "Amenities",
     "address": "Address",
@@ -207,7 +223,10 @@
     "ownerReply": "Owner’s reply",
     "photoAlt": "{{name}}, photo {{n}}",
     "notFoundTitle": "Pitch not found",
-    "notFoundText": "This pitch no longer exists or has been closed."
+    "notFoundText": "This pitch no longer exists or has been closed.",
+    "landmark": "Landmark",
+    "openYandex": "Open in Yandex Maps",
+    "openGoogle": "Open in Google Maps"
   },
   "weekdays": {
     "short": {
@@ -582,7 +601,7 @@
     },
     "section": {
       "info": "Details",
-      "infoText": "Name, address, district, format, surface",
+      "infoText": "Name, phone, location, address",
       "photos": "Photos",
       "hours": "Opening hours",
       "prices": "Prices",
@@ -591,8 +610,10 @@
       "closures": "Closed days",
       "closuresText": "Planned closures",
       "hoursText": "Opening and closing time",
-      "termsText": "Deposit and cancellation period",
-      "photosText": "Up to 10, the first is the cover"
+      "termsText": "Agreed with the platform",
+      "photosText": "3 to 10, the first is the cover",
+      "facilities": "Facilities",
+      "facilitiesText": "Facilities and more details"
     },
     "soonDetail": "Coming soon — the server does not give the owner this yet",
     "save": "Save",
@@ -607,8 +628,8 @@
       "district": "District",
       "format": "Format",
       "surface": "Surface",
-      "phone": "Phone (optional)",
-      "description": "Description (optional)",
+      "phone": "Phone",
+      "description": "More details",
       "open": "Opens",
       "close": "Closes",
       "price": "Price per hour (soʻm)",
@@ -626,7 +647,14 @@
       "clientPhone": "Client phone",
       "time": "Time",
       "cashPaid": "Paid in cash",
-      "hoursUnit": "{{count}} h"
+      "hoursUnit": "{{count}} h",
+      "descriptionPlaceholder": "For example: where the entrance is, house rules, other facilities",
+      "landmark": "Landmark (optional)",
+      "landmarkPlaceholder": "For example: next to Novza metro station",
+      "districtPlaceholder": "Choose a district",
+      "counter": "{{count}}/{{max}}",
+      "addressPlaceholder": "For example: 12 Bunyodkor street",
+      "namePlaceholder": "For example: Chilonzor Sport Maydoni"
     },
     "prices": {
       "title": "Prices",
@@ -725,16 +753,80 @@
       "hours": "Opening hours",
       "price": "Price and terms",
       "review": "Review",
-      "next": "Next",
+      "next": "Continue",
       "back": "Back",
       "submit": "Send for review",
       "photosSoon": "Upload photos after sending the pitch, in My pitch → Photos.",
       "hoursError": "Closing time must be after opening time.",
-      "sentTitle": "The pitch was sent for review",
-      "sentText": "Once an admin approves it, players can see and book it.",
-      "toStadium": "Go to my pitch",
+      "sentTitle": "Application received",
+      "sentText": "All photos are uploaded. An administrator will review your pitch and call you.",
+      "toStadium": "View my pitch",
       "onTheHour": "Times must be on the hour (e.g. 08:00).",
-      "toProfile": "Back to Profile"
+      "toProfile": "Back to Profile",
+      "progress": "{{n}}/{{total}} · {{name}}",
+      "progressLabel": "Step {{n}} of {{total}}",
+      "steps": {
+        "basics": "Basics",
+        "location": "Location",
+        "photos": "Photos",
+        "facilities": "Facilities",
+        "hours": "Hours and price",
+        "review": "Review"
+      },
+      "titles": {
+        "basics": "About the pitch",
+        "location": "Where is the pitch?",
+        "photos": "Pitch photos",
+        "facilities": "What does the pitch have?",
+        "hours": "When is it open and what does it cost?",
+        "review": "Is everything right?"
+      },
+      "facilitiesText": "Tick what your pitch has",
+      "edit": "Edit",
+      "editSection": "{{section}} — edit",
+      "open": "Opens",
+      "close": "Closes",
+      "earlier": "{{label}}: one hour earlier",
+      "later": "{{label}}: one hour later",
+      "everyDay": "Every day {{open}} – {{close}}",
+      "everyDayHours": "Every day {{open}} – {{close}} · {{count}} h",
+      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is not supported.",
+      "yourPrice": "Your price (1 hour)",
+      "priceHint": "From 10 000 to 5 000 000 UZS",
+      "playerPriceNote": "Players see a slightly higher price because of the card payment.",
+      "reviewHours": "Opening hours",
+      "reviewPrice": "Your price",
+      "perHour": "{{price}} / hour",
+      "photosCount": "Photos · {{count}}",
+      "noFacilities": "None ticked",
+      "mapPreview": "The pitch on the map",
+      "termsNote": "The deposit and cancellation terms are agreed with the platform.",
+      "leaveTitle": "Stop adding the pitch?",
+      "leaveText": "What you entered will not be saved.",
+      "leave": "Leave",
+      "stay": "Keep going",
+      "created": "Pitch created",
+      "uploadingTitle": "Uploading photos",
+      "uploadingText": "The photos upload one by one. Once all are uploaded, the application goes for review.",
+      "uploadedCount": "{{done}} of {{total}} uploaded",
+      "failedCount": "{{count}} failed",
+      "photoN": "Photo {{n}}",
+      "photoCover": "Photo {{n}} · Cover",
+      "status": {
+        "done": "Uploaded",
+        "failed": "Not uploaded",
+        "queued": "Waiting"
+      },
+      "leaveNote": "You can leave — upload the rest in My pitch → Photos.",
+      "finishLater": "Finish later",
+      "callNumber": "We will call this number",
+      "wrongNumber": "Wrong number?",
+      "updateInProfile": "Update it in Profile",
+      "nextSteps": "Next steps",
+      "stepCall": "A call",
+      "stepContract": "Contract",
+      "stepLive": "The pitch appears in the app",
+      "toHome": "Home"
     },
     "discount": {
       "title": "Change price",
@@ -791,10 +883,11 @@
       "sent": "Reply sent"
     },
     "hours": {
-      "note": "Hourly bookings open within these hours. Close single days in “Closed days”."
+      "note": "Hourly bookings open within these hours. Close single days in “Closed days”.",
+      "saved": "Opening hours saved"
     },
     "terms": {
-      "minimum": "Minimum payment",
+      "minimum": "Deposit",
       "minimumOn": "When booking, the player pays at least this amount up front and the rest later.",
       "minimumOff": "No minimum — the player pays in full when booking.",
       "playerPays": "Players pay: {{amount}}",
@@ -802,10 +895,17 @@
       "cancelText": "Cancelled at least this many hours before the game, the payment is refunded in full.",
       "hours": "{{count}} h",
       "less": "One hour less",
-      "more": "One hour more"
+      "more": "One hour more",
+      "title": "Booking terms",
+      "agreed": "Agreed with the platform",
+      "full": "Full payment",
+      "cancel": "Free cancellation",
+      "cancelValue": "Up to {{count}} h before the start",
+      "note": "The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us.",
+      "support": "Write to support"
     },
     "photos": {
-      "text": "The first photo is the cover. Change the order with the arrows.",
+      "text": "3 to 10 photos. The first is the cover.",
       "upload": "Upload a photo",
       "uploaded": "Photo uploaded",
       "deleted": "Photo deleted",
@@ -817,7 +917,48 @@
       "delete": "Delete photo {{n}}",
       "left": "Move photo {{n}} left",
       "right": "Move photo {{n}} right",
-      "limits": "{{count}} / {{max}} · JPG, PNG or WebP, up to 10 MB"
+      "limits": "{{count}} / {{max}} · JPG, PNG or WebP, up to 10 MB",
+      "add": "Add a photo",
+      "hint": "JPG, PNG or WebP · up to 5 MB each",
+      "counter": "{{count}}/{{max}}",
+      "notImage": "This file is not an image",
+      "tooLarge": "The photo is larger than 5 MB",
+      "tooMany": "At most 10 photos",
+      "preparing": "Preparing",
+      "progress": "{{percent}}%",
+      "failed": "Not uploaded",
+      "retry": "Upload photo {{n}} again"
+    },
+    "rules": {
+      "nameLength": "The name must be 3 to 150 characters",
+      "addressLength": "The address must be 5 to 300 characters",
+      "districtRequired": "Choose a district",
+      "phoneFormat": "Enter the full number, for example: +998 90 123 45 67",
+      "locationRequired": "Mark the pitch on the map",
+      "outsideUzbekistan": "The location must be in Uzbekistan",
+      "priceRange": "The price must be between 10 000 and 5 000 000 UZS",
+      "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+      "descriptionLength": "At most 500 characters",
+      "landmarkLength": "At most 150 characters",
+      "photosMin": "Add at least 3 photos"
+    },
+    "location": {
+      "mapTitle": "Mark it on the map",
+      "mapLabel": "Map: tap to mark the pitch",
+      "pin": "Pitch location",
+      "noPoint": "No location yet — tap the map",
+      "myLocation": "My location",
+      "denied": "Location access was not allowed. Allow it in Telegram settings or mark the place on the map.",
+      "unavailable": "Couldn't find your location. Mark the place on the map.",
+      "linkLabel": "Map link",
+      "linkPlaceholder": "Paste a Google or Yandex Maps link",
+      "linkShort": "Paste the full link or mark the place on the map",
+      "linkInvalid": "Couldn't find a place in this link. Mark it on the map.",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
+    "facilities": {
+      "saved": "Facilities saved"
     }
   },
   "notifications": {

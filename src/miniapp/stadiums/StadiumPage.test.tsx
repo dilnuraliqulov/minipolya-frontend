@@ -53,7 +53,7 @@ describe('Maydon — the stadium page', () => {
       within(amenities)
         .getAllByRole('listitem')
         .map((item) => item.textContent),
-    ).toEqual(['Yoritish', 'Kiyinish xonasi', 'Avtoturargoh'])
+    ).toEqual(['Avtoturargoh', 'Kiyinish xonasi', 'Hojatxona', 'Yoritish (kechki oʻyin)'])
     expect(await screen.findByTestId('map')).toBeInTheDocument()
     expect(screen.getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
     expect(
@@ -80,13 +80,48 @@ describe('Maydon — the stadium page', () => {
     expect(await screen.findByText(/boshlanishiga 6 soat qolguncha/)).toBeInTheDocument()
   })
 
-  it('opens the map link from "Xaritada ochish"', async () => {
+  it('opens the pin in Yandex Maps and Google Maps through Telegram', async () => {
     const { webApp } = installFakeTelegram()
     stub()
     renderApp(`/stadiums/${ID}`)
-    fireEvent.click(await screen.findByRole('button', { name: /Xaritada ochish/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Yandex Mapsʼda ochish' }))
+    expect(webApp.openLink).toHaveBeenCalledWith('https://yandex.uz/maps/?pt=69.2,41.28&z=17&l=map')
+    fireEvent.click(screen.getByRole('button', { name: 'Google Mapsʼda ochish' }))
     expect(webApp.openLink).toHaveBeenCalledWith(
-      'https://www.openstreetmap.org/?mlat=41.28&mlon=69.2#map=17/41.28/69.2',
+      'https://www.google.com/maps/search/?api=1&query=41.28,69.2',
+    )
+    expect(screen.queryByRole('button', { name: /Xaritada ochish/ })).toBeNull()
+  })
+
+  it('opens the maps in a new tab outside Telegram', async () => {
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+    stub()
+    renderApp(`/stadiums/${ID}`)
+    fireEvent.click(await screen.findByRole('button', { name: 'Google Mapsʼda ochish' }))
+    expect(open).toHaveBeenCalledWith(
+      'https://www.google.com/maps/search/?api=1&query=41.28,69.2',
+      '_blank',
+      'noopener',
+    )
+  })
+
+  it('shows the landmark, and searches the address when there is no pin', async () => {
+    const { webApp } = installFakeTelegram()
+    stub({
+      [DETAIL]: makeDetail({
+        latitude: undefined,
+        longitude: undefined,
+        landmark: 'Novza metro bekati yonida',
+      }),
+    })
+    renderApp(`/stadiums/${ID}`)
+    expect(await screen.findByText('Novza metro bekati yonida')).toBeInTheDocument()
+    expect(screen.getByText('Moʻljal:')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Yandex Mapsʼda ochish' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Xaritada ochish/ }))
+    expect(webApp.openLink).toHaveBeenCalledWith(
+      expect.stringContaining('https://www.openstreetmap.org/search?query='),
     )
   })
 

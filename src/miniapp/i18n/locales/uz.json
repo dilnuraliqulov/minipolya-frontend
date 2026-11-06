@@ -98,7 +98,19 @@
     "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
     "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
     "tooManyPhotos": "Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin.",
-    "fileTooLarge": "Rasm juda katta — 10 MB gacha boʻlishi kerak."
+    "fileTooLarge": "Rasm juda katta — 5 MB gacha boʻlishi kerak.",
+    "imageTooLarge": "Rasm oʻlchami juda katta. Kichikroq rasm tanlang.",
+    "phoneFormat": "Raqamni toʻliq kiriting, masalan: +998 90 123 45 67",
+    "outsideUzbekistan": "Joy Oʻzbekiston hududida boʻlishi kerak.",
+    "priceRange": "Narx 10 000 dan 5 000 000 soʻmgacha boʻlishi kerak.",
+    "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlishi kerak. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+    "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00).",
+    "nameLength": "Maydon nomi 3 dan 150 belgigacha boʻlishi kerak.",
+    "addressLength": "Manzil 5 dan 300 belgigacha boʻlishi kerak.",
+    "districtRequired": "Tumanni tanlang.",
+    "descriptionLength": "Qoʻshimcha maʼlumot koʻpi bilan 500 belgi boʻlishi mumkin.",
+    "landmarkLength": "Moʻljal koʻpi bilan 150 belgi boʻlishi mumkin.",
+    "locationRequired": "Maydon joyini xaritada belgilang."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -183,14 +195,18 @@
       "hybrid": "Gibrid gazon"
     },
     "amenity": {
-      "lighting": "Yoritish",
+      "lighting": "Yoritish (kechki oʻyin)",
       "lockerRoom": "Kiyinish xonasi",
       "showers": "Dush",
       "parking": "Avtoturargoh",
-      "tribune": "Tribuna",
+      "tribune": "Tomoshabin oʻrindiqlari",
       "equipmentRental": "Toʻp ijarasi",
       "wifi": "Wi-Fi",
-      "cafe": "Kafe"
+      "cafe": "Kafe",
+      "toilet": "Hojatxona",
+      "covered": "Yopiq / usti yopiq",
+      "bibs": "Maykalar (manishka)",
+      "drinkingWater": "Ichimlik suvi"
     },
     "amenities": "Qulayliklar",
     "address": "Manzil",
@@ -207,7 +223,10 @@
     "ownerReply": "Maydon egasi javobi",
     "photoAlt": "{{name}}, {{n}}-rasm",
     "notFoundTitle": "Maydon topilmadi",
-    "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan."
+    "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan.",
+    "landmark": "Moʻljal",
+    "openYandex": "Yandex Mapsʼda ochish",
+    "openGoogle": "Google Mapsʼda ochish"
   },
   "weekdays": {
     "short": {
@@ -582,7 +601,7 @@
     },
     "section": {
       "info": "Maʼlumotlar",
-      "infoText": "Nomi, manzili, tumani, format, qoplama",
+      "infoText": "Nomi, telefon, joylashuv, manzil",
       "photos": "Rasmlar",
       "hours": "Ish vaqti",
       "prices": "Narxlar",
@@ -591,8 +610,10 @@
       "closures": "Yopiq kunlar",
       "closuresText": "Rejalashtirilgan yopilishlar",
       "hoursText": "Ochilish va yopilish vaqti",
-      "termsText": "Oldindan toʻlov va bekor qilish muddati",
-      "photosText": "Koʻpi bilan 10 ta, birinchisi — muqova"
+      "termsText": "Platforma bilan kelishilgan",
+      "photosText": "Kamida 3 ta, koʻpi bilan 10 ta, birinchisi — muqova",
+      "facilities": "Qulayliklar",
+      "facilitiesText": "Qulayliklar va qoʻshimcha maʼlumot"
     },
     "soonDetail": "Tez orada — server bu maʼlumotni egaga hali bermaydi",
     "save": "Saqlash",
@@ -607,8 +628,8 @@
       "district": "Tuman",
       "format": "Format",
       "surface": "Qoplama",
-      "phone": "Telefon (ixtiyoriy)",
-      "description": "Tavsif (ixtiyoriy)",
+      "phone": "Telefon",
+      "description": "Qoʻshimcha maʼlumot",
       "open": "Ochilish",
       "close": "Yopilish",
       "price": "Soatlik narx (soʻm)",
@@ -626,7 +647,14 @@
       "clientPhone": "Mijoz telefoni",
       "time": "Vaqt",
       "cashPaid": "Naqd toʻlandi",
-      "hoursUnit": "{{count}} soat"
+      "hoursUnit": "{{count}} soat",
+      "descriptionPlaceholder": "Masalan: kirish joyi, oʻyin qoidalari, boshqa qulayliklar",
+      "landmark": "Moʻljal (ixtiyoriy)",
+      "landmarkPlaceholder": "Masalan: Novza metro bekati yonida",
+      "districtPlaceholder": "Tumanni tanlang",
+      "counter": "{{count}}/{{max}}",
+      "addressPlaceholder": "Masalan: Bunyodkor koʻchasi 12",
+      "namePlaceholder": "Masalan: Chilonzor Sport Maydoni"
     },
     "prices": {
       "title": "Narxlar",
@@ -730,11 +758,75 @@
       "submit": "Tekshiruvga yuborish",
       "photosSoon": "Rasmlarni maydon yuborilgach, Maydonim → Rasmlar boʻlimida yuklaysiz.",
       "hoursError": "Yopilish vaqti ochilishdan keyin boʻlishi kerak.",
-      "sentTitle": "Maydon tekshiruvga yuborildi",
-      "sentText": "Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi.",
-      "toStadium": "Maydonimga oʻtish",
+      "sentTitle": "Arizangiz qabul qilindi",
+      "sentText": "Barcha rasmlar yuklandi. Administrator maydoningizni tekshirib, siz bilan telefon orqali bogʻlanadi.",
+      "toStadium": "Maydonimni koʻrish",
       "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00).",
-      "toProfile": "Profilga qaytish"
+      "toProfile": "Profilga qaytish",
+      "progress": "{{n}}/{{total}} · {{name}}",
+      "progressLabel": "{{total}} qadamdan {{n}}-qadam",
+      "steps": {
+        "basics": "Asosiy",
+        "location": "Joylashuv",
+        "photos": "Rasmlar",
+        "facilities": "Qulayliklar",
+        "hours": "Ish vaqti va narx",
+        "review": "Koʻrib chiqish"
+      },
+      "titles": {
+        "basics": "Maydon haqida",
+        "location": "Maydon qayerda?",
+        "photos": "Maydon rasmlari",
+        "facilities": "Maydonda nimalar bor?",
+        "hours": "Qachon ochiq va necha pul?",
+        "review": "Hammasi toʻgʻrimi?"
+      },
+      "facilitiesText": "Maydoningizda bor narsalarni belgilang",
+      "edit": "Tahrirlash",
+      "editSection": "{{section}} — tahrirlash",
+      "open": "Ochilish",
+      "close": "Yopilish",
+      "earlier": "{{label}}: bir soat oldin",
+      "later": "{{label}}: bir soat keyin",
+      "everyDay": "Har kuni {{open}} – {{close}}",
+      "everyDayHours": "Har kuni {{open}} – {{close}} · {{count}} soat",
+      "hoursNote": "Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "yourPrice": "Sizning narxingiz (1 soat)",
+      "priceHint": "10 000 dan 5 000 000 soʻmgacha",
+      "playerPriceNote": "Oʻyinchilar karta toʻlovi hisobiga biroz yuqoriroq narxni koʻradi.",
+      "reviewHours": "Ish vaqti",
+      "reviewPrice": "Sizning narxingiz",
+      "perHour": "{{price}} / soat",
+      "photosCount": "Rasmlar · {{count}}",
+      "noFacilities": "Belgilanmagan",
+      "mapPreview": "Maydon joyi xaritada",
+      "termsNote": "Oldindan toʻlov va bekor qilish shartlari platforma bilan kelishiladi.",
+      "leaveTitle": "Maydon qoʻshishni toʻxtatasizmi?",
+      "leaveText": "Kiritgan maʼlumotlaringiz saqlanmaydi.",
+      "leave": "Chiqish",
+      "stay": "Davom etish",
+      "created": "Maydon yaratildi",
+      "uploadingTitle": "Rasmlar yuklanmoqda",
+      "uploadingText": "Rasmlar birma-bir yuklanmoqda. Hammasi yuklangach, ariza tekshiruvga yuboriladi.",
+      "uploadedCount": "{{done}}/{{total}} yuklandi",
+      "failedCount": "{{count}} ta xato",
+      "photoN": "Rasm {{n}}",
+      "photoCover": "Rasm {{n}} · Muqova",
+      "status": {
+        "done": "Yuklandi",
+        "failed": "Yuklanmadi",
+        "queued": "Navbatda"
+      },
+      "leaveNote": "Chiqib ketsangiz ham boʻladi — qolgan rasmlarni Maydonim → Rasmlar boʻlimida yuklaysiz.",
+      "finishLater": "Keyinroq tugatish",
+      "callNumber": "Shu raqamga qoʻngʻiroq qilamiz",
+      "wrongNumber": "Raqam notoʻgʻrimi?",
+      "updateInProfile": "Profilda yangilang",
+      "nextSteps": "Keyingi qadamlar",
+      "stepCall": "Qoʻngʻiroq",
+      "stepContract": "Shartnoma",
+      "stepLive": "Maydon ilovada chiqadi",
+      "toHome": "Bosh sahifa"
     },
     "discount": {
       "title": "Narxni oʻzgartirish",
@@ -791,10 +883,11 @@
       "sent": "Javob yuborildi"
     },
     "hours": {
-      "note": "Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping."
+      "note": "Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping.",
+      "saved": "Ish vaqti saqlandi"
     },
     "terms": {
-      "minimum": "Minimal toʻlov",
+      "minimum": "Oldindan toʻlov",
       "minimumOn": "Oʻyinchi band qilishda kamida shu summani oldindan toʻlaydi, qolganini keyin.",
       "minimumOff": "Minimum yoʻq — oʻyinchi band qilishda toʻliq toʻlaydi.",
       "playerPays": "Oʻyinchilar uchun: {{amount}}",
@@ -802,10 +895,17 @@
       "cancelText": "Oʻyin boshlanishiga shuncha soat qolguncha bekor qilinsa, toʻlov toʻliq qaytariladi.",
       "hours": "{{count}} soat",
       "less": "Bir soat kamroq",
-      "more": "Bir soat koʻproq"
+      "more": "Bir soat koʻproq",
+      "title": "Bron shartlari",
+      "agreed": "Platforma bilan kelishilgan",
+      "full": "Toʻliq toʻlov",
+      "cancel": "Bepul bekor qilish",
+      "cancelValue": "Boshlanishiga {{count}} soat qolguncha",
+      "note": "Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing.",
+      "support": "Qoʻllab-quvvatlashga yozish"
     },
     "photos": {
-      "text": "Birinchi rasm muqova boʻladi. Tartibni oʻqlar bilan oʻzgartiring.",
+      "text": "Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova.",
       "upload": "Rasm yuklash",
       "uploaded": "Rasm yuklandi",
       "deleted": "Rasm oʻchirildi",
@@ -817,7 +917,48 @@
       "delete": "{{n}}-rasmni oʻchirish",
       "left": "{{n}}-rasmni chapga surish",
       "right": "{{n}}-rasmni oʻngga surish",
-      "limits": "{{count}} / {{max}} · JPG, PNG yoki WebP, 10 MB gacha"
+      "limits": "{{count}} / {{max}} · JPG, PNG yoki WebP, 10 MB gacha",
+      "add": "Rasm qoʻshish",
+      "hint": "JPG, PNG yoki WebP · har biri 5 MB gacha",
+      "counter": "{{count}}/{{max}}",
+      "notImage": "Bu fayl rasm emas",
+      "tooLarge": "Rasm 5 MB dan katta",
+      "tooMany": "Koʻpi bilan 10 ta rasm",
+      "preparing": "Tayyorlanmoqda",
+      "progress": "{{percent}}%",
+      "failed": "Yuklanmadi",
+      "retry": "{{n}}-rasmni qayta yuklash"
+    },
+    "rules": {
+      "nameLength": "Nomi 3 dan 150 belgigacha boʻlsin",
+      "addressLength": "Manzil 5 dan 300 belgigacha boʻlsin",
+      "districtRequired": "Tumanni tanlang",
+      "phoneFormat": "Raqamni toʻliq kiriting, masalan: +998 90 123 45 67",
+      "locationRequired": "Maydon joyini xaritada belgilang",
+      "outsideUzbekistan": "Joy Oʻzbekiston hududida boʻlishi kerak",
+      "priceRange": "Narx 10 000 dan 5 000 000 soʻmgacha boʻlsin",
+      "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlsin. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "descriptionLength": "Koʻpi bilan 500 belgi",
+      "landmarkLength": "Koʻpi bilan 150 belgi",
+      "photosMin": "Kamida 3 ta rasm qoʻshing"
+    },
+    "location": {
+      "mapTitle": "Xaritada belgilang",
+      "mapLabel": "Xarita: maydon joyini belgilash uchun bosing",
+      "pin": "Maydon joyi",
+      "noPoint": "Joy belgilanmagan — xaritaga bosing",
+      "myLocation": "Joriy joylashuvim",
+      "denied": "Joylashuvga ruxsat berilmadi. Telegram sozlamalarida ruxsat bering yoki xaritada belgilang.",
+      "unavailable": "Joylashuvni aniqlab boʻlmadi. Xaritada belgilang.",
+      "linkLabel": "Xarita havolasi",
+      "linkPlaceholder": "Google yoki Yandex xarita havolasini qoʻying",
+      "linkShort": "Toʻliq havolani qoʻying yoki xaritada belgilang",
+      "linkInvalid": "Havoladan joyni topib boʻlmadi. Xaritada belgilang.",
+      "zoomIn": "Yaqinlashtirish",
+      "zoomOut": "Uzoqlashtirish"
+    },
+    "facilities": {
+      "saved": "Qulayliklar saqlandi"
     }
   },
   "notifications": {
