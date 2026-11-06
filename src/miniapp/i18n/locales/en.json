@@ -102,6 +102,10 @@
     "markAdminOnly": "Only an admin can change this mark now.",
     "noMark": "This booking has no mark — it was already undone.",
     "cardPaymentInFlight": "A card payment for this booking is still being confirmed. Try again in a moment.",
+    "gameCancelled": "This game is cancelled.",
+    "gameNotConfirmed": "The game is not confirmed yet — you can mark it once an opponent joins.",
+    "teamPaymentInFlight": "A card payment for this team is still being confirmed. Try again in a moment.",
+    "teamNoMark": "This team has no mark — it was already undone.",
     "alreadyPaid": "This payment is already recorded.",
     "imageType": "Only JPG, PNG or WebP images can be uploaded.",
     "tooManyPhotos": "A pitch can have at most 10 photos.",
@@ -969,7 +973,10 @@
       "notPaidMarked": "Marked as not paid",
       "undoUntil": "You can undo it until {{time}} today",
       "undo": "Undo",
-      "adminOnly": "Only an admin can change the mark now"
+      "adminOnly": "Only an admin can change the mark now",
+      "teamNotPaidText": "Mark that {{team}} did not pay the remaining {{amount}}?",
+      "teamCashNote": "Once confirmed the team's payment shows “Cash received”. You can undo it until the end of today.",
+      "teamNotPaidNote": "No penalty is charged; the team captain can still pay the rest in the app. You can undo it until the end of today."
     }
   },
   "notifications": {

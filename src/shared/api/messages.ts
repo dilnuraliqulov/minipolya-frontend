@@ -125,6 +125,16 @@ export const API_MESSAGES = {
   alreadyReviewed: 'You have already reviewed this stadium',
   /** 400 from `POST /api/reviews` when the caller has no played booking at the stadium. */
   reviewNotPlayed: 'You can only review a stadium you have played at',
+  /**
+   * T2, prefixes (the backend appends the fee in force, e.g. " (25 000 so'm)"):
+   * 400 from `PUT /api/admin/stadiums/{id}/booking-terms` and from `PUT /api/admin/settings`
+   * when a minimum is not above the team-game fee, and from the settings when a new fee
+   * would reach the default minimum. Match with `startsWith`.
+   */
+  minimumNotAboveTeamFee: 'minBookingAmount must be more than the team game platform fee',
+  defaultMinimumNotAboveFee: 'defaultMinBookingAmount must be more than the team game platform fee',
+  teamFeeNotBelowDefaultMinimum:
+    'teamGamePlatformFee must be less than the default minimum booking amount',
   /** 400 from `PUT /api/admin/stadiums/{id}/booking-terms` when `minBookingAmount` is under the 50 000-tiyin floor. */
   minimumTooLow: "minBookingAmount must be at least 50000 tiyin (500 so'm)",
   /** 400 from `POST /api/games/{id}/join` past the 3-hour point — the one Uzbek message (api-reference Q7). */
@@ -168,6 +178,16 @@ export const API_MESSAGES = {
   noRemainderMark: 'This booking has no remainder mark',
   /** 409 from the owner's undo after the end of the day the mark was set: admin only (E6). */
   markAdminOnly: 'Only an admin can change this mark',
+  // The owner's marks on one team of a team game (T10): POST /api/games/{id}/cash, /not-paid,
+  // DELETE /api/games/{id}/remainder-mark (and the admin's undo).
+  /** 409: the game is cancelled. */
+  gameCancelled: 'This game is cancelled',
+  /** 409: the game is still waiting for an opponent (only holds, no slot). */
+  gameNotConfirmed: 'This game is not confirmed yet',
+  /** 409: a card payment of the team's remainder is still being confirmed. */
+  teamPaymentInFlight: 'A payment for this team is being processed',
+  /** 409 from the owner's and the admin's undo when the team has no mark (any more). */
+  teamNoRemainderMark: 'This team has no remainder mark',
   /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
   gameRemainderConfirming:
     'The card payment is still being confirmed; the remainder will be marked paid once it is',

@@ -61,6 +61,10 @@ export type ErrorMessageKey =
   | 'errors.markAdminOnly'
   | 'errors.cardPaymentInFlight'
   | 'errors.noMark'
+  | 'errors.gameCancelled'
+  | 'errors.gameNotConfirmed'
+  | 'errors.teamPaymentInFlight'
+  | 'errors.teamNoMark'
   | 'errors.unknown'
 
 /** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
@@ -164,7 +168,7 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
         return 'errors.cardDeclined'
       if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
       if (error.message === API_MESSAGES.joinHasOpponent) return 'errors.hasOpponent'
-      // Team-game cash: card or cash got there first.
+      // Team-game cash from a backend before T10 (now a 409): card or cash got there first.
       if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
       if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
       // The owner's cash mark, from a backend before design E7 (now a 409).
@@ -194,6 +198,11 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       if (error.message === API_MESSAGES.bookingPaymentInFlight) return 'errors.cardPaymentInFlight'
       if (error.message === API_MESSAGES.markAdminOnly) return 'errors.markAdminOnly'
       if (error.message === API_MESSAGES.noRemainderMark) return 'errors.noMark'
+      // The same marks on one team of a team game (T10).
+      if (error.message === API_MESSAGES.gameCancelled) return 'errors.gameCancelled'
+      if (error.message === API_MESSAGES.gameNotConfirmed) return 'errors.gameNotConfirmed'
+      if (error.message === API_MESSAGES.teamPaymentInFlight) return 'errors.teamPaymentInFlight'
+      if (error.message === API_MESSAGES.teamNoRemainderMark) return 'errors.teamNoMark'
       return 'errors.conflict'
     case 413:
       return 'errors.fileTooLarge'

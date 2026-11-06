@@ -102,6 +102,10 @@
     "markAdminOnly": "Bu belgini endi faqat administrator oʻzgartira oladi.",
     "noMark": "Bu bronda belgi yoʻq — u allaqachon bekor qilingan.",
     "cardPaymentInFlight": "Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.",
+    "gameCancelled": "Bu oʻyin bekor qilingan.",
+    "gameNotConfirmed": "Oʻyin hali tasdiqlanmagan — raqib topilgach belgilash mumkin.",
+    "teamPaymentInFlight": "Bu jamoa uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.",
+    "teamNoMark": "Bu jamoada belgi yoʻq — u allaqachon bekor qilingan.",
     "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
     "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
     "tooManyPhotos": "Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin.",
@@ -969,7 +973,10 @@
       "notPaidMarked": "Toʻlanmadi deb belgilangan",
       "undoUntil": "Bugun {{time}} gacha bekor qilish mumkin",
       "undo": "Bekor qilish",
-      "adminOnly": "Belgini endi faqat administrator oʻzgartira oladi"
+      "adminOnly": "Belgini endi faqat administrator oʻzgartira oladi",
+      "teamNotPaidText": "{{team}} jamoasi qolgan {{amount}}ni toʻlamaganini belgilaysizmi?",
+      "teamCashNote": "Tasdiqlangach jamoa toʻlovi «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin.",
+      "teamNotPaidNote": "Jarima olinmaydi, jamoa sardori qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin."
     }
   },
   "notifications": {

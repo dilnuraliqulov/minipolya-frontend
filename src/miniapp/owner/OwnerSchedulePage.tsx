@@ -5,11 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc, tashkentToday } from '../../shared/format'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
-import { recordGameCash, type GameTeam } from '../api/games'
+import type { GameDetail, GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
 import {
   createManualBooking,
-  ownerGameKey,
   ownerCancelBooking,
   scheduleKey,
   statsKey,
@@ -32,10 +31,16 @@ import { DateStrip } from '../stadiums/SlotPicker'
 import { availabilityKey } from '../stadiums/queries'
 import { slotLabel } from '../stadiums/dates'
 import { DiscountSheet } from './DiscountSheet'
-import { GameCash } from './GameCash'
+import { GameTeamsMoney } from './GameCash'
 import { OwnerTabScreen } from './OwnerTabScreen'
-import { useRemainderMarks, type MarkKind } from './marks'
-import { MarkButtons, MarkConfirmSheet, MarkedState, RemainderChip } from './RemainderMark'
+import { useGameTeamMarks, useRemainderMarks, type MarkKind } from './marks'
+import {
+  MarkButtons,
+  MarkConfirmSheet,
+  MarkedState,
+  RemainderChip,
+  TeamMarkConfirmSheet,
+} from './RemainderMark'
 import { useSchedule } from './queries'
 import { SelectField } from './SelectField'
 import { WithOwnerStadium } from './StadiumPicker'
@@ -291,7 +296,6 @@ function OwnerBookingSheet({
   const toast = useToast()
   const queryClient = useQueryClient()
   const [confirming, setConfirming] = useState(false)
-  const [cashFor, setCashFor] = useState<GameTeam | null>(null)
   // E5–E8: "Naqd olindi" / "Toʻlanmadi" on the booking's remainder and their undo. The
   // sheet shows the booking it was opened with, so it closes after each; the refreshed
   // schedule shows the new state.
@@ -305,24 +309,21 @@ function OwnerBookingSheet({
       onSettled: () => setMarking(null),
     })
   }
-  const cash = useMutation({
-    mutationFn: (team: GameTeam) => recordGameCash(booking.gameId!, team.side),
-    onSuccess: (game) => {
-      queryClient.setQueryData(ownerGameKey(game.id), game)
-      toast.show(t('owner.gameCash.done'), 'success')
-      setCashFor(null)
-    },
-    onError: (error) => {
-      toast.show(errorMessage(error), 'danger')
-      setCashFor(null)
-    },
-    onSettled: () => {
-      if (booking.gameId)
-        void queryClient.invalidateQueries({ queryKey: ownerGameKey(booking.gameId) })
-      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
-      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
-    },
-  })
+  // T10: a team game's teams carry their own marks; the sheet stays open on the
+  // refreshed game after each.
+  const [teamMarking, setTeamMarking] = useState<{
+    kind: MarkKind
+    team: GameTeam
+    game: GameDetail
+  } | null>(null)
+  const teamMarks = useGameTeamMarks(stadium.id, booking.gameId ?? '')
+  const teamPending =
+    teamMarks.cash.isPending || teamMarks.notPaid.isPending || teamMarks.undo.isPending
+  const confirmTeamMark = () => {
+    if (!teamMarking) return
+    const mutation = teamMarking.kind === 'cash' ? teamMarks.cash : teamMarks.notPaid
+    mutation.mutate(teamMarking.team.side, { onSettled: () => setTeamMarking(null) })
+  }
   const cancel = useMutation({
     mutationFn: () => ownerCancelBooking(booking.id),
     onSuccess: () => {
@@ -348,6 +349,20 @@ function OwnerBookingSheet({
       : { key: 'cash', label: t('owner.booking.cashDue'), value: booking.remainingAmount },
     { key: 'ownerReceives', label: t('owner.booking.receives'), value: booking.ownerReceives },
   ]
+  if (teamMarking) {
+    return (
+      <TeamMarkConfirmSheet
+        kind={teamMarking.kind}
+        team={teamMarking.team}
+        startsAt={teamMarking.game.startsAt}
+        endsAt={teamMarking.game.endsAt}
+        stadiumName={stadium.name}
+        pending={teamMarks.cash.isPending || teamMarks.notPaid.isPending}
+        onConfirm={confirmTeamMark}
+        onClose={() => setTeamMarking(null)}
+      />
+    )
+  }
   if (marking) {
     return (
       <MarkConfirmSheet
@@ -363,37 +378,13 @@ function OwnerBookingSheet({
   return (
     <BottomSheet
       open
-      title={
-        cashFor
-          ? t('owner.gameCash.confirmTitle')
-          : confirming
-            ? t('owner.booking.cancelTitle')
-            : t('owner.booking.title')
-      }
-      subtitle={
-        cashFor
-          ? t('owner.gameCash.confirmText', {
-              team: cashFor.teamName ?? t('team.anonymous'),
-              amount: formatMoney(cashFor.remainderAmount),
-            })
-          : confirming
-            ? t('owner.booking.cancelText')
-            : undefined
-      }
+      title={confirming ? t('owner.booking.cancelTitle') : t('owner.booking.title')}
+      subtitle={confirming ? t('owner.booking.cancelText') : undefined}
       onClose={() => {
-        if (!cancel.isPending && !cash.isPending && !markPending) onClose()
+        if (!cancel.isPending && !markPending && !teamPending) onClose()
       }}
       actions={
-        cashFor ? (
-          <>
-            <Button haptic loading={cash.isPending} onClick={() => cash.mutate(cashFor)}>
-              {t('owner.gameCash.confirm')}
-            </Button>
-            <Button variant="secondary" disabled={cash.isPending} onClick={() => setCashFor(null)}>
-              {t('owner.cancel')}
-            </Button>
-          </>
-        ) : confirming ? (
+        confirming ? (
           <>
             <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate()}>
               {t('owner.booking.cancel')}
@@ -409,7 +400,7 @@ function OwnerBookingSheet({
         ) : undefined
       }
     >
-      {!confirming && !cashFor && (
+      {!confirming && (
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -445,9 +436,17 @@ function OwnerBookingSheet({
                 </div>
               ))}
           </dl>
-          {booking.gameId && <GameCash gameId={booking.gameId} onCash={setCashFor} />}
+          {booking.gameId && (
+            <GameTeamsMoney
+              gameId={booking.gameId}
+              undoing={teamMarks.undo.isPending ? teamMarks.undo.variables : undefined}
+              onMark={(kind, team, game) => setTeamMarking({ kind, team, game })}
+              onUndo={(team) => teamMarks.undo.mutate(team.side)}
+            />
+          )}
           <MarkedState
-            booking={booking}
+            subject={booking}
+            cashAmount={booking.paidInCash}
             undoing={marks.undo.isPending}
             onUndo={() => marks.undo.mutate(booking.id, { onSuccess: onClose })}
           />

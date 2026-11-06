@@ -40,3 +40,31 @@ export function remainderState(booking: RemainderFields): RemainderState | null 
   }
   return null
 }
+
+/** The fields of one team of a team game (T9/T10) the team mapping reads; both apps have them. */
+export interface TeamRemainderFields {
+  remainderAmount: number
+  remainderStatus: string
+  remainingAmount?: number
+  remainderMark?: string
+}
+
+/**
+ * What a team still owes now (T9 `remainingAmount`). A backend from before T9 sent
+ * only `remainderAmount` and `remainderStatus`: the rest is owed while unpaid.
+ */
+export function teamRemaining(team: TeamRemainderFields): number {
+  if (team.remainingAmount !== undefined) return team.remainingAmount
+  return team.remainderStatus === 'paid' ? 0 : team.remainderAmount
+}
+
+/**
+ * The same states for one team of a team game: the owner's cash mark, "not paid"
+ * while still owed, owed and unmarked, or paid in full.
+ */
+export function teamRemainderState(team: TeamRemainderFields): RemainderState {
+  if (team.remainderMark === REMAINDER_MARKS.cashReceived) return 'cashReceived'
+  const remaining = teamRemaining(team)
+  if (team.remainderMark === REMAINDER_MARKS.notPaid && remaining > 0) return 'notPaid'
+  return remaining > 0 ? 'remainder' : 'paidInFull'
+}

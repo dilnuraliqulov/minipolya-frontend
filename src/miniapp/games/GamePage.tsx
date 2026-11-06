@@ -46,6 +46,7 @@ import { TeamAvatar } from '../teams/TeamAvatar'
 import { useTeam } from '../teams/queries'
 import { useGame } from './queries'
 import { gameStatusBadge } from './status'
+import { teamRemaining } from './teamMoney'
 
 const CANCELLABLE = new Set(['open', 'confirmed'])
 const PAYABLE = new Set(['confirmed', 'completed'])
@@ -272,15 +273,6 @@ function TeamMembers({ team }: { team: GameTeam }) {
       )}
     </Card>
   )
-}
-
-/**
- * What the team still owes now (T9 `remainingAmount`). A backend from before T9 sent
- * only `remainderAmount` and `remainderStatus`: the rest is owed while unpaid.
- */
-function teamRemaining(team: GameTeam): number {
-  if (team.remainingAmount !== undefined) return team.remainingAmount
-  return team.remainderStatus === 'paid' ? 0 : team.remainderAmount
 }
 
 /**

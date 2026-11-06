@@ -90,6 +90,10 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.markAdminOnly` | Bu belgini endi faqat administrator oʻzgartira oladi. | Теперь эту отметку может изменить только администратор. | Only an admin can change this mark now. |
 | `errors.noMark` | Bu bronda belgi yoʻq — u allaqachon bekor qilingan. | У этой брони нет отметки — её уже отменили. | This booking has no mark — it was already undone. |
 | `errors.cardPaymentInFlight` | Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring. | Оплата этой брони картой ещё подтверждается. Попробуйте чуть позже. | A card payment for this booking is still being confirmed. Try again in a moment. |
+| `errors.gameCancelled` | Bu oʻyin bekor qilingan. | Эта игра отменена. | This game is cancelled. |
+| `errors.gameNotConfirmed` | Oʻyin hali tasdiqlanmagan — raqib topilgach belgilash mumkin. | Игра ещё не подтверждена — отметить можно, когда найдётся соперник. | The game is not confirmed yet — you can mark it once an opponent joins. |
+| `errors.teamPaymentInFlight` | Bu jamoa uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring. | Оплата картой для этой команды ещё подтверждается. Попробуйте чуть позже. | A card payment for this team is still being confirmed. Try again in a moment. |
+| `errors.teamNoMark` | Bu jamoada belgi yoʻq — u allaqachon bekor qilingan. | У этой команды нет отметки — её уже отменили. | This team has no mark — it was already undone. |
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
 | `errors.tooManyPhotos` | Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin. | У поля может быть не больше 10 фото. | A pitch can have at most 10 photos. |
@@ -841,6 +845,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.mark.undoUntil` | Bugun {{time}} gacha bekor qilish mumkin | Можно отменить сегодня до {{time}} | You can undo it until {{time}} today |
 | `owner.mark.undo` | Bekor qilish | Отменить | Undo |
 | `owner.mark.adminOnly` | Belgini endi faqat administrator oʻzgartira oladi | Изменить отметку теперь может только администратор | Only an admin can change the mark now |
+| `owner.mark.teamNotPaidText` | {{team}} jamoasi qolgan {{amount}}ni toʻlamaganini belgilaysizmi? | Отметить, что команда {{team}} не заплатила остаток {{amount}}? | Mark that {{team}} did not pay the remaining {{amount}}? |
+| `owner.mark.teamCashNote` | Tasdiqlangach jamoa toʻlovi «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin. | После подтверждения оплата команды будет отмечена «Получено наличными». Отменить можно до конца дня. | Once confirmed the team's payment shows “Cash received”. You can undo it until the end of today. |
+| `owner.mark.teamNotPaidNote` | Jarima olinmaydi, jamoa sardori qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin. | Штраф не взимается, капитан команды может оплатить остаток позже в приложении. Отменить можно до конца дня. | No penalty is charged; the team captain can still pay the rest in the app. You can undo it until the end of today. |
 | `notifications.title` | Bildirishnomalar | Уведомления | Notifications |
 | `notifications.unreadValue` | {{count}} ta yangi | новых: {{count}} | {{count}} new |
 | `notifications.unread` | oʻqilmagan | не прочитано | unread |
