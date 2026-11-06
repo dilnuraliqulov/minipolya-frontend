@@ -142,7 +142,7 @@ describe('Ega rejimi — booking cash (R37)', () => {
       'POST /api/owner/bookings/b1/cash': { ...deposit, remainingAmount: 0 },
     })
     const sheet = await openBooking()
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Naqd olindi · 90 000 soʻm' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Naqd olindi' }))
     const confirm = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })
     expect(confirm).toHaveTextContent('Mijozdan 90 000 soʻm naqd olinganini tasdiqlaysizmi?')
     expect(api.calls('POST /api/owner/bookings/b1/cash')).toHaveLength(0)
@@ -151,7 +151,7 @@ describe('Ega rejimi — booking cash (R37)', () => {
     expect(api.calls('POST /api/owner/bookings/b1/cash')).toHaveLength(1)
   })
 
-  it('maps a card payment still processing to a conflict message', async () => {
+  it('maps a card payment still processing to its own message', async () => {
     stub({
       'GET /api/owner/dashboard/stadiums/s1/schedule': [
         {
@@ -174,7 +174,9 @@ describe('Ega rejimi — booking cash (R37)', () => {
     const confirm = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })
     fireEvent.click(within(confirm).getByRole('button', { name: 'Tasdiqlash' }))
     expect(
-      await screen.findByText('Maʼlumotlar oʻzgargan. Sahifani yangilab, qayta urinib koʻring.'),
+      await screen.findByText(
+        'Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.',
+      ),
     ).toBeInTheDocument()
   })
 })

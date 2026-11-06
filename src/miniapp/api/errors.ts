@@ -56,6 +56,11 @@ export type ErrorMessageKey =
   | 'errors.paymentPending'
   | 'errors.hasOpponent'
   | 'errors.onlyLeaderJoins'
+  | 'errors.notYourStadium'
+  | 'errors.nothingToMark'
+  | 'errors.markAdminOnly'
+  | 'errors.cardPaymentInFlight'
+  | 'errors.noMark'
   | 'errors.unknown'
 
 /** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
@@ -162,6 +167,8 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       // Team-game cash: card or cash got there first.
       if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
       if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
+      // The owner's cash mark, from a backend before design E7 (now a 409).
+      if (error.message === API_MESSAGES.noPartPayment) return 'errors.nothingToMark'
       if (
         error.message === API_MESSAGES.joinPaymentUnconfirmed ||
         error.message === API_MESSAGES.joinOtherTeamConfirming ||
@@ -174,10 +181,19 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
     case 403:
       // A team game is joined by the joining team's leader only.
       if (error.message === API_MESSAGES.onlyLeadersJoin) return 'errors.onlyLeaderJoins'
+      // The owner's remainder marks: not this owner's stadium.
+      if (error.message === API_MESSAGES.notStadiumOwner) return 'errors.notYourStadium'
       return 'errors.forbidden'
     case 404:
       return 'errors.notFound'
     case 409:
+      // The owner's remainder marks (design E7): settled meanwhile, nothing to mark, a card
+      // payment still being confirmed, or past the owner's undo window.
+      if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
+      if (error.message === API_MESSAGES.noPartPayment) return 'errors.nothingToMark'
+      if (error.message === API_MESSAGES.bookingPaymentInFlight) return 'errors.cardPaymentInFlight'
+      if (error.message === API_MESSAGES.markAdminOnly) return 'errors.markAdminOnly'
+      if (error.message === API_MESSAGES.noRemainderMark) return 'errors.noMark'
       return 'errors.conflict'
     case 413:
       return 'errors.fileTooLarge'

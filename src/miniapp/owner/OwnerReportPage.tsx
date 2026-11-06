@@ -83,7 +83,7 @@ function Report({ stadium }: { stadium: OwnerStadium }) {
       </div>
       <Stat label={t('owner.report.outstanding')} value={formatMoney(outstanding)} />
       <RevenueChart stadiumId={stadium.id} />
-      <UnpaidList stadiumId={stadium.id} />
+      <UnpaidList stadiumId={stadium.id} stadiumName={stadium.name} />
     </>
   )
 }

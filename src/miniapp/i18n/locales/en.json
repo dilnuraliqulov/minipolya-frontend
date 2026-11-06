@@ -94,6 +94,11 @@
     "paymentPending": "Your payment is being confirmed. You'll get the result in a notification.",
     "hasOpponent": "This game already has an opponent.",
     "onlyLeaderJoins": "Only the team captain can accept a challenge — they pay for the team.",
+    "notYourStadium": "This booking is not at your pitch.",
+    "nothingToMark": "This booking has no remainder to mark — it was cancelled, expired or paid in full.",
+    "markAdminOnly": "Only an admin can change this mark now.",
+    "noMark": "This booking has no mark — it was already undone.",
+    "cardPaymentInFlight": "A card payment for this booking is still being confirmed. Try again in a moment.",
     "alreadyPaid": "This payment is already recorded.",
     "imageType": "Only JPG, PNG or WebP images can be uploaded.",
     "tooManyPhotos": "A pitch can have at most 10 photos.",
@@ -699,7 +704,7 @@
       "walkIn": "Walk-in",
       "price": "Price",
       "paidInApp": "Paid in the app",
-      "remaining": "To collect in cash",
+      "remaining": "Left to pay",
       "receives": "You receive",
       "cash": "Cash received",
       "call": "Call",
@@ -940,6 +945,30 @@
     },
     "facilities": {
       "saved": "Facilities saved"
+    },
+    "mark": {
+      "chip": {
+        "paidInFull": "Paid in full",
+        "cashReceived": "Cash received",
+        "notPaid": "Not paid",
+        "remainder": "Left: {{amount}}"
+      },
+      "cash": "Cash received",
+      "notPaid": "Not paid",
+      "back": "Back",
+      "about": "{{who}} · {{time}} · {{stadium}}.",
+      "cashNote": "Once confirmed the booking shows “Cash received”. You can undo it until the end of today.",
+      "notPaidTitle": "Mark as not paid",
+      "notPaidText": "Mark that the client did not pay the remaining {{amount}}?",
+      "notPaidNote": "No penalty is charged; the player can still pay the rest in the app. You can undo it until the end of today.",
+      "notPaidDone": "Marked as not paid",
+      "undoDone": "Mark undone",
+      "cashMarked": "Cash received",
+      "cashMarkedAmount": "Cash received · {{amount}}",
+      "notPaidMarked": "Marked as not paid",
+      "undoUntil": "You can undo it until {{time}} today",
+      "undo": "Undo",
+      "adminOnly": "Only an admin can change the mark now"
     }
   },
   "notifications": {

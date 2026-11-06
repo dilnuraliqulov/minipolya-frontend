@@ -94,6 +94,11 @@
     "paymentPending": "Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi.",
     "hasOpponent": "Bu oʻyinga raqib allaqachon topilgan.",
     "onlyLeaderJoins": "Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi.",
+    "notYourStadium": "Bu bron sizning maydoningizga tegishli emas.",
+    "nothingToMark": "Bu bronda belgilanadigan qoldiq yoʻq — u bekor qilingan, muddati oʻtgan yoki toʻliq toʻlangan.",
+    "markAdminOnly": "Bu belgini endi faqat administrator oʻzgartira oladi.",
+    "noMark": "Bu bronda belgi yoʻq — u allaqachon bekor qilingan.",
+    "cardPaymentInFlight": "Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.",
     "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
     "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
     "tooManyPhotos": "Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin.",
@@ -699,7 +704,7 @@
       "walkIn": "Qoʻlda",
       "price": "Narx",
       "paidInApp": "Ilovada toʻlangan",
-      "remaining": "Naqd olinadi",
+      "remaining": "Qoldiq",
       "receives": "Sizga tushadi",
       "cash": "Naqd olindi",
       "call": "Qoʻngʻiroq",
@@ -940,6 +945,30 @@
     },
     "facilities": {
       "saved": "Qulayliklar saqlandi"
+    },
+    "mark": {
+      "chip": {
+        "paidInFull": "Toʻliq toʻlangan",
+        "cashReceived": "Naqd olindi",
+        "notPaid": "Toʻlanmadi",
+        "remainder": "Qoldiq: {{amount}}"
+      },
+      "cash": "Naqd olindi",
+      "notPaid": "Toʻlanmadi",
+      "back": "Ortga",
+      "about": "{{who}} · {{time}} · {{stadium}}.",
+      "cashNote": "Tasdiqlangach bron «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin.",
+      "notPaidTitle": "Toʻlanmadi deb belgilash",
+      "notPaidText": "Mijoz qolgan {{amount}}ni toʻlamaganini belgilaysizmi?",
+      "notPaidNote": "Jarima olinmaydi, oʻyinchi qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin.",
+      "notPaidDone": "Toʻlanmadi deb belgilandi",
+      "undoDone": "Belgi bekor qilindi",
+      "cashMarked": "Naqd olindi",
+      "cashMarkedAmount": "Naqd olindi · {{amount}}",
+      "notPaidMarked": "Toʻlanmadi deb belgilangan",
+      "undoUntil": "Bugun {{time}} gacha bekor qilish mumkin",
+      "undo": "Bekor qilish",
+      "adminOnly": "Belgini endi faqat administrator oʻzgartira oladi"
     }
   },
   "notifications": {

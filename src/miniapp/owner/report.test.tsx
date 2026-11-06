@@ -107,7 +107,7 @@ describe('Hisobot', () => {
       },
     })
     renderApp('/owner/report', { session })
-    expect(await screen.findByText('Qolgan: 90 000 soʻm')).toBeInTheDocument()
+    expect(await screen.findByText('Qoldiq: 90 000 soʻm')).toBeInTheDocument()
     expect(api.queries(UNPAID)[0]).toMatchObject({ unpaid: 'true' })
     fireEvent.click(screen.getByRole('button', { name: 'Naqd olindi' }))
     const sheet = await screen.findByRole('dialog', { name: 'Naqd toʻlovni tasdiqlash' })

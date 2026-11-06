@@ -82,6 +82,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `errors.paymentPending` | Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi. | Платёж подтверждается. Результат придёт в уведомлении. | Your payment is being confirmed. You'll get the result in a notification. |
 | `errors.hasOpponent` | Bu oʻyinga raqib allaqachon topilgan. | У этой игры уже есть соперник. | This game already has an opponent. |
 | `errors.onlyLeaderJoins` | Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi. | Принять вызов может только капитан команды — он платит за команду. | Only the team captain can accept a challenge — they pay for the team. |
+| `errors.notYourStadium` | Bu bron sizning maydoningizga tegishli emas. | Эта бронь не относится к вашему полю. | This booking is not at your pitch. |
+| `errors.nothingToMark` | Bu bronda belgilanadigan qoldiq yoʻq — u bekor qilingan, muddati oʻtgan yoki toʻliq toʻlangan. | У этой брони нет остатка для отметки — она отменена, истекла или полностью оплачена. | This booking has no remainder to mark — it was cancelled, expired or paid in full. |
+| `errors.markAdminOnly` | Bu belgini endi faqat administrator oʻzgartira oladi. | Теперь эту отметку может изменить только администратор. | Only an admin can change this mark now. |
+| `errors.noMark` | Bu bronda belgi yoʻq — u allaqachon bekor qilingan. | У этой брони нет отметки — её уже отменили. | This booking has no mark — it was already undone. |
+| `errors.cardPaymentInFlight` | Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring. | Оплата этой брони картой ещё подтверждается. Попробуйте чуть позже. | A card payment for this booking is still being confirmed. Try again in a moment. |
 | `errors.alreadyPaid` | Bu toʻlov allaqachon qayd etilgan. | Эта оплата уже записана. | This payment is already recorded. |
 | `errors.imageType` | Faqat JPG, PNG yoki WebP rasm yuklash mumkin. | Можно загрузить только JPG, PNG или WebP. | Only JPG, PNG or WebP images can be uploaded. |
 | `errors.tooManyPhotos` | Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin. | У поля может быть не больше 10 фото. | A pitch can have at most 10 photos. |
@@ -610,7 +615,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.booking.walkIn` | Qoʻlda | Вручную | Walk-in |
 | `owner.booking.price` | Narx | Цена | Price |
 | `owner.booking.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
-| `owner.booking.remaining` | Naqd olinadi | Получить наличными | To collect in cash |
+| `owner.booking.remaining` | Qoldiq | Остаток | Left to pay |
 | `owner.booking.receives` | Sizga tushadi | Вы получите | You receive |
 | `owner.booking.cash` | Naqd olindi | Наличные получены | Cash received |
 | `owner.booking.call` | Qoʻngʻiroq | Позвонить | Call |
@@ -885,3 +890,23 @@ Placeholders such as `{{count}}` must stay as they are.
 | `legal.privacy.keep.text` | Maʼlumotlar xizmat ishlashi uchun kerak boʻlgan muddat davomida saqlanadi. | Данные хранятся столько, сколько нужно для работы сервиса. | Data is kept for as long as the service needs it to work. |
 | `legal.privacy.contact.title` | Bogʻlanish | Связь | Contact |
 | `legal.privacy.contact.text` | Maʼlumotlaringiz boʻyicha savollar uchun Yordam boʻlimidagi qoʻllab-quvvatlash chatiga yozing. | По вопросам о ваших данных пишите в чат поддержки в разделе «Помощь». | For questions about your data, write to the support chat in Help. |
+| `owner.mark.chip.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
+| `owner.mark.chip.cashReceived` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.chip.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
+| `owner.mark.chip.remainder` | Qoldiq: {{amount}} | Остаток: {{amount}} | Left: {{amount}} |
+| `owner.mark.cash` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.notPaid` | Toʻlanmadi | Не оплачено | Not paid |
+| `owner.mark.back` | Ortga | Назад | Back |
+| `owner.mark.about` | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. | {{who}} · {{time}} · {{stadium}}. |
+| `owner.mark.cashNote` | Tasdiqlangach bron «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin. | После подтверждения бронь будет отмечена «Получено наличными». Отменить можно до конца дня. | Once confirmed the booking shows “Cash received”. You can undo it until the end of today. |
+| `owner.mark.notPaidTitle` | Toʻlanmadi deb belgilash | Отметить как неоплаченную | Mark as not paid |
+| `owner.mark.notPaidText` | Mijoz qolgan {{amount}}ni toʻlamaganini belgilaysizmi? | Отметить, что клиент не заплатил остаток {{amount}}? | Mark that the client did not pay the remaining {{amount}}? |
+| `owner.mark.notPaidNote` | Jarima olinmaydi, oʻyinchi qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin. | Штраф не взимается, игрок может оплатить остаток позже в приложении. Отменить можно до конца дня. | No penalty is charged; the player can still pay the rest in the app. You can undo it until the end of today. |
+| `owner.mark.notPaidDone` | Toʻlanmadi deb belgilandi | Отмечено как неоплаченное | Marked as not paid |
+| `owner.mark.undoDone` | Belgi bekor qilindi | Отметка отменена | Mark undone |
+| `owner.mark.cashMarked` | Naqd olindi | Получено наличными | Cash received |
+| `owner.mark.cashMarkedAmount` | Naqd olindi · {{amount}} | Получено наличными · {{amount}} | Cash received · {{amount}} |
+| `owner.mark.notPaidMarked` | Toʻlanmadi deb belgilangan | Отмечено как неоплаченное | Marked as not paid |
+| `owner.mark.undoUntil` | Bugun {{time}} gacha bekor qilish mumkin | Можно отменить сегодня до {{time}} | You can undo it until {{time}} today |
+| `owner.mark.undo` | Bekor qilish | Отменить | Undo |
+| `owner.mark.adminOnly` | Belgini endi faqat administrator oʻzgartira oladi | Изменить отметку теперь может только администратор | Only an admin can change the mark now |

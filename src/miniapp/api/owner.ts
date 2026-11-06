@@ -182,7 +182,8 @@ export const pricingKey = (id: string) => ['owner', 'pricing', id] as const
 export const closuresKey = (id: string) => ['owner', 'closures', id] as const
 export const promotionsKey = (id: string) => ['owner', 'promotions', id] as const
 export const ownerGameKey = (id: string) => ['owner', 'game', id] as const
-export const scheduleKey = (id: string, date: string) => ['owner', 'schedule', id, date] as const
+export const OWNER_SCHEDULE_KEY = ['owner', 'schedule'] as const
+export const scheduleKey = (id: string, date: string) => [...OWNER_SCHEDULE_KEY, id, date] as const
 export const statsKey = (id: string) => ['owner', 'stats', id] as const
 export const OWNER_LEGAL_KEY = ['owner', 'legal'] as const
 
@@ -379,9 +380,28 @@ export function reorderStadiumPhotos(
   return api.put<StadiumPhoto[]>(`/api/owner/stadiums/${stadiumId}/photos/order`, { photoIds })
 }
 
-/** R37: the owner took the booking's remaining amount in cash. */
+/**
+ * R37/E5: the owner took the booking's remaining amount in cash ("Naqd olindi"); also sets
+ * `remainderMark: cash_received`. 403 not the owner; 409 cancelled/expired or nothing left.
+ */
 export function markBookingCash(bookingId: string): Promise<Booking> {
   return api.post<Booking>(`/api/owner/bookings/${bookingId}/cash`)
+}
+
+/**
+ * E5: "Toʻlanmadi" — the player did not pay the rest. No charge, no penalty; the booking
+ * keeps its remainder and the player can still pay it. Same 403/409 as the cash mark.
+ */
+export function markBookingNotPaid(bookingId: string): Promise<Booking> {
+  return api.post<Booking>(`/api/owner/bookings/${bookingId}/not-paid`)
+}
+
+/**
+ * E5/E6: undoes the mark until `remainderMarkUndoableUntil` (the end of the Tashkent day it
+ * was set); the cash row of a `cash_received` mark is voided. Later: 409, admin only.
+ */
+export function undoRemainderMark(bookingId: string): Promise<Booking> {
+  return api.delete<Booking>(`/api/owner/bookings/${bookingId}/remainder-mark`)
 }
 
 /** R43: one entry per day of the window, oldest first, zero days included. */

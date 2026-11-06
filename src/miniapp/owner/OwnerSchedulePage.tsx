@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Banknote, Percent, Phone, Plus, Swords } from 'lucide-react'
+import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTime, tashkentToUtc, tashkentToday } from '../../shared/format'
@@ -8,7 +8,6 @@ import { recordGameCash, type GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
 import {
   createManualBooking,
-  markBookingCash,
   ownerGameKey,
   ownerCancelBooking,
   scheduleKey,
@@ -34,6 +33,8 @@ import { slotLabel } from '../stadiums/dates'
 import { DiscountSheet } from './DiscountSheet'
 import { GameCash } from './GameCash'
 import { OwnerTabScreen } from './OwnerTabScreen'
+import { useRemainderMarks, type MarkKind } from './marks'
+import { MarkButtons, MarkConfirmSheet, MarkedState, RemainderChip } from './RemainderMark'
 import { useSchedule } from './queries'
 import { SelectField } from './SelectField'
 import { WithOwnerStadium } from './StadiumPicker'
@@ -199,7 +200,10 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
       </span>
       <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
         <span className="w-full truncate text-base font-medium text-primary">{who}</span>
-        <BookingStatusBadge status={booking.status} />
+        <span className="flex flex-wrap items-center gap-1.5">
+          <BookingStatusBadge status={booking.status} />
+          <RemainderChip booking={booking} />
+        </span>
       </span>
       {/* The owner's own price only: `price` is what the player pays. */}
       {booking.ownerPrice !== undefined && (
@@ -283,23 +287,19 @@ function OwnerBookingSheet({
   const queryClient = useQueryClient()
   const [confirming, setConfirming] = useState(false)
   const [cashFor, setCashFor] = useState<GameTeam | null>(null)
-  const [bookingCash, setBookingCash] = useState(false)
-  const takeCash = useMutation({
-    mutationFn: () => markBookingCash(booking.id),
-    onSuccess: () => {
-      toast.show(t('owner.booking.cashDone'), 'success')
-      setBookingCash(false)
-      onClose()
-    },
-    onError: (error) => {
-      toast.show(errorMessage(error), 'danger')
-      setBookingCash(false)
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: scheduleKey(stadium.id, date) })
-      void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
-    },
-  })
+  // E5–E8: "Naqd olindi" / "Toʻlanmadi" on the booking's remainder and their undo. The
+  // sheet shows the booking it was opened with, so it closes after each; the refreshed
+  // schedule shows the new state.
+  const [marking, setMarking] = useState<MarkKind | null>(null)
+  const marks = useRemainderMarks(stadium.id)
+  const markPending = marks.cash.isPending || marks.notPaid.isPending || marks.undo.isPending
+  const confirmMark = () => {
+    const mutation = marking === 'cash' ? marks.cash : marks.notPaid
+    mutation.mutate(booking.id, {
+      onSuccess: onClose,
+      onSettled: () => setMarking(null),
+    })
+  }
   const cash = useMutation({
     mutationFn: (team: GameTeam) => recordGameCash(booking.gameId!, team.side),
     onSuccess: (game) => {
@@ -341,11 +341,23 @@ function OwnerBookingSheet({
     [t('owner.booking.remaining'), booking.remainingAmount],
     [t('owner.booking.receives'), booking.ownerReceives],
   ]
+  if (marking) {
+    return (
+      <MarkConfirmSheet
+        kind={marking}
+        booking={booking}
+        stadiumName={stadium.name}
+        pending={marks.cash.isPending || marks.notPaid.isPending}
+        onConfirm={confirmMark}
+        onClose={() => setMarking(null)}
+      />
+    )
+  }
   return (
     <BottomSheet
       open
       title={
-        cashFor || bookingCash
+        cashFor
           ? t('owner.gameCash.confirmTitle')
           : confirming
             ? t('owner.booking.cancelTitle')
@@ -357,16 +369,12 @@ function OwnerBookingSheet({
               team: cashFor.teamName ?? t('team.anonymous'),
               amount: formatMoney(cashFor.remainderAmount),
             })
-          : bookingCash
-            ? t('owner.booking.cashConfirmText', {
-                amount: formatMoney(booking.remainingAmount),
-              })
-            : confirming
-              ? t('owner.booking.cancelText')
-              : undefined
+          : confirming
+            ? t('owner.booking.cancelText')
+            : undefined
       }
       onClose={() => {
-        if (!cancel.isPending && !cash.isPending && !takeCash.isPending) onClose()
+        if (!cancel.isPending && !cash.isPending && !markPending) onClose()
       }}
       actions={
         cashFor ? (
@@ -375,19 +383,6 @@ function OwnerBookingSheet({
               {t('owner.gameCash.confirm')}
             </Button>
             <Button variant="secondary" disabled={cash.isPending} onClick={() => setCashFor(null)}>
-              {t('owner.cancel')}
-            </Button>
-          </>
-        ) : bookingCash ? (
-          <>
-            <Button haptic loading={takeCash.isPending} onClick={() => takeCash.mutate()}>
-              {t('owner.gameCash.confirm')}
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={takeCash.isPending}
-              onClick={() => setBookingCash(false)}
-            >
               {t('owner.cancel')}
             </Button>
           </>
@@ -407,7 +402,7 @@ function OwnerBookingSheet({
         ) : undefined
       }
     >
-      {!confirming && !cashFor && !bookingCash && (
+      {!confirming && !cashFor && (
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -434,18 +429,22 @@ function OwnerBookingSheet({
             {rows
               .filter(([, value]) => value !== undefined)
               .map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-3">
+                <div key={label} className="flex items-center justify-between gap-3">
                   <dt className="text-secondary">{label}</dt>
-                  <dd className="text-primary">{formatMoney(value ?? 0)}</dd>
+                  <dd className="flex items-center gap-2 text-primary">
+                    {formatMoney(value ?? 0)}
+                    {label === t('owner.booking.remaining') && <RemainderChip booking={booking} />}
+                  </dd>
                 </div>
               ))}
           </dl>
           {booking.gameId && <GameCash gameId={booking.gameId} onCash={setCashFor} />}
-          {!booking.gameId && booking.remainingAmount > 0 && (
-            <Button variant="secondary" icon={Banknote} onClick={() => setBookingCash(true)}>
-              {t('owner.gameCash.button', { amount: formatMoney(booking.remainingAmount) })}
-            </Button>
-          )}
+          <MarkedState
+            booking={booking}
+            undoing={marks.undo.isPending}
+            onUndo={() => marks.undo.mutate(booking.id, { onSuccess: onClose })}
+          />
+          <MarkButtons booking={booking} onMark={setMarking} />
           {CANCELLABLE.has(booking.status) && (
             <Button variant="danger-outline" onClick={() => setConfirming(true)}>
               {t('owner.booking.cancel')}

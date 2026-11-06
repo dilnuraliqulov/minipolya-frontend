@@ -150,8 +150,24 @@ export const API_MESSAGES = {
     "The other team's payment is still being confirmed; try again in a few minutes",
   joinOtherTeamFailed:
     "The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full",
-  /** 400 from `POST /api/games/{id}/cash` (and remainder payments) when the remainder is already settled. */
+  /**
+   * 400 from `POST /api/games/{id}/cash` (and remainder payments) when the remainder is already
+   * settled; 409 from the owner's booking marks (`POST /api/owner/bookings/{id}/cash`,
+   * `/not-paid`) when nothing is left (design E7).
+   */
   alreadyPaid: 'Already paid',
+  // The owner's remainder marks (design E5–E7): POST /api/owner/bookings/{id}/cash, /not-paid,
+  // DELETE /api/owner/bookings/{id}/remainder-mark.
+  /** 403: the booking is not at the caller's stadium. */
+  notStadiumOwner: 'You do not own this stadium',
+  /** 409 (400 before E7): a cancelled, expired, pending or game booking has no part payment to mark. */
+  noPartPayment: 'This booking has no part payment to complete',
+  /** 409: a card payment of the booking is still being confirmed. */
+  bookingPaymentInFlight: 'A payment for this booking is being processed',
+  /** 409 from the owner's and the admin's undo when the booking has no mark (any more). */
+  noRemainderMark: 'This booking has no remainder mark',
+  /** 409 from the owner's undo after the end of the day the mark was set: admin only (E6). */
+  markAdminOnly: 'Only an admin can change this mark',
   /** 400 from `POST /api/games/{id}/pay-remainder` while the team's charge is still processing. */
   gameRemainderConfirming:
     'The card payment is still being confirmed; the remainder will be marked paid once it is',
