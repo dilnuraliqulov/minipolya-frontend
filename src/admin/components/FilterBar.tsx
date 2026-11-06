@@ -77,7 +77,7 @@ export function FilterSelect({
       className={cx(
         field,
         'relative pr-2.5 pl-3',
-        selected ? 'border-accent bg-accent-soft text-link' : 'border-border text-primary',
+        selected ? 'border-accent bg-accent-soft text-link-text' : 'border-border text-primary',
       )}
     >
       <span className="whitespace-nowrap">

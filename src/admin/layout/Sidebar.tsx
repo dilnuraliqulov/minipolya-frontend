@@ -82,7 +82,10 @@ export function Sidebar({ user }: { user: User }) {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  cx(row, isActive ? 'bg-accent-soft text-link' : 'text-primary hover:bg-hover')
+                  cx(
+                    row,
+                    isActive ? 'bg-accent-soft text-link-text' : 'text-primary hover:bg-hover',
+                  )
                 }
               >
                 {({ isActive }) => (

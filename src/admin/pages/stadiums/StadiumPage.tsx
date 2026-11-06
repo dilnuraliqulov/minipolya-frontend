@@ -389,7 +389,7 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
         >
           <Phone size={18} aria-hidden className="text-link" />
           <span className="flex-1 text-lg font-semibold text-primary">{phone}</span>
-          <span className="text-sm text-link">Qoʻngʻiroq qilish</span>
+          <span className="text-sm text-link-text">Qoʻngʻiroq qilish</span>
         </a>
       ) : (
         <p className="text-sm text-secondary">Telefon raqami yoʻq</p>

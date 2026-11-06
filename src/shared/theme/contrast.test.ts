@@ -96,6 +96,12 @@ function pairs(mini: boolean): Pair[] {
       { fg: 'link-text', on: [base, 'accent-soft'], min: TEXT },
       { fg: 'text-secondary', on: [base, 'neutral-soft'], min: TEXT },
       { fg: 'text', on: [base, 'accent-soft'], min: TEXT },
+      // A selected table row / active menu item (bg-accent-soft): secondary text and badges on it.
+      { fg: 'text-secondary', on: [base, 'accent-soft'], min: TEXT },
+      { fg: 'success-text', on: [base, 'accent-soft', 'success-soft'], min: TEXT },
+      { fg: 'warning-text', on: [base, 'accent-soft', 'warning-soft'], min: TEXT },
+      { fg: 'danger-text', on: [base, 'accent-soft', 'danger-soft'], min: TEXT },
+      { fg: 'text-secondary', on: [base, 'accent-soft', 'neutral-soft'], min: TEXT },
       { fg: 'text', on: [base, 'warning-soft'], min: TEXT },
       // Accent icons on accent-soft tiles.
       { fg: 'link', on: [base, 'accent-soft'], min: NON_TEXT },

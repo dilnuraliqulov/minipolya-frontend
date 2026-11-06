@@ -374,7 +374,7 @@ encrypted and the content is meaningless as bytes.
   Every pair is checked for WCAG AA (4.5:1 text, 3:1 icons/boundaries) in
   light and dark by `src/shared/theme/contrast.test.ts`; add a pair there when
   a new combination appears. `text-secondary` is darkened from the design's
-  #6B7280 to #5F6673 for AA on surface.
+  #6B7280 to #5B6270 for AA on surface.
 
   Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 16
   · `xl` 17 · `2xl` 20 · `3xl` 22 · `4xl` 24 · `5xl` 30 · `6xl` 32 px;

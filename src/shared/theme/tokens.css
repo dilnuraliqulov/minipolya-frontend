@@ -20,7 +20,7 @@
   /* Text */
   --text: #0b1220;
   /* Design: #6B7280 — 4.39:1 on surface; darkened for WCAG AA (≥ 4.5:1 on every surface). */
-  --text-secondary: #5f6673;
+  --text-secondary: #5b6270;
 
   /* Brand */
   --accent: #2563eb;
@@ -42,8 +42,8 @@
    * Status TEXT (and icons, borders): the fills above are too light for text on
    * white, surface or their own -soft fill. Checked by contrast.test.ts.
    */
-  --success-text: #157a3a;
-  --warning-text: #a84b07;
+  --success-text: #137336;
+  --warning-text: #a04806;
   --danger-text: #b91c1c;
   /* Status fills under white text (on-accent): danger is #EF4444 in dark, 3.8:1 with white. */
   --success-fill: #15803d;

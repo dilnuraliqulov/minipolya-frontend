@@ -250,7 +250,7 @@ function SummaryCard({ user }: { user: AdminUser }) {
         >
           <Phone size={18} aria-hidden className="text-link" />
           <span className="flex-1 text-lg font-semibold text-primary">{user.phone}</span>
-          <span className="text-sm text-link">Qoʻngʻiroq qilish</span>
+          <span className="text-sm text-link-text">Qoʻngʻiroq qilish</span>
         </a>
       )}
       <dl className="flex flex-col gap-2.5">

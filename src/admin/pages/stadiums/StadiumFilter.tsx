@@ -93,7 +93,7 @@ export function StadiumFilter({
           'flex h-9 items-center gap-2 rounded-md border pr-2.5 pl-3 text-base whitespace-nowrap',
           'focus-visible:outline-2 focus-visible:outline-accent',
           isSet
-            ? 'border-accent bg-accent-soft text-link'
+            ? 'border-accent bg-accent-soft text-link-text'
             : 'border-border bg-background text-primary',
         )}
       >

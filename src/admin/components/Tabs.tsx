@@ -61,7 +61,7 @@ export function Tabs<V extends string>({
           >
             {tab.label}
             {active && tab.count !== undefined && (
-              <span className="rounded-full bg-accent-soft px-1.5 py-px text-xs font-semibold text-link">
+              <span className="rounded-full bg-accent-soft px-1.5 py-px text-xs font-semibold text-link-text">
                 {formatNumber(tab.count)}
               </span>
             )}

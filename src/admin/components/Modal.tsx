@@ -204,7 +204,7 @@ export function ReasonModal({
                 'rounded-full border px-3 py-1.5 text-sm font-medium',
                 'focus-visible:outline-2 focus-visible:outline-accent',
                 reason === chip
-                  ? 'border-accent bg-accent-soft text-link'
+                  ? 'border-accent bg-accent-soft text-link-text'
                   : 'border-border bg-surface text-primary hover:bg-hover',
               )}
             >
