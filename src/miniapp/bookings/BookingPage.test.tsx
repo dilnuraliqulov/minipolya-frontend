@@ -90,15 +90,13 @@ describe('Booking detail', () => {
       },
     })
     renderApp('/bookings/b1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini ilovada toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 100 000 soʻm' }))
     expect(await screen.findByText('Toʻlov qabul qilindi')).toBeInTheDocument()
     expect(api.calls('POST /api/bookings/b1/pay-remainder')).toEqual([{ cardId: 'c1' }])
     expect(await screen.findByText('Toʻliq toʻlangan')).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
   it('shows a declined remainder payment inside the sheet', async () => {
@@ -109,7 +107,7 @@ describe('Booking detail', () => {
       ]),
     })
     renderApp('/bookings/b1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini ilovada toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
@@ -127,7 +125,7 @@ describe('Booking detail', () => {
       },
     )
     renderApp('/bookings/b1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini ilovada toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await within(sheet).findByRole('alert')).toHaveTextContent(
@@ -140,7 +138,7 @@ describe('Booking detail', () => {
     const api = stub({ ...partial, paymentState: 'processing' })
     renderApp('/bookings/b1')
     expect(await screen.findByText(/Toʻlov tekshirilmoqda/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
     expect(api.calls('GET /api/payments/my')).toHaveLength(0)
   })
 
@@ -152,18 +150,14 @@ describe('Booking detail', () => {
     })
     renderApp('/bookings/b1')
     expect(await screen.findByText(/Toʻlov tekshirilmoqda/)).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
   it('has no pay-the-rest button when paid in full', async () => {
     stub(makeBooking({ id: 'b1', stadiumId: STADIUM_ID }))
     renderApp('/bookings/b1')
     expect(await screen.findByText('Toʻliq toʻlangan')).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
   it('cancel shows the API refund before and after', async () => {
@@ -311,9 +305,7 @@ describe('Booking detail', () => {
     renderApp('/bookings/b1')
     expect(await screen.findByText('Muddati oʻtgan')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Bronni bekor qilish' })).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Qolganini ilovada toʻlash' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
   it('shows a skeleton while loading', () => {
@@ -340,5 +332,62 @@ describe('Booking detail', () => {
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('Booking detail — what is left to pay (E10)', () => {
+  it('shows the remainder up top with "Ilovada toʻlash" and the cash note', async () => {
+    stub()
+    renderApp('/bookings/b1')
+    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })
+    expect(await within(box).findByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(within(box).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
+  })
+
+  it('keeps the remainder (and paying it) when the owner marked it not paid', async () => {
+    stub({ ...partial, remainderMark: 'not_paid' })
+    renderApp('/bookings/b1')
+    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })
+    expect(await within(box).findByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+  })
+
+  it('says "Toʻliq toʻlangan" when everything was paid in the app', async () => {
+    stub(makeBooking({ id: 'b1', stadiumId: STADIUM_ID }))
+    renderApp('/bookings/b1')
+    const pay = await screen.findByRole('region', { name: 'Toʻlov' })
+    expect(within(pay).getByText('Toʻliq toʻlangan')).toBeInTheDocument()
+    expect(screen.queryByText(/Qolgan summa:/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Maydonda naqd toʻlangan')).not.toBeInTheDocument()
+  })
+
+  it('says "Maydonda naqd toʻlangan" when the rest was taken in cash', async () => {
+    stub(
+      makeBooking({
+        id: 'b1',
+        stadiumId: STADIUM_ID,
+        paidAmount: 15_500_000,
+        paidInCash: 10_000_000,
+        remainderMark: 'cash_received',
+        refundIfCancelledNow: 5_500_000,
+      }),
+    )
+    renderApp('/bookings/b1')
+    const pay = await screen.findByRole('region', { name: 'Toʻlov' })
+    expect(within(pay).getByText('Maydonda naqd toʻlangan')).toBeInTheDocument()
+    expect(
+      within(pay).getByText('55 000 soʻm ilovada · 100 000 soʻm maydonda naqd'),
+    ).toBeInTheDocument()
+    expect(within(pay).getByText('Naqd toʻlovlar ilova orqali qaytarilmaydi.')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻliq toʻlangan')).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Hozir bekor qilsangiz: 55 000 soʻm qaytariladi, naqd qismi qaytarilmaydi'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
+  })
+
+  it('treats paidInCash alone (no mark) as paid in cash', async () => {
+    stub(makeBooking({ id: 'b1', stadiumId: STADIUM_ID, paidInCash: 10_000_000 }))
+    renderApp('/bookings/b1')
+    expect(await screen.findByText('Maydonda naqd toʻlangan')).toBeInTheDocument()
   })
 })

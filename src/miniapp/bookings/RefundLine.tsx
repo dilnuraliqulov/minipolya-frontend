@@ -11,7 +11,10 @@ export function RefundLine({ booking }: { booking: Booking }) {
     return (
       <p className="flex items-start gap-2 rounded-xl bg-success-soft p-3 text-sm text-success">
         <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
-        {t('booking.refundNow', { amount: formatMoney(refund) })}
+        {/* Cash taken at the pitch never comes back through the app. */}
+        {(booking.paidInCash ?? 0) > 0
+          ? t('booking.refundNowCash', { amount: formatMoney(refund) })
+          : t('booking.refundNow', { amount: formatMoney(refund) })}
       </p>
     )
   }

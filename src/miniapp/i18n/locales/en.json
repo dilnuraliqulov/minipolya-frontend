@@ -357,7 +357,8 @@
     "emptyPastTitle": "No past bookings",
     "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
-    "more": "Show more"
+    "more": "Show more",
+    "remainder": "Left to pay: {{amount}}"
   },
   "booked": {
     "headerTitle": "Booking",
@@ -380,7 +381,11 @@
     "remaining": "Left to pay",
     "unpaid": "Unpaid",
     "paidInFull": "Paid in full",
-    "payRest": "Pay the rest in the app",
+    "remainderTitle": "Left to pay: {{amount}}",
+    "paidCash": "Paid in cash at the pitch",
+    "cashSplit": "{{app}} in the app · {{cash}} in cash at the pitch",
+    "cashNoRefund": "Cash payments are not refunded through the app.",
+    "payRest": "Pay in the app",
     "cashNote": "or pay in cash at the pitch",
     "payNow": "Pay",
     "pendingBanner": "Finish paying by {{time}}",
@@ -388,6 +393,7 @@
     "rules": "Cancellation terms",
     "rulesDeadline": "Cancel before {{date}}, {{time}} for a full refund. After that, nothing is refunded.",
     "refundNow": "Cancel now: {{amount}} is refunded",
+    "refundNowCash": "Cancel now: {{amount}} is refunded; the cash part is not",
     "noRefundNow": "Cancel now and nothing is refunded",
     "cancel": "Cancel the booking",
     "cancelTitle": "Cancel this booking?",

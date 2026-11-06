@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Clock, MapPin, Phone, SearchX } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Phone, SearchX, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
@@ -131,22 +131,36 @@ function BookingContent({ booking }: { booking: Booking }) {
       {booking.status === 'pending' && booking.expiresAt && (
         <PendingBanner expiresAt={booking.expiresAt} />
       )}
+      {owesRest && (
+        // E10: what is still owed, up top — pay it in the app or in cash at the pitch.
+        <section
+          aria-labelledby="booking-remainder"
+          className="flex flex-col gap-3 rounded-2xl border border-warning bg-warning-soft p-4"
+        >
+          <h3
+            id="booking-remainder"
+            className="flex items-center gap-2 text-lg font-bold text-primary"
+          >
+            <Wallet size={20} className="shrink-0 text-warning" aria-hidden />
+            {t('booking.remainderTitle', { amount: formatMoney(booking.remainingAmount) })}
+          </h3>
+          {settling || processing ? (
+            <p className="text-sm text-warning">
+              {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
+            </p>
+          ) : (
+            canPayRest && (
+              <Button haptic onClick={() => setSheet('pay')}>
+                {t('booking.payRest')}
+              </Button>
+            )
+          )}
+          <p className="text-center text-sm text-secondary">{t('booking.cashNote')}</p>
+        </section>
+      )}
       <Details booking={booking} stadium={stadium} />
 
       <PaymentSummary booking={booking}>
-        {owesRest && (settling || processing) && (
-          <p className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
-            {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
-          </p>
-        )}
-        {canPayRest && (
-          <>
-            <Button haptic onClick={() => setSheet('pay')}>
-              {t('booking.payRest')}
-            </Button>
-            <p className="text-center text-sm text-secondary">{t('booking.cashNote')}</p>
-          </>
-        )}
         {canPayPending && (
           <Button haptic onClick={() => setSheet('payPending')}>
             {firstAttempt

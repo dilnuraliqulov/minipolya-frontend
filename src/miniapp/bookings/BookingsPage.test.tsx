@@ -51,6 +51,31 @@ describe('Oʻyinlarim — bookings', () => {
     expect(within(items[2] as HTMLElement).getByText('Bekor qilingan')).toBeInTheDocument()
   })
 
+  it('shows "Qoldiq" on a booking that still owes, and nothing on a paid one', async () => {
+    const owing = makeBooking({
+      id: 'b4',
+      stadiumName: 'Paxtakor Arena',
+      paymentStatus: 'partially_paid',
+      paidAmount: 5_500_000,
+      remainingAmount: 10_000_000,
+    })
+    const unpaidHold = makeBooking({
+      id: 'b5',
+      stadiumName: 'Sergeli Arena',
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      paidAmount: 0,
+      remainingAmount: 15_500_000,
+    })
+    stubApi({ 'GET /api/games/my': page([]), [LIST]: page([owing, confirmed, unpaidHold]) })
+    renderApp('/games')
+    const list = await screen.findByRole('list', { name: 'Bronlar' })
+    const [first, second, third] = within(list).getAllByRole('listitem') as HTMLElement[]
+    expect(within(first!).getByText('Qoldiq: 100 000 soʻm')).toBeInTheDocument()
+    expect(within(second!).queryByText(/Qoldiq/)).not.toBeInTheDocument()
+    expect(within(third!).queryByText(/Qoldiq/)).not.toBeInTheDocument()
+  })
+
   it('opens on Kelgusi and asks the server for ?when=upcoming', async () => {
     const api = stubApi({ 'GET /api/games/my': page([]), [LIST]: page([confirmed]) })
     renderApp('/games')

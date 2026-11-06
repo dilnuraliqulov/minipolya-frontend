@@ -314,6 +314,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `bookings.emptyPastText` | Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi. | Здесь появятся брони, по которым вы уже сыграли. | Bookings you have played will show here. |
 | `bookings.findPitch` | Maydon topish | Найти поле | Find a pitch |
 | `bookings.more` | Yana koʻrsatish | Показать ещё | Show more |
+| `bookings.remainder` | Qoldiq: {{amount}} | Остаток: {{amount}} | Left to pay: {{amount}} |
 | `booked.headerTitle` | Bron | Бронь | Booking |
 | `booked.title` | Band qilindi! | Забронировано! | Booked! |
 | `booked.paid` | Toʻlandi: {{amount}} | Оплачено: {{amount}} | Paid: {{amount}} |
@@ -332,14 +333,19 @@ Placeholders such as `{{count}}` must stay as they are.
 | `booking.remaining` | Qolgan summa | Остаток | Left to pay |
 | `booking.unpaid` | Toʻlanmagan | Не оплачено | Unpaid |
 | `booking.paidInFull` | Toʻliq toʻlangan | Оплачено полностью | Paid in full |
-| `booking.payRest` | Qolganini ilovada toʻlash | Доплатить в приложении | Pay the rest in the app |
-| `booking.cashNote` | yoki maydonda naqd toʻlashingiz mumkin | или оплатите наличными на поле | or pay in cash at the pitch |
+| `booking.remainderTitle` | Qolgan summa: {{amount}} | Остаток: {{amount}} | Left to pay: {{amount}} |
+| `booking.paidCash` | Maydonda naqd toʻlangan | Оплачено наличными на поле | Paid in cash at the pitch |
+| `booking.cashSplit` | {{app}} ilovada · {{cash}} maydonda naqd | {{app}} в приложении · {{cash}} наличными на поле | {{app}} in the app · {{cash}} in cash at the pitch |
+| `booking.cashNoRefund` | Naqd toʻlovlar ilova orqali qaytarilmaydi. | Наличные через приложение не возвращаются. | Cash payments are not refunded through the app. |
+| `booking.payRest` | Ilovada toʻlash | Оплатить в приложении | Pay in the app |
+| `booking.cashNote` | yoki maydonda naqd toʻlang | или оплатите наличными на поле | or pay in cash at the pitch |
 | `booking.payNow` | Toʻlash | Оплатить | Pay |
 | `booking.pendingBanner` | Toʻlovni {{time}} gacha yakunlang | Завершите оплату до {{time}} | Finish paying by {{time}} |
 | `booking.pendingLeft` | Bron yana {{left}} saqlanadi | Бронь сохраняется ещё {{left}} | Held for another {{left}} |
 | `booking.rules` | Bekor qilish shartlari | Условия отмены | Cancellation terms |
 | `booking.rulesDeadline` | {{date}}, {{time}} gacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi. | При отмене до {{date}}, {{time}} оплата вернётся полностью. Позже — не возвращается. | Cancel before {{date}}, {{time}} for a full refund. After that, nothing is refunded. |
 | `booking.refundNow` | Hozir bekor qilsangiz: {{amount}} qaytariladi | Если отменить сейчас: вернём {{amount}} | Cancel now: {{amount}} is refunded |
+| `booking.refundNowCash` | Hozir bekor qilsangiz: {{amount}} qaytariladi, naqd qismi qaytarilmaydi | Если отменить сейчас: вернём {{amount}}, наличная часть не возвращается | Cancel now: {{amount}} is refunded; the cash part is not |
 | `booking.noRefundNow` | Hozir bekor qilsangiz, toʻlov qaytarilmaydi | Если отменить сейчас, оплата не вернётся | Cancel now and nothing is refunded |
 | `booking.cancel` | Bronni bekor qilish | Отменить бронь | Cancel the booking |
 | `booking.cancelTitle` | Bronni bekor qilasizmi? | Отменить бронь? | Cancel this booking? |
