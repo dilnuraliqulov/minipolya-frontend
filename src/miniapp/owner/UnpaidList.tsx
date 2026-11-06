@@ -53,7 +53,7 @@ export function UnpaidList({ stadiumId, stadiumName }: { stadiumId: string; stad
                   </span>
                 </span>
                 <span>
-                  <RemainderChip booking={booking} />
+                  <RemainderChip booking={booking} owed />
                 </span>
               </div>
               {markActions(booking).includes('cash') && (

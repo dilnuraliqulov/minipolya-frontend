@@ -117,6 +117,24 @@ describe('Hisobot', () => {
     expect(await screen.findByText('Toʻlanmagan qoldiqlar yoʻq.')).toBeInTheDocument()
   })
 
+  it('shows what a team-game booking or a hold still owes, labelled, without the mark button', async () => {
+    stub({
+      [UNPAID]: page([
+        makeBooking({ id: 'g1', clientName: 'Game', gameId: 'game1', remainingAmount: 6_000_000 }),
+        makeBooking({
+          id: 'h1',
+          clientName: 'Hold',
+          status: 'pending',
+          remainingAmount: 7_000_000,
+        }),
+      ]),
+    })
+    renderApp('/owner/report', { session })
+    expect(await screen.findByText('Naqd olinadi: 60 000 soʻm')).toBeInTheDocument()
+    expect(screen.getByText('Naqd olinadi: 70 000 soʻm')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Naqd olindi' })).not.toBeInTheDocument()
+  })
+
   it('maps "Already paid" from the cash button', async () => {
     stub({
       [UNPAID]: page([makeBooking({ id: 'b7', remainingAmount: 9_000_000 })]),

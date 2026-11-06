@@ -29,14 +29,17 @@ const TONES: Record<RemainderState, BadgeTone> = {
 export function RemainderChip({
   booking,
   besideAmount = false,
+  owed = false,
 }: {
   booking: Booking
   besideAmount?: boolean
+  /** In the unpaid list: a booking with no mark state (a team game, a hold) still shows what it owes. */
+  owed?: boolean
 }) {
   const { t } = useTranslation()
+  const marked = booking.gameId ? null : remainderState(booking)
   // A team game's remainders are the teams' own (GameCash), not the booking's.
-  if (booking.gameId) return null
-  const state = remainderState(booking)
+  const state = !marked && owed && booking.remainingAmount > 0 ? 'remainder' : marked
   if (!state || (besideAmount && (state === 'remainder' || state === 'cashReceived'))) return null
   return (
     <Badge tone={TONES[state]}>
