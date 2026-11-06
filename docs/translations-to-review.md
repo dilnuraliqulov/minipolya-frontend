@@ -423,6 +423,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `game.myPayment` | Jamoangiz toʻlovi | Оплата вашей команды | Your team's payment |
 | `game.joinPrice` | Qoʻshilishda toʻlov | Оплата при вступлении | Paid on joining |
 | `game.paidInApp` | Ilovada toʻlangan | Оплачено в приложении | Paid in the app |
+| `game.heldOnCard` | Kartangizda band qilingan | Заблокировано на вашей карте | On hold on your card |
 | `game.remainder` | Qolgan summa | Остаток | Left to pay |
 | `game.remainderPaid` | Toʻlangan | Оплачено | Paid |
 | `game.remainderUnpaid` | Toʻlanmagan | Не оплачено | Unpaid |

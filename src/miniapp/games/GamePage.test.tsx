@@ -22,6 +22,7 @@ const teamA: GameTeam = {
   remainderAmount: 8_000_000,
   remainderStatus: 'unpaid',
   paidInApp: 8_800_000,
+  heldAmount: 0,
   cancellationDeadline: '2099-11-05T15:00:00Z',
   refundIfCancelledNow: 8_800_000,
 }
@@ -205,6 +206,28 @@ describe('Oʻyin — a team game', () => {
     expect(within(pay).getByText('0 soʻm')).toBeInTheDocument()
     expect(within(pay).queryByText('Toʻlanmagan')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).not.toBeInTheDocument()
+  })
+
+  it('says what is on hold on the card while the money is only held', async () => {
+    stub({
+      ...confirmed,
+      status: 'open',
+      teams: [{ ...teamA, paidInApp: 0, heldAmount: 4_980_000 }],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(within(pay).getByText('Kartangizda band qilingan')).toBeInTheDocument()
+    expect(within(pay).getByText('49 800 soʻm')).toBeInTheDocument()
+    expect(within(pay).queryByText('Ilovada toʻlangan')).not.toBeInTheDocument()
+  })
+
+  it('shows the paid amount once the hold is captured', async () => {
+    stub({ ...confirmed, teams: [{ ...teamA, paidInApp: 4_980_000, heldAmount: 0 }, teamB] })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(within(pay).getByText('Ilovada toʻlangan')).toBeInTheDocument()
+    expect(within(pay).getByText('49 800 soʻm')).toBeInTheDocument()
+    expect(within(pay).queryByText('Kartangizda band qilingan')).not.toBeInTheDocument()
   })
 
   it('a waiting game shows the opponent placeholder and no chat', async () => {

@@ -35,6 +35,12 @@ export interface GameTeam {
   remainderStatus: 'unpaid' | 'paid' | string
   /** Everything this team has paid through the app so far. */
   paidInApp: number
+  /**
+   * What is on hold on this team's card right now (held, or capture_pending while
+   * the capture is asked for, not lapsed); 0 otherwise. Always sent since backend
+   * `ba6db84`.
+   */
+  heldAmount?: number
   /** UTC */
   cancellationDeadline?: string
   /** 0 when nothing would come back — display, never recompute. */
