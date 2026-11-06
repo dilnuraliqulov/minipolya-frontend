@@ -1,8 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatSom, somToTiyin } from '../../../shared/format'
+import { getSettings, type PlatformSettings } from '../../api/settings'
 import { setBookingTerms, type StadiumDetail } from '../../api/stadiums'
 import { Button } from '../../components/Button'
 import { CARD } from '../../components/card'
@@ -17,25 +18,43 @@ const DEFAULT_HOURS = 24
 const MIN_DEPOSIT = 50_000
 const MAX_HOURS = 168
 
-type Mode = 'full' | 'deposit'
+/** T1: no minimum of its own = the platform default (`defaultMinBookingAmount`). */
+type Mode = 'default' | 'deposit'
+
+/** The platform settings (the default minimum, the team fee), shared with Sozlamalar. */
+function usePlatformSettings() {
+  return useQuery({ queryKey: ['admin', 'settings'], queryFn: getSettings })
+}
+
+/** "Platforma standarti: 50 000 so'm" — the amount once the settings have loaded. */
+function defaultLabel(settings: PlatformSettings | undefined): string {
+  return settings
+    ? `Platforma standarti: ${formatSom(settings.defaultMinBookingAmount)}`
+    : 'Platforma standarti'
+}
 
 function currentHours(stadium: StadiumDetail): number {
   return stadium.cancellationHours ?? stadium.cancellationPolicy?.cancellationHours ?? DEFAULT_HOURS
 }
 
-function failureText(error: unknown): string {
+function failureText(error: unknown, settings: PlatformSettings | undefined): string {
   if (!isApiError(error)) return 'Saqlab boʻlmadi. Qayta urinib koʻring'
   if (error.status === 404) return 'Maydon topilmadi'
-  if (error.message === API_MESSAGES.minimumTooLow) return 'Oldindan toʻlov kamida 500 soʻm boʻlsin'
+  if (error.message.startsWith(API_MESSAGES.minimumNotAboveTeamFee))
+    return settings
+      ? `Minimal toʻlov jamoa oʻyini platforma haqidan (${formatSom(settings.teamGamePlatformFee)}) koʻp boʻlsin`
+      : 'Minimal toʻlov jamoa oʻyini platforma haqidan koʻp boʻlsin'
+  if (error.message === API_MESSAGES.minimumTooLow) return 'Minimal toʻlov kamida 500 soʻm boʻlsin'
   if (error.message === API_MESSAGES.minimumAbovePrice)
-    return 'Oldindan toʻlov soatlik narxdan oshmasin'
+    return 'Minimal toʻlov soatlik narxdan oshmasin'
   if (error.message === API_MESSAGES.cancellationHoursRange)
     return 'Bekor qilish muddati 0 dan 168 soatgacha boʻlsin'
   return 'Saqlab boʻlmadi. Qayta urinib koʻring'
 }
 
 /**
- * "Bron shartlari" (design D3, D21): the deposit (or full payment) and the
+ * "Bron shartlari" (design D3, D21): the stadium's own minimum (or the platform
+ * default, T1 — `minBookingAmount: null`) and the
  * free-cancellation hours, agreed with the owner by phone and set here only.
  * Edit → check → confirm → `PUT /api/admin/stadiums/{id}/booking-terms`.
  */
@@ -49,6 +68,7 @@ export function BookingTermsCard({
 }) {
   const [editing, setEditing] = useState(false)
   const hours = currentHours(stadium)
+  const settings = usePlatformSettings()
   return (
     <section aria-label="Bron shartlari" className={cx(CARD, 'flex flex-col')}>
       <div className="flex items-center gap-2.5 px-5 pt-3.5 pb-2.5">
@@ -67,15 +87,13 @@ export function BookingTermsCard({
         <dl className="flex flex-col gap-2.5">
           <Row label="Minimal toʻlov">
             <span className="flex flex-col gap-0.5">
-              {stadium.minBookingAmount === undefined ? (
-                'Toʻliq toʻlov'
-              ) : (
-                <>
-                  <span>Egasining: {formatSom(stadium.minBookingAmount)}</span>
-                  {stadium.playerMinBookingAmount !== undefined && (
-                    <span>Oʻyinchilar uchun: {formatSom(stadium.playerMinBookingAmount)}</span>
-                  )}
-                </>
+              <span>
+                {stadium.minBookingAmount === undefined
+                  ? defaultLabel(settings.data)
+                  : `Egasining: ${formatSom(stadium.minBookingAmount)}`}
+              </span>
+              {stadium.playerMinBookingAmount !== undefined && (
+                <span>Oʻyinchilar uchun: {formatSom(stadium.playerMinBookingAmount)}</span>
               )}
               <span className="text-xs text-secondary">
                 Bron qilishda oʻyinchi toʻlaydigan eng kam summa
@@ -96,8 +114,9 @@ export function BookingTermsCard({
 function TermsModal({ stadium, onClose }: { stadium: StadiumDetail; onClose: () => void }) {
   const toast = useToast()
   const queryClient = useQueryClient()
+  const settings = usePlatformSettings()
   const [mode, setMode] = useState<Mode>(
-    stadium.minBookingAmount === undefined ? 'full' : 'deposit',
+    stadium.minBookingAmount === undefined ? 'default' : 'deposit',
   )
   const [amount, setAmount] = useState(
     stadium.minBookingAmount === undefined
@@ -140,14 +159,14 @@ function TermsModal({ stadium, onClose }: { stadium: StadiumDetail; onClose: () 
     },
     onError: (error) => {
       setConfirming(false)
-      toast.error(failureText(error))
+      toast.error(failureText(error, settings.data))
     },
   })
 
   const summary =
-    (mode === 'full' || deposit === null
-      ? 'Toʻliq toʻlov'
-      : `Oldindan toʻlov ${formatSom(deposit)}`) +
+    (mode === 'default' || deposit === null
+      ? defaultLabel(settings.data)
+      : `Minimal toʻlov ${formatSom(deposit)}`) +
     `, bekor qilish boshlanishidan ${hoursValue ?? DEFAULT_HOURS} soat oldingacha`
 
   return (
@@ -179,8 +198,14 @@ function TermsModal({ stadium, onClose }: { stadium: StadiumDetail; onClose: () 
           <legend className="pb-1.5 text-base font-medium text-primary">Toʻlov</legend>
           {(
             [
-              ['full', 'Toʻliq toʻlov', 'Oʻyinchi bron qilishda butun narxni toʻlaydi'],
-              ['deposit', 'Oldindan toʻlov', 'Bron qilishda eng kam summa, qolgani keyin'],
+              [
+                'default',
+                'Platforma standarti',
+                settings.data
+                  ? `Sozlamalardagi standart minimal toʻlov: ${formatSom(settings.data.defaultMinBookingAmount)}`
+                  : 'Sozlamalardagi standart minimal toʻlov',
+              ],
+              ['deposit', 'Oʻz minimal toʻlovi', 'Bron qilishda eng kam summa, qolgani keyin'],
             ] as const
           ).map(([value, label, hint]) => (
             <label
@@ -207,7 +232,7 @@ function TermsModal({ stadium, onClose }: { stadium: StadiumDetail; onClose: () 
         </fieldset>
         {mode === 'deposit' && (
           <NumberField
-            label="Oldindan toʻlov (egasining narxida)"
+            label="Minimal toʻlov (egasining narxida)"
             suffix="so'm"
             maxLength={9}
             value={amount}

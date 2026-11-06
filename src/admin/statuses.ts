@@ -43,6 +43,12 @@ export const REMAINDER_MARKS: Record<string, string> = {
   not_paid: 'Toʻlanmadi',
 }
 
+/** T9: what a team of a team game chose to pay on joining. */
+export const TEAM_PAYMENT_OPTIONS: Record<string, string> = {
+  minimum: 'Minimal toʻlov',
+  full: 'Toʻliq toʻlov',
+}
+
 export const GAME_STATUSES: StatusMap = {
   open: { label: 'Kutilmoqda', tone: 'warning' },
   confirmed: { label: 'Rejalashtirilgan', tone: 'accent' },

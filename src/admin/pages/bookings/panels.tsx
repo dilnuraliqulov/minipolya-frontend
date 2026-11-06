@@ -10,6 +10,7 @@ import {
   formatTimeRange,
   toTashkentParts,
 } from '../../../shared/format'
+import { teamRemainderState, teamRemaining } from '../../../shared/payments/remainder'
 import {
   getBooking,
   getGame,
@@ -17,20 +18,28 @@ import {
   type AdminGameDetail,
   type AdminGameTeam,
   type GamePlayer,
+  undoGameRemainderMark,
   undoRemainderMark,
 } from '../../api/bookings'
 import { StatusTimeline } from '../../audit/StatusTimeline'
 import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { ConfirmModal } from '../../components/Modal'
-import { cx } from '../../components/cx'
 import { PanelRow, PanelSection, SidePanel } from '../../components/SidePanel'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useToast } from '../../components/Toast'
 import { WEEKDAYS_SHORT } from '../../format'
-import { BOOKING_STATUSES, gameStatus, GAME_TYPES, REMAINDER_MARKS, statusOf } from '../../statuses'
+import {
+  BOOKING_STATUSES,
+  gameStatus,
+  GAME_TYPES,
+  REMAINDER_CHIPS,
+  REMAINDER_MARKS,
+  statusOf,
+  TEAM_PAYMENT_OPTIONS,
+} from '../../statuses'
 import { RemainderChip } from './RemainderChip'
 
 const linkClass =
@@ -248,7 +257,16 @@ function Players({ players }: { players: GamePlayer[] }) {
   )
 }
 
-function TeamCard({ team }: { team: AdminGameTeam }) {
+/**
+ * One team of a team game (T9/T10): what it chose, what it paid and still owes, the
+ * split of its payments, its players — and the owner's mark with the admin's undo.
+ * Every figure is the backend's.
+ */
+function TeamCard({ team, onUndo }: { team: AdminGameTeam; onUndo: () => void }) {
+  const state = teamRemainderState(team)
+  const chip = REMAINDER_CHIPS[state]
+  const remaining = teamRemaining(team)
+  const mark = team.remainderMark
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
       <div className="flex items-center gap-3">
@@ -264,11 +282,32 @@ function TeamCard({ team }: { team: AdminGameTeam }) {
           <span className="text-sm font-semibold text-primary">{formatSom(team.paidInApp)}</span>
         </span>
       </div>
+      <dl className="flex flex-col gap-1.5 text-sm">
+        <div className="flex justify-between gap-3">
+          <dt className="text-secondary">Toʻlov turi</dt>
+          <dd className="font-medium text-primary">
+            {team.paymentOption
+              ? (TEAM_PAYMENT_OPTIONS[team.paymentOption] ?? team.paymentOption)
+              : '—'}
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-secondary">Toʻlagan</dt>
+          <dd className="font-medium text-primary">{amount(team.paidAmount)}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-secondary">Qoldiq</dt>
+          <dd className="flex flex-wrap items-center justify-end gap-2 font-medium text-primary">
+            {formatSom(remaining)}
+            <StatusBadge tone={chip.tone}>{chip.label}</StatusBadge>
+          </dd>
+        </div>
+      </dl>
       <dl className="grid grid-cols-3 gap-2 rounded-md bg-surface px-3 py-2 text-xs">
         {(
           [
             ['Platforma toʻlovi', team.platformFee],
-            ['Egasiga avans', team.ownerAdvance],
+            ['Egasining ulushi', team.ownerPart ?? team.ownerAdvance],
             ['Egasiga qolgan', team.ownerRemainder],
             ['Egasiga tushadi', team.ownerReceives],
             ['ATMOS komissiyasi', team.atmosFee],
@@ -279,24 +318,36 @@ function TeamCard({ team }: { team: AdminGameTeam }) {
             <dd className="font-medium text-primary">{amount(value)}</dd>
           </div>
         ))}
-        <div>
-          <dt className="text-secondary">Qoldiq</dt>
-          <dd
-            className={cx(
-              'font-medium',
-              team.remainderStatus === 'paid' ? 'text-success-text' : 'text-warning-text',
-            )}
-          >
-            {team.remainderStatus === 'paid' ? 'Toʻlangan' : formatSom(team.remainderAmount)}
-          </dd>
-        </div>
       </dl>
+      {mark && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
+          <span className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium text-primary">
+              Qoldiq belgisi: {REMAINDER_MARKS[mark] ?? mark}
+            </span>
+            {team.remainderMarkedAt && (
+              <span className="text-xs text-secondary">
+                Ega belgiladi: {formatDateTime(team.remainderMarkedAt)}
+              </span>
+            )}
+          </span>
+          <Button variant="secondary" icon={Undo2} onClick={onUndo}>
+            Belgini bekor qilish
+          </Button>
+        </div>
+      )}
       <Players players={team.players} />
     </div>
   )
 }
 
-function GameBody({ g }: { g: AdminGameDetail }) {
+function GameBody({
+  g,
+  onUndoTeam,
+}: {
+  g: AdminGameDetail
+  onUndoTeam: (team: AdminGameTeam) => void
+}) {
   const status = gameStatus(g.type, g.status)
   return (
     <>
@@ -333,7 +384,7 @@ function GameBody({ g }: { g: AdminGameDetail }) {
         <PanelSection title="Jamoalar">
           <div className="flex flex-col gap-3">
             {g.teams.map((team) => (
-              <TeamCard key={team.side} team={team} />
+              <TeamCard key={team.side} team={team} onUndo={() => onUndoTeam(team)} />
             ))}
             {g.teams.length === 1 && (
               <p className="rounded-md bg-warning-soft px-3.5 py-2.5 text-sm text-warning-text">
@@ -380,6 +431,28 @@ export function GamePanel({ id, onClose }: { id: string; onClose: () => void }) 
     queryFn: () => getTimeline('game', id),
   })
   const g = game.data
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [undoing, setUndoing] = useState<AdminGameTeam | null>(null)
+  // T10: the admin may undo the owner's mark on a team at any time.
+  const undo = useMutation({
+    mutationFn: (side: 'a' | 'b') => undoGameRemainderMark(id, side),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['admin', 'games', 'detail', id], updated)
+      toast.success('Belgi bekor qilindi')
+    },
+    onError: (error) => {
+      toast.error(
+        isApiError(error) && error.message === API_MESSAGES.teamNoRemainderMark
+          ? 'Bu jamoada belgi yoʻq — u allaqachon bekor qilingan'
+          : 'Belgini bekor qilib boʻlmadi. Qayta urinib koʻring',
+      )
+    },
+    onSettled: () => {
+      setUndoing(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+    },
+  })
   return (
     <SidePanel
       open
@@ -393,7 +466,7 @@ export function GamePanel({ id, onClose }: { id: string; onClose: () => void }) 
         <PanelLoading />
       ) : (
         <>
-          <GameBody g={g} />
+          <GameBody g={g} onUndoTeam={setUndoing} />
           <PanelSection title="Holat tarixi">
             <StatusTimeline
               entries={timeline.data}
@@ -401,6 +474,21 @@ export function GamePanel({ id, onClose }: { id: string; onClose: () => void }) 
               error={timeline.isError}
             />
           </PanelSection>
+          <ConfirmModal
+            open={undoing !== null}
+            title="Belgini bekor qilish"
+            message={
+              undoing?.remainderMark === 'cash_received'
+                ? `${undoing.teamName}: egasining «Naqd olindi» belgisi bekor qilinadi — naqd toʻlov yozuvi bekor qilinadi (pul qaytarilmaydi) va jamoaning qoldigʻi qayta ochiladi.`
+                : `${undoing?.teamName ?? ''}: egasining «Toʻlanmadi» belgisi bekor qilinadi. Jamoaning qoldigʻi oʻzgarmaydi.`
+            }
+            confirmLabel="Belgini bekor qilish"
+            busy={undo.isPending}
+            onConfirm={() => undoing && undo.mutate(undoing.side)}
+            onClose={() => {
+              if (!undo.isPending) setUndoing(null)
+            }}
+          />
         </>
       )}
     </SidePanel>

@@ -73,9 +73,9 @@ export interface StadiumDetailFields extends StadiumListFields {
   openTime?: string
   closeTime?: string
   amenities?: Amenities
-  /** Tiyin — the owner's own minimum deposit; absent ⇒ players pay in full. */
+  /** Tiyin — the owner's own minimum; absent ⇒ the platform default (T1). */
   minBookingAmount?: number
-  /** Tiyin — that deposit as players pay it. */
+  /** Tiyin — the effective minimum (own or default) as players pay it; always sent since T1. */
   playerMinBookingAmount?: number
   cancellationHours?: number
   cancellationPolicy?: { cancellationHours: number }
@@ -149,7 +149,7 @@ export function setStadiumStatus(
 }
 
 export interface BookingTerms {
-  /** Tiyin, the owner's own minimum: at least 50 000 and at most `pricePerHour`; null = full payment. */
+  /** Tiyin, the owner's own minimum: at least 50 000, at most `pricePerHour`, above the team fee; null = the platform default. */
   minBookingAmount: number | null
   /** 0–168. */
   cancellationHours: number

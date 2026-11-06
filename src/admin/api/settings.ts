@@ -15,12 +15,21 @@ export interface PlatformSettings {
   cardFeeBps: number
   /** Player prices are rounded up to a multiple of it. Tiyin, 1–1 000 000. */
   paymentRoundingStep: number
+  /**
+   * T1: tiyin, the owner's terms — the minimum booking amount of every stadium
+   * without its own. Must be more than `teamGamePlatformFee`.
+   */
+  defaultMinBookingAmount: number
   /** UTC. */
   updatedAt: string
 }
 
 export type SettingsField =
-  'teamGamePlatformFee' | 'casualGameServiceFee' | 'cardFeeBps' | 'paymentRoundingStep'
+  | 'teamGamePlatformFee'
+  | 'casualGameServiceFee'
+  | 'cardFeeBps'
+  | 'paymentRoundingStep'
+  | 'defaultMinBookingAmount'
 
 /** Every field optional; only the ones sent are changed. */
 export type SettingsUpdate = Partial<Pick<PlatformSettings, SettingsField>>

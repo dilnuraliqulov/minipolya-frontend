@@ -95,6 +95,10 @@ const teamGame: AdminGameDetail = {
     ownerRemainder: 7_500_000,
     ownerReceives: 9_850_000,
     atmosFee: 150_000,
+    ownerPart: 2_500_000,
+    paymentOption: 'minimum',
+    paidAmount: 10_000_000,
+    remainingAmount: 0,
     remainderAmount: 0,
     remainderStatus: 'paid' as const,
     paidInApp: 10_000_000,
@@ -291,11 +295,12 @@ describe('Bronlar', () => {
     const teams = await within(panel).findByRole('region', { name: 'Jamoalar' })
     expect(within(teams).getByText('Chilonzor Lions')).toBeInTheDocument()
     expect(within(teams).getByText('Yunusobod Tigers')).toBeInTheDocument()
-    expect(within(teams).getAllByText("100 000 so'm")).toHaveLength(2)
+    // Each team: paid in the app (header) and paid altogether (Toʻlagan).
+    expect(within(teams).getAllByText("100 000 so'm")).toHaveLength(4)
     const lions = within(within(teams).getByText('Chilonzor Lions').closest('div.rounded-lg')!)
     const figure = (label: string) => lions.getByText(label).closest('div')!
     expect(figure('Platforma toʻlovi')).toHaveTextContent("25 000 so'm")
-    expect(figure('Egasiga avans')).toHaveTextContent("25 000 so'm")
+    expect(figure('Egasining ulushi')).toHaveTextContent("25 000 so'm")
     expect(figure('Egasiga qolgan')).toHaveTextContent("75 000 so'm")
     expect(figure('Egasiga tushadi')).toHaveTextContent("98 500 so'm")
     expect(figure('ATMOS komissiyasi')).toHaveTextContent("1 500 so'm")
@@ -304,6 +309,81 @@ describe('Bronlar', () => {
       '/foydalanuvchilar/u3',
     )
     expect(within(panel).queryByText(/chat/i)).not.toBeInTheDocument()
+    const row = (label: string) => lions.getByText(label, { selector: 'dt' }).closest('div')!
+    expect(row('Toʻlov turi')).toHaveTextContent('Minimal toʻlov')
+    expect(row('Toʻlagan')).toHaveTextContent("100 000 so'm")
+    expect(row('Qoldiq')).toHaveTextContent('Toʻliq toʻlangan')
+    expect(lions.queryByRole('button', { name: 'Belgini bekor qilish' })).toBeNull()
+  })
+
+  it('shows a team’s remainder and mark, and undoes the mark after confirming (T10)', async () => {
+    const team = teamGame.teams![0]!
+    const marked: AdminGameDetail = {
+      ...teamGame,
+      teams: [
+        {
+          ...team,
+          remainderStatus: 'paid',
+          remainderAmount: 7_500_000,
+          remainingAmount: 0,
+          remainderMark: 'cash_received',
+          remainderMarkedAt: '2026-10-22T17:00:00Z',
+        },
+        teamGame.teams![1]!,
+      ],
+    }
+    const owing: AdminGameDetail = {
+      ...teamGame,
+      teams: [
+        {
+          ...team,
+          remainderStatus: 'unpaid',
+          remainderAmount: 7_500_000,
+          remainingAmount: 7_500_000,
+        },
+        teamGame.teams![1]!,
+      ],
+    }
+    const { requests } = backend({
+      '/api/admin/games/g1': [200, marked],
+      'DELETE /api/admin/games/g1/remainder-mark': [200, owing],
+    })
+    signIn()
+    renderAt('/bronlar?tab=oyinlar&oyin=g1')
+    const panel = await screen.findByRole('dialog', { name: /Oʻyin #/ })
+    const teams = await within(panel).findByRole('region', { name: 'Jamoalar' })
+    const lions = within(within(teams).getByText('Chilonzor Lions').closest('div.rounded-lg')!)
+    expect(lions.getByText('Qoldiq belgisi: Naqd olindi')).toBeInTheDocument()
+    fireEvent.click(lions.getByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    expect(modal).toHaveTextContent('naqd toʻlov yozuvi bekor qilinadi')
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(await screen.findByText('Belgi bekor qilindi')).toBeInTheDocument()
+    const del = requests.find(
+      (r) => r.method === 'DELETE' && r.url.pathname === '/api/admin/games/g1/remainder-mark',
+    )
+    expect(del?.url.searchParams.get('side')).toBe('a')
+  })
+
+  it('says when the team’s mark is already gone', async () => {
+    const team = teamGame.teams![0]!
+    backend({
+      '/api/admin/games/g1': [
+        200,
+        { ...teamGame, teams: [{ ...team, remainderMark: 'not_paid' }, teamGame.teams![1]!] },
+      ],
+      'DELETE /api/admin/games/g1/remainder-mark': [409, 'This team has no remainder mark'],
+    })
+    signIn()
+    renderAt('/bronlar?tab=oyinlar&oyin=g1')
+    const panel = await screen.findByRole('dialog', { name: /Oʻyin #/ })
+    fireEvent.click(await within(panel).findByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    expect(modal).toHaveTextContent('«Toʻlanmadi» belgisi bekor qilinadi')
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(
+      await screen.findByText('Bu jamoada belgi yoʻq — u allaqachon bekor qilingan'),
+    ).toBeInTheDocument()
   })
 
   it('shows empty and error states', async () => {

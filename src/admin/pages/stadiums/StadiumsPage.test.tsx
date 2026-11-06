@@ -182,6 +182,18 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
     '/api/admin/stadiums/s4/notes': [200, []],
     '/api/admin/stadiums/s5/notes': [200, []],
     '/api/admin/users/o1': [200, owner],
+    '/api/admin/settings': [
+      200,
+      {
+        id: 'ps',
+        teamGamePlatformFee: 2_500_000,
+        casualGameServiceFee: 0,
+        cardFeeBps: 150,
+        paymentRoundingStep: 500_000,
+        defaultMinBookingAmount: 5_000_000,
+        updatedAt: '2026-11-06T00:00:00Z',
+      },
+    ],
     '/api/admin/users/o1/legal-details': [200, signed],
     '/api/admin/audit-log': (request) =>
       request.url.searchParams.get('entityId') === 's4'
@@ -631,7 +643,7 @@ describe('Maydonlar — detail', () => {
     const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
     fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
     const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
-    const amount = dialog.getByLabelText('Oldindan toʻlov (egasining narxida)')
+    const amount = dialog.getByLabelText('Minimal toʻlov (egasining narxida)')
     expect(amount).toHaveValue('50 000')
     // Above the owner's hourly price (150 000 so'm): refused before asking.
     fireEvent.change(amount, { target: { value: '200000' } })
@@ -643,7 +655,7 @@ describe('Maydonlar — detail', () => {
     fireEvent.change(dialog.getByLabelText('Bepul bekor qilish'), { target: { value: '12' } })
     fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
     const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
-    expect(confirm).toHaveTextContent("Oldindan toʻlov 30 000 so'm")
+    expect(confirm).toHaveTextContent("Minimal toʻlov 30 000 so'm")
     expect(confirm).toHaveTextContent('12 soat oldingacha')
     fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
     expect(await screen.findByText('Bron shartlari saqlandi')).toBeInTheDocument()
@@ -653,8 +665,8 @@ describe('Maydonlar — detail', () => {
     expect(await screen.findByText('Boshlanishidan 12 soat oldingacha')).toBeInTheDocument()
   })
 
-  it('sets full payment (null minimum) and shows the defaults when nothing is set', async () => {
-    const bare = { ...detail, minBookingAmount: undefined, playerMinBookingAmount: undefined }
+  it('sets the platform default (null minimum) and shows the defaults when nothing is set', async () => {
+    const bare = { ...detail, minBookingAmount: undefined, playerMinBookingAmount: 5_500_000 }
     const { requests } = backend({
       '/api/admin/stadiums/s1': [200, { ...bare, cancellationHours: undefined }],
       'PUT /api/admin/stadiums/s1/booking-terms': [
@@ -665,11 +677,13 @@ describe('Maydonlar — detail', () => {
     signIn()
     renderAt('/maydonlar/s1')
     const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
-    expect(terms.getByText('Toʻliq toʻlov')).toBeInTheDocument()
+    expect(await terms.findByText("Platforma standarti: 50 000 so'm")).toBeInTheDocument()
+    expect(terms.getByText("Oʻyinchilar uchun: 55 000 so'm")).toBeInTheDocument()
+    expect(terms.queryByText('Toʻliq toʻlov')).toBeNull()
     expect(terms.getByText('Boshlanishidan 24 soat oldingacha')).toBeInTheDocument()
     fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
     const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
-    expect(dialog.getByRole('radio', { name: /Toʻliq toʻlov/ })).toBeChecked()
+    expect(dialog.getByRole('radio', { name: /Platforma standarti/ })).toBeChecked()
     fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
     const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
     fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
@@ -679,6 +693,31 @@ describe('Maydonlar — detail', () => {
     expect(
       requests.find((r) => r.method === 'PUT' && r.url.pathname.endsWith('/booking-terms'))?.body,
     ).toEqual({ minBookingAmount: null, cancellationHours: 24 })
+  })
+
+  it('says the minimum must be above the team fee when the backend refuses it (T2)', async () => {
+    backend({
+      'PUT /api/admin/stadiums/s1/booking-terms': [
+        400,
+        "minBookingAmount must be more than the team game platform fee (25 000 so'm)",
+      ],
+    })
+    signIn()
+    renderAt('/maydonlar/s1')
+    const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
+    fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
+    fireEvent.change(dialog.getByLabelText('Minimal toʻlov (egasining narxida)'), {
+      target: { value: '20000' },
+    })
+    fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
+    const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText(
+        "Minimal toʻlov jamoa oʻyini platforma haqidan (25 000 so'm) koʻp boʻlsin",
+      ),
+    ).toBeInTheDocument()
   })
 
   it('keeps Tasdiqlash disabled with fewer than 3 photos', async () => {

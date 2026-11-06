@@ -80,11 +80,23 @@ export interface AdminGameTeam {
   /** Tiyin — what the team owes (or owed) after joining, the same in the app or in cash. */
   remainderAmount: number
   remainderStatus: 'unpaid' | 'paid'
+  /** T9: `minimum` | `full` — what the team chose on joining; absent on older games. */
+  paymentOption?: string
+  /** Tiyin, T9 — player money the team put in: held or arrived, card or cash. */
+  paidAmount?: number
+  /** Tiyin, T9 — what the team still owes now (`remainderAmount` while unpaid, else 0). */
+  remainingAmount?: number
+  /** T10 — the owner's mark on the remainder: `cash_received` | `not_paid`; absent when none. */
+  remainderMark?: string
+  /** UTC, with the mark. */
+  remainderMarkedAt?: string
   /** Tiyin — everything this team paid through the app. */
   paidInApp: number
   /** Tiyin — the platform's fixed fee in the team's payment (what it nets). */
   platformFee?: number
-  /** Tiyin — the owner's advance in the team's payment, in the owner's terms. */
+  /** Tiyin, T9 — the owner's net part of the team's joining payment (M − fee, or half the price). */
+  ownerPart?: number
+  /** Tiyin — the owner's advance in the team's payment, in the owner's terms (= `ownerPart`). */
   ownerAdvance?: number
   /** Tiyin — the team's remainder in the owner's terms. */
   ownerRemainder?: number
@@ -185,6 +197,17 @@ export function getGame(id: string): Promise<AdminGameDetail> {
  */
 export function undoRemainderMark(id: string): Promise<AdminBooking> {
   return api.delete<AdminBooking>(`/api/admin/bookings/${id}/remainder-mark`)
+}
+
+/**
+ * T10: the admin undoes the owner's mark on one team of a team game, at any time — a
+ * `cash_received` mark's cash row is voided and the rest is owed again. Answers the game.
+ * 409 "This team has no remainder mark".
+ */
+export function undoGameRemainderMark(id: string, side: 'a' | 'b'): Promise<AdminGameDetail> {
+  return api.delete<AdminGameDetail>(`/api/admin/games/${id}/remainder-mark`, {
+    query: { side },
+  })
 }
 
 /** The status timeline of a booking or game: its audit entries, oldest first. */

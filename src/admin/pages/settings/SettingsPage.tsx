@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDateTime, formatSom, somInputToTiyin, tiyinToSomInput } from '../../../shared/format'
 import { getAuditLog, type AuditChange, type AuditEntry } from '../../api/audit'
 import {
@@ -45,6 +45,7 @@ function toDraft(settings: PlatformSettings): Draft {
     casualGameServiceFee: tiyinToSomInput(settings.casualGameServiceFee),
     cardFeeBps: bpsToPercent(settings.cardFeeBps),
     paymentRoundingStep: tiyinToSomInput(settings.paymentRoundingStep),
+    defaultMinBookingAmount: tiyinToSomInput(settings.defaultMinBookingAmount),
   }
 }
 
@@ -56,6 +57,7 @@ function fromDraft(draft: Draft): Record<SettingsField, number> {
     casualGameServiceFee: tiyin(draft.casualGameServiceFee),
     cardFeeBps: percentToBps(draft.cardFeeBps),
     paymentRoundingStep: tiyin(draft.paymentRoundingStep),
+    defaultMinBookingAmount: tiyin(draft.defaultMinBookingAmount),
   }
 }
 
@@ -64,6 +66,7 @@ const FIELDS: SettingsField[] = [
   'casualGameServiceFee',
   'cardFeeBps',
   'paymentRoundingStep',
+  'defaultMinBookingAmount',
 ]
 
 /**
@@ -77,10 +80,30 @@ const FIELD_ERRORS: Record<SettingsField, string> = {
   casualGameServiceFee: 'Haq manfiy boʻlishi mumkin emas',
   cardFeeBps: 'Komissiya 0 dan 10% gacha boʻlishi kerak',
   paymentRoundingStep: "Qadam 0,01 so'mdan 10 000 so'mgacha boʻlishi kerak",
+  defaultMinBookingAmount: 'Summa manfiy boʻlishi mumkin emas',
 }
 
 function fieldOfError(message: string): SettingsField | undefined {
   return FIELDS.find((field) => message.startsWith(field))
+}
+
+/**
+ * T2: the default minimum must stay above the team fee. The backend names the fee
+ * (or the minimum) in force or sent; the form shows the values it holds, which are
+ * the same ones.
+ */
+function fieldErrorText(
+  field: SettingsField,
+  message: string,
+  values: Record<SettingsField, number>,
+): string {
+  if (message.startsWith(API_MESSAGES.defaultMinimumNotAboveFee)) {
+    return `Platforma haqidan (${formatSom(values.teamGamePlatformFee)}) koʻp boʻlishi kerak`
+  }
+  if (message.startsWith(API_MESSAGES.teamFeeNotBelowDefaultMinimum)) {
+    return `Standart minimal toʻlovdan (${formatSom(values.defaultMinBookingAmount)}) kam boʻlishi kerak`
+  }
+  return FIELD_ERRORS[field]
 }
 
 function SettingRow({
@@ -117,7 +140,7 @@ function SettingRow({
 function SettingsSkeleton() {
   return (
     <div aria-busy className={`${CARD} flex flex-col`}>
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} className="flex flex-col gap-3 border-b border-border p-5 last:border-b-0">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-3 w-72" />
@@ -254,7 +277,8 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
     onError: (error) => {
       const field =
         isApiError(error) && error.status === 400 ? fieldOfError(error.message) : undefined
-      if (field) setErrors({ [field]: FIELD_ERRORS[field] })
+      if (field && isApiError(error))
+        setErrors({ [field]: fieldErrorText(field, error.message, values) })
       else toast.error('Saqlab boʻlmadi. Qayta urinib koʻring')
     },
     onSettled: () => setConfirming(false),
@@ -295,6 +319,25 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
             value={draft.teamGamePlatformFee}
             onChange={set('teamGamePlatformFee')}
             error={errors.teamGamePlatformFee}
+          />
+        </SettingRow>
+        <SettingRow
+          title="Standart minimal toʻlov"
+          description="Oʻz minimal toʻlovi belgilanmagan har bir maydon uchun bron va jamoa oʻyinida toʻlanadigan eng kam summa (egasining narxida)"
+          hint="Jamoa oʻyinlarining platforma haqidan koʻp boʻlishi kerak."
+          preview={
+            filled('defaultMinBookingAmount')
+              ? `Maydonning oʻz summasi boʻlmasa: ${formatSom(values.defaultMinBookingAmount)}`
+              : null
+          }
+        >
+          <NumberField
+            label="Minimal toʻlov"
+            suffix="so'm"
+            decimals={2}
+            value={draft.defaultMinBookingAmount}
+            onChange={set('defaultMinBookingAmount')}
+            error={errors.defaultMinBookingAmount}
           />
         </SettingRow>
         <SettingRow

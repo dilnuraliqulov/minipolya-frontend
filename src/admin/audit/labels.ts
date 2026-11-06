@@ -196,6 +196,17 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   casualGameServiceFee: { label: 'Doʻstlar bilan oʻyin: xizmat haqi', kind: 'money' },
   cardFeeBps: { label: 'Karta komissiyasi', kind: 'bps' },
   paymentRoundingStep: { label: 'Narxni yaxlitlash', kind: 'money' },
+  defaultMinBookingAmount: { label: 'Standart minimal toʻlov', kind: 'money' },
+  // A team of a team game (T10), logged as `teamA.<field>` / `teamB.<field>`.
+  remainderStatus: {
+    label: 'Qoldiq holati',
+    kind: 'enum',
+    values: { unpaid: 'Toʻlanmagan', paid: 'Toʻlangan' },
+  },
+  remainingAmount: { label: 'Qolgan summa', kind: 'money' },
+  cashAmount: { label: 'Naqd summa', kind: 'money' },
+  cardAmount: { label: 'Karta orqali', kind: 'money' },
+  cashPaymentStatus: { label: 'Naqd toʻlov holati', kind: 'enum', values: PAYMENT_STATUS_LABELS },
   statusReason: { label: 'Sabab', kind: 'text' },
   failureReason: { label: 'Xato sababi', kind: 'text' },
   originalStatus: { label: 'Avvalgi holat', kind: 'enum', values: PAYMENT_STATUS_LABELS },
@@ -252,7 +263,20 @@ export function actionLabel(code: string): string {
   return ACTION_LABELS[code] ?? code
 }
 
+/** `teamA.remainderMark` → side A and `remainderMark` (T10 team-game audit fields). */
+const TEAM_FIELD = /^team([AB]).(.+)$/
+
+function specOf(field: string): FieldLabel | undefined {
+  const team = TEAM_FIELD.exec(field)
+  return FIELD_LABELS[team ? team[2]! : field]
+}
+
 export function fieldLabel(field: string): string {
+  const team = TEAM_FIELD.exec(field)
+  if (team) {
+    const inner = FIELD_LABELS[team[2]!]
+    return inner ? `${team[1]} jamoa: ${inner.label}` : field
+  }
   return FIELD_LABELS[field]?.label ?? field
 }
 
@@ -263,7 +287,7 @@ export function formatAuditValue(
   entityType?: string,
 ): string {
   if (value === null || value === undefined || value === '') return '—'
-  const spec = FIELD_LABELS[field]
+  const spec = specOf(field)
   if (Array.isArray(value)) {
     if (field === 'photos') return `${formatNumber(value.length)} ta rasm`
     return value.length ? value.map((v) => formatAuditValue('', v)).join(', ') : '—'
