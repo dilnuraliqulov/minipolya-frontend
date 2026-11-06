@@ -92,6 +92,10 @@ export interface Challenge {
   stadiumId: string
   stadiumName: string
   stadiumAddress: string
+  /** E9: the stadium's cover photo (`/api/uploads/...`); absent when it has none. */
+  stadiumPhotoUrl?: string
+  /** E9: one of the 12 Tashkent districts; absent for older stadiums. */
+  stadiumDistrict?: string
   format: string
   startsAt: string
   endsAt: string

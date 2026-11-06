@@ -4,7 +4,10 @@
     "tagline": "Book a football pitch in Tashkent"
   },
   "home": {
-    "greeting": "Hi, {{name}}"
+    "greeting": "Hi, {{name}}",
+    "challengesTitle": "Teams looking for an opponent",
+    "challengesAll": "See all",
+    "captainAccepts": "Your captain can accept"
   },
   "common": {
     "retry": "Try again",

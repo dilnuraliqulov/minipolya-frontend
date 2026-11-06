@@ -14,6 +14,7 @@ import { useSplashDone } from '../splash'
 import { FiltersSheet } from './FiltersSheet'
 import { isBannerHidden, rememberBannerHidden } from './bannerPreference'
 import { InfoBanner } from './InfoBanner'
+import { ChallengeCarousel } from './ChallengeCarousel'
 import { STADIUM_LISTS_KEY, useToggleFavorite } from './queries'
 import { DateStrip } from './SlotPicker'
 import { StadiumCardCompact } from './StadiumCardCompact'
@@ -85,6 +86,8 @@ export function StadiumsPage() {
           }}
         />
       )}
+
+      <ChallengeCarousel />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-title font-bold text-primary">

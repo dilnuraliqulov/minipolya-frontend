@@ -13,13 +13,23 @@ import { TeamAvatar } from './TeamAvatar'
  * Only a captain (`acceptAs` = the team they lead) gets "Qabul qilish"; a member
  * is told only the captain accepts (the join endpoint refuses members, 403).
  */
-export function ChallengeBoard({ acceptAs }: { acceptAs?: string }) {
+export function ChallengeBoard({
+  acceptAs,
+  showTitle = true,
+}: {
+  acceptAs?: string
+  /** False where the screen's header already names the board (/challenges). */
+  showTitle?: boolean
+}) {
   const { t } = useTranslation()
   const board = useChallenges()
   const challenges = board.data?.pages.flatMap((page) => page.content) ?? []
   return (
     <section className="flex flex-col gap-3" aria-labelledby="challenges-title">
-      <h3 id="challenges-title" className="text-lg font-semibold text-primary">
+      <h3
+        id="challenges-title"
+        className={showTitle ? 'text-lg font-semibold text-primary' : 'sr-only'}
+      >
         {t('team.challenges')}
       </h3>
       {!acceptAs && <p className="text-sm text-secondary">{t('team.leaderAccepts')}</p>}

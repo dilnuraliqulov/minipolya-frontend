@@ -4,7 +4,10 @@
     "tagline": "Toshkentda futbol maydonini band qiling"
   },
   "home": {
-    "greeting": "Salom, {{name}}"
+    "greeting": "Salom, {{name}}",
+    "challengesTitle": "Raqib qidirayotgan jamoalar",
+    "challengesAll": "Hammasi",
+    "captainAccepts": "Sardoringiz qabul qila oladi"
   },
   "common": {
     "retry": "Qayta urinish",

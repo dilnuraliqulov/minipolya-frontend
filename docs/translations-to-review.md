@@ -13,6 +13,9 @@ Placeholders such as `{{count}}` must stay as they are.
 | `app.name` | MiniPolya | MiniPolya | MiniPolya |
 | `app.tagline` | Toshkentda futbol maydonini band qiling | Бронируйте футбольные поля в Ташкенте | Book a football pitch in Tashkent |
 | `home.greeting` | Salom, {{name}} | Привет, {{name}} | Hi, {{name}} |
+| `home.challengesTitle` | Raqib qidirayotgan jamoalar | Команды ищут соперника | Teams looking for an opponent |
+| `home.challengesAll` | Hammasi | Все | See all |
+| `home.captainAccepts` | Sardoringiz qabul qila oladi | Принять может ваш капитан | Your captain can accept |
 | `common.retry` | Qayta urinish | Повторить | Try again |
 | `common.loading` | Yuklanmoqda | Загрузка | Loading |
 | `common.soon` | Tez orada | Скоро | Coming soon |

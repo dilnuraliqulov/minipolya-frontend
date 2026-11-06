@@ -4,7 +4,10 @@
     "tagline": "Бронируйте футбольные поля в Ташкенте"
   },
   "home": {
-    "greeting": "Привет, {{name}}"
+    "greeting": "Привет, {{name}}",
+    "challengesTitle": "Команды ищут соперника",
+    "challengesAll": "Все",
+    "captainAccepts": "Принять может ваш капитан"
   },
   "common": {
     "retry": "Повторить",
