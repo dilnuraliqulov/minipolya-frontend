@@ -32,6 +32,7 @@ import { availabilityKey } from '../stadiums/queries'
 import { slotLabel } from '../stadiums/dates'
 import { DiscountSheet } from './DiscountSheet'
 import { GameTeamsMoney } from './GameCash'
+import { bookingWho } from './bookingWho'
 import { OwnerTabScreen } from './OwnerTabScreen'
 import { useGameTeamMarks, useRemainderMarks, type MarkKind } from './marks'
 import {
@@ -194,7 +195,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
 
 function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void }) {
   const { t } = useTranslation()
-  const who = booking.clientName ?? t('owner.booking.player')
+  const who = bookingWho(booking, t)
   return (
     <button
       type="button"
@@ -340,14 +341,26 @@ function OwnerBookingSheet({
   // Every amount under its own label, in one fixed order; a row is hidden only when the
   // API leaves its field out. The cash row is what the owner collects, player-side.
   const cashReceived = remainderState(booking) === 'cashReceived'
+  // A team game's money sits on its teams, not on the booking (the booking's own
+  // paidInApp / paidInCash / ownerReceives stay 0): only the prices are shown here,
+  // and each team's paid, owed and mark come live from the game below.
+  const isGame = Boolean(booking.gameId)
   const rows: Array<{ key: string; label: string; value: number | undefined }> = [
     { key: 'ownerPrice', label: t('owner.booking.price'), value: booking.ownerPrice },
     { key: 'price', label: t('owner.booking.playerPays'), value: booking.price },
-    { key: 'paidInApp', label: t('owner.booking.paidInApp'), value: booking.paidInApp },
-    cashReceived
-      ? { key: 'cash', label: t('owner.booking.cashReceived'), value: booking.paidInCash }
-      : { key: 'cash', label: t('owner.booking.cashDue'), value: booking.remainingAmount },
-    { key: 'ownerReceives', label: t('owner.booking.receives'), value: booking.ownerReceives },
+    ...(isGame
+      ? []
+      : [
+          { key: 'paidInApp', label: t('owner.booking.paidInApp'), value: booking.paidInApp },
+          cashReceived
+            ? { key: 'cash', label: t('owner.booking.cashReceived'), value: booking.paidInCash }
+            : { key: 'cash', label: t('owner.booking.cashDue'), value: booking.remainingAmount },
+          {
+            key: 'ownerReceives',
+            label: t('owner.booking.receives'),
+            value: booking.ownerReceives,
+          },
+        ]),
   ]
   if (teamMarking) {
     return (
@@ -404,9 +417,7 @@ function OwnerBookingSheet({
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-md font-semibold text-primary">
-                {booking.clientName ?? t('owner.booking.player')}
-              </span>
+              <span className="text-md font-semibold text-primary">{bookingWho(booking, t)}</span>
               <BookingStatusBadge status={booking.status} />
             </div>
             <span className="text-sm text-secondary">

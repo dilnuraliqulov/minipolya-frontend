@@ -328,3 +328,38 @@ describe('Ega rejimi — booking cash (R37)', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('Ega rejimi — a team game’s booking', () => {
+  it('reads "Jamoa vs jamoa" and leaves the money to its teams', async () => {
+    const gameBooking = {
+      ...booking,
+      clientName: undefined,
+      price: 26_000_000,
+      ownerPrice: 20_000_000,
+      paidAmount: 18_500_000,
+      remainingAmount: 7_500_000,
+      paidInApp: 0,
+      ownerReceives: 0,
+    }
+    stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [
+        {
+          date: TODAY,
+          bookings: [gameBooking],
+          waitingGames: [],
+          totalSlots: 1,
+          bookedSlots: 1,
+          revenue: 0,
+        },
+      ],
+    })
+    renderApp('/owner', { session })
+    fireEvent.click(await screen.findByRole('button', { name: /Jamoa vs jamoa/ }))
+    const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
+    await teamItem(sheet, 'Chilonzor Lions')
+    const details = sheet.querySelector('dl')!
+    expect(row(details, 'Oʻyinchi toʻlaydi')).toHaveTextContent('260 000 soʻm')
+    expect(within(details).queryByText('Ilovada toʻlangan')).toBeNull()
+    expect(within(details).queryByText('Sizga tushadi')).toBeNull()
+  })
+})

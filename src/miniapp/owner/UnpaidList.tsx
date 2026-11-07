@@ -7,6 +7,7 @@ import type { Booking } from '../api/bookings'
 import { getUnpaidBookings, unpaidKey } from '../api/owner'
 import { Button, Card, ErrorState, SkeletonList } from '../components'
 import { formatLongDate } from '../format'
+import { bookingWho } from './bookingWho'
 import { markActions, useRemainderMarks } from './marks'
 import { MarkConfirmSheet, RemainderChip } from './RemainderMark'
 
@@ -44,7 +45,7 @@ export function UnpaidList({ stadiumId, stadiumName }: { stadiumId: string; stad
             <Card key={booking.id} className="flex items-center gap-3 p-4">
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="truncate text-md font-semibold text-primary">
-                  {booking.clientName ?? t('owner.booking.player')}
+                  {bookingWho(booking, t)}
                 </span>
                 <span className="text-sm text-secondary">
                   {`${formatLongDate(booking.startsAt)}, `}

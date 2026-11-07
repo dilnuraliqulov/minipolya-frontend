@@ -6,6 +6,7 @@ import type { Booking } from '../api/bookings'
 import type { GameTeam } from '../api/games'
 import { Badge, BottomSheet, Button, type BadgeTone } from '../components'
 import { formatMoney } from '../format'
+import { bookingWho } from './bookingWho'
 import { teamRemaining } from '../games/teamMoney'
 import { canUndoMark, lastMinute, markActions, type MarkKind } from './marks'
 
@@ -67,7 +68,12 @@ export function RemainderChip({
   return <MarkChip state={state} owed={booking.remainingAmount} besideAmount={besideAmount} />
 }
 
-/** "Naqd olindi" and "Toʻlanmadi", side by side, as the actions allow. */
+const MARK_BUTTON = 'flex-1 whitespace-nowrap'
+
+/**
+ * "Naqd olindi" and "Toʻlanmadi", side by side, as the actions allow; on a narrow
+ * card (a team inside the booking sheet at 360px) they stack instead of breaking a label.
+ */
 export function MarkActionButtons({
   actions,
   onMark,
@@ -78,14 +84,26 @@ export function MarkActionButtons({
   const { t } = useTranslation()
   if (actions.length === 0) return null
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {actions.includes('cash') && (
-        <Button variant="secondary" icon={Banknote} onClick={() => onMark('cash')}>
+        <Button
+          variant="secondary"
+          icon={Banknote}
+          block={false}
+          className={MARK_BUTTON}
+          onClick={() => onMark('cash')}
+        >
           {t('owner.mark.cash')}
         </Button>
       )}
       {actions.includes('notPaid') && (
-        <Button variant="danger-outline" icon={CircleX} onClick={() => onMark('notPaid')}>
+        <Button
+          variant="danger-outline"
+          icon={CircleX}
+          block={false}
+          className={MARK_BUTTON}
+          onClick={() => onMark('notPaid')}
+        >
           {t('owner.mark.notPaid')}
         </Button>
       )}
@@ -169,7 +187,7 @@ export function MarkConfirmSheet({
   const { t } = useTranslation()
   const amount = formatMoney(booking.remainingAmount)
   const about = t('owner.mark.about', {
-    who: booking.clientName ?? t('owner.booking.player'),
+    who: bookingWho(booking, t),
     time: `${formatTime(booking.startsAt)}–${formatTime(booking.endsAt)}`,
     stadium: stadiumName,
   })
