@@ -25,7 +25,10 @@ describe('Bosh sahifa — the phone banner', () => {
   })
 
   it('is absent once the profile has a phone', async () => {
-    stubApi({ [LIST]: page([makeStadium()]), 'GET /api/users/me': makeUser({ phone: '+998901234567' }) })
+    stubApi({
+      [LIST]: page([makeStadium()]),
+      'GET /api/users/me': makeUser({ phone: '+998901234567' }),
+    })
     renderApp('/')
     await screen.findByRole('article', { name: 'Bunyodkor Arena' })
     expect(screen.queryByRole('region', { name: 'Telefon raqamingizni ulashing' })).toBeNull()
