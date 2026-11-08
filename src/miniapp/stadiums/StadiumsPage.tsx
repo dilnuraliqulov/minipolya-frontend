@@ -9,6 +9,7 @@ import { Button, EmptyState, ErrorState, SearchField, SkeletonList, useToast } f
 import { TabScreen } from '../layout/TabScreen'
 import { NotificationBell } from '../notifications/NotificationBell'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
+import { PhoneBanner } from '../profile/PhoneBanner'
 import { useMe } from '../profile/queries'
 import { useSplashDone } from '../splash'
 import { FiltersSheet } from './FiltersSheet'
@@ -68,6 +69,8 @@ export function StadiumsPage() {
       title={firstName ? t('home.greeting', { name: firstName }) : t('app.name')}
       action={<NotificationBell />}
     >
+      <PhoneBanner />
+
       <div className="flex gap-2">
         <SearchField value={search} onChange={setSearch} placeholder={t('stadiums.search')} />
         <button

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Send } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { errorMessage } from '../api/errors'
-import { getMe, updateMe, type User } from '../api/users'
+import { updateMe, type User } from '../api/users'
 import {
   BottomBar,
   Button,
@@ -16,13 +16,9 @@ import {
   useToast,
 } from '../components'
 import { useGoBack } from '../lib/useGoBack'
-import { getTelegramWebApp } from '../telegram'
 import { formatPhone, formatPhoneInput, isCompletePhone, toWirePhone } from './phone'
 import { ME_KEY, useMe } from './queries'
-
-/** After the user agrees to share, the bot saves the phone; we look for it this often. */
-const CONTACT_POLL_MS = 2_000
-const CONTACT_POLL_TRIES = 5
+import { useSharePhone } from './useSharePhone'
 
 /**
  * Profil → Telefon raqam. Inside Telegram, "Raqamni ulashish" asks Telegram to
@@ -58,12 +54,9 @@ function PhoneForm({ user, header }: { user: User; header: React.ReactNode }) {
   const queryClient = useQueryClient()
   const [value, setValue] = useState(formatPhoneInput(user.phone ?? ''))
   const [error, setError] = useState<string | undefined>()
-  const [waiting, setWaiting] = useState(false)
-  const timer = useRef<number | undefined>(undefined)
-  const webApp = getTelegramWebApp()
-  const canShare = Boolean(webApp?.requestContact && webApp.isVersionAtLeast('6.9'))
-
-  useEffect(() => () => window.clearTimeout(timer.current), [])
+  const { canShare, waiting, share } = useSharePhone(user.phone, (fresh) =>
+    setValue(formatPhoneInput(fresh.phone ?? '')),
+  )
 
   const save = useMutation({
     mutationFn: (phone: string) => updateMe({ phone }),
@@ -80,36 +73,6 @@ function PhoneForm({ user, header }: { user: User; header: React.ReactNode }) {
     }
     setError(undefined)
     save.mutate(toWirePhone(value))
-  }
-
-  const share = () => {
-    webApp?.requestContact?.((shared) => {
-      if (!shared) return
-      setWaiting(true)
-      const before = user.phone
-      let tries = 0
-      const poll = async () => {
-        tries += 1
-        try {
-          const fresh = await getMe()
-          if (fresh.phone && fresh.phone !== before) {
-            queryClient.setQueryData(ME_KEY, fresh)
-            setValue(formatPhoneInput(fresh.phone))
-            setWaiting(false)
-            toast.show(t('phonePage.shared'))
-            return
-          }
-        } catch {
-          // A failed read is just another try.
-        }
-        if (tries < CONTACT_POLL_TRIES) timer.current = window.setTimeout(poll, CONTACT_POLL_MS)
-        else {
-          setWaiting(false)
-          toast.show(t('phonePage.notReceived'), 'danger')
-        }
-      }
-      timer.current = window.setTimeout(poll, CONTACT_POLL_MS)
-    })
   }
 
   return (

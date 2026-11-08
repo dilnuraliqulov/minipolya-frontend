@@ -1111,5 +1111,10 @@
         "text": "Maʼlumotlaringiz boʻyicha savollar uchun Yordam boʻlimidagi qoʻllab-quvvatlash chatiga yozing."
       }
     }
+  },
+  "phoneBanner": {
+    "title": "Telefon raqamingizni ulashing",
+    "send": "Telegram orqali yuborish",
+    "type": "Raqamni kiritish"
   }
 }

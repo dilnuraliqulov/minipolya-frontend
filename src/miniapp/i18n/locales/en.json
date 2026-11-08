@@ -1111,5 +1111,10 @@
         "text": "For questions about your data, write to the support chat in Help."
       }
     }
+  },
+  "phoneBanner": {
+    "title": "Share your phone number",
+    "send": "Send via Telegram",
+    "type": "Type it in"
   }
 }
