@@ -45,6 +45,8 @@ export interface Stadium {
   reviewCount?: number
   /** The first photo (lowest position); absent when the stadium has none. */
   coverPhotoUrl?: string
+  /** Free one-hour slots on the list's `date` (Tashkent; today by default), as availability counts them. */
+  freeSlotsCount?: number
   /** Player lists, for a signed-in caller only. */
   isFavorited?: boolean
 }
@@ -178,8 +180,15 @@ export function stadiumListQuery(filters: StadiumFilters, page: number) {
   }
 }
 
-export function getStadiums(filters: StadiumFilters, page: number): Promise<Page<Stadium>> {
-  return api.get<Page<Stadium>>('/api/stadiums', { query: stadiumListQuery(filters, page) })
+/** `date` (`"2026-11-02"`, Tashkent) is the day `freeSlotsCount` counts. */
+export function getStadiums(
+  filters: StadiumFilters,
+  page: number,
+  date: string,
+): Promise<Page<Stadium>> {
+  return api.get<Page<Stadium>>('/api/stadiums', {
+    query: { ...stadiumListQuery(filters, page), date },
+  })
 }
 
 export function getStadium(id: string): Promise<StadiumDetail> {

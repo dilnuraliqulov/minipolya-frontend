@@ -11,6 +11,21 @@ function renderCard(props: Partial<Parameters<typeof StadiumCardCompact>[0]> = {
 }
 
 describe('StadiumCardCompact', () => {
+  it('shows the free hours for the chosen day', () => {
+    renderCard({ stadium: makeStadium({ freeSlotsCount: 5 }), day: 'Bugun' })
+    expect(screen.getByText('Bugun 5 ta boʻsh vaqt')).toBeInTheDocument()
+  })
+
+  it('is muted when the day is full', () => {
+    renderCard({ stadium: makeStadium({ freeSlotsCount: 0 }), day: 'Bugun' })
+    expect(screen.getByText('Bu kunga boʻsh vaqt yoʻq').className).toContain('text-secondary')
+  })
+
+  it('says nothing about free hours without a day (Sevimlilar)', () => {
+    renderCard({ stadium: makeStadium({ freeSlotsCount: 5 }) })
+    expect(screen.queryByText(/boʻsh vaqt/)).toBeNull()
+  })
+
   it('shows one price from pricePerHour', () => {
     renderCard()
     expect(screen.getAllByText(/\d{3} \d{3}/)).toHaveLength(1)

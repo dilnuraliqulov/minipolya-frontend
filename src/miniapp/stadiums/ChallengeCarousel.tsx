@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { ChallengeCardMini } from '../teams/ChallengeCardMini'
+import { ChallengeCardWide } from '../teams/ChallengeCardWide'
 import { useChallenges, useLedTeams } from '../teams/queries'
 
 /**
  * Bosh sahifa → "Raqib qidirayotgan jamoalar" (design E11): the challenge board's
- * first page as a horizontal scroll-snap row, "Hammasi" → the full board. A
- * skeleton while it loads; nothing at all when it is empty or fails — the home
- * screen stays about pitches. The captain's "Qabul qilish" is for the team they
- * lead (the first, if they lead several), as on Jamoam.
+ * first page as a horizontal scroll-snap row of wide "TeamA vs ?" cards,
+ * "Hammasi" → the full board. A skeleton while it loads; nothing at all when it
+ * is empty or fails — the home screen stays about pitches. A captain's card opens
+ * ready to accept for the team they lead (the first, if they lead several).
  */
 export function ChallengeCarousel() {
   const { t } = useTranslation()
@@ -26,12 +26,15 @@ export function ChallengeCarousel() {
             <div
               key={i}
               data-testid="challenge-skeleton"
-              className="flex w-62 shrink-0 flex-col gap-2.5 rounded-3xl border border-border bg-background p-2.5"
+              className="flex w-78 shrink-0 flex-col gap-3 rounded-3xl border border-border bg-background p-4"
             >
-              <div className="h-28 animate-pulse rounded-xl bg-skeleton" />
-              <div className="h-4 w-36 animate-pulse rounded-sm bg-skeleton" />
-              <div className="h-3 w-28 animate-pulse rounded-sm bg-skeleton" />
-              <div className="h-11 animate-pulse rounded-xl bg-skeleton" />
+              <div className="flex items-center justify-between">
+                <div className="size-8 animate-pulse rounded-full bg-skeleton" />
+                <div className="size-8 animate-pulse rounded-full bg-skeleton" />
+              </div>
+              <div className="h-4 w-44 animate-pulse rounded-sm bg-skeleton" />
+              <div className="h-6 w-36 animate-pulse rounded-full bg-skeleton" />
+              <div className="h-4 w-52 animate-pulse rounded-sm bg-skeleton" />
             </div>
           ))}
         </div>
@@ -59,8 +62,8 @@ export function ChallengeCarousel() {
         className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
       >
         {challenges.map((challenge) => (
-          <li key={challenge.gameId} className="w-62 shrink-0 snap-start">
-            <ChallengeCardMini challenge={challenge} acceptAs={acceptAs} />
+          <li key={challenge.gameId} className="w-78 shrink-0 snap-start">
+            <ChallengeCardWide challenge={challenge} acceptAs={acceptAs} />
           </li>
         ))}
       </ul>

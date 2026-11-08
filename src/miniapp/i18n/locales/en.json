@@ -7,7 +7,32 @@
     "greeting": "Hi, {{name}}",
     "challengesTitle": "Teams looking for an opponent",
     "challengesAll": "See all",
-    "captainAccepts": "Your captain can accept"
+    "captainAccepts": "Your captain can accept",
+    "whyUs": {
+      "label": "Why MiniPolya",
+      "roledescription": "carousel",
+      "close": "Close",
+      "verified": {
+        "title": "Verified pitches",
+        "text": "We check every pitch and sign a contract with its owner."
+      },
+      "payment": {
+        "title": "Secure payment",
+        "text": "With Uzcard and Humo. Cancel before the deadline and you get a full refund."
+      },
+      "opponent": {
+        "title": "Find an opposing team",
+        "text": "Create a game with your team and an opponent joins."
+      },
+      "quick": {
+        "title": "Book in 1 minute",
+        "text": "Pick a free time and book it right away."
+      }
+    },
+    "pickDate": "Choose a date",
+    "pickDateTitle": "Choose a date",
+    "vs": "vs",
+    "opponentWanted": "Waiting for an opponent"
   },
   "common": {
     "retry": "Try again",
@@ -173,11 +198,9 @@
     "filters": "Filters",
     "allFormats": "All",
     "format": "Format",
-    "allTitle": "All pitches",
-    "allCount": "All pitches · {{count}}",
+    "allTitle": "Pitches",
+    "allCount": "Pitches · {{count}}",
     "foundCount": "Pitches found · {{count}}",
-    "bannerText": "Secure payment · Clear cancellation terms",
-    "bannerClose": "Close",
     "perHour": "UZS/hour",
     "perHourShort": "/hour",
     "book": "Book",
@@ -193,7 +216,10 @@
     "allDistricts": "All districts",
     "chooseDistrict": "Choose a district",
     "apply": "Apply",
-    "resetFilters": "Reset filters"
+    "resetFilters": "Reset filters",
+    "freeSlots": "{{day}}: free hours — {{count}}",
+    "noFreeSlots": "No free time on this day",
+    "dayMonth": "{{month}} {{day}}"
   },
   "stadium": {
     "title": "Pitch",

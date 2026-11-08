@@ -38,6 +38,7 @@ export function SkeletonStadiumCompact() {
       <Bar className="h-37.5 w-full rounded-xl" />
       <Bar className="h-4 w-45" />
       <Bar className="h-3 w-50" />
+      <Bar className="h-3 w-36" />
       <div className="flex items-center justify-between">
         <Bar className="h-4 w-30" />
         <Bar className="h-10 w-28 rounded-lg" />

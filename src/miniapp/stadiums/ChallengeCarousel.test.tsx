@@ -59,7 +59,7 @@ function stub(overrides: Record<string, unknown> = {}) {
 const carousel = () => screen.findByRole('heading', { level: 2, name: TITLE })
 
 describe('Bosh sahifa — Raqib qidirayotgan jamoalar (E11)', () => {
-  it('shows a card per challenge with photo, stadium, time, team and the amount', async () => {
+  it('shows TeamA vs ? with stadium, time and the amount', async () => {
     stub()
     renderApp('/')
     const section = (await carousel()).closest('section')!
@@ -67,9 +67,9 @@ describe('Bosh sahifa — Raqib qidirayotgan jamoalar (E11)', () => {
     expect(card).toHaveTextContent('Yunusobod United')
     expect(card).toHaveTextContent('Jamoangiz toʻlaydi: 155 000 soʻm')
     expect(card).toHaveTextContent(/Juma, 6-noyabr · 20:00/)
-    expect(card.querySelector('img')?.getAttribute('src')).toContain(
-      '/api/uploads/stadiums/s1/cover.jpg',
-    )
+    expect(card).toHaveTextContent('vs')
+    expect(within(card).getByTestId('opponent-unknown')).toHaveTextContent('?')
+    expect(card.querySelector('img')).toBeNull()
     expect(within(section).getByRole('link', { name: 'Hammasi' })).toHaveAttribute(
       'href',
       '/challenges',
@@ -90,38 +90,27 @@ describe('Bosh sahifa — Raqib qidirayotgan jamoalar (E11)', () => {
     renderApp('/')
     const section = (await carousel()).closest('section')!
     const card = within(section).getByRole('link', { name: /Bunyodkor Arena/ })
-    expect(card).toHaveTextContent('Jamoangiz toʻlaydi: 55 000 soʻmdan')
+    expect(card).toHaveTextContent('Jamoangiz toʻlaydi: 55 000 soʻm dan')
   })
 
-  it('gives a captain "Qabul qilish" for the team they lead', async () => {
+  it('opens the challenge for the team a captain leads', async () => {
     stub()
     renderApp('/')
     const section = (await carousel()).closest('section')!
-    const card = within(section).getByRole('link', { name: /Bunyodkor Arena/ })
-    expect(card).toHaveTextContent('Qabul qilish')
-    expect(card).not.toHaveTextContent('Sardoringiz qabul qila oladi')
-    expect(card).toHaveAttribute('href', '/challenges/g1?team=t1')
+    expect(within(section).getByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
+      'href',
+      '/challenges/g1?team=t1',
+    )
   })
 
-  it('tells a member (or a player with no team) that the captain accepts', async () => {
+  it('opens the plain challenge for a member', async () => {
     stub({ 'GET /api/teams/t1': team(OTHER) })
     renderApp('/')
     const section = (await carousel()).closest('section')!
-    const card = within(section).getByRole('link', { name: /Bunyodkor Arena/ })
-    expect(card).toHaveTextContent('Sardoringiz qabul qila oladi')
-    expect(card).not.toHaveTextContent('Qabul qilish')
-    expect(card).toHaveAttribute('href', '/challenges/g1')
-  })
-
-  it('falls back to the mark without a stadium photo', async () => {
-    stub({ [CHALLENGES]: page([{ ...challenge, stadiumPhotoUrl: undefined }]) })
-    renderApp('/')
-    const section = (await carousel()).closest('section')!
-    expect(
-      within(section)
-        .getByRole('link', { name: /Bunyodkor Arena/ })
-        .querySelector('img'),
-    ).toBeNull()
+    expect(within(section).getByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
+      'href',
+      '/challenges/g1',
+    )
   })
 
   it('shows a skeleton while loading', async () => {

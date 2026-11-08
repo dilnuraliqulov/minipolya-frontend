@@ -83,3 +83,15 @@ export function slotLabel(slot: { startTime: string; endTime: string }): string 
 export function nextDate(iso: string): string {
   return addDays(iso, 1).iso
 }
+
+/** How the home page words the chosen day: "Bugun", "Ertaga" or "12-noyabr". */
+export function dayLabel(today: string, iso: string): string {
+  if (iso === today) return i18n.t('slots.today')
+  if (iso === nextDate(today)) return i18n.t('slots.tomorrow')
+  const { day } = addDays(iso, 0)
+  const month = Number(iso.slice(5, 7))
+  return i18n.t('stadiums.dayMonth', {
+    day,
+    month: i18n.t(MONTH_KEYS[month - 1] ?? MONTH_KEYS[0]),
+  })
+}

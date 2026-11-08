@@ -7,7 +7,32 @@
     "greeting": "Привет, {{name}}",
     "challengesTitle": "Команды ищут соперника",
     "challengesAll": "Все",
-    "captainAccepts": "Принять может ваш капитан"
+    "captainAccepts": "Принять может ваш капитан",
+    "whyUs": {
+      "label": "Почему MiniPolya",
+      "roledescription": "карусель",
+      "close": "Закрыть",
+      "verified": {
+        "title": "Проверенные поля",
+        "text": "Мы проверяем каждое поле и заключаем договор с его владельцем."
+      },
+      "payment": {
+        "title": "Безопасная оплата",
+        "text": "Через Uzcard и Humo. При отмене до установленного срока деньги вернутся полностью."
+      },
+      "opponent": {
+        "title": "Найдите команду-соперника",
+        "text": "Создайте игру своей командой, соперник присоединится."
+      },
+      "quick": {
+        "title": "Бронь за 1 минуту",
+        "text": "Выберите свободное время и сразу забронируйте."
+      }
+    },
+    "pickDate": "Выбрать дату",
+    "pickDateTitle": "Выберите дату",
+    "vs": "vs",
+    "opponentWanted": "Ждём соперника"
   },
   "common": {
     "retry": "Повторить",
@@ -173,11 +198,9 @@
     "filters": "Фильтры",
     "allFormats": "Все",
     "format": "Формат",
-    "allTitle": "Все поля",
-    "allCount": "Все поля · {{count}}",
+    "allTitle": "Поля",
+    "allCount": "Поля · {{count}}",
     "foundCount": "Найдено полей · {{count}}",
-    "bannerText": "Оплата безопасна · Условия отмены понятны",
-    "bannerClose": "Закрыть",
     "perHour": "сум/час",
     "perHourShort": "/час",
     "book": "Забронировать",
@@ -193,7 +216,10 @@
     "allDistricts": "Все районы",
     "chooseDistrict": "Выберите район",
     "apply": "Применить",
-    "resetFilters": "Сбросить фильтры"
+    "resetFilters": "Сбросить фильтры",
+    "freeSlots": "{{day}}: свободно часов — {{count}}",
+    "noFreeSlots": "На этот день свободного времени нет",
+    "dayMonth": "{{day}} {{month}}"
   },
   "stadium": {
     "title": "Поле",

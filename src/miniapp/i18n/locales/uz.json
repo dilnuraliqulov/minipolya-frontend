@@ -7,7 +7,32 @@
     "greeting": "Salom, {{name}}",
     "challengesTitle": "Raqib qidirayotgan jamoalar",
     "challengesAll": "Hammasi",
-    "captainAccepts": "Sardoringiz qabul qila oladi"
+    "captainAccepts": "Sardoringiz qabul qila oladi",
+    "whyUs": {
+      "label": "Nega MiniPolya",
+      "roledescription": "karusel",
+      "close": "Yopish",
+      "verified": {
+        "title": "Tasdiqlangan maydonlar",
+        "text": "Har bir maydonni tekshiramiz va egasi bilan shartnoma tuzamiz."
+      },
+      "payment": {
+        "title": "Xavfsiz toʻlov",
+        "text": "Uzcard va Humo orqali. Belgilangan muddatgacha bekor qilsangiz, pul toʻliq qaytariladi."
+      },
+      "opponent": {
+        "title": "Raqib jamoa toping",
+        "text": "Jamoangiz bilan oʻyin yarating, raqib jamoa qoʻshiladi."
+      },
+      "quick": {
+        "title": "1 daqiqada bron",
+        "text": "Boʻsh vaqtni tanlang va darhol band qiling."
+      }
+    },
+    "pickDate": "Sanani tanlash",
+    "pickDateTitle": "Sanani tanlang",
+    "vs": "vs",
+    "opponentWanted": "Raqib kutilmoqda"
   },
   "common": {
     "retry": "Qayta urinish",
@@ -173,11 +198,9 @@
     "filters": "Filtrlar",
     "allFormats": "Hammasi",
     "format": "Format",
-    "allTitle": "Barcha maydonlar",
-    "allCount": "Barcha maydonlar · {{count}}",
+    "allTitle": "Maydonlar",
+    "allCount": "Maydonlar · {{count}}",
     "foundCount": "Topilgan maydonlar · {{count}}",
-    "bannerText": "Toʻlov xavfsiz · Bekor qilish shartlari aniq",
-    "bannerClose": "Yopish",
     "perHour": "soʻm/soat",
     "perHourShort": "/soat",
     "book": "Band qilish",
@@ -193,7 +216,10 @@
     "allDistricts": "Barcha tumanlar",
     "chooseDistrict": "Tumanni tanlang",
     "apply": "Qoʻllash",
-    "resetFilters": "Filtrlarni tozalash"
+    "resetFilters": "Filtrlarni tozalash",
+    "freeSlots": "{{day}} {{count}} ta boʻsh vaqt",
+    "noFreeSlots": "Bu kunga boʻsh vaqt yoʻq",
+    "dayMonth": "{{day}}-{{month}}"
   },
   "stadium": {
     "title": "Maydon",
@@ -470,7 +496,7 @@
     "challengesEmpty": "Hozircha raqib qidirayotgan jamoa yoʻq.",
     "leaderAccepts": "Chaqiriqlarni jamoa sardori qabul qiladi.",
     "payNow": "Jamoangiz toʻlaydi: {{amount}}",
-    "payFrom": "Jamoangiz toʻlaydi: {{amount}}dan",
+    "payFrom": "Jamoangiz toʻlaydi: {{amount}} dan",
     "accept": "Qabul qilish",
     "more": "Yana koʻrsatish",
     "createTitle": "Jamoa yaratish",
