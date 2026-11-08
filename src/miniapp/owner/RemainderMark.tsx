@@ -68,6 +68,23 @@ export function RemainderChip({
   return <MarkChip state={state} owed={booking.remainingAmount} besideAmount={besideAmount} />
 }
 
+/** A walk-in in the Jadval: "Qoʻlda" and whether the client has paid; the amounts stay in the sheet. */
+export function WalkInChips({ booking }: { booking: Booking }) {
+  const { t } = useTranslation()
+  const state = remainderState(booking)
+  const unpaid = state === 'remainder' || state === 'notPaid'
+  const paid = state === 'cashReceived' || state === 'paidInFull'
+  return (
+    <>
+      <Badge tone="neutral">{t('owner.booking.walkIn')}</Badge>
+      {unpaid && (
+        <Badge tone={state === 'notPaid' ? 'danger' : 'warning'}>{t('owner.walkIn.unpaid')}</Badge>
+      )}
+      {paid && <Badge tone="success">{t('owner.walkIn.paid')}</Badge>}
+    </>
+  )
+}
+
 const MARK_BUTTON = 'flex-1 whitespace-nowrap'
 
 /**
@@ -77,9 +94,12 @@ const MARK_BUTTON = 'flex-1 whitespace-nowrap'
 export function MarkActionButtons({
   actions,
   onMark,
+  cashLabel,
 }: {
   actions: MarkKind[]
   onMark: (kind: MarkKind) => void
+  /** A walk-in's whole price is the "remainder": "Toʻlandi" fits it better than "Naqd olindi". */
+  cashLabel?: string
 }) {
   const { t } = useTranslation()
   if (actions.length === 0) return null
@@ -93,7 +113,7 @@ export function MarkActionButtons({
           className={MARK_BUTTON}
           onClick={() => onMark('cash')}
         >
-          {t('owner.mark.cash')}
+          {cashLabel ?? t('owner.mark.cash')}
         </Button>
       )}
       {actions.includes('notPaid') && (
@@ -119,7 +139,14 @@ export function MarkButtons({
   booking: Booking
   onMark: (kind: MarkKind) => void
 }) {
-  return <MarkActionButtons actions={markActions(booking)} onMark={onMark} />
+  const { t } = useTranslation()
+  return (
+    <MarkActionButtons
+      actions={markActions(booking)}
+      onMark={onMark}
+      cashLabel={booking.isWalkin ? t('owner.mark.paid') : undefined}
+    />
+  )
 }
 
 /** The confirmation before either mark (design `z8Jb7L` / `gBjOn`), with its own words. */

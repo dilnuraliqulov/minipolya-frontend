@@ -998,7 +998,14 @@
       "adminOnly": "Belgini endi faqat administrator oʻzgartira oladi",
       "teamNotPaidText": "{{team}} jamoasi qolgan {{amount}}ni toʻlamaganini belgilaysizmi?",
       "teamCashNote": "Tasdiqlangach jamoa toʻlovi «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin.",
-      "teamNotPaidNote": "Jarima olinmaydi, jamoa sardori qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin."
+      "teamNotPaidNote": "Jarima olinmaydi, jamoa sardori qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin.",
+      "paid": "Toʻlandi"
+    },
+    "walkIn": {
+      "price": "Narx, soʻm",
+      "status": "Toʻlov holati",
+      "unpaid": "Toʻlanmagan",
+      "paid": "Toʻlangan"
     }
   },
   "notifications": {

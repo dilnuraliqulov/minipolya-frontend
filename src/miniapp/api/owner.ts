@@ -266,7 +266,17 @@ export interface ManualBookingBody {
   /** ISO UTC, on the hour in Tashkent. */
   startsAt: string
   notes?: string
-  paymentMethod?: 'cash'
+  /** Tiyin, the owner's own price; absent = the server uses the price for that hour. */
+  price?: number
+  /** Cash only: `unpaid` (default, players pay after the game) or `paid`. */
+  paymentStatus?: 'unpaid' | 'paid'
+}
+
+/** The owner's price for a walk-in hour, to prefill the form. */
+export function getWalkInPrice(stadiumId: string, startsAt: string): Promise<{ price: number }> {
+  return api.get(`/api/owner/stadiums/${stadiumId}/bookings/suggested-price`, {
+    query: { startsAt },
+  })
 }
 
 export function createManualBooking(stadiumId: string, body: ManualBookingBody): Promise<Booking> {

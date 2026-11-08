@@ -998,7 +998,14 @@
       "adminOnly": "Only an admin can change the mark now",
       "teamNotPaidText": "Mark that {{team}} did not pay the remaining {{amount}}?",
       "teamCashNote": "Once confirmed the team's payment shows “Cash received”. You can undo it until the end of today.",
-      "teamNotPaidNote": "No penalty is charged; the team captain can still pay the rest in the app. You can undo it until the end of today."
+      "teamNotPaidNote": "No penalty is charged; the team captain can still pay the rest in the app. You can undo it until the end of today.",
+      "paid": "Paid"
+    },
+    "walkIn": {
+      "price": "Price, soʻm",
+      "status": "Payment status",
+      "unpaid": "Unpaid",
+      "paid": "Paid"
     }
   },
   "notifications": {

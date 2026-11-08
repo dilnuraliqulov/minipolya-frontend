@@ -2,13 +2,20 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { formatTime, tashkentToUtc, tashkentToday } from '../../shared/format'
+import {
+  formatTime,
+  somInputToTiyin,
+  tashkentToUtc,
+  tashkentToday,
+  tiyinToSomInput,
+} from '../../shared/format'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
 import type { GameDetail, GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
 import {
   createManualBooking,
+  getWalkInPrice,
   ownerCancelBooking,
   scheduleKey,
   statsKey,
@@ -20,6 +27,7 @@ import {
   BottomSheet,
   Button,
   Card,
+  Chip,
   cx,
   ErrorState,
   Input,
@@ -41,8 +49,10 @@ import {
   MarkedState,
   RemainderChip,
   TeamMarkConfirmSheet,
+  WalkInChips,
 } from './RemainderMark'
 import { useSchedule } from './queries'
+import { formatPhoneInput, isCompletePhone, toWirePhone } from '../profile/phone'
 import { SelectField } from './SelectField'
 import { WithOwnerStadium } from './StadiumPicker'
 
@@ -209,7 +219,11 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
         <span className="w-full truncate text-base font-medium text-primary">{who}</span>
         <span className="flex flex-wrap items-center gap-1.5">
           <BookingStatusBadge status={booking.status} />
-          <RemainderChip booking={booking} />
+          {booking.isWalkin ? (
+            <WalkInChips booking={booking} />
+          ) : (
+            <RemainderChip booking={booking} />
+          )}
         </span>
       </span>
       {/* The owner's own price, labelled: `price` (the player's) is only in the sheet. */}
@@ -493,14 +507,29 @@ function WalkInSheet({
   const queryClient = useQueryClient()
   const [hour, setHour] = useState(initial)
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState('+998 ')
+  // What the owner typed; null until then, so the hour's own price shows.
+  const [priceText, setPriceText] = useState<string | null>(null)
+  const [status, setStatus] = useState<'unpaid' | 'paid'>('unpaid')
+  const startsAt = hour ? tashkentToUtc(date, hour) : ''
+  const suggested = useQuery({
+    queryKey: ['owner', 'walk-in-price', stadium.id, startsAt],
+    queryFn: () => getWalkInPrice(stadium.id, startsAt),
+    enabled: startsAt !== '',
+    staleTime: 60_000,
+  })
+  const priceShown = priceText ?? (suggested.data ? tiyinToSomInput(suggested.data.price) : '')
+  // Empty is allowed: the server then uses the price for that hour.
+  const priceValid = /^\d*(\.\d{0,2})?$/.test(priceShown) && priceShown !== '.'
   const create = useMutation({
-    // No payment method → the API records cash for the owner's own price.
+    // Always cash: a walk-in never involves the platform or a card.
     mutationFn: () =>
       createManualBooking(stadium.id, {
         clientName: name.trim(),
-        clientPhone: phone.trim(),
-        startsAt: tashkentToUtc(date, hour),
+        clientPhone: toWirePhone(phone),
+        startsAt,
+        paymentStatus: status,
+        ...(priceShown ? { price: somInputToTiyin(priceShown) } : {}),
       }),
     onSuccess: () => {
       toast.show(t('owner.schedule.walkInDone'), 'success')
@@ -520,7 +549,7 @@ function WalkInSheet({
       actions={
         <Button
           haptic
-          disabled={!hour || !name.trim() || !phone.trim()}
+          disabled={!hour || !name.trim() || !isCompletePhone(phone) || !priceValid}
           loading={create.isPending}
           onClick={() => create.mutate()}
         >
@@ -534,7 +563,10 @@ function WalkInSheet({
         <SelectField
           label={t('owner.field.time')}
           value={hour}
-          onChange={setHour}
+          onChange={(next) => {
+            setHour(next)
+            setPriceText(null)
+          }}
           options={free.map((s) => ({ value: s.startTime.slice(0, 5), label: slotLabel(s) }))}
         />
       )}
@@ -552,9 +584,27 @@ function WalkInSheet({
         label={t('owner.field.clientPhone')}
         type="tel"
         inputMode="tel"
+        placeholder="+998 __ ___ __ __"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
       />
+      <Input
+        label={t('owner.walkIn.price')}
+        inputMode="decimal"
+        value={priceShown}
+        onChange={(e) => setPriceText(e.target.value.replace(/\s/g, ''))}
+      />
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-secondary">{t('owner.walkIn.status')}</span>
+        <div className="flex gap-2">
+          <Chip selected={status === 'unpaid'} onClick={() => setStatus('unpaid')}>
+            {t('owner.walkIn.unpaid')}
+          </Chip>
+          <Chip selected={status === 'paid'} onClick={() => setStatus('paid')}>
+            {t('owner.walkIn.paid')}
+          </Chip>
+        </div>
+      </div>
       {create.isError && (
         <p role="alert" className="text-sm text-danger-text">
           {errorMessage(create.error)}

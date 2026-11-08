@@ -104,6 +104,116 @@ describe('Ega rejimi — Jadval', () => {
     expect(screen.getByRole('navigation', { name: 'Ega rejimi boʻlimlari' })).toBeInTheDocument()
   })
 
+  const SUGGESTED = 'GET /api/owner/stadiums/s1/bookings/suggested-price'
+
+  it('walk-in form: Uzbek labels, the owner price prefilled, unpaid by default', async () => {
+    const api = stub({
+      [SUGGESTED]: { price: 15_000_000 },
+      'POST /api/owner/stadiums/s1/bookings': makeBooking(),
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    const price = within(sheet).getByLabelText('Narx, soʻm')
+    await vi.waitFor(() => expect(price).toHaveValue('150000'))
+    expect(api.queries(SUGGESTED)[0]).toEqual({ startsAt: tashkentToUtc(TODAY, '19:00') })
+    expect(within(sheet).getByText('Toʻlov holati')).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlanmagan', pressed: true })).toBeVisible()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlangan', pressed: false })).toBeVisible()
+
+    const phone = within(sheet).getByLabelText('Mijoz telefoni')
+    fireEvent.change(phone, { target: { value: '901112233' } })
+    expect(phone).toHaveValue('+998 90 111 22 33')
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Bron qoʻshildi')).toBeInTheDocument()
+    expect(api.calls('POST /api/owner/stadiums/s1/bookings')[0]).toMatchObject({
+      clientPhone: '+998901112233',
+      price: 15_000_000,
+      paymentStatus: 'unpaid',
+    })
+  })
+
+  it('walk-in form: an edited price and "Toʻlangan" are what is sent', async () => {
+    const api = stub({
+      [SUGGESTED]: { price: 15_000_000 },
+      'POST /api/owner/stadiums/s1/bookings': makeBooking(),
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    const price = within(sheet).getByLabelText('Narx, soʻm')
+    await vi.waitFor(() => expect(price).toHaveValue('150000'))
+    fireEvent.change(price, { target: { value: '120000' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Toʻlangan' }))
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.change(within(sheet).getByLabelText('Mijoz telefoni'), {
+      target: { value: '+998901112233' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    await screen.findByText('Bron qoʻshildi')
+    expect(api.calls('POST /api/owner/stadiums/s1/bookings')[0]).toMatchObject({
+      price: 12_000_000,
+      paymentStatus: 'paid',
+    })
+  })
+
+  it('walk-in form: an incomplete phone cannot be saved', async () => {
+    stub({ [SUGGESTED]: { price: 15_000_000 } })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    await vi.waitFor(() => expect(within(sheet).getByLabelText('Narx, soʻm')).toHaveValue('150000'))
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.change(within(sheet).getByLabelText('Mijoz telefoni'), { target: { value: '9011' } })
+    expect(within(sheet).getByRole('button', { name: 'Saqlash' })).toBeDisabled()
+  })
+
+  it('a walk-in in the Jadval: "Qoʻlda" and its status, "Toʻlandi" to switch it', async () => {
+    const walkIn = makeBooking({
+      id: 'w1',
+      stadiumId: 's1',
+      startsAt: `${TODAY}T15:00:00Z`,
+      endsAt: `${TODAY}T16:00:00Z`,
+      clientName: 'Aziz',
+      isWalkin: true,
+      paymentStatus: 'unpaid',
+      paidAmount: 0,
+      remainingAmount: 15_000_000,
+    })
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [walkIn] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Aziz/ })
+    expect(within(row).getByText('Qoʻlda')).toBeInTheDocument()
+    expect(within(row).getByText('Toʻlanmagan')).toBeInTheDocument()
+    fireEvent.click(row)
+    const sheet = await screen.findByRole('dialog')
+    expect(within(sheet).getByRole('button', { name: 'Toʻlandi' })).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlanmadi' })).toBeInTheDocument()
+  })
+
+  it('a paid walk-in shows "Toʻlangan"', async () => {
+    const walkIn = makeBooking({
+      id: 'w1',
+      stadiumId: 's1',
+      startsAt: `${TODAY}T15:00:00Z`,
+      endsAt: `${TODAY}T16:00:00Z`,
+      clientName: 'Aziz',
+      isWalkin: true,
+      paymentStatus: 'paid',
+      paidInCash: 15_000_000,
+      remainingAmount: 0,
+      remainderMark: 'cash_received',
+    })
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [walkIn] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Aziz/ })
+    expect(within(row).getByText('Toʻlangan')).toBeInTheDocument()
+  })
+
   it('adds a walk-in for a free hour', async () => {
     const api = stub({ 'POST /api/owner/stadiums/s1/bookings': makeBooking() })
     renderApp('/owner', { session })

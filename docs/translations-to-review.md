@@ -918,3 +918,40 @@ Placeholders such as `{{count}}` must stay as they are.
 | `legal.privacy.keep.text` | Maʼlumotlar xizmat ishlashi uchun kerak boʻlgan muddat davomida saqlanadi. | Данные хранятся столько, сколько нужно для работы сервиса. | Data is kept for as long as the service needs it to work. |
 | `legal.privacy.contact.title` | Bogʻlanish | Связь | Contact |
 | `legal.privacy.contact.text` | Maʼlumotlaringiz boʻyicha savollar uchun Yordam boʻlimidagi qoʻllab-quvvatlash chatiga yozing. | По вопросам о ваших данных пишите в чат поддержки в разделе «Помощь». | For questions about your data, write to the support chat in Help. |
+
+
+## Home, maps, walk-ins, phone banner (2026-11-09)
+
+| Key | uz | ru | en |
+|---|---|---|---|
+| `home.whyUs.label` | Nega MiniPolya | Почему MiniPolya | Why MiniPolya |
+| `home.whyUs.roledescription` | karusel | карусель | carousel |
+| `home.whyUs.close` | Yopish | Закрыть | Close |
+| `home.whyUs.verified.title` | Tasdiqlangan maydonlar | Проверенные поля | Verified pitches |
+| `home.whyUs.verified.text` | Har bir maydonni tekshiramiz va egasi bilan shartnoma tuzamiz. | Мы проверяем каждое поле и заключаем договор с его владельцем. | We check every pitch and sign a contract with its owner. |
+| `home.whyUs.payment.title` | Xavfsiz toʻlov | Безопасная оплата | Secure payment |
+| `home.whyUs.payment.text` | Uzcard va Humo orqali. Belgilangan muddatgacha bekor qilsangiz, pul toʻliq qaytariladi. | Через Uzcard и Humo. При отмене до установленного срока деньги вернутся полностью. | With Uzcard and Humo. Cancel before the deadline and you get a full refund. |
+| `home.whyUs.opponent.title` | Raqib jamoa toping | Найдите команду-соперника | Find an opposing team |
+| `home.whyUs.opponent.text` | Jamoangiz bilan oʻyin yarating, raqib jamoa qoʻshiladi. | Создайте игру своей командой, соперник присоединится. | Create a game with your team and an opponent joins. |
+| `home.whyUs.quick.title` | 1 daqiqada bron | Бронь за 1 минуту | Book in 1 minute |
+| `home.whyUs.quick.text` | Boʻsh vaqtni tanlang va darhol band qiling. | Выберите свободное время и сразу забронируйте. | Pick a free time and book it right away. |
+| `home.pickDate` | Sanani tanlash | Выбрать дату | Choose a date |
+| `home.pickDateTitle` | Sanani tanlang | Выберите дату | Choose a date |
+| `home.vs` | vs | vs | vs |
+| `home.opponentWanted` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
+| `stadiums.freeSlots` | {{day}} {{count}} ta boʻsh vaqt | {{day}}: свободно часов — {{count}} | {{day}}: free hours — {{count}} |
+| `stadiums.noFreeSlots` | Bu kunga boʻsh vaqt yoʻq | На этот день свободного времени нет | No free time on this day |
+| `stadiums.dayMonth` | {{day}}-{{month}} | {{day}} {{month}} | {{month}} {{day}} |
+| `stadiums.allTitle` | Maydonlar | Поля | Pitches |
+| `stadiums.allCount` | Maydonlar · {{count}} | Поля · {{count}} | Pitches · {{count}} |
+| `team.payFrom` | Jamoangiz toʻlaydi: {{amount}} dan | Ваша команда платит: от {{amount}} | Your team pays: from {{amount}} |
+| `phoneBanner.title` | Telefon raqamingizni ulashing | Поделитесь номером телефона | Share your phone number |
+| `phoneBanner.send` | Telegram orqali yuborish | Отправить через Telegram | Send via Telegram |
+| `phoneBanner.type` | Raqamni kiritish | Ввести номер | Type it in |
+| `owner.walkIn.price` | Narx, soʻm | Цена, сум | Price, soʻm |
+| `owner.walkIn.status` | Toʻlov holati | Статус оплаты | Payment status |
+| `owner.walkIn.unpaid` | Toʻlanmagan | Не оплачено | Unpaid |
+| `owner.walkIn.paid` | Toʻlangan | Оплачено | Paid |
+| `owner.mark.paid` | Toʻlandi | Оплачено | Paid |
+| `about.yandexTerms` | Yandex Xaritalar foydalanish shartlari | Условия использования Яндекс Карт | Yandex Maps terms of use |
+| `stadium.mapTapHint` | Surish uchun xaritaga bosing | Нажмите, чтобы двигать карту | Tap to move the map |
