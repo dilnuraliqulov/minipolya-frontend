@@ -1,10 +1,14 @@
-import { FileText, Shield } from 'lucide-react'
+import { ExternalLink, FileText, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Card, Header, ListRow, LogoMark, Screen } from '../components'
 import { useGoBack } from '../lib/useGoBack'
+import { openExternalLink } from '../telegram'
 
-/** Profil → Ilova haqida: logo, version, and the two text pages. */
+/** Yandex's own terms: the Mini App's maps run on them. */
+const YANDEX_MAPS_TERMS = 'https://yandex.ru/legal/maps_termsofuse/'
+
+/** Profil → Ilova haqida: logo, version, the two text pages, the map provider's terms. */
 export function AboutPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -26,6 +30,11 @@ export function AboutPage() {
           icon={Shield}
           label={t('about.privacy')}
           onClick={() => navigate('/profile/about/privacy')}
+        />
+        <ListRow
+          icon={ExternalLink}
+          label={t('about.yandexTerms')}
+          onClick={() => openExternalLink(YANDEX_MAPS_TERMS)}
         />
       </Card>
       <p className="text-center text-xs text-secondary">{t('about.copyright')}</p>

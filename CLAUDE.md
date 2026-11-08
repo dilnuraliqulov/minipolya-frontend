@@ -56,6 +56,7 @@ src/
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
 │   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen
+│   ├── map/          #   YandexMap (the one map component) + yandexMaps.ts (loader, API wrapper)
 │   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, facilities, photos, prices, closures, read-only terms), Hisobot, Profil; wizard/ = Maydon qoʻshish (6 steps); stadiumRules.ts mirrors the backend StadiumRules
 │   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
@@ -545,6 +546,28 @@ lists. Only a declined card may be retried with another card.
 `AddCardSheet`'s state and reach the API through plain calls — never
 `useMutation` (its variables sit in the mutation cache), a query key, a log
 or storage. A test walks the caches and spies on console and storage.
+
+## Maps (Mini App)
+
+The Mini App's maps are the **Yandex Maps JavaScript API v3**, through the one
+component `src/miniapp/map/YandexMap.tsx` (stadium page, owner location picker).
+The admin panel keeps Leaflet.
+
+- **Key:** `VITE_YANDEX_MAPS_API_KEY` (public, like every `VITE_` value). In the
+  Yandex developer cabinet **restrict it by HTTP Referer to our domains** (the
+  production Mini App domain, plus `localhost` for development).
+- **Lazy:** the script loads only when a screen with a map opens. With no key, or
+  if it fails to load, `YandexMap` falls back to Leaflet + OpenStreetMap, a lazy
+  chunk that is not downloaded otherwise. Leaflet stays in the Mini App only as
+  that fallback.
+- **Free-use rules:** never hide or cover Yandex's logo, copyright or "Open in
+  Yandex Maps" control; no map screenshots anywhere. **Never use Yandex search or
+  geocoding** to fill or save an address: save only the coordinates the owner
+  chose, and the owner types the address. "Ilova haqida" links to the Yandex Maps
+  terms of use.
+- **Language:** Yandex's v3 list has no Uzbek, so Uzbek users get `ru_RU`.
+- **Gestures:** until the map is tapped, one finger scrolls the page and two
+  fingers zoom. A tap outside locks it again.
 
 ## Secrets
 

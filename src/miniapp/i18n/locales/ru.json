@@ -237,7 +237,8 @@
     "notFoundText": "Этого поля больше нет или оно закрыто.",
     "landmark": "Ориентир",
     "openYandex": "Открыть в Яндекс Картах",
-    "openGoogle": "Открыть в Google Картах"
+    "openGoogle": "Открыть в Google Картах",
+    "mapTapHint": "Нажмите, чтобы двигать карту"
   },
   "weekdays": {
     "short": {
@@ -1036,7 +1037,8 @@
     "version": "Версия {{version}}",
     "terms": "Условия использования",
     "privacy": "Политика конфиденциальности",
-    "copyright": "© 2026 MiniPolya · Ташкент"
+    "copyright": "© 2026 MiniPolya · Ташкент",
+    "yandexTerms": "Условия использования Яндекс Карт"
   },
   "legal": {
     "terms": {

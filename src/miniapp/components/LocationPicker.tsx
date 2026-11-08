@@ -1,14 +1,12 @@
 import { Link2, LocateFixed, MapPin } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatPoint, isInUzbekistan, parseMapLink, type LatLon } from '../../shared/map'
+import { YandexMap } from '../map/YandexMap'
 import { getDeviceLocation, LocationError } from '../telegram'
 import { Button } from './Button'
 import { cx } from './cx'
 import { Input } from './Input'
-
-/** Leaflet (~150 kB) loads only when a screen with the picker opens. */
-const LocationMap = lazy(() => import('./LocationMap'))
 
 interface LocationPickerProps {
   value: LatLon | null
@@ -19,8 +17,7 @@ interface LocationPickerProps {
 
 /**
  * Where the stadium is (design "Maydon qoʻshish / 2 Joylashuv"), shared by the
- * wizard and Maydonim → Maʼlumotlar: an OpenStreetMap to tap or drag the pin
- * on, "Joriy joylashuvim" (Telegram's LocationManager, else the browser), and
+ * wizard and Maydonim → Maʼlumotlar: a map to tap or drag the pin on (YandexMap), "Joriy joylashuvim" (Telegram's LocationManager, else the browser), and
  * a pasted Google / Yandex Maps link. The point must be in Uzbekistan.
  */
 export function LocationPicker({ value, onChange, error }: LocationPickerProps) {
@@ -75,11 +72,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-secondary">{t('owner.location.mapTitle')}</span>
-        <Suspense
-          fallback={<div aria-hidden className="h-50 animate-pulse rounded-xl bg-skeleton" />}
-        >
-          <LocationMap point={value} focus={focus} onPick={pickFromMap} />
-        </Suspense>
+        <YandexMap point={value} focus={focus} onPick={pickFromMap} />
         <p
           aria-live="polite"
           className={cx(

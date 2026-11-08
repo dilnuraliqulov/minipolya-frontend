@@ -237,7 +237,8 @@
     "notFoundText": "This pitch no longer exists or has been closed.",
     "landmark": "Landmark",
     "openYandex": "Open in Yandex Maps",
-    "openGoogle": "Open in Google Maps"
+    "openGoogle": "Open in Google Maps",
+    "mapTapHint": "Tap to move the map"
   },
   "weekdays": {
     "short": {
@@ -1036,7 +1037,8 @@
     "version": "Version {{version}}",
     "terms": "Terms of use",
     "privacy": "Privacy policy",
-    "copyright": "© 2026 MiniPolya · Tashkent"
+    "copyright": "© 2026 MiniPolya · Tashkent",
+    "yandexTerms": "Yandex Maps terms of use"
   },
   "legal": {
     "terms": {

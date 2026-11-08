@@ -9,7 +9,7 @@ import {
   Star,
 } from 'lucide-react'
 import { tashkentToday } from '../../shared/format'
-import { lazy, Suspense, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
@@ -39,6 +39,7 @@ import { formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels
 import { googleMapsLink, mapLink, yandexMapsLink } from '../../shared/map'
 import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
 import { ReviewCard } from './ReviewCard'
+import { YandexMap } from '../map/YandexMap'
 import { DateStrip, SlotList } from './SlotPicker'
 
 /** Maydon: photos, info, amenities, map, cancellation rule, reviews, favourite. */
@@ -265,12 +266,6 @@ function Amenities({ stadium }: { stadium: StadiumDetail }) {
   )
 }
 
-/**
- * Leaflet (~150 kB) loads only when a stadium with coordinates is opened,
- * so it is not part of, or preloaded with, the Mini App launch.
- */
-const StadiumMap = lazy(() => import('./StadiumMap').then((m) => ({ default: m.StadiumMap })))
-
 function Address({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
   const { latitude, longitude } = stadium
@@ -278,11 +273,7 @@ function Address({ stadium }: { stadium: StadiumDetail }) {
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-title font-bold text-primary">{t('stadium.address')}</h3>
-      {point && (
-        <Suspense fallback={<div aria-hidden className="h-35 rounded-xl bg-surface" />}>
-          <StadiumMap latitude={point.latitude} longitude={point.longitude} />
-        </Suspense>
-      )}
+      {point && <YandexMap point={{ lat: point.latitude, lon: point.longitude }} />}
       <div className="flex items-center gap-2">
         <p className="min-w-0 flex-1 text-base text-primary">{stadium.address}</p>
         {!point && (

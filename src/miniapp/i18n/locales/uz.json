@@ -237,7 +237,8 @@
     "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan.",
     "landmark": "Moʻljal",
     "openYandex": "Yandex Mapsʼda ochish",
-    "openGoogle": "Google Mapsʼda ochish"
+    "openGoogle": "Google Mapsʼda ochish",
+    "mapTapHint": "Surish uchun xaritaga bosing"
   },
   "weekdays": {
     "short": {
@@ -1036,7 +1037,8 @@
     "version": "Versiya {{version}}",
     "terms": "Foydalanish shartlari",
     "privacy": "Maxfiylik siyosati",
-    "copyright": "© 2026 MiniPolya · Toshkent"
+    "copyright": "© 2026 MiniPolya · Toshkent",
+    "yandexTerms": "Yandex Xaritalar foydalanish shartlari"
   },
   "legal": {
     "terms": {
