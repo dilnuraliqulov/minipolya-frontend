@@ -370,15 +370,12 @@
     "emptyPastTitle": "Oʻtgan bronlar yoʻq",
     "emptyPastText": "Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi.",
     "findPitch": "Maydon topish",
-    "more": "Yana koʻrsatish",
-    "remainder": "Qoldiq: {{amount}}"
+    "more": "Yana koʻrsatish"
   },
   "booked": {
     "headerTitle": "Bron",
     "title": "Band qilindi!",
     "paid": "Toʻlandi: {{amount}}",
-    "remaining": "Qolgani: {{amount}}",
-    "remainderNote": "Qolgan summani ilovada yoki maydonda naqd toʻlashingiz mumkin.",
     "deadline": "Bekor qilish muddati: {{date}}, {{time}} gacha",
     "toGames": "Oʻyinlarimga oʻtish",
     "home": "Bosh sahifa"
@@ -528,8 +525,6 @@
     "paidInFull": "Toʻliq toʻlangan",
     "cashReceived": "Naqd olindi",
     "notPaid": "Toʻlanmadi",
-    "payRest": "Ilovada toʻlash",
-    "cashNote": "yoki maydonda naqd",
     "restPaid": "Qolgan summa toʻlandi",
     "declined": "Karta rad etildi. Boshqa karta tanlang.",
     "rules": "Bekor qilish shartlari",

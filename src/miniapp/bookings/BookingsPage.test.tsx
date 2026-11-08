@@ -51,7 +51,7 @@ describe('Oʻyinlarim — bookings', () => {
     expect(within(items[2] as HTMLElement).getByText('Bekor qilingan')).toBeInTheDocument()
   })
 
-  it('shows "Qoldiq" on a booking that still owes, and nothing on a paid one', async () => {
+  it('shows the remainder on a booking that still owes, and nothing on a paid one', async () => {
     const owing = makeBooking({
       id: 'b4',
       stadiumName: 'Paxtakor Arena',
@@ -71,9 +71,9 @@ describe('Oʻyinlarim — bookings', () => {
     renderApp('/games')
     const list = await screen.findByRole('list', { name: 'Bronlar' })
     const [first, second, third] = within(list).getAllByRole('listitem') as HTMLElement[]
-    expect(within(first!).getByText('Qoldiq: 100 000 soʻm')).toBeInTheDocument()
-    expect(within(second!).queryByText(/Qoldiq/)).not.toBeInTheDocument()
-    expect(within(third!).queryByText(/Qoldiq/)).not.toBeInTheDocument()
+    expect(within(first!).getByText('100 000 soʻm')).toBeInTheDocument()
+    expect(within(second!).queryByText('Qolgan summa')).not.toBeInTheDocument()
+    expect(within(third!).queryByText('Qolgan summa')).not.toBeInTheDocument()
   })
 
   it('opens on Kelgusi and asks the server for ?when=upcoming', async () => {

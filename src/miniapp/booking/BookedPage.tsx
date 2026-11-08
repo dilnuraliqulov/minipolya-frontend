@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { formatTime } from '../../shared/format'
 import type { Booking } from '../api/bookings'
-import { ButtonLink, Card, Header, Screen } from '../components'
+import { ButtonLink, Card, Header, RemainderCard, Screen } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { RefundLine } from '../bookings/RefundLine'
 import { bookingWhen, isAhead } from '../bookings/when'
@@ -36,17 +36,15 @@ export function BookedPage() {
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base text-primary">
           <CreditCard size={18} className="text-link" aria-hidden />
           <span>{t('booked.paid', { amount: formatMoney(booking.paidAmount) })}</span>
-          {booking.remainingAmount > 0 && (
-            <>
-              <span aria-hidden>·</span>
-              <span>{t('booked.remaining', { amount: formatMoney(booking.remainingAmount) })}</span>
-            </>
-          )}
         </p>
-        {booking.remainingAmount > 0 && (
-          <p className="text-sm text-secondary">{t('booked.remainderNote')}</p>
-        )}
       </Card>
+
+      {booking.remainingAmount > 0 && (
+        <RemainderCard
+          amount={booking.remainingAmount}
+          onPay={() => navigate(`/bookings/${booking.id}`)}
+        />
+      )}
 
       {isAhead(booking.cancellationDeadline) ? (
         <p className="flex items-center justify-center gap-2 text-sm text-secondary">

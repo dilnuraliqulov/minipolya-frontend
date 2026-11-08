@@ -8,7 +8,7 @@ import {
   MessageCircle,
   SearchX,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
@@ -39,6 +39,7 @@ import {
   SkeletonList,
   useToast,
   Notice,
+  RemainderCard,
 } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
@@ -182,18 +183,14 @@ function GameContent({ game }: { game: GameDetail }) {
         </section>
       )}
 
-      {myTeam && (
-        <MyPayment team={myTeam} waiting={game.status === 'open'}>
-          {isLeader && !joining && teamRemaining(myTeam) > 0 && PAYABLE.has(game.status) && (
-            <>
-              <Button haptic onClick={() => setSheet('pay')}>
-                {t('game.payRest')}
-              </Button>
-              <p className="text-center text-sm text-secondary">{t('game.cashNote')}</p>
-            </>
-          )}
-        </MyPayment>
+      {myTeam && !joining && teamRemaining(myTeam) > 0 && PAYABLE.has(game.status) && (
+        <RemainderCard
+          amount={teamRemaining(myTeam)}
+          onPay={isLeader ? () => setSheet('pay') : undefined}
+        />
       )}
+
+      {myTeam && <MyPayment team={myTeam} waiting={game.status === 'open'} />}
 
       {canCancel && (
         <section className="flex flex-col gap-3" aria-labelledby="game-rules">
@@ -282,15 +279,7 @@ function TeamMembers({ team }: { team: GameTeam }) {
  * "Naqd olindi" (the owner's mark) or "Toʻliq toʻlangan". "Toʻlanmadi" when the
  * owner marked the rest as not paid.
  */
-function MyPayment({
-  team,
-  waiting,
-  children,
-}: {
-  team: GameTeam
-  waiting: boolean
-  children?: ReactNode
-}) {
+function MyPayment({ team, waiting }: { team: GameTeam; waiting: boolean }) {
   const { t } = useTranslation()
   // Before T9 the backend had no paidAmount: the hold while held, then what was paid.
   const held = team.heldAmount ?? 0
@@ -325,7 +314,6 @@ function MyPayment({
           </Badge>
         </div>
       )}
-      {children}
     </Card>
   )
 }

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Clock, MapPin, Phone, SearchX, Wallet } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Phone, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
@@ -15,6 +15,7 @@ import {
   ErrorState,
   Header,
   LogoMark,
+  RemainderCard,
   Screen,
   SkeletonList,
 } from '../components'
@@ -133,30 +134,17 @@ function BookingContent({ booking }: { booking: Booking }) {
       )}
       {owesRest && (
         // E10: what is still owed, up top — pay it in the app or in cash at the pitch.
-        <section
-          aria-labelledby="booking-remainder"
-          className="flex flex-col gap-3 rounded-2xl border border-warning-text bg-warning-soft p-4"
-        >
-          <h3
-            id="booking-remainder"
-            className="flex items-center gap-2 text-lg font-bold text-primary"
-          >
-            <Wallet size={20} className="shrink-0 text-warning-text" aria-hidden />
-            {t('booking.remainderTitle', { amount: formatMoney(booking.remainingAmount) })}
-          </h3>
-          {settling || processing ? (
-            <p className="text-sm text-warning-text">
-              {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
-            </p>
-          ) : (
-            canPayRest && (
-              <Button haptic onClick={() => setSheet('pay')}>
-                {t('booking.payRest')}
-              </Button>
-            )
-          )}
-          <p className="text-center text-sm text-primary">{t('booking.cashNote')}</p>
-        </section>
+        <RemainderCard
+          amount={booking.remainingAmount}
+          onPay={canPayRest ? () => setSheet('pay') : undefined}
+          status={
+            settling || processing ? (
+              <p className="text-sm text-secondary">
+                {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
+              </p>
+            ) : undefined
+          }
+        />
       )}
       <Details booking={booking} stadium={stadium} />
 

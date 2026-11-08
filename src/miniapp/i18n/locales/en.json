@@ -370,15 +370,12 @@
     "emptyPastTitle": "No past bookings",
     "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
-    "more": "Show more",
-    "remainder": "Left to pay: {{amount}}"
+    "more": "Show more"
   },
   "booked": {
     "headerTitle": "Booking",
     "title": "Booked!",
     "paid": "Paid: {{amount}}",
-    "remaining": "Left to pay: {{amount}}",
-    "remainderNote": "You can pay the rest in the app or in cash at the pitch.",
     "deadline": "Free cancellation until {{date}}, {{time}}",
     "toGames": "Go to My games",
     "home": "Home"
@@ -528,8 +525,6 @@
     "paidInFull": "Paid in full",
     "cashReceived": "Paid in cash",
     "notPaid": "Not paid",
-    "payRest": "Pay in the app",
-    "cashNote": "or in cash at the pitch",
     "restPaid": "The rest is paid",
     "declined": "The card was declined. Choose another.",
     "rules": "Cancellation terms",

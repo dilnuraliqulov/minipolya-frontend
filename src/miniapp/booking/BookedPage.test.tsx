@@ -84,8 +84,9 @@ describe('Band qilindi', () => {
       }),
     )
     expect(await screen.findByText('Toʻlandi: 55 000 soʻm')).toBeInTheDocument()
-    expect(screen.getByText('Qolgani: 100 000 soʻm')).toBeInTheDocument()
-    expect(screen.getByText(/ilovada yoki maydonda naqd/)).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(screen.getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
   })
 
   it('goes to Oʻyinlarim when opened without a booking', async () => {

@@ -95,8 +95,9 @@ describe('Oʻyin — a team game', () => {
     const pay = screen.getByRole('region', { name: 'Jamoangiz toʻlovi' })
     expect(row(pay, 'Toʻlangan')).toHaveTextContent('88 000 soʻm')
     expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
-    expect(within(pay).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
-    expect(within(pay).getByText('yoki maydonda naqd')).toBeInTheDocument()
+    const rest = screen.getByRole('region', { name: 'Qolgan summa: 80 000 soʻm' })
+    expect(within(rest).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(within(rest).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
     expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
     expect(within(pay).queryByText('Raqib topilmasa, toʻliq qaytariladi.')).toBeNull()
   })
@@ -235,7 +236,7 @@ describe('Oʻyin — a team game', () => {
     expect(row(pay, 'Toʻlangan')).toHaveTextContent('130 000 soʻm')
     expect(within(pay).queryByText('Qolgan summa')).toBeNull()
     expect(within(pay).getByText('Toʻliq toʻlangan')).toBeInTheDocument()
-    expect(within(pay).queryByText('yoki maydonda naqd')).toBeNull()
+    expect(screen.queryByText('yoki maydonda naqd toʻlang')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
   })
 
@@ -274,7 +275,7 @@ describe('Oʻyin — a team game', () => {
     const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
     expect(row(pay, 'Qolgan summa')).toHaveTextContent('Toʻlanmadi')
     expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
-    expect(within(pay).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
   })
 
   it('shows what is paid while only held, and that it all comes back without an opponent', async () => {
@@ -298,7 +299,7 @@ describe('Oʻyin — a team game', () => {
     expect(row(pay, 'Qolgan summa')).toHaveTextContent('75 000 soʻm')
     expect(within(pay).queryByText('Kartangizda band qilingan')).toBeNull()
     // Nothing to pay before an opponent arrives.
-    expect(within(pay).queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
   })
 
   it('reads a game from before T9 (no paidAmount or remainingAmount)', async () => {

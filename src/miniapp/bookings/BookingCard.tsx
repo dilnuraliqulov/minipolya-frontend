@@ -1,19 +1,16 @@
 import { ChevronRight } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
-import { Badge, LogoMark } from '../components'
-import { formatMoney } from '../format'
+import { LogoMark, RemainderCard } from '../components'
 import { BookingStatusBadge } from './BookingStatusBadge'
 import { bookingWhen } from './when'
 
 /**
  * The design's Booking Card. The booking carries no stadium photo yet (R31),
- * so the tile shows the mark. A booking that still owes shows "Qoldiq" (E10).
+ * so the tile shows the mark. A booking that still owes shows the remainder (E10).
  */
 export function BookingCard({ booking }: { booking: Booking }) {
-  const { t } = useTranslation()
   const state = remainderState(booking)
   const owes = state === 'remainder' || state === 'notPaid'
   return (
@@ -31,12 +28,8 @@ export function BookingCard({ booking }: { booking: Booking }) {
         <span className="text-sm text-secondary">{bookingWhen(booking)}</span>
         <span className="flex flex-wrap items-center gap-2">
           <BookingStatusBadge status={booking.status} />
-          {owes && (
-            <Badge tone="warning">
-              {t('bookings.remainder', { amount: formatMoney(booking.remainingAmount) })}
-            </Badge>
-          )}
         </span>
+        {owes && <RemainderCard amount={booking.remainingAmount} variant="compact" />}
       </span>
       <ChevronRight size={20} className="shrink-0 text-secondary" aria-hidden />
     </Link>
