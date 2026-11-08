@@ -960,8 +960,8 @@ platform.
 
 ### `POST /api/owner/stadiums/{stadiumId}/bookings` — owner
 
-A walk-in / phone booking. Confirmed immediately, no hold. When
-`paymentMethod` is `"cash"`, blank or omitted, a cash payment is recorded for
+A walk-in / phone booking. Confirmed immediately, no hold. Added as `paymentStatus: paid`,
+a cash payment is recorded for
 the full price.
 
 **Body** — `CreateManualBookingRequest`

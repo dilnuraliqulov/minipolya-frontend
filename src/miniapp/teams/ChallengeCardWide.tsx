@@ -24,7 +24,7 @@ export function ChallengeCardWide({
   return (
     <Link
       to={to}
-      className="flex h-full flex-col gap-3 rounded-3xl border border-border bg-background p-4"
+      className="relative flex h-full flex-col gap-3 rounded-3xl border border-border bg-background p-4"
     >
       <span className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 flex-1 items-center gap-2">
