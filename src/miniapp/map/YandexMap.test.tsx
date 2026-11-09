@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import '../i18n'
 import { YandexMap } from './YandexMap'
 import {
@@ -145,6 +145,54 @@ describe('YandexMap', () => {
     window.ymaps3 = { ...fakeApi().api, ready: Promise.reject(new Error('blocked')) }
     render(<YandexMap point={POINT} onPick={vi.fn()} />)
     expect(await screen.findByTestId('leaflet-picker')).toBeInTheDocument()
+  })
+
+  describe('explains the fallback once, in the console', () => {
+    let warn: MockInstance<typeof console.warn>
+    beforeEach(() => {
+      warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    })
+    afterEach(() => warn.mockRestore())
+
+    it('names the missing key, for any number of maps', async () => {
+      render(
+        <>
+          <YandexMap point={POINT} />
+          <YandexMap point={POINT} />
+        </>,
+      )
+      expect(await screen.findAllByTestId('leaflet-still')).toHaveLength(2)
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]![0]).toContain('VITE_YANDEX_MAPS_API_KEY')
+    })
+
+    it('says the script failed, and never prints the key', async () => {
+      vi.stubEnv('VITE_YANDEX_MAPS_API_KEY', 'secret-key-1')
+      render(<YandexMap point={POINT} />)
+      await waitFor(() =>
+        expect(document.head.querySelector('script[src*="api-maps"]')).not.toBeNull(),
+      )
+      act(() => {
+        document.head
+          .querySelector<HTMLScriptElement>('script[src*="api-maps"]')!
+          .onerror?.(new Event('error'))
+      })
+      expect(await screen.findByTestId('leaflet-still')).toBeInTheDocument()
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]![0]).toContain('Referer')
+      expect(JSON.stringify(warn.mock.calls)).not.toContain('secret-key-1')
+    })
+
+    it('hides the key inside an error from Yandex too', async () => {
+      vi.stubEnv('VITE_YANDEX_MAPS_API_KEY', 'secret-key-1')
+      window.ymaps3 = {
+        ...fakeApi().api,
+        ready: Promise.reject(new Error('bad apikey=secret-key-1')),
+      }
+      render(<YandexMap point={POINT} />)
+      expect(await screen.findByTestId('leaflet-still')).toBeInTheDocument()
+      expect(JSON.stringify(warn.mock.calls)).not.toContain('secret-key-1')
+    })
   })
 
   it('starts on the point, in the app theme, with one finger left to the page', async () => {

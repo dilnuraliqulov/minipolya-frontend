@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { TASHKENT, type LatLon } from '../../shared/map'
 import { cx } from '../components/cx'
 import { PITCH_PIN_HTML } from '../lib/mapPin'
-import { createYandexMap, loadYandexMaps, type YandexMapHandle } from './yandexMaps'
+import {
+  createYandexMap,
+  explainYandexFallback,
+  loadYandexMaps,
+  type YandexMapHandle,
+} from './yandexMaps'
 
 /** Leaflet is the fallback only: without a key, or if Yandex fails to load. */
 const LeafletStill = lazy(() =>
@@ -94,7 +99,8 @@ export function YandexMap({ point, onPick, focus = 0 }: YandexMapProps) {
         })
         setStatus('ready')
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        explainYandexFallback(error)
         if (!cancelled) setStatus('failed')
       })
     return () => {

@@ -1,11 +1,12 @@
 import { Info } from 'lucide-react'
-import { lazy, Suspense, type Dispatch, type ReactNode } from 'react'
+import type { Dispatch, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { somToTiyin } from '../../../shared/format'
 import { formatPoint } from '../../../shared/map'
 import { Card, Input } from '../../components'
 import { cx } from '../../components/cx'
 import { LocationPicker } from '../../components/LocationPicker'
+import { YandexMap } from '../../map/YandexMap'
 import { LocalThumb, PhotoPicker } from '../../components/PhotoPicker'
 import { formatMoney } from '../../format'
 import { presentFacilities } from '../../stadiums/facilities'
@@ -23,10 +24,6 @@ import {
 } from '../StadiumFields'
 import { hourLabel, STADIUM_LIMITS } from '../stadiumRules'
 import { STEPS, type Draft, type DraftAction, type DraftField, type Step } from './draft'
-
-const StadiumMap = lazy(() =>
-  import('../../stadiums/StadiumMap').then((m) => ({ default: m.StadiumMap })),
-)
 
 /** Translated messages for the fields of the current step. */
 export type FieldErrors = Partial<Record<DraftField, string>>
@@ -287,9 +284,7 @@ export function ReviewStep({ draft, onEdit }: { draft: Draft; onEdit: (step: Ste
         {draft.point && (
           <>
             <div aria-label={t('owner.wizard.mapPreview')} role="group">
-              <Suspense fallback={<div aria-hidden className="h-35 rounded-xl bg-surface" />}>
-                <StadiumMap latitude={draft.point.lat} longitude={draft.point.lon} />
-              </Suspense>
+              <YandexMap point={draft.point} />
             </div>
             <p className="text-xs text-secondary tabular-nums">{formatPoint(draft.point)}</p>
           </>

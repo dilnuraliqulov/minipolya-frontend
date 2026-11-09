@@ -52,14 +52,21 @@ function injectScript(key: string, language: string): Promise<void> {
     const script = document.createElement('script')
     script.src = `${SCRIPT_URL}?apikey=${encodeURIComponent(key)}&lang=${language}`
     script.async = true
-    const timer = window.setTimeout(() => reject(new Error('timeout')), LOAD_TIMEOUT_MS)
+    const timer = window.setTimeout(
+      () => reject(new Error('the Yandex script timed out')),
+      LOAD_TIMEOUT_MS,
+    )
     script.onload = () => {
       window.clearTimeout(timer)
       resolve()
     }
     script.onerror = () => {
       window.clearTimeout(timer)
-      reject(new Error('script failed'))
+      reject(
+        new Error(
+          'the Yandex script did not load: invalid key, this HTTP Referer not allowed, or a blocked network',
+        ),
+      )
     }
     document.head.appendChild(script)
   })
@@ -76,18 +83,30 @@ export function loadYandexMaps(appLanguage: string): Promise<YandexApi> {
   if (loading) return loading
   loading = (async () => {
     const key = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
-    if (!key) throw new Error('no key')
+    if (!key) throw new Error('VITE_YANDEX_MAPS_API_KEY is not set where Vite can see it')
     if (!window.ymaps3) await injectScript(key, yandexLanguage(appLanguage))
     const api = window.ymaps3
-    if (!api) throw new Error('no api')
+    if (!api) throw new Error('the Yandex script loaded but defined no ymaps3')
     await api.ready
     return api
   })()
   return loading
 }
 
+let fallbackExplained = false
+
+/** In development only, and only once: why the maps are Leaflet. Never prints the key. */
+export function explainYandexFallback(error: unknown): void {
+  if (!import.meta.env.DEV || fallbackExplained) return
+  fallbackExplained = true
+  const key = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
+  const reason = error instanceof Error ? error.message : String(error)
+  console.warn(`[YandexMap] using Leaflet: ${key ? reason.replaceAll(key, '***') : reason}`)
+}
+
 export function resetYandexMapsForTests(): void {
   loading = null
+  fallbackExplained = false
 }
 
 /** Without a tap the map leaves one finger to the page; two fingers still zoom it. */

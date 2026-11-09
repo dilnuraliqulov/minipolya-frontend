@@ -550,8 +550,9 @@ or storage. A test walks the caches and spies on console and storage.
 ## Maps (Mini App)
 
 The Mini App's maps are the **Yandex Maps JavaScript API v3**, through the one
-component `src/miniapp/map/YandexMap.tsx` (stadium page, owner location picker).
-The admin panel keeps Leaflet.
+component `src/miniapp/map/YandexMap.tsx` (stadium page, owner location picker,
+the wizard's review step; `map/onlyYandex.test.ts` fails on any other route to
+Leaflet). The admin panel keeps Leaflet.
 
 - **Key:** `VITE_YANDEX_MAPS_API_KEY` (public, like every `VITE_` value). In the
   Yandex developer cabinet **restrict it by HTTP Referer to our domains** (the
@@ -559,7 +560,8 @@ The admin panel keeps Leaflet.
 - **Lazy:** the script loads only when a screen with a map opens. With no key, or
   if it fails to load, `YandexMap` falls back to Leaflet + OpenStreetMap, a lazy
   chunk that is not downloaded otherwise. Leaflet stays in the Mini App only as
-  that fallback.
+  that fallback. In `npm run dev` the reason is logged once to the console
+  (`[YandexMap] using Leaflet: …`), never the key.
 - **Free-use rules:** never hide or cover Yandex's logo, copyright or "Open in
   Yandex Maps" control; no map screenshots anywhere. **Never use Yandex search or
   geocoding** to fill or save an address: save only the coordinates the owner
