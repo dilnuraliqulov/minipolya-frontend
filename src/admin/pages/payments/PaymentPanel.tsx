@@ -3,7 +3,7 @@ import { Copy, HandCoins, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { API_MESSAGES, isApiError } from '../../../shared/api'
-import { formatDateTime } from '../../../shared/format'
+import { formatDateTime, roundToWholeSom } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
   getPayment,
@@ -323,13 +323,23 @@ export function PaymentPanel({
 
           <PanelSection title="Taqsimot">
             <dl className="flex flex-col gap-2.5">
-              <PanelRow label={refund ? 'Egadan' : 'Egaga'}>{money(p.ownerAmount)}</PanelRow>
-              <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
-                {money(p.platformAmount)}
+              <PanelRow label={refund ? 'Egadan' : 'Egaga'}>
+                {money(roundToWholeSom(p.ownerNet))}
               </PanelRow>
-              {p.atmosFee !== undefined && (
-                <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
-              )}
+              <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
+                {money(roundToWholeSom(p.platformNet))}
+              </PanelRow>
+              <PanelRow label="ATMOS">{money(roundToWholeSom(p.atmosFee))}</PanelRow>
+            </dl>
+          </PanelSection>
+
+          <PanelSection title="Aniq qiymatlar">
+            <dl className="flex flex-col gap-2.5">
+              <PanelRow label="Egasining ulushi">{money(p.ownerAmount)}</PanelRow>
+              <PanelRow label="Platforma ulushi">{money(p.platformAmount)}</PanelRow>
+              <PanelRow label="Egasiga sof">{money(p.ownerNet)}</PanelRow>
+              <PanelRow label="Platformaga sof">{money(p.platformNet)}</PanelRow>
+              <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
               {p.providerCommission !== undefined && (
                 <PanelRow label="ATMOS ushlab qoldi">{money(p.providerCommission)}</PanelRow>
               )}

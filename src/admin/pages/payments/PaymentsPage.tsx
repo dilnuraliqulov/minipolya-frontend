@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { formatSomParts, tashkentToday } from '../../../shared/format'
+import { formatSomParts, roundToWholeSom, tashkentToday } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
   getPaymentSummary,
@@ -78,6 +78,9 @@ function periodRange(period: Period, custom: DateRange): { from: string; to: str
   return { from: monthStart(today), to: today }
 }
 
+/** Whole so'm for the table, with a real minus; the exact figures are in the side panel. */
+const wholeSom = (tiyin: number) => formatSomParts(roundToWholeSom(tiyin)).amount.replace(/^-/, '−')
+
 const COLUMNS: Column<AdminPayment>[] = [
   {
     key: 'time',
@@ -117,18 +120,19 @@ const COLUMNS: Column<AdminPayment>[] = [
   {
     key: 'split',
     header: 'Taqsimot',
-    width: 160,
+    width: 310,
     render: (p) =>
       p.method === 'cash' ? (
         <span className="text-secondary" title="Naqd pul toʻgʻridan-toʻgʻri egaga">
           —
         </span>
       ) : (
-        <span className="flex flex-col text-xs whitespace-nowrap">
-          <span>Egaga: {formatSomParts(p.ownerAmount).amount.replace(/^-/, '−')}</span>
-          <span className="text-secondary">
-            Platformaga: {formatSomParts(p.platformAmount).amount.replace(/^-/, '−')}
-          </span>
+        <span className="flex flex-wrap gap-x-1 text-xs [&>span]:whitespace-nowrap">
+          <span>Egaga: {wholeSom(p.ownerNet)}</span>
+          <span aria-hidden>·</span>
+          <span>Platformaga: {wholeSom(p.platformNet)}</span>
+          <span aria-hidden>·</span>
+          <span>ATMOS: {wholeSom(p.atmosFee)}</span>
         </span>
       ),
   },

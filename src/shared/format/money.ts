@@ -24,6 +24,11 @@ export function formatSomParts(tiyin: number): { amount: string; unit: string } 
   return { amount: `${sign}${formatNumber(som)}${fraction}`, unit: UNIT }
 }
 
+/** The nearest whole so'm, still in tiyin, for summaries: `3017499` → `3017500`. */
+export function roundToWholeSom(tiyin: number): number {
+  return Math.round(tiyin / TIYIN_PER_SOM) * TIYIN_PER_SOM
+}
+
 /** Formats a tiyin amount for display: `15000000` → `"150 000 so'm"`. */
 export function formatSom(tiyin: number): string {
   const { amount, unit } = formatSomParts(tiyin)

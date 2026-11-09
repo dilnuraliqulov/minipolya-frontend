@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatSom, formatSomParts, somInputToTiyin, somToTiyin, tiyinToSomInput } from './money'
+import {
+  formatSom,
+  formatSomParts,
+  roundToWholeSom,
+  somInputToTiyin,
+  somToTiyin,
+  tiyinToSomInput,
+} from './money'
 
 describe('formatSom', () => {
   it("converts tiyin to grouped so'm", () => {
@@ -32,6 +39,15 @@ describe('formatSom', () => {
   it('splits the amount from the unit for separate styling', () => {
     expect(formatSomParts(4_865_000_000)).toEqual({ amount: '48 650 000', unit: "so'm" })
     expect(formatSomParts(-105)).toEqual({ amount: '-1,05', unit: "so'm" })
+  })
+})
+
+describe('roundToWholeSom', () => {
+  it('rounds to the nearest whole soʻm, for a summary line', () => {
+    expect(roundToWholeSom(3_017_499)).toBe(3_017_500)
+    expect(roundToWholeSom(82_501)).toBe(82_500)
+    expect(roundToWholeSom(-314_951)).toBe(-315_000)
+    expect(formatSom(roundToWholeSom(2_917_449))).toBe("29 174 so'm")
   })
 })
 

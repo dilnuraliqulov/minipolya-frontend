@@ -35,6 +35,9 @@ const failedRefund: AdminPayment = {
   amount: -20_000_000,
   ownerAmount: -19_000_000,
   platformAmount: -1_000_000,
+  ownerNet: -18_700_049,
+  platformNet: -985_000,
+  atmosFee: -314_951,
   commissionPercent: 5,
   method: 'card',
   provider: 'atmos',
@@ -52,6 +55,8 @@ const held: AdminPayment = {
   amount: 8_000_000,
   ownerAmount: 7_500_000,
   platformAmount: 500_000,
+  ownerNet: 7_387_500,
+  platformNet: 492_500,
   atmosFee: 120_000,
   providerCommission: 118_000,
   status: 'held',
@@ -68,7 +73,9 @@ const cash: AdminPayment = {
   method: 'cash',
   provider: 'cash',
   providerTxnId: undefined,
-  atmosFee: undefined,
+  atmosFee: 0,
+  ownerNet: 13_000_000,
+  platformNet: 0,
   providerCommission: undefined,
   status: 'paid',
   amount: 13_000_000,
@@ -154,8 +161,9 @@ describe('Toʻlovlar', () => {
     const table = screen.getByRole('grid')
     const refundRow = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
     expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger-text')
-    expect(within(refundRow).getByText('Egaga: −190 000')).toBeInTheDocument()
-    expect(within(refundRow).getByText('Platformaga: −10 000')).toBeInTheDocument()
+    expect(within(refundRow).getByText('Egaga: −187 000')).toBeInTheDocument()
+    expect(within(refundRow).getByText('Platformaga: −9 850')).toBeInTheDocument()
+    expect(within(refundRow).getByText('ATMOS: −3 150')).toBeInTheDocument()
     expect(within(refundRow).getByText('Muvaffaqiyatsiz')).toBeInTheDocument()
     expect(within(refundRow).getByText('8f3a…fund')).toBeInTheDocument()
     expect(within(refundRow).getByText('28 okt, 14:02')).toBeInTheDocument()
@@ -228,7 +236,13 @@ describe('Toʻlovlar', () => {
     expect(
       within(panel).getByText('ATMOS xatosi: «Transaction declined by issuer (code 57)»'),
     ).toBeInTheDocument()
-    expect(within(panel).getByText('Egadan')).toBeInTheDocument()
+    const figure = (label: string) => within(panel).getByText(label).closest('div')!
+    expect(figure('Egadan')).toHaveTextContent("−187 000 so'm")
+    expect(figure('Platformadan')).toHaveTextContent("−9 850 so'm")
+    expect(figure('ATMOS')).toHaveTextContent("−3 150 so'm")
+    expect(figure('Egasining ulushi')).toHaveTextContent("−190 000 so'm")
+    expect(figure('Egasiga sof')).toHaveTextContent("−187 000,49 so'm")
+    expect(figure('ATMOS komissiyasi')).toHaveTextContent("−3 149,51 so'm")
     expect(within(panel).getByText('5 %')).toBeInTheDocument()
     expect(within(panel).getByText('Qaytarish oʻtmadi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Bronni ochish' })).toHaveAttribute(

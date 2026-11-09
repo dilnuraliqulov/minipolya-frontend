@@ -27,8 +27,12 @@ export interface AdminPayment {
   amount: number
   ownerAmount: number
   platformAmount: number
+  /** What the owner keeps after ATMOS; `ownerNet + platformNet + atmosFee = amount`. */
+  ownerNet: number
+  /** What the platform keeps after ATMOS: exactly the fee on a team payment. */
+  platformNet: number
   /** What ATMOS was expected to take (on old rows: what the card fee and rounding added). */
-  atmosFee?: number
+  atmosFee: number
   /** What ATMOS reports having taken; absent until it does. */
   providerCommission?: number
   /**
