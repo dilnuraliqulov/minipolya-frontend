@@ -557,6 +557,12 @@ Leaflet). The admin panel keeps Leaflet.
 - **Key:** `VITE_YANDEX_MAPS_API_KEY` (public, like every `VITE_` value). In the
   Yandex developer cabinet **restrict it by HTTP Referer to our domains** (the
   production Mini App domain, plus `localhost` for development).
+- **Save the daily limit (100 requests/day on the free key):** the stadium page and the
+  team game / accept screens show `map/LocationCard.tsx` — a static card (address,
+  district, Moʻljal, "Yandex/Google Mapsʼda ochish" via Telegram `openLink`) — and mount
+  the Yandex map only after "Xaritani koʻrsatish". Only the owner's pickers (wizard,
+  Maʼlumotlar) and the wizard's review load it directly. Team game screens read the
+  pitch from `location` on the game detail and the challenge board.
 - **Lazy:** the script loads only when a screen with a map opens. With no key, or
   if it fails to load, `YandexMap` falls back to Leaflet + OpenStreetMap, a lazy
   chunk that is not downloaded otherwise. Leaflet stays in the Mini App only as

@@ -264,7 +264,9 @@
     "landmark": "Moʻljal",
     "openYandex": "Yandex Mapsʼda ochish",
     "openGoogle": "Google Mapsʼda ochish",
-    "mapTapHint": "Surish uchun xaritaga bosing"
+    "mapTapHint": "Surish uchun xaritaga bosing",
+    "showMap": "Xaritani koʻrsatish",
+    "location": "Joylashuv"
   },
   "weekdays": {
     "short": {

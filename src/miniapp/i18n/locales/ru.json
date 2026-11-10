@@ -264,7 +264,9 @@
     "landmark": "Ориентир",
     "openYandex": "Открыть в Яндекс Картах",
     "openGoogle": "Открыть в Google Картах",
-    "mapTapHint": "Нажмите, чтобы двигать карту"
+    "mapTapHint": "Нажмите, чтобы двигать карту",
+    "showMap": "Показать карту",
+    "location": "Местоположение"
   },
   "weekdays": {
     "short": {

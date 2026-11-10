@@ -43,7 +43,8 @@ describe('Maydon — the stadium page', () => {
       await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Maydon' })).toBeInTheDocument()
-    expect(screen.getByText('Chilonzor tumani')).toBeInTheDocument()
+    // Under the name, and again in the location card.
+    expect(screen.getAllByText('Chilonzor tumani')).toHaveLength(2)
     expect(screen.getByText('7×7')).toBeInTheDocument()
     expect(screen.getByText('Sunʼiy gazon')).toBeInTheDocument()
     expect(screen.getByText('1/2')).toBeInTheDocument()
@@ -54,6 +55,9 @@ describe('Maydon — the stadium page', () => {
         .getAllByRole('listitem')
         .map((item) => item.textContent),
     ).toEqual(['Avtoturargoh', 'Kiyinish xonasi', 'Hojatxona', 'Yoritish (kechki oʻyin)'])
+    // The interactive map waits for a tap: the key has a small daily limit.
+    expect(screen.queryByTestId('map')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Xaritani koʻrsatish' }))
     expect(await screen.findByTestId('map')).toBeInTheDocument()
     expect(screen.getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
     expect(

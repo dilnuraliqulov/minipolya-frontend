@@ -1,13 +1,4 @@
-import {
-  ChevronRight,
-  ExternalLink,
-  Heart,
-  Info,
-  Landmark,
-  MapPinOff,
-  MessageSquare,
-  Star,
-} from 'lucide-react'
+import { ChevronRight, Heart, Info, MapPinOff, MessageSquare, Star } from 'lucide-react'
 import { tashkentToday } from '../../shared/format'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -29,17 +20,15 @@ import {
 import { formatMoney } from '../format'
 import { useProfileGate } from '../profile/useProfileGate'
 import { useGoBack } from '../lib/useGoBack'
-import { openExternalLink } from '../telegram'
 import { BookingChoiceSheet } from '../teams/BookingChoiceSheet'
 import { useLedTeams } from '../teams/queries'
 import { bookingDates, dayTitle, isInBookingWindow, slotLabel } from './dates'
 import { Gallery } from './Gallery'
 import { presentFacilities } from './facilities'
 import { formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
-import { googleMapsLink, mapLink, yandexMapsLink } from '../../shared/map'
 import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
 import { ReviewCard } from './ReviewCard'
-import { YandexMap } from '../map/YandexMap'
+import { LocationCard } from '../map/LocationCard'
 import { DateStrip, SlotList } from './SlotPicker'
 
 /** Maydon: photos, info, amenities, map, cancellation rule, reviews, favourite. */
@@ -268,56 +257,7 @@ function Amenities({ stadium }: { stadium: StadiumDetail }) {
 
 function Address({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
-  const { latitude, longitude } = stadium
-  const point = latitude !== undefined && longitude !== undefined ? { latitude, longitude } : null
-  return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-title font-bold text-primary">{t('stadium.address')}</h3>
-      {point && <YandexMap point={{ lat: point.latitude, lon: point.longitude }} />}
-      <div className="flex items-center gap-2">
-        <p className="min-w-0 flex-1 text-base text-primary">{stadium.address}</p>
-        {!point && (
-          <button
-            type="button"
-            onClick={() => openExternalLink(mapLink(stadium))}
-            className="flex min-h-11 shrink-0 items-center gap-1 text-base font-medium text-link"
-          >
-            {t('stadium.openMap')}
-            <ChevronRight size={14} aria-hidden />
-          </button>
-        )}
-      </div>
-      {stadium.landmark && (
-        <p className="flex gap-2 text-sm text-secondary">
-          <Landmark size={16} className="mt-0.5 shrink-0 text-link" aria-hidden />
-          <span>
-            <span className="font-medium text-primary">{t('stadium.landmark')}:</span>{' '}
-            {stadium.landmark}
-          </span>
-        </p>
-      )}
-      {point && (
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="secondary"
-            size="compact"
-            icon={ExternalLink}
-            onClick={() => openExternalLink(yandexMapsLink(point.latitude, point.longitude))}
-          >
-            {t('stadium.openYandex')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="compact"
-            icon={ExternalLink}
-            onClick={() => openExternalLink(googleMapsLink(point.latitude, point.longitude))}
-          >
-            {t('stadium.openGoogle')}
-          </Button>
-        </div>
-      )}
-    </section>
-  )
+  return <LocationCard title={t('stadium.address')} location={stadium} />
 }
 
 const PREVIEW_COUNT = 2

@@ -264,7 +264,9 @@
     "landmark": "Landmark",
     "openYandex": "Open in Yandex Maps",
     "openGoogle": "Open in Google Maps",
-    "mapTapHint": "Tap to move the map"
+    "mapTapHint": "Tap to move the map",
+    "showMap": "Show map",
+    "location": "Location"
   },
   "weekdays": {
     "short": {

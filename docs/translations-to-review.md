@@ -955,3 +955,5 @@ Placeholders such as `{{count}}` must stay as they are.
 | `owner.mark.paid` | Toʻlandi | Оплачено | Paid |
 | `about.yandexTerms` | Yandex Xaritalar foydalanish shartlari | Условия использования Яндекс Карт | Yandex Maps terms of use |
 | `stadium.mapTapHint` | Surish uchun xaritaga bosing | Нажмите, чтобы двигать карту | Tap to move the map |
+| `stadium.showMap` | Xaritani koʻrsatish | Показать карту | Show map |
+| `stadium.location` | Joylashuv | Местоположение | Location |

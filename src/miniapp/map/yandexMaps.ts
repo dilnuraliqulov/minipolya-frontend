@@ -163,8 +163,10 @@ export function createYandexMap(
 
   let destroyed = false
   // Not fatal if it is missing: the screens also have their own link to Yandex Maps.
+  // The package's current name, then the older one the Russian docs still show.
   api
-    .import('@yandex/controls-extra')
+    .import('@yandex/ymaps3-controls-extra')
+    .catch(() => api.import('@yandex/controls-extra'))
     .then((extra) => {
       const Button = extra.YMapOpenMapsButton
       if (destroyed || !Button) return
