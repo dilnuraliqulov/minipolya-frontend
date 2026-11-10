@@ -45,6 +45,7 @@ import { useGoBack } from '../lib/useGoBack'
 import { formatLabel } from '../stadiums/labels'
 import { markJoinPending, usePendingJoins } from './pendingJoins'
 import { useChallenges, useLedTeams } from './queries'
+import { LocationCard } from '../map/LocationCard'
 import { TeamAvatar } from './TeamAvatar'
 import { chosenAmount, chosenOption, quoteChoice } from './teamQuote'
 import { TeamPaymentChoice } from './TeamPaymentChoice'
@@ -321,12 +322,18 @@ function AcceptForm({
           <MapPin size={18} className="shrink-0 text-link" aria-hidden />
           {`${challenge.stadiumName} · ${formatLabel(challenge.format)}`}
         </p>
-        <p className="pl-8 text-sm text-secondary">{challenge.stadiumAddress}</p>
+        {!challenge.location && (
+          <p className="pl-8 text-sm text-secondary">{challenge.stadiumAddress}</p>
+        )}
         <p className="flex items-center gap-3 text-base text-primary">
           <CalendarDays size={18} className="shrink-0 text-link" aria-hidden />
           {bookingWhen(challenge)}
         </p>
       </Card>
+
+      {challenge.location && (
+        <LocationCard title={t('stadium.location')} location={challenge.location} showStadium />
+      )}
 
       <TeamPaymentChoice
         quote={quote.data}

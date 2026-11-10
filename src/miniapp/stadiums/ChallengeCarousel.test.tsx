@@ -65,6 +65,7 @@ describe('Bosh sahifa — Raqib qidirayotgan jamoalar (E11)', () => {
     const section = (await carousel()).closest('section')!
     const card = within(section).getByRole('link', { name: /Bunyodkor Arena/ })
     expect(card).toHaveTextContent('Yunusobod United')
+    expect(card).toHaveTextContent('Chilonzor tumani')
     expect(card).toHaveTextContent('Jamoangiz toʻlaydi: 155 000 soʻm')
     expect(card).toHaveTextContent(/Juma, 6-noyabr · 20:00/)
     expect(card).toHaveTextContent('vs')

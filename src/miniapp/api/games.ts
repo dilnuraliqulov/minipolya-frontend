@@ -97,6 +97,24 @@ export interface GameDetail extends Game {
    */
   joinPending?: boolean
   participants?: GameParticipant[]
+  /** Where the game is played: the same for everyone who can open it. */
+  location?: GameLocation
+}
+
+/** `StadiumLocationResponse` — where a game is played (game detail, challenge board). */
+export interface GameLocation {
+  id: string
+  name: string
+  address: string
+  /** One of the 12 Tashkent districts; absent for older stadiums. */
+  district?: string
+  /** Moʻljal; absent when none. */
+  landmark?: string
+  latitude?: number
+  longitude?: number
+  /** `/api/uploads/...`; absent when the stadium has no photo. */
+  coverPhotoUrl?: string
+  format?: string
 }
 
 /** `GameChallengeResponse` — a waiting team game on the challenge board. */
@@ -127,6 +145,8 @@ export interface Challenge {
   remainderAmount: number
   /** Tiyin, T8: what the joining team pays in full (nothing left afterwards). */
   fullAmount?: number
+  /** Where the game is played. */
+  location?: GameLocation
 }
 
 /** One choice of a team-game quote (T7), player amounts. */

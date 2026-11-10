@@ -327,3 +327,39 @@ describe('Raqibni qabul qilish', () => {
     expect(await screen.findByText('Yunusobod United')).toBeInTheDocument()
   })
 })
+
+describe('Raqibni qabul qilish — Joylashuv', () => {
+  it('shows where the game is before accepting', async () => {
+    stub({
+      'GET /api/games/challenges': page([
+        {
+          ...challenge,
+          stadiumDistrict: 'Yunusobod',
+          location: {
+            id: 's1',
+            name: 'Yunusobod Sport Park',
+            address: 'Amir Temur 1',
+            district: 'Yunusobod',
+            landmark: 'Bozor oldida',
+            latitude: 41.36,
+            longitude: 69.29,
+            format: '5x5',
+          },
+        },
+      ]),
+    })
+    renderApp(URL)
+    const section = await screen.findByRole('region', { name: 'Joylashuv' })
+    expect(within(section).getByText('Amir Temur 1')).toBeInTheDocument()
+    expect(within(section).getByText('Yunusobod tumani')).toBeInTheDocument()
+    expect(within(section).getByText('Bozor oldida')).toBeInTheDocument()
+    expect(within(section).getByRole('link', { name: /Yunusobod Sport Park/ })).toHaveAttribute(
+      'href',
+      '/stadiums/s1',
+    )
+    expect(within(section).getByRole('button', { name: 'Xaritani koʻrsatish' })).toBeInTheDocument()
+    expect(
+      within(section).getByRole('button', { name: 'Google Mapsʼda ochish' }),
+    ).toBeInTheDocument()
+  })
+})

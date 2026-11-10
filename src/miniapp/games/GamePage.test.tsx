@@ -4,7 +4,11 @@ import type { GameDetail, GameTeam } from '../api/games'
 import type { TeamDetail } from '../api/teams'
 import { jsonResponse, stubApi } from '../test/api'
 import { makeCard } from '../test/bookings'
+import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
+
+// Leaflet (the fallback without a Yandex key, as in tests) needs a real layout.
+vi.mock('../stadiums/StadiumMap', () => ({ StadiumMap: () => <div data-testid="map" /> }))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -403,5 +407,76 @@ describe('Oʻyin — a team game', () => {
     fail = false
     fireEvent.click(retry)
     expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
+  })
+})
+
+describe('Oʻyin — Joylashuv: where the game is played, for everyone in every state', () => {
+  const location = {
+    id: 's1',
+    name: 'Bunyodkor Arena',
+    address: 'Bunyodkor koʻchasi 12',
+    district: 'Chilonzor',
+    landmark: 'Metro yonida',
+    latitude: 41.28,
+    longitude: 69.2,
+    coverPhotoUrl: '/api/uploads/stadiums/s1/cover.jpg',
+    format: '7x7',
+  }
+  const member = (side: 'a' | 'b') => ({
+    id: 'p1',
+    gameId: 'g1',
+    userId: ME,
+    side,
+    status: 'paid',
+    joinedAt: '2026-11-01T10:00:00Z',
+  })
+  const cases: [string, GameDetail][] = [
+    ['the creating captain while waiting', { ...confirmed, status: 'open', teams: [teamA] }],
+    [
+      'a member of the creating team while waiting',
+      {
+        ...confirmed,
+        status: 'open',
+        creatorId: RIVAL,
+        teams: [{ ...teamA, leaderId: 'x' }],
+        participants: [member('a')],
+      },
+    ],
+    [
+      'while the opponent is joining',
+      { ...confirmed, status: 'open', teams: [teamA], joinPending: true },
+    ],
+    ['the other captain once confirmed', { ...confirmed, creatorId: RIVAL }],
+    ['a cancelled game', { ...confirmed, status: 'cancelled', teams: [] }],
+    ['a completed game', { ...confirmed, status: 'completed' }],
+  ]
+
+  it.each(cases)('%s', async (_name, game) => {
+    const { webApp } = installFakeTelegram()
+    stub({ ...game, location })
+    renderApp('/games/g1')
+    const section = await screen.findByRole('region', { name: 'Joylashuv' })
+    expect(within(section).getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
+    expect(within(section).getByText('Chilonzor tumani')).toBeInTheDocument()
+    expect(within(section).getByText('Metro yonida')).toBeInTheDocument()
+    expect(within(section).getByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
+      'href',
+      '/stadiums/s1',
+    )
+    fireEvent.click(within(section).getByRole('button', { name: 'Yandex Mapsʼda ochish' }))
+    expect(webApp.openLink).toHaveBeenCalledWith('https://yandex.uz/maps/?pt=69.2,41.28&z=17&l=map')
+    // The interactive map only on request.
+    expect(within(section).queryByTestId('map')).toBeNull()
+    fireEvent.click(within(section).getByRole('button', { name: 'Xaritani koʻrsatish' }))
+    expect(await within(section).findByTestId('map')).toBeInTheDocument()
+    removeFakeTelegram()
+  })
+
+  it('without coordinates offers the address on a map link instead', async () => {
+    stub({ ...confirmed, location: { ...location, latitude: undefined, longitude: undefined } })
+    renderApp('/games/g1')
+    const section = await screen.findByRole('region', { name: 'Joylashuv' })
+    expect(within(section).queryByRole('button', { name: 'Xaritani koʻrsatish' })).toBeNull()
+    expect(within(section).getByRole('button', { name: /Xaritada ochish/ })).toBeInTheDocument()
   })
 })

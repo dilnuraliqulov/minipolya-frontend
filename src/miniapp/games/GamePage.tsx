@@ -43,6 +43,7 @@ import {
 } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
+import { LocationCard } from '../map/LocationCard'
 import { TeamAvatar } from '../teams/TeamAvatar'
 import { useTeam } from '../teams/queries'
 import { useGame } from './queries'
@@ -130,13 +131,17 @@ function GameContent({ game }: { game: GameDetail }) {
           <CalendarDays size={18} className="shrink-0 text-link" aria-hidden />
           {bookingWhen(game)}
         </p>
-        {game.stadiumName && (
+        {game.stadiumName && !game.location && (
           <p className="flex items-center gap-3 text-base text-primary">
             <MapPin size={18} className="shrink-0 text-link" aria-hidden />
             {game.stadiumName}
           </p>
         )}
       </Card>
+
+      {game.location && (
+        <LocationCard title={t('stadium.location')} location={game.location} showStadium />
+      )}
 
       {joining && (
         <div

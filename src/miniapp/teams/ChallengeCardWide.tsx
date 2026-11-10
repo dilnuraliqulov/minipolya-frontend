@@ -20,6 +20,7 @@ export function ChallengeCardWide({
 }) {
   const { t } = useTranslation()
   const team = challenge.waitingTeamName ?? t('team.anonymous')
+  const district = challenge.location?.district ?? challenge.stadiumDistrict
   const to = `/challenges/${challenge.gameId}${acceptAs ? `?team=${acceptAs}` : ''}`
   return (
     <Link
@@ -42,7 +43,16 @@ export function ChallengeCardWide({
           </span>
         </span>
       </span>
-      <span className="truncate text-base font-semibold text-primary">{challenge.stadiumName}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-base font-semibold text-primary">
+          {challenge.stadiumName}
+        </span>
+        {district && (
+          <span className="truncate text-sm text-secondary">
+            {t('stadium.districtName', { district })}
+          </span>
+        )}
+      </span>
       <span className="flex">
         <span className="flex min-w-0 items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-primary">
           <CalendarDays size={14} className="shrink-0 text-secondary" aria-hidden />

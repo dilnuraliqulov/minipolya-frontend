@@ -62,6 +62,7 @@ export function ChallengeBoard({
 function ChallengeCard({ challenge, acceptAs }: { challenge: Challenge; acceptAs?: string }) {
   const { t } = useTranslation()
   const name = challenge.waitingTeamName ?? t('team.anonymous')
+  const district = challenge.location?.district ?? challenge.stadiumDistrict
   return (
     <Card className="flex flex-col gap-3 p-4">
       <div className="flex items-center gap-3">
@@ -72,6 +73,9 @@ function ChallengeCard({ challenge, acceptAs }: { challenge: Challenge; acceptAs
         <MapPin size={16} className="shrink-0 text-link" aria-hidden />
         {`${challenge.stadiumName} · ${formatLabel(challenge.format)}`}
       </p>
+      {district && (
+        <p className="pl-6 text-sm text-secondary">{t('stadium.districtName', { district })}</p>
+      )}
       <p className="flex items-center gap-2 text-sm text-secondary">
         <CalendarDays size={16} className="shrink-0 text-link" aria-hidden />
         {bookingWhen(challenge)}
