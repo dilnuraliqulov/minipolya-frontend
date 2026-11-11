@@ -1,11 +1,19 @@
+import { mediaUrl } from '../../shared/api'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { tashkentToUtc } from '../../shared/format'
-import { BOOKINGS_KEY, createBooking, type Booking, type PaymentOption } from '../api/bookings'
+import { tashkentToUtc, tashkentToday } from '../../shared/format'
+import {
+  BOOKINGS_KEY,
+  createBooking,
+  payBooking,
+  type Booking,
+  type PaymentOption,
+} from '../api/bookings'
 import type { SavedCard } from '../api/cards'
+import { declineMessageKey, errorTone } from '../api/errors'
 import { getAvailability, type StadiumDetail, type TimeSlot } from '../api/stadiums'
 import { AddCardSheet } from '../cards/AddCardSheet'
 import { CardRow } from '../cards/CardRow'
@@ -20,12 +28,13 @@ import {
   Screen,
   SkeletonList,
   StateView,
+  Notice,
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { usePayment } from '../payment/usePayment'
-import { dayTitle, slotLabel, tashkentToday } from '../stadiums/dates'
+import { dayTitle, slotLabel } from '../stadiums/dates'
 import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { parseCheckoutParams, type CheckoutParams } from './checkoutParams'
@@ -167,16 +176,24 @@ function CheckoutForm({
   const goBack = useGoBack()
   const payment = usePayment()
   const { state } = payment
-  const deposit =
-    stadium.minBookingAmount !== undefined && stadium.minBookingAmount < price
-      ? stadium.minBookingAmount
-      : undefined
+  // E3/E12: the deposit and the rest come with the slot; the client never works them out.
+  const deposit = slot.depositAmount
   const [option, setOption] = useState<PaymentOption>(deposit !== undefined ? 'MINIMUM' : 'FULL')
   const [cardId, setCardId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const card = cards.find((c) => c.id === cardId) ?? cards[0]
   const amount = option === 'MINIMUM' && deposit !== undefined ? deposit : price
   const paying = state.kind === 'paying'
+  // R28: once a payment is declined the booking exists, pending, with its hold;
+  // every further attempt pays that booking (same amount, server-side) instead of
+  // creating another. Its hold is never extended.
+  const [held, setHeld] = useState<Booking | null>(null)
+  if (state.kind === 'declined' && state.booking !== held) setHeld(state.booking)
+  // The card the last attempt was refused on, outlined; "Boshqa karta" unlocks the list.
+  const [triedCardId, setTriedCardId] = useState<string | null>(null)
+  const [choosing, setChoosing] = useState(false)
+  const hold = useCountdown(held?.expiresAt)
+  const holdOver = (held !== null && hold.expired && !paying) || state.kind === 'holdExpired'
 
   useEffect(() => {
     // The hold (or the unsettled payment) now occupies the hour: drop the cached
@@ -196,6 +213,15 @@ function CheckoutForm({
 
   const pay = () => {
     if (!card) return
+    setTriedCardId(card.id)
+    setChoosing(false)
+    if (held) {
+      void payment.pay(() => payBooking(held.id, card.id), {
+        paymentType: 'booking',
+        booking: held,
+      })
+      return
+    }
     void payment.pay(
       () =>
         createBooking({
@@ -206,6 +232,13 @@ function CheckoutForm({
         }),
       { paymentType: 'booking' },
     )
+  }
+
+  const backToSlots = () => {
+    void queryClient.invalidateQueries({
+      queryKey: availabilityKey(params.stadiumId, params.date),
+    })
+    navigate(`/stadiums/${params.stadiumId}?date=${params.date}`, { replace: true })
   }
 
   const header = (
@@ -226,17 +259,26 @@ function CheckoutForm({
           title={t('checkout.slotTakenTitle')}
           description={t('checkout.slotTakenText')}
           actionLabel={t('checkout.chooseOther')}
-          onAction={() => {
-            void queryClient.invalidateQueries({
-              queryKey: availabilityKey(params.stadiumId, params.date),
-            })
-            navigate(`/stadiums/${params.stadiumId}?date=${params.date}`, { replace: true })
-          }}
+          onAction={backToSlots}
         >
           <Link to="/games" className="flex min-h-11 items-center text-md font-semibold text-link">
             {t('checkout.myBookings')}
           </Link>
         </StateView>
+      </Screen>
+    )
+  }
+  if (holdOver) {
+    return (
+      <Screen header={header}>
+        <StateView
+          icon={Clock}
+          tone="danger"
+          title={t('checkout.holdExpired')}
+          description={t('checkout.holdExpiredText')}
+          actionLabel={t('checkout.chooseAgain')}
+          onAction={backToSlots}
+        />
       </Screen>
     )
   }
@@ -259,10 +301,34 @@ function CheckoutForm({
   }
 
   const declined = state.kind === 'declined' ? state.booking : null
+  // The list and "Karta qoʻshish" are locked while paying, and after a decline
+  // until the player asks for another card.
+  const locked = paying || (declined !== null && !choosing)
+  const holdLine = held?.expiresAt && (
+    <p className="flex items-center justify-center gap-2 text-sm text-secondary">
+      <Clock size={16} aria-hidden />
+      {t('checkout.hold', { time: hold.label })}
+    </p>
+  )
   const footer = (
     <BottomBar>
-      {declined ? (
-        <DeclinedActions booking={declined} />
+      {declined && !choosing ? (
+        <>
+          {holdLine}
+          <Button haptic onClick={pay}>
+            {t('checkout.retry')}
+          </Button>
+          <Button variant="secondary" onClick={() => setChoosing(true)}>
+            {t('checkout.otherCard')}
+          </Button>
+        </>
+      ) : declined && choosing ? (
+        <>
+          {holdLine}
+          <Button haptic disabled={!card} onClick={pay}>
+            {t('checkout.pay', { amount: formatMoney(amount) })}
+          </Button>
+        </>
       ) : state.kind === 'failed' ? (
         <>
           <Button haptic onClick={pay}>
@@ -295,15 +361,9 @@ function CheckoutForm({
           onChange={setOption}
           price={price}
           deposit={deposit}
-          disabled={paying || declined !== null}
+          remainder={slot.remainderAmount}
+          disabled={paying || held !== null}
         />
-        <p className="px-1 text-sm text-secondary">
-          {deposit === undefined
-            ? t('checkout.fullOnly')
-            : option === 'MINIMUM'
-              ? t('checkout.remainderNote')
-              : null}
-        </p>
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="pay-card">
@@ -317,20 +377,15 @@ function CheckoutForm({
                 key={c.id}
                 card={c}
                 selected={c.id === card?.id}
-                invalid={declined !== null && c.id === card?.id}
+                invalid={declined !== null && c.id === triedCardId}
                 onSelect={() => {
-                  if (!paying && declined === null) setCardId(c.id)
+                  if (!locked) setCardId(c.id)
                 }}
               />
             ))}
           </div>
         )}
-        <Button
-          variant="ghost"
-          icon={Plus}
-          disabled={paying || declined !== null}
-          onClick={() => setAdding(true)}
-        >
+        <Button variant="ghost" icon={Plus} disabled={locked} onClick={() => setAdding(true)}>
           {t('cards.add')}
         </Button>
         {cards.length === 0 && (
@@ -341,23 +396,20 @@ function CheckoutForm({
       {declined && (
         <div
           role="alert"
-          className="flex gap-3 rounded-xl border border-danger bg-danger-soft p-3 text-danger"
+          className="flex gap-3 rounded-xl border border-danger-text bg-danger-soft p-3 text-danger-text"
         >
           <CircleAlert size={20} className="mt-0.5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1">
             <p className="text-md font-semibold">{t('checkout.declinedTitle')}</p>
-            <p className="text-sm">{t('checkout.declinedText')}</p>
+            <p className="text-sm">
+              {t(declineMessageKey(state.kind === 'declined' ? state.reason : undefined))}
+            </p>
+            {choosing && <p className="text-sm">{t('checkout.chooseCard')}</p>}
           </div>
         </div>
       )}
       {state.kind === 'failed' && (
-        <div
-          role="alert"
-          className="flex gap-3 rounded-xl border border-danger bg-danger-soft p-3 text-danger"
-        >
-          <CircleAlert size={20} className="mt-0.5 shrink-0" aria-hidden />
-          <p className="text-sm">{t(state.errorKey)}</p>
-        </div>
+        <Notice tone={errorTone(state.errorKey)}>{t(state.errorKey)}</Notice>
       )}
 
       <Card className="flex gap-3 p-3">
@@ -409,7 +461,7 @@ function Summary({
         <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-surface">
           {photo && (
             <img
-              src={photo.url}
+              src={mediaUrl(photo.url)}
               alt=""
               width={56}
               height={56}
@@ -438,26 +490,5 @@ function Summary({
         </div>
       </dl>
     </Card>
-  )
-}
-
-/** After a decline: the hold countdown; retrying waits for R28 (POST /api/bookings/{id}/pay). */
-function DeclinedActions({ booking }: { booking: Booking }) {
-  const { t } = useTranslation()
-  const hold = useCountdown(booking.expiresAt)
-  return (
-    <>
-      {booking.expiresAt && (
-        <p className="flex items-center justify-center gap-2 text-sm text-secondary">
-          <Clock size={16} aria-hidden />
-          {hold.expired ? t('checkout.holdExpired') : t('checkout.hold', { time: hold.label })}
-        </p>
-      )}
-      <Button disabled>{t('checkout.retry')}</Button>
-      <Button variant="secondary" disabled>
-        {t('checkout.otherCard')}
-      </Button>
-      <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
-    </>
   )
 }

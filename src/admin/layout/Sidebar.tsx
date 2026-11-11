@@ -13,7 +13,7 @@ import { MENU, type MenuBadge } from './menu'
 const BADGES: Record<MenuBadge, { className: string; label: (count: string) => string }> = {
   pendingStadiums: { className: 'bg-accent', label: (count) => `${count} ta kutilmoqda` },
   failedRefunds: {
-    className: 'bg-danger',
+    className: 'bg-danger-fill',
     label: (count) => `${count} ta muvaffaqiyatsiz qaytarish`,
   },
 }
@@ -82,7 +82,10 @@ export function Sidebar({ user }: { user: User }) {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  cx(row, isActive ? 'bg-accent-soft text-accent' : 'text-primary hover:bg-hover')
+                  cx(
+                    row,
+                    isActive ? 'bg-accent-soft text-link-text' : 'text-primary hover:bg-hover',
+                  )
                 }
               >
                 {({ isActive }) => (
@@ -90,7 +93,7 @@ export function Sidebar({ user }: { user: User }) {
                     <item.icon
                       size={18}
                       aria-hidden
-                      className={isActive ? 'text-accent' : 'text-secondary'}
+                      className={isActive ? 'text-link' : 'text-secondary'}
                     />
                     <span className="flex-1">{item.label}</span>
                     {badge && count > 0 && (

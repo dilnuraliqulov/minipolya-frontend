@@ -1,14 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Phone, Plus, Swords } from 'lucide-react'
+import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { formatTime, tashkentToUtc } from '../../shared/format'
+import {
+  formatTime,
+  somInputToTiyin,
+  tashkentToUtc,
+  tashkentToday,
+  tiyinToSomInput,
+} from '../../shared/format'
+import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
+import type { GameDetail, GameTeam } from '../api/games'
 import { errorMessage } from '../api/errors'
-import { isAvailable } from '../api/missing'
 import {
   createManualBooking,
-  OWNER_BOOKING_CASH,
+  getWalkInPrice,
   ownerCancelBooking,
   scheduleKey,
   statsKey,
@@ -20,6 +27,7 @@ import {
   BottomSheet,
   Button,
   Card,
+  Chip,
   cx,
   ErrorState,
   Input,
@@ -29,9 +37,22 @@ import {
 import { formatMoney } from '../format'
 import { DateStrip } from '../stadiums/SlotPicker'
 import { availabilityKey } from '../stadiums/queries'
-import { slotLabel, tashkentToday } from '../stadiums/dates'
+import { slotLabel } from '../stadiums/dates'
+import { DiscountSheet } from './DiscountSheet'
+import { GameTeamsMoney } from './GameCash'
+import { bookingWho } from './bookingWho'
 import { OwnerTabScreen } from './OwnerTabScreen'
+import { useGameTeamMarks, useRemainderMarks, type MarkKind } from './marks'
+import {
+  MarkButtons,
+  MarkConfirmSheet,
+  MarkedState,
+  RemainderChip,
+  TeamMarkConfirmSheet,
+  WalkInChips,
+} from './RemainderMark'
 import { useSchedule } from './queries'
+import { formatPhoneInput, isCompletePhone, toWirePhone } from '../profile/phone'
 import { SelectField } from './SelectField'
 import { WithOwnerStadium } from './StadiumPicker'
 
@@ -64,6 +85,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
   })
   const [open, setOpen] = useState<Booking | null>(null)
   const [walkIn, setWalkIn] = useState<string | null>(null)
+  const [discount, setDiscount] = useState<TimeSlot | null>(null)
   const day = schedule.data?.[0]
   const bookings = day?.bookings ?? []
   const atHour = (slot: TimeSlot) =>
@@ -111,7 +133,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
           {(day?.waitingGames ?? []).map((game) => (
             <li
               key={game.gameId}
-              className="flex items-center gap-3 rounded-xl bg-warning-soft p-3 text-sm text-warning"
+              className="flex items-center gap-3 rounded-xl bg-warning-soft p-3 text-sm text-warning-text"
             >
               <Swords size={18} aria-hidden />
               {`${formatTime(game.startsAt)}–${formatTime(game.endsAt)} · ${t(
@@ -134,6 +156,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
                         slot={slot}
                         waiting={waitingAt.has(slot.startTime.slice(0, 5))}
                         onWalkIn={() => setWalkIn(slot.startTime.slice(0, 5))}
+                        onDiscount={() => setDiscount(slot)}
                       />
                     )}
                   </li>
@@ -158,6 +181,14 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
           onClose={() => setOpen(null)}
         />
       )}
+      {discount && (
+        <DiscountSheet
+          stadiumId={stadium.id}
+          date={date}
+          slot={discount}
+          onClose={() => setDiscount(null)}
+        />
+      )}
       {walkIn !== null && (
         <WalkInSheet
           stadium={stadium}
@@ -174,7 +205,7 @@ function Schedule({ stadium }: { stadium: OwnerStadium }) {
 
 function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void }) {
   const { t } = useTranslation()
-  const who = booking.clientName ?? t('owner.booking.player')
+  const who = bookingWho(booking, t)
   return (
     <button
       type="button"
@@ -186,11 +217,24 @@ function BookingRow({ booking, onOpen }: { booking: Booking; onOpen: () => void 
       </span>
       <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
         <span className="w-full truncate text-base font-medium text-primary">{who}</span>
-        <BookingStatusBadge status={booking.status} />
+        <span className="flex flex-wrap items-center gap-1.5">
+          <BookingStatusBadge status={booking.status} />
+          {booking.isWalkin ? (
+            <WalkInChips booking={booking} />
+          ) : (
+            <RemainderChip booking={booking} />
+          )}
+        </span>
       </span>
-      <span className="text-sm font-semibold text-primary">
-        {formatMoney(booking.ownerPrice ?? booking.price)}
-      </span>
+      {/* The owner's own price, labelled: `price` (the player's) is only in the sheet. */}
+      {booking.ownerPrice !== undefined && (
+        <span className="flex shrink-0 flex-col items-end">
+          <span className="text-xs text-secondary">{t('owner.booking.price')}</span>
+          <span className="text-sm font-semibold text-primary">
+            {formatMoney(booking.ownerPrice)}
+          </span>
+        </span>
+      )}
     </button>
   )
 }
@@ -199,10 +243,12 @@ function SlotRow({
   slot,
   waiting,
   onWalkIn,
+  onDiscount,
 }: {
   slot: TimeSlot
   waiting: boolean
   onWalkIn: () => void
+  onDiscount: () => void
 }) {
   const { t } = useTranslation()
   const free = slot.status === 'free'
@@ -212,22 +258,41 @@ function SlotRow({
       : slot.status === 'past'
         ? t('owner.schedule.past')
         : t('owner.schedule.free')
+  const time = slot.startTime.slice(0, 5)
   return (
-    <button
-      type="button"
-      disabled={!free}
-      onClick={onWalkIn}
+    <div
       className={cx(
-        'flex min-h-12 w-full items-center gap-3 rounded-xl border border-dashed border-border px-3 text-left',
-        !free && 'opacity-55',
+        'flex min-h-12 w-full items-center rounded-xl border border-dashed border-border',
+        // Closed / past: a surface fill, not faded text — the label must stay readable.
+        !free && 'bg-surface',
       )}
     >
-      <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
-      <span className="flex-1 text-sm text-secondary">
-        {waiting && free ? t('owner.schedule.waitingShort') : label}
-      </span>
-      {free && <Plus size={18} className="text-link" aria-hidden />}
-    </button>
+      <button
+        type="button"
+        disabled={!free}
+        onClick={onWalkIn}
+        className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-3 text-left"
+      >
+        <span className="w-24 shrink-0 text-sm text-secondary">{slotLabel(slot)}</span>
+        <span className="flex-1 text-sm text-secondary">
+          {waiting && free ? t('owner.schedule.waitingShort') : label}
+        </span>
+        {slot.discountPercent !== undefined && free && (
+          <span className="text-xs font-semibold text-link">-{slot.discountPercent}%</span>
+        )}
+        {free && <Plus size={18} className="text-link" aria-hidden />}
+      </button>
+      {free && (
+        <button
+          type="button"
+          onClick={onDiscount}
+          aria-label={t('owner.discount.open', { time })}
+          className="flex size-12 shrink-0 items-center justify-center border-l border-dashed border-border text-link"
+        >
+          <Percent size={18} aria-hidden />
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -246,6 +311,34 @@ function OwnerBookingSheet({
   const toast = useToast()
   const queryClient = useQueryClient()
   const [confirming, setConfirming] = useState(false)
+  // E5–E8: "Naqd olindi" / "Toʻlanmadi" on the booking's remainder and their undo. The
+  // sheet shows the booking it was opened with, so it closes after each; the refreshed
+  // schedule shows the new state.
+  const [marking, setMarking] = useState<MarkKind | null>(null)
+  const marks = useRemainderMarks(stadium.id)
+  const markPending = marks.cash.isPending || marks.notPaid.isPending || marks.undo.isPending
+  const confirmMark = () => {
+    const mutation = marking === 'cash' ? marks.cash : marks.notPaid
+    mutation.mutate(booking.id, {
+      onSuccess: onClose,
+      onSettled: () => setMarking(null),
+    })
+  }
+  // T10: a team game's teams carry their own marks; the sheet stays open on the
+  // refreshed game after each.
+  const [teamMarking, setTeamMarking] = useState<{
+    kind: MarkKind
+    team: GameTeam
+    game: GameDetail
+  } | null>(null)
+  const teamMarks = useGameTeamMarks(stadium.id, booking.gameId ?? '')
+  const teamPending =
+    teamMarks.cash.isPending || teamMarks.notPaid.isPending || teamMarks.undo.isPending
+  const confirmTeamMark = () => {
+    if (!teamMarking) return
+    const mutation = teamMarking.kind === 'cash' ? teamMarks.cash : teamMarks.notPaid
+    mutation.mutate(teamMarking.team.side, { onSettled: () => setTeamMarking(null) })
+  }
   const cancel = useMutation({
     mutationFn: () => ownerCancelBooking(booking.id),
     onSuccess: () => {
@@ -259,22 +352,63 @@ function OwnerBookingSheet({
       void queryClient.invalidateQueries({ queryKey: statsKey(stadium.id) })
     },
   })
-  const rows: Array<[string, number | undefined]> = [
-    [t('owner.booking.price'), booking.ownerPrice ?? booking.price],
-    ...(booking.ownerPrice !== undefined && booking.ownerPrice !== booking.price
-      ? ([[t('owner.booking.playerPays'), booking.price]] as Array<[string, number]>)
-      : []),
-    [t('owner.booking.paidInApp'), booking.paidInApp],
-    [t('owner.booking.remaining'), booking.remainingAmount],
-    [t('owner.booking.receives'), booking.ownerReceives],
+  // Every amount under its own label, in one fixed order; a row is hidden only when the
+  // API leaves its field out. The cash row is what the owner collects, player-side.
+  const cashReceived = remainderState(booking) === 'cashReceived'
+  // A team game's money sits on its teams, not on the booking (the booking's own
+  // paidInApp / paidInCash / ownerReceives stay 0): only the prices are shown here,
+  // and each team's paid, owed and mark come live from the game below.
+  const isGame = Boolean(booking.gameId)
+  const rows: Array<{ key: string; label: string; value: number | undefined }> = [
+    { key: 'ownerPrice', label: t('owner.booking.price'), value: booking.ownerPrice },
+    { key: 'price', label: t('owner.booking.playerPays'), value: booking.price },
+    ...(isGame
+      ? []
+      : [
+          { key: 'paidInApp', label: t('owner.booking.paidInApp'), value: booking.paidInApp },
+          cashReceived
+            ? { key: 'cash', label: t('owner.booking.cashReceived'), value: booking.paidInCash }
+            : { key: 'cash', label: t('owner.booking.cashDue'), value: booking.remainingAmount },
+          {
+            key: 'ownerReceives',
+            label: t('owner.booking.receives'),
+            value: booking.ownerReceives,
+          },
+        ]),
   ]
+  if (teamMarking) {
+    return (
+      <TeamMarkConfirmSheet
+        kind={teamMarking.kind}
+        team={teamMarking.team}
+        startsAt={teamMarking.game.startsAt}
+        endsAt={teamMarking.game.endsAt}
+        stadiumName={stadium.name}
+        pending={teamMarks.cash.isPending || teamMarks.notPaid.isPending}
+        onConfirm={confirmTeamMark}
+        onClose={() => setTeamMarking(null)}
+      />
+    )
+  }
+  if (marking) {
+    return (
+      <MarkConfirmSheet
+        kind={marking}
+        booking={booking}
+        stadiumName={stadium.name}
+        pending={marks.cash.isPending || marks.notPaid.isPending}
+        onConfirm={confirmMark}
+        onClose={() => setMarking(null)}
+      />
+    )
+  }
   return (
     <BottomSheet
       open
       title={confirming ? t('owner.booking.cancelTitle') : t('owner.booking.title')}
       subtitle={confirming ? t('owner.booking.cancelText') : undefined}
       onClose={() => {
-        if (!cancel.isPending) onClose()
+        if (!cancel.isPending && !markPending && !teamPending) onClose()
       }}
       actions={
         confirming ? (
@@ -297,9 +431,7 @@ function OwnerBookingSheet({
         <>
           <Card className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-md font-semibold text-primary">
-                {booking.clientName ?? t('owner.booking.player')}
-              </span>
+              <span className="text-md font-semibold text-primary">{bookingWho(booking, t)}</span>
               <BookingStatusBadge status={booking.status} />
             </div>
             <span className="text-sm text-secondary">
@@ -318,24 +450,32 @@ function OwnerBookingSheet({
           </Card>
           <dl className="flex flex-col gap-2 text-base">
             {rows
-              .filter(([, value]) => value !== undefined)
-              .map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-3">
+              .filter((row) => row.value !== undefined)
+              .map(({ key, label, value }) => (
+                <div key={key} className="flex items-center justify-between gap-3">
                   <dt className="text-secondary">{label}</dt>
-                  <dd className="text-primary">{formatMoney(value ?? 0)}</dd>
+                  <dd className="flex items-center gap-2 text-primary">
+                    {key === 'cash' && <RemainderChip booking={booking} besideAmount />}
+                    {formatMoney(value ?? 0)}
+                  </dd>
                 </div>
               ))}
           </dl>
-          {booking.remainingAmount > 0 && (
-            <>
-              <Button variant="secondary" disabled={!isAvailable(OWNER_BOOKING_CASH)}>
-                {t('owner.booking.cash')}
-              </Button>
-              {!isAvailable(OWNER_BOOKING_CASH) && (
-                <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
-              )}
-            </>
+          {booking.gameId && (
+            <GameTeamsMoney
+              gameId={booking.gameId}
+              undoing={teamMarks.undo.isPending ? teamMarks.undo.variables : undefined}
+              onMark={(kind, team, game) => setTeamMarking({ kind, team, game })}
+              onUndo={(team) => teamMarks.undo.mutate(team.side)}
+            />
           )}
+          <MarkedState
+            subject={booking}
+            cashAmount={booking.paidInCash}
+            undoing={marks.undo.isPending}
+            onUndo={() => marks.undo.mutate(booking.id, { onSuccess: onClose })}
+          />
+          <MarkButtons booking={booking} onMark={setMarking} />
           {CANCELLABLE.has(booking.status) && (
             <Button variant="danger-outline" onClick={() => setConfirming(true)}>
               {t('owner.booking.cancel')}
@@ -367,14 +507,29 @@ function WalkInSheet({
   const queryClient = useQueryClient()
   const [hour, setHour] = useState(initial)
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState('+998 ')
+  // What the owner typed; null until then, so the hour's own price shows.
+  const [priceText, setPriceText] = useState<string | null>(null)
+  const [status, setStatus] = useState<'unpaid' | 'paid'>('unpaid')
+  const startsAt = hour ? tashkentToUtc(date, hour) : ''
+  const suggested = useQuery({
+    queryKey: ['owner', 'walk-in-price', stadium.id, startsAt],
+    queryFn: () => getWalkInPrice(stadium.id, startsAt),
+    enabled: startsAt !== '',
+    staleTime: 60_000,
+  })
+  const priceShown = priceText ?? (suggested.data ? tiyinToSomInput(suggested.data.price) : '')
+  // Empty is allowed: the server then uses the price for that hour.
+  const priceValid = /^\d*(\.\d{0,2})?$/.test(priceShown) && priceShown !== '.'
   const create = useMutation({
-    // No payment method → the API records cash for the owner's own price.
+    // Always cash: a walk-in never involves the platform or a card.
     mutationFn: () =>
       createManualBooking(stadium.id, {
         clientName: name.trim(),
-        clientPhone: phone.trim(),
-        startsAt: tashkentToUtc(date, hour),
+        clientPhone: toWirePhone(phone),
+        startsAt,
+        paymentStatus: status,
+        ...(priceShown ? { price: somInputToTiyin(priceShown) } : {}),
       }),
     onSuccess: () => {
       toast.show(t('owner.schedule.walkInDone'), 'success')
@@ -394,7 +549,7 @@ function WalkInSheet({
       actions={
         <Button
           haptic
-          disabled={!hour || !name.trim() || !phone.trim()}
+          disabled={!hour || !name.trim() || !isCompletePhone(phone) || !priceValid}
           loading={create.isPending}
           onClick={() => create.mutate()}
         >
@@ -408,12 +563,15 @@ function WalkInSheet({
         <SelectField
           label={t('owner.field.time')}
           value={hour}
-          onChange={setHour}
+          onChange={(next) => {
+            setHour(next)
+            setPriceText(null)
+          }}
           options={free.map((s) => ({ value: s.startTime.slice(0, 5), label: slotLabel(s) }))}
         />
       )}
       {waitingAt.has(hour) && (
-        <p role="alert" className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
+        <p role="alert" className="rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
           {t('owner.schedule.waitingWarning')}
         </p>
       )}
@@ -426,11 +584,29 @@ function WalkInSheet({
         label={t('owner.field.clientPhone')}
         type="tel"
         inputMode="tel"
+        placeholder="+998 __ ___ __ __"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
       />
+      <Input
+        label={t('owner.walkIn.price')}
+        inputMode="decimal"
+        value={priceShown}
+        onChange={(e) => setPriceText(e.target.value.replace(/\s/g, ''))}
+      />
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-secondary">{t('owner.walkIn.status')}</span>
+        <div className="flex gap-2">
+          <Chip selected={status === 'unpaid'} onClick={() => setStatus('unpaid')}>
+            {t('owner.walkIn.unpaid')}
+          </Chip>
+          <Chip selected={status === 'paid'} onClick={() => setStatus('paid')}>
+            {t('owner.walkIn.paid')}
+          </Chip>
+        </div>
+      </div>
       {create.isError && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           {errorMessage(create.error)}
         </p>
       )}

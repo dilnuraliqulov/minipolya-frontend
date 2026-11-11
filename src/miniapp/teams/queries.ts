@@ -3,8 +3,8 @@ import { CHALLENGES_KEY, getChallenges } from '../api/games'
 import { getMyTeams, getTeam, MY_TEAMS_KEY, teamKey, type TeamDetail } from '../api/teams'
 import { useLoginUser } from '../auth/sessionContext'
 
-export function useMyTeams() {
-  return useQuery({ queryKey: MY_TEAMS_KEY, queryFn: getMyTeams })
+export function useMyTeams(enabled = true) {
+  return useQuery({ queryKey: MY_TEAMS_KEY, queryFn: getMyTeams, enabled })
 }
 
 export function useTeam(id: string | undefined) {
@@ -31,9 +31,9 @@ export function useChallenges(enabled = true) {
  * detail is read (a player is in a handful of teams). A failed read counts as
  * "not a captain" — the team flows simply stay hidden.
  */
-export function useLedTeams(): { isPending: boolean; teams: TeamDetail[] } {
+export function useLedTeams(enabled = true): { isPending: boolean; teams: TeamDetail[] } {
   const me = useLoginUser()
-  const mine = useMyTeams()
+  const mine = useMyTeams(enabled)
   const details = useQueries({
     queries: (mine.data ?? []).map((team) => ({
       queryKey: teamKey(team.id),

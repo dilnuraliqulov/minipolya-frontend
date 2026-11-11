@@ -3,15 +3,24 @@ import { CircleAlert, Lock, WifiOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isApiError } from '../../shared/api'
-import { CARDS_KEY, confirmCard, startCardBinding, type SavedCard } from '../api/cards'
-import { errorMessage } from '../api/errors'
-import { BottomSheet, Button, cx, Input, useToast } from '../components'
 import {
+  CARDS_KEY,
+  confirmCard,
+  resendCardCode,
+  startCardBinding,
+  type SavedCard,
+} from '../api/cards'
+import { errorMessageKey, errorTone, type ErrorMessageKey } from '../api/errors'
+import { BottomSheet, Button, cx, Input, Notice, useToast } from '../components'
+import { tashkentToday } from '../../shared/format'
+import { CardBrandTile } from './CardBrandTile'
+import {
+  cardBrand,
+  cardNumberProblem,
   digitsOnly,
+  expiryProblem,
   formatExpiry,
   groupCardNumber,
-  isCardNumberComplete,
-  isExpiryShape,
 } from './cardInput'
 
 interface AddCardSheetProps {
@@ -20,22 +29,49 @@ interface AddCardSheetProps {
   onSaved: (card: SavedCard) => void
 }
 
-/** The provider's SMS stays valid for about this long; also the resend timer. */
+/**
+ * The provider's cooldown before a new SMS code may be asked for. The code itself
+ * stays valid longer; only the backend says when it has expired (SMS_CODE_EXPIRED).
+ */
 const RESEND_SECONDS = 60
 const CODE_LENGTH = 6
 
 type Problem =
-  { kind: 'number' } | { kind: 'code' } | { kind: 'network' } | { kind: 'other'; message: string }
+  /** Under the card number field. */
+  | { kind: 'number'; key: ErrorMessageKey }
+  /** Under the expiry field. */
+  | { kind: 'expiry'; key: ErrorMessageKey }
+  /** Under the SMS code; the typed code is cleared. */
+  | { kind: 'code'; key: ErrorMessageKey }
+  /** The SMS code is no longer valid: a new one is needed. */
+  | { kind: 'codeExpired' }
+  | { kind: 'network' }
+  /** A notice above the form (a refusal, or the payment system being down). */
+  | { kind: 'other'; key: ErrorMessageKey }
 
-function classify(error: unknown, step: 'bind' | 'confirm'): Problem {
-  if (isApiError(error)) {
-    if (error.isNetworkError) return { kind: 'network' }
-    if (step === 'bind' && error.status === 400) return { kind: 'number' }
-    if (step === 'confirm' && error.status >= 400 && error.status < 500 && error.status !== 401) {
-      return { kind: 'code' }
-    }
+/**
+ * Where a failed call's message goes. The backend's card codes (errors.ts) decide;
+ * a 4xx without a code (bean validation) is read as the number, or the code, being wrong.
+ */
+function classify(error: unknown, step: 'bind' | 'confirm' | 'resend'): Problem {
+  if (isApiError(error) && error.isNetworkError) return { kind: 'network' }
+  const key = errorMessageKey(error)
+  switch (key) {
+    case 'errors.cardNotSupported':
+    case 'errors.cardExpiryInvalid':
+      return { kind: 'number', key }
+    case 'errors.cardExpired':
+      return { kind: 'expiry', key }
+    case 'errors.smsCodeWrong':
+      return { kind: 'code', key }
+    case 'errors.smsCodeExpired':
+      return { kind: 'codeExpired' }
   }
-  return { kind: 'other', message: errorMessage(error) }
+  if (isApiError(error) && error.code === undefined && error.status === 400) {
+    if (step === 'bind') return { kind: 'number', key: 'errors.cardExpiryInvalid' }
+    if (step === 'confirm') return { kind: 'code', key: 'errors.smsCodeWrong' }
+  }
+  return { kind: 'other', key }
 }
 
 function clock(seconds: number): string {
@@ -59,6 +95,8 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
   const toast = useToast()
   const [number, setNumber] = useState('')
   const [expiry, setExpiry] = useState('')
+  /** A field's incomplete-value error shows once the player has left it. */
+  const [touched, setTouched] = useState({ number: false, expiry: false })
   const [binding, setBinding] = useState<{ id: string; phone: string; round: number } | null>(null)
   const [code, setCode] = useState('')
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS)
@@ -91,8 +129,29 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     if (round !== undefined) codeInput.current?.focus()
   }, [round])
 
-  const formReady = isCardNumberComplete(number) && isExpiryShape(expiry)
-  const expired = binding !== null && secondsLeft === 0
+  const numberProblem = cardNumberProblem(number)
+  const expiryIssue = expiryProblem(expiry, tashkentToday())
+  const formReady = numberProblem === null && expiryIssue === null
+  const brand = cardBrand(number)
+  // A wrong prefix or a past month is certain at once; "too short" only after leaving the field.
+  const numberError =
+    numberProblem === 'brand'
+      ? t('cards.numberBrand')
+      : numberProblem === 'length' && touched.number && number.length > 0
+        ? t('cards.numberLength')
+        : problem?.kind === 'number'
+          ? t(problem.key)
+          : undefined
+  const expiryError =
+    expiryIssue === 'past'
+      ? t('cards.expiryPast')
+      : expiryIssue === 'shape' && touched.expiry && expiry.length > 0
+        ? t('cards.expiryShape')
+        : problem?.kind === 'expiry'
+          ? t(problem.key)
+          : undefined
+  const expired = problem?.kind === 'codeExpired'
+  const canResend = binding !== null && secondsLeft === 0
 
   const requestCode = async () => {
     if (busy || !formReady) return
@@ -106,6 +165,35 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
       setBinding({ id: answer.bindingId, phone: answer.maskedPhone, round: (round ?? 0) + 1 })
     } catch (error) {
       if (mounted.current) setProblem(classify(error, 'bind'))
+    } finally {
+      if (mounted.current) setBusy(false)
+    }
+  }
+
+  /** Same binding, a new SMS; the cooldown starts again. */
+  const resendCode = async () => {
+    if (busy || !binding || !canResend) return
+    setBusy(true)
+    setProblem(null)
+    try {
+      const answer = await resendCardCode(binding.id)
+      if (!mounted.current) return
+      setCode('')
+      setSecondsLeft(RESEND_SECONDS)
+      setBinding({ id: answer.bindingId, phone: answer.maskedPhone, round: binding.round + 1 })
+      toast.show(t('cards.codeResent'), 'success')
+    } catch (error) {
+      if (!mounted.current) return
+      const next = classify(error, 'resend')
+      if (
+        next.kind === 'other' &&
+        (next.key === 'errors.smsResendUnavailable' || next.key === 'errors.bindingNotFound')
+      ) {
+        // No new code for this binding: back to the card form (number and expiry are
+        // still filled in), which says why; Davom etish starts a new binding.
+        setBinding(null)
+      }
+      setProblem(next)
     } finally {
       if (mounted.current) setBusy(false)
     }
@@ -133,7 +221,11 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     } catch (error) {
       if (!mounted.current) return
       const next = classify(error, 'confirm')
-      if (next.kind === 'code') setCode('')
+      if (next.kind === 'code' || next.kind === 'codeExpired') setCode('')
+      if (next.kind === 'other' && next.key === 'errors.bindingNotFound') {
+        // The binding is gone: back to the card form, which says so.
+        setBinding(null)
+      }
       setProblem(next)
     } finally {
       if (mounted.current) setBusy(false)
@@ -144,7 +236,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
     problem?.kind === 'network' ? (
       <div
         role="alert"
-        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger"
+        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger-text"
       >
         <WifiOff size={18} className="mt-0.5 shrink-0" aria-hidden />
         <div className="flex flex-col gap-1 text-sm">
@@ -153,13 +245,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
         </div>
       </div>
     ) : problem?.kind === 'other' ? (
-      <div
-        role="alert"
-        className="flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-danger"
-      >
-        <CircleAlert size={18} className="mt-0.5 shrink-0" aria-hidden />
-        <span className="text-sm">{problem.message}</span>
-      </div>
+      <Notice tone={errorTone(problem.key)}>{t(problem.key)}</Notice>
     ) : null
 
   const privacy = (
@@ -186,24 +272,34 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
         <Input
           label={t('cards.number')}
           value={groupCardNumber(number)}
-          onChange={(event) => setNumber(digitsOnly(event.target.value).slice(0, 16))}
+          onChange={(event) => {
+            if (problem?.kind === 'number' || problem?.kind === 'expiry') setProblem(null)
+            setNumber(digitsOnly(event.target.value).slice(0, 16))
+          }}
+          onBlur={() => setTouched((x) => ({ ...x, number: true }))}
           inputMode="numeric"
           autoComplete="cc-number"
-          error={problem?.kind === 'number' ? t('cards.wrongNumber') : undefined}
+          error={numberError}
+          trailing={brand && <CardBrandTile cardType={brand} />}
         />
         <Input
           label={t('cards.expiry')}
           value={expiry}
-          onChange={(event) => setExpiry(formatExpiry(event.target.value))}
+          onChange={(event) => {
+            if (problem?.kind === 'number' || problem?.kind === 'expiry') setProblem(null)
+            setExpiry(formatExpiry(event.target.value))
+          }}
+          onBlur={() => setTouched((x) => ({ ...x, expiry: true }))}
           inputMode="numeric"
           autoComplete="cc-exp"
+          error={expiryError}
         />
         {privacy}
       </BottomSheet>
     )
   }
 
-  const wrongCode = problem?.kind === 'code'
+  const wrongCode = problem?.kind === 'code' ? problem.key : null
   return (
     <BottomSheet
       open
@@ -211,20 +307,14 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
       subtitle={t('cards.step2')}
       onClose={onClose}
       actions={
-        expired ? (
-          <Button haptic loading={busy} onClick={() => void requestCode()}>
-            {t('cards.newCode')}
-          </Button>
-        ) : (
-          <Button
-            haptic
-            loading={busy}
-            disabled={code.length !== CODE_LENGTH}
-            onClick={() => void submitCode()}
-          >
-            {problem?.kind === 'network' ? t('common.retry') : t('cards.confirm')}
-          </Button>
-        )
+        <Button
+          haptic
+          loading={busy}
+          disabled={code.length !== CODE_LENGTH}
+          onClick={() => void submitCode()}
+        >
+          {problem?.kind === 'network' ? t('common.retry') : t('cards.confirm')}
+        </Button>
       }
     >
       <p className="text-base text-primary">{t('cards.codeSent', { phone: binding.phone })}</p>
@@ -237,7 +327,7 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
               className={cx(
                 'flex h-14 flex-1 items-center justify-center rounded-xl border bg-background text-2xl font-semibold text-primary',
                 wrongCode || expired
-                  ? 'border-danger'
+                  ? 'border-danger-text'
                   : i === code.length
                     ? 'border-accent'
                     : 'border-border',
@@ -255,29 +345,28 @@ function OpenAddCard({ onClose, onSaved }: Omit<AddCardSheetProps, 'open'>) {
             setProblem(null)
             setCode(digitsOnly(event.target.value).slice(0, CODE_LENGTH))
           }}
+          // No maxLength: a pasted "123 456" or "Kod: 123456" is cut to its digits above.
           inputMode="numeric"
+          pattern="[0-9]*"
           autoComplete="one-time-code"
-          maxLength={CODE_LENGTH}
           className="absolute inset-0 size-full bg-transparent text-transparent caret-transparent opacity-0 outline-none"
         />
       </div>
       {wrongCode && (
-        <p role="alert" className="flex items-center gap-2 text-sm text-danger">
+        <p role="alert" className="flex items-center gap-2 text-sm text-danger-text">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
-          {t('cards.wrongCode')}
+          {t(wrongCode)}
         </p>
       )}
-      {expired && !wrongCode && (
-        <p className="flex items-center gap-2 text-sm text-danger">
+      {expired && (
+        <p role="alert" className="flex items-center gap-2 text-sm text-danger-text">
           <CircleAlert size={16} className="shrink-0" aria-hidden />
-          {t('cards.codeExpired')}
+          {t('errors.smsCodeExpired')}
         </p>
       )}
-      {!expired && (
-        <Button variant="ghost" disabled>
-          {t('cards.resendIn', { time: clock(secondsLeft) })}
-        </Button>
-      )}
+      <Button variant="ghost" disabled={!canResend || busy} onClick={() => void resendCode()}>
+        {canResend ? t('cards.resend') : t('cards.resendIn', { time: clock(secondsLeft) })}
+      </Button>
       {privacy}
     </BottomSheet>
   )

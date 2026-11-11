@@ -52,6 +52,11 @@ export interface Amenities {
   cafe: boolean
   equipmentRental: boolean
   tribune: boolean
+  toilet: boolean
+  /** Covered or indoor. */
+  covered: boolean
+  bibs: boolean
+  drinkingWater: boolean
 }
 
 /** `GET /api/admin/stadiums/{id}` — the public detail's fields, for any status, in the owner's prices. */
@@ -61,16 +66,19 @@ export interface StadiumDetailFields extends StadiumListFields {
   longitude?: number
   phone?: string
   description?: string
+  /** "Moʻljal": a landmark near the pitch. */
+  landmark?: string
   ownerPhone?: string
   /** `LocalTime`. */
   openTime?: string
   closeTime?: string
   amenities?: Amenities
-  /** Tiyin — the owner's own minimum deposit; absent ⇒ players pay in full. */
+  /** Tiyin — the owner's own minimum; absent ⇒ the platform default (T1). */
   minBookingAmount?: number
-  /** Tiyin — that deposit as players pay it. */
+  /** Tiyin — the effective minimum (own or default) as players pay it; always sent since T1. */
   playerMinBookingAmount?: number
   cancellationHours?: number
+  cancellationPolicy?: { cancellationHours: number }
   pricingRules?: PricingRule[]
 }
 
@@ -140,6 +148,21 @@ export function setStadiumStatus(
   return api.put<AdminStadium>(`/api/admin/stadiums/${id}/status`, { status, reason })
 }
 
+export interface BookingTerms {
+  /** Tiyin, the owner's own minimum: at least 50 000, at most `pricePerHour`, above the team fee; null = the platform default. */
+  minBookingAmount: number | null
+  /** 0–168. */
+  cancellationHours: number
+}
+
+/**
+ * `PUT /api/admin/stadiums/{id}/booking-terms` (design D3): the whole terms each
+ * time, any status. Answers the admin detail; audited as STADIUM_BOOKING_TERMS_CHANGED.
+ */
+export function setBookingTerms(id: string, terms: BookingTerms): Promise<StadiumDetail> {
+  return api.put<StadiumDetail>(`/api/admin/stadiums/${id}/booking-terms`, terms)
+}
+
 /** The audit actions that change a stadium's status. */
 export const STADIUM_DECISIONS = [
   'STADIUM_APPROVED',
@@ -189,4 +212,20 @@ export const OWNER_STADIUMS = 'GET /api/admin/stadiums → ?ownerId'
 
 export function listOwnerStadiums(ownerId: string, page = 0): Promise<Page<StadiumRow>> {
   return api.get<Page<StadiumRow>>('/api/admin/stadiums', { query: { ownerId, page, size: 20 } })
+}
+
+export interface StadiumOption {
+  id: string
+  name: string
+}
+
+/**
+ * Stadiums for the "Maydon" filters of Bronlar and Toʻlovlar, searched on the
+ * server by name or address. Every status: old bookings can be on a blocked stadium.
+ */
+export async function searchStadiumOptions(search: string): Promise<StadiumOption[]> {
+  const page = await api.get<Page<StadiumOption>>('/api/admin/stadiums', {
+    query: { search: search || undefined, size: 20 },
+  })
+  return page.content.map(({ id, name }) => ({ id, name }))
 }

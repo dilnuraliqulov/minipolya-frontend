@@ -153,7 +153,7 @@ export function BarChart({ data, formatValue, label, height = 300, highlight }: 
                 top: height - (activeDatum.value / max) * height - 8,
               }}
             >
-              <span className="text-2xs text-secondary">{activeDatum.title}</span>
+              <span className="text-2xs text-background/75">{activeDatum.title}</span>
               <span className="text-sm font-semibold text-background">
                 {formatValue(activeDatum.value)}
               </span>

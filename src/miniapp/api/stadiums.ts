@@ -45,6 +45,8 @@ export interface Stadium {
   reviewCount?: number
   /** The first photo (lowest position); absent when the stadium has none. */
   coverPhotoUrl?: string
+  /** Free one-hour slots on the list's `date` (Tashkent; today by default), as availability counts them. */
+  freeSlotsCount?: number
   /** Player lists, for a signed-in caller only. */
   isFavorited?: boolean
 }
@@ -64,6 +66,11 @@ export interface Amenities {
   cafe: boolean
   equipmentRental: boolean
   tribune: boolean
+  toilet: boolean
+  /** Covered or indoor. */
+  covered: boolean
+  bibs: boolean
+  drinkingWater: boolean
 }
 
 /** `StadiumDetailResponse`. */
@@ -75,8 +82,10 @@ export interface StadiumDetail extends Omit<Stadium, 'coverPhotoUrl'> {
   /** `"09:00:00"`, Tashkent */
   openTime: string
   closeTime: string
-  /** Tiyin. Absent ⇒ the player pays in full. */
+  /** Tiyin, player price: the stadium's own minimum or the platform default (always sent since T1). */
   minBookingAmount?: number
+  /** "Moʻljal": a landmark near the pitch. */
+  landmark?: string
   cancellationPolicy: { cancellationHours: number }
   photos: Photo[]
   amenities: Amenities
@@ -97,6 +106,13 @@ export interface TimeSlot {
   pricePerHour?: number
   /** Tiyin; the price before a promotion. */
   originalPrice?: number
+  /**
+   * E3: tiyin, what "Oldindan toʻlov" charges for this hour — the same figure
+   * `POST /api/bookings` takes with `MINIMUM`. Absent when only full payment exists.
+   */
+  depositAmount?: number
+  /** E3: tiyin, what is left to pay after the deposit. Sent together with `depositAmount`. */
+  remainderAmount?: number
   discountPercent?: number
   promotionName?: string
   hasWaitingGame: boolean
@@ -164,8 +180,15 @@ export function stadiumListQuery(filters: StadiumFilters, page: number) {
   }
 }
 
-export function getStadiums(filters: StadiumFilters, page: number): Promise<Page<Stadium>> {
-  return api.get<Page<Stadium>>('/api/stadiums', { query: stadiumListQuery(filters, page) })
+/** `date` (`"2026-11-02"`, Tashkent) is the day `freeSlotsCount` counts. */
+export function getStadiums(
+  filters: StadiumFilters,
+  page: number,
+  date: string,
+): Promise<Page<Stadium>> {
+  return api.get<Page<Stadium>>('/api/stadiums', {
+    query: { ...stadiumListQuery(filters, page), date },
+  })
 }
 
 export function getStadium(id: string): Promise<StadiumDetail> {

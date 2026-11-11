@@ -99,7 +99,7 @@ function SlotRow({
         aria-checked={false}
         aria-label={`${label}, ${state}`}
         disabled
-        className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-surface px-4 opacity-55"
+        className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-surface px-4"
       >
         <span className="text-md font-semibold text-secondary">{label}</span>
         <span className="flex-1" />
@@ -128,7 +128,7 @@ function SlotRow({
       <span className="flex flex-col gap-2">
         <span className="text-md font-semibold whitespace-nowrap">{label}</span>
         {slot.hasWaitingGame && (
-          <span className="self-start rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-warning">
+          <span className="self-start rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-warning-text">
             {t('slots.waitingGame')}
           </span>
         )}
@@ -146,7 +146,7 @@ function SlotRow({
         <span
           className={cx(
             'rounded-xs px-2 py-1 text-2xs font-bold',
-            checked ? 'bg-on-accent text-accent' : 'bg-accent-soft text-link',
+            checked ? 'bg-on-accent text-accent' : 'bg-accent-soft text-link-text',
           )}
         >
           -{slot.discountPercent}%

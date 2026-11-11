@@ -55,7 +55,7 @@ function PersonalForm({ user, header }: { user: User; header: React.ReactNode })
       }
     >
       <ProfileFields form={form} layout="page" />
-      {form.saveError && <p className="text-sm text-danger">{errorMessage(form.saveError)}</p>}
+      {form.saveError && <p className="text-sm text-danger-text">{errorMessage(form.saveError)}</p>}
       <p className="text-xs text-secondary">{t('profile.notFromTelegram')}</p>
     </Screen>
   )

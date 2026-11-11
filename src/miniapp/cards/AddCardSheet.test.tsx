@@ -67,6 +67,50 @@ describe('AddCardSheet', () => {
     expect(next).toBeEnabled()
   })
 
+  it('shows Uzcard or Humo from the first four digits', () => {
+    stubApi({})
+    setup()
+    const number = screen.getByLabelText('Karta raqami')
+    fireEvent.change(number, { target: { value: '8600' } })
+    expect(screen.getByText('UZCARD')).toBeInTheDocument()
+    fireEvent.change(number, { target: { value: '9860 12' } })
+    expect(screen.getByText('HUMO')).toBeInTheDocument()
+    expect(screen.queryByText('UZCARD')).not.toBeInTheDocument()
+  })
+
+  it('refuses another card system and a past month before sending', () => {
+    const api = stubApi({})
+    setup()
+    fillForm('4111 1111 1111 1111', '10/20')
+    expect(
+      screen.getByText('Faqat Uzcard (8600…) va Humo (9860…) kartalari qabul qilinadi'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Kartaning amal qilish muddati tugagan')).toBeInTheDocument()
+    expect(screen.getByLabelText('Karta raqami')).toHaveAttribute('aria-invalid', 'true')
+    const next = screen.getByRole('button', { name: 'Davom etish' })
+    expect(next).toBeDisabled()
+    fireEvent.click(next)
+    expect(api).not.toHaveBeenCalled()
+  })
+
+  it('says a short number or an unfinished expiry once the field is left', () => {
+    stubApi({})
+    setup()
+    const number = screen.getByLabelText('Karta raqami')
+    const expiry = screen.getByLabelText('Amal qilish muddati (OO/YY)')
+    fireEvent.change(number, { target: { value: '8600 1234' } })
+    expect(screen.queryByText('Karta raqami 16 ta raqamdan iborat boʻlishi kerak')).toBeNull()
+    fireEvent.blur(number)
+    expect(
+      screen.getByText('Karta raqami 16 ta raqamdan iborat boʻlishi kerak'),
+    ).toBeInTheDocument()
+    fireEvent.change(expiry, { target: { value: '1' } })
+    fireEvent.blur(expiry)
+    expect(
+      screen.getByText('Muddatni OO/YY koʻrinishida kiriting, masalan 08/28'),
+    ).toBeInTheDocument()
+  })
+
   it('accepts a pasted spaced number', async () => {
     stubApi({})
     setup()
@@ -96,9 +140,78 @@ describe('AddCardSheet', () => {
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
     expect(
-      await screen.findByText('Karta raqami yoki amal qilish muddati notoʻgʻri'),
+      await screen.findByText(
+        'Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting.',
+      ),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('SMS kod')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['CARD_NOT_SUPPORTED', 'Karta raqami', 'Faqat Uzcard va Humo kartalari qabul qilinadi.'],
+    [
+      'CARD_EXPIRY_INVALID',
+      'Karta raqami',
+      'Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting.',
+    ],
+    [
+      'CARD_EXPIRED',
+      'Amal qilish muddati (OO/YY)',
+      'Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning.',
+    ],
+  ])('shows %s under its field', async (code, field, text) => {
+    stubApi({ 'POST /api/cards': jsonResponse(400, null, 'refused', code) })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    expect(await screen.findByText(text)).toBeInTheDocument()
+    expect(screen.getByLabelText(field)).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('says CARD_BINDING_FAILED above the form', async () => {
+    stubApi({ 'POST /api/cards': jsonResponse(400, null, 'refused', 'CARD_BINDING_FAILED') })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Kartani qoʻshib boʻlmadi. Boshqa karta bilan urinib koʻring.',
+    )
+  })
+
+  it('shows a 502 as "the payment system is down", not as a refused card', async () => {
+    stubApi({
+      'POST /api/cards': jsonResponse(
+        502,
+        null,
+        "To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring",
+      ),
+    })
+    setup()
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    const notice = await screen.findByRole('alert')
+    expect(notice).toHaveTextContent(
+      'Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring.',
+    )
+    expect(notice).toHaveAttribute('data-tone', 'warning')
+    expect(screen.getByLabelText('Karta raqami')).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByRole('button', { name: 'Davom etish' })).toBeEnabled()
+  })
+
+  it('goes back to the card form when the binding is gone', async () => {
+    stubApi({
+      'POST /api/cards': BIND,
+      'POST /api/cards/confirm': jsonResponse(400, null, 'gone', 'BINDING_NOT_FOUND'),
+    })
+    setup()
+    await toCodeStep()
+    fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '123456' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
+    expect(
+      await screen.findByText('Karta qoʻshish jarayoni tugagan. Qaytadan boshlang.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText('SMS kod')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Karta raqami')).toBeInTheDocument()
   })
 
   it('shows the no-internet text on a network failure and retries', async () => {
@@ -149,18 +262,32 @@ describe('AddCardSheet', () => {
     await toCodeStep()
     fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '111111' } })
     fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
-    expect(await screen.findByText('Kod notoʻgʻri. Qaytadan kiriting.')).toBeInTheDocument()
+    expect(await screen.findByText('SMS kod notoʻgʻri. Qaytadan kiriting.')).toBeInTheDocument()
     expect(screen.getByLabelText('SMS kod')).toHaveValue('')
   })
 
-  it('disables resend for 60 s, then posts again and uses the new binding', async () => {
-    let n = 0
+  it('pastes a full code with spaces or text around it, on a numeric keyboard', async () => {
+    stubApi({ 'POST /api/cards': BIND })
+    setup()
+    await toCodeStep()
+    const input = screen.getByLabelText('SMS kod')
+    expect(input).toHaveAttribute('inputmode', 'numeric')
+    expect(input).toHaveAttribute('autocomplete', 'one-time-code')
+    expect(input).not.toHaveAttribute('maxlength')
+    fireEvent.change(input, { target: { value: 'Kod: 123 456' } })
+    expect(input).toHaveValue('123456')
+    expect(screen.getByRole('button', { name: 'Tasdiqlash' })).toBeEnabled()
+  })
+
+  it('unlocks Kodni qayta yuborish after 60 s and resends for the same binding', async () => {
     const api = stubApi({
-      'POST /api/cards': () => ({ bindingId: `b${++n}`, maskedPhone: BIND.maskedPhone }),
+      'POST /api/cards': BIND,
+      'POST /api/cards/resend': { bindingId: 'b1', maskedPhone: '+998 ** *** ** 58' },
       'POST /api/cards/confirm': saved,
     })
     setup()
     await toCodeStep()
+    fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '12' } })
     expect(screen.getByRole('button', { name: 'Kodni qayta yuborish (1:00)' })).toBeDisabled()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(30_000)
@@ -169,30 +296,81 @@ describe('AddCardSheet', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(30_000)
     })
-    const resend = screen.getByRole('button', { name: 'Yangi kod yuborish' })
-    expect(resend).toBeEnabled()
-    fireEvent.click(resend)
-    await vi.waitFor(() => expect(api.calls('POST /api/cards')).toHaveLength(2))
-    expect(api.calls('POST /api/cards')[1]).toEqual({ cardNumber: NUMBER, expiry: '12/27' })
-    const confirm = await screen.findByRole('button', { name: 'Tasdiqlash' })
+    // The code is not called expired by the timer: only the backend says that.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Kodni qayta yuborish' }))
+    await vi.waitFor(() =>
+      expect(api.calls('POST /api/cards/resend')).toEqual([{ bindingId: 'b1' }]),
+    )
+    // Not a new binding: the card was not sent again.
+    expect(api.calls('POST /api/cards')).toHaveLength(1)
+    expect(await screen.findByText('Kod +998 ** *** ** 58 raqamiga yuborildi')).toBeInTheDocument()
+    expect(screen.getByLabelText('SMS kod')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Kodni qayta yuborish (1:00)' })).toBeDisabled()
     fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '222222' } })
-    fireEvent.click(confirm)
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
     await vi.waitFor(() =>
       expect(api.calls('POST /api/cards/confirm')).toEqual([
-        { bindingId: 'b2', smsCode: '222222' },
+        { bindingId: 'b1', smsCode: '222222' },
       ]),
     )
   })
 
-  it('says the code expired after 60 s without a confirm', async () => {
-    stubApi({ 'POST /api/cards': BIND })
+  it('goes back to the card form with a message on SMS_RESEND_UNAVAILABLE', async () => {
+    const api = stubApi({
+      'POST /api/cards': BIND,
+      'POST /api/cards/resend': jsonResponse(400, null, 'x', 'SMS_RESEND_UNAVAILABLE'),
+    })
     setup()
     await toCodeStep()
-    expect(screen.queryByText('Kod muddati tugadi — yangi kod soʻrang')).not.toBeInTheDocument()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60_000)
     })
-    expect(screen.getByText('Kod muddati tugadi — yangi kod soʻrang')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Kodni qayta yuborish' }))
+    expect(
+      await screen.findByText(
+        'Kodni qayta yuborib boʻlmadi. Karta maʼlumotlarini qaytadan kiriting.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText('SMS kod')).not.toBeInTheDocument()
+    // The form keeps what was typed; Davom etish starts a new binding.
+    expect(screen.getByLabelText('Karta raqami')).toHaveValue('8600 1234 5678 9012')
+    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
+    await vi.waitFor(() => expect(api.calls('POST /api/cards')).toHaveLength(2))
+  })
+
+  it('says SMS_RESEND_TOO_EARLY and stays on the code step', async () => {
+    stubApi({
+      'POST /api/cards': BIND,
+      'POST /api/cards/resend': jsonResponse(400, null, 'x', 'SMS_RESEND_TOO_EARLY'),
+    })
+    setup()
+    await toCodeStep()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Kodni qayta yuborish' }))
+    expect(await screen.findByText('Yangi kodni biroz kutib soʻrang.')).toBeInTheDocument()
+    expect(screen.getByLabelText('SMS kod')).toBeInTheDocument()
+  })
+
+  it('says an expired code, clears it and offers a new one once the cooldown is over', async () => {
+    stubApi({
+      'POST /api/cards': BIND,
+      'POST /api/cards/confirm': jsonResponse(400, null, 'x', 'SMS_CODE_EXPIRED'),
+    })
+    setup()
+    await toCodeStep()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000)
+    })
+    fireEvent.change(screen.getByLabelText('SMS kod'), { target: { value: '999999' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Tasdiqlash' }))
+    expect(
+      await screen.findByText('SMS kodning muddati tugadi. Kodni qayta yuboring.'),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('SMS kod')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Kodni qayta yuborish' })).toBeEnabled()
   })
 
   it('accepts pasted text with extra spaces in the number and the expiry', () => {

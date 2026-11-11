@@ -38,3 +38,9 @@ export function toWirePhone(value: string): string {
 export function formatPhone(phone: string): string {
   return /^\+998\d{9}$/.test(phone) ? formatPhoneInput(phone) : phone
 }
+
+/** `+998901234567` → `"+998 90 ••• •• 67"` (shown back on a confirmation screen); anything else unchanged. */
+export function maskPhone(phone: string): string {
+  const match = phone.match(/^\+998(\d{2})\d{5}(\d{2})$/)
+  return match ? `+998 ${match[1]} ••• •• ${match[2]}` : phone
+}

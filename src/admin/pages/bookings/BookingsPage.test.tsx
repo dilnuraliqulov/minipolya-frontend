@@ -43,6 +43,7 @@ const booking: AdminBooking = {
   atmosFee: 82_500,
   cashReceived: 10_000_000,
   cashReceivedAt: '2026-10-22T15:10:00Z',
+  paidInCash: 10_000_000,
   isWalkin: false,
   createdAt: '2026-10-20T09:02:00Z',
 }
@@ -64,6 +65,7 @@ const walkIn: AdminBooking = {
   ownerReceives: 0,
   atmosFee: 0,
   cashReceived: undefined,
+  paidInCash: 0,
   remainingAmount: 20_000_000,
   cancellationReason: 'Maydonda taʼmirlash ishlari',
 }
@@ -93,6 +95,10 @@ const teamGame: AdminGameDetail = {
     ownerRemainder: 7_500_000,
     ownerReceives: 9_850_000,
     atmosFee: 150_000,
+    ownerPart: 2_500_000,
+    paymentOption: 'minimum',
+    paidAmount: 10_000_000,
+    remainingAmount: 0,
     remainderAmount: 0,
     remainderStatus: 'paid' as const,
     paidInApp: 10_000_000,
@@ -131,6 +137,7 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
   return mockBackend({
     '/api/admin/stats': [200, stats],
     '/api/admin/stadiums': [200, page([{ id: 'st1', name: 'Chilonzor Arena' }])],
+    '/api/admin/stadiums/st1': [200, { id: 'st1', name: 'Chilonzor Arena' }],
     // The backend filters by status; the mock answers as it would.
     '/api/admin/bookings': (request) => {
       const status = request.url.searchParams.get('status')
@@ -154,11 +161,22 @@ const lastBookings = (requests: Request[]) =>
 describe('Bronlar', () => {
   useAdminTestSetup()
 
+  it('names the stadium of a linked view and loads no stadium list until the filter opens', async () => {
+    const { requests } = backend()
+    signIn()
+    renderAt('/bronlar?maydon=st1')
+    expect(
+      await screen.findByRole('button', { name: 'Maydon: Chilonzor Arena' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    expect(lastBookings(requests).get('stadiumId')).toBe('st1')
+    expect(requests.some((r) => r.url.pathname === '/api/admin/stadiums')).toBe(false)
+  })
+
   it('lists bookings: slot, stadium, client (walk-ins marked), price, paid, status', async () => {
     backend()
     signIn()
     renderAt('/bronlar')
-    const table = await screen.findByRole('table')
+    const table = await screen.findByRole('grid')
     const row = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
     expect(within(row).getByText(/Pa 22 okt · 20:00–22:00/)).toBeInTheDocument()
     expect(within(row).getByText('Chilonzor Arena')).toBeInTheDocument()
@@ -181,13 +199,22 @@ describe('Bronlar', () => {
       target: { value: '90 111' },
     })
     await waitFor(() => expect(lastBookings(requests).get('search')).toBe('90 111'))
-    // The stadium options are the real stadiums only.
-    await waitFor(() =>
-      expect(screen.getByLabelText('Maydon')).toHaveTextContent('Chilonzor Arena'),
-    )
-    expect(within(screen.getByLabelText('Maydon')).getAllByRole('option')).toHaveLength(2)
-    fireEvent.change(screen.getByLabelText('Maydon'), { target: { value: 'st1' } })
+    // The stadium filter searches the real stadium list on the server.
+    fireEvent.click(screen.getByRole('button', { name: 'Maydon: Barchasi' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Maydon qidirish' }), {
+      target: { value: 'Chil' },
+    })
+    await waitFor(() => {
+      const search = requests.filter((r) => r.url.pathname === '/api/admin/stadiums').at(-1)
+      expect(search?.url.searchParams.get('search')).toBe('Chil')
+      expect(search?.url.searchParams.get('size')).toBe('20')
+    })
+    const listbox = screen.getByRole('listbox', { name: 'Maydon' })
+    expect(within(listbox).getByRole('option', { name: 'Barchasi' })).toBeInTheDocument()
+    fireEvent.click(await within(listbox).findByRole('option', { name: 'Chilonzor Arena' }))
     await waitFor(() => expect(lastBookings(requests).get('stadiumId')).toBe('st1'))
+    expect(screen.getByRole('button', { name: 'Maydon: Chilonzor Arena' })).toBeInTheDocument()
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Holat'), { target: { value: 'completed' } })
     await waitFor(() => expect(lastBookings(requests).get('status')).toBe('completed'))
     fireEvent.click(screen.getByRole('button', { name: 'Sana: Barchasi' }))
@@ -217,7 +244,7 @@ describe('Bronlar', () => {
     expect(row('Qolgan summa')).toHaveTextContent("0 so'm")
     expect(row('Egasiga tushadi')).toHaveTextContent("154 175 so'm")
     expect(row('ATMOS komissiyasi')).toHaveTextContent("825 so'm")
-    expect(within(payment).getByText('Egasi qabul qildi')).toBeInTheDocument()
+    expect(within(payment).getByText('Naqd olindi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Chilonzor Arena' })).toHaveAttribute(
       'href',
       '/maydonlar/st1',
@@ -243,14 +270,15 @@ describe('Bronlar', () => {
     renderAt('/bronlar?bron=b2')
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
     expect(await within(panel).findByText('Maydonda taʼmirlash ishlari')).toBeInTheDocument()
-    expect(within(panel).getByText("200 000 so'm toʻlanmagan")).toBeInTheDocument()
+    // A cancelled booking owes nothing: no remainder chip.
+    expect(within(panel).queryByText(/Qoldiq|Toʻlanmadi/)).not.toBeInTheDocument()
   })
 
   it('lists games: both teams, a waiting team, a friends game', async () => {
     backend()
     signIn()
     renderAt('/bronlar?tab=oyinlar')
-    const table = await screen.findByRole('table')
+    const table = await screen.findByRole('grid')
     expect(await within(table).findByText('Yunusobod Tigers', { exact: false })).toBeInTheDocument()
     expect(within(table).getAllByText('Raqib kutilmoqda')).toHaveLength(2)
     expect(within(table).getByText('Doʻstlar bilan')).toBeInTheDocument()
@@ -267,11 +295,12 @@ describe('Bronlar', () => {
     const teams = await within(panel).findByRole('region', { name: 'Jamoalar' })
     expect(within(teams).getByText('Chilonzor Lions')).toBeInTheDocument()
     expect(within(teams).getByText('Yunusobod Tigers')).toBeInTheDocument()
-    expect(within(teams).getAllByText("100 000 so'm")).toHaveLength(2)
+    // Each team: paid in the app (header) and paid altogether (Toʻlagan).
+    expect(within(teams).getAllByText("100 000 so'm")).toHaveLength(4)
     const lions = within(within(teams).getByText('Chilonzor Lions').closest('div.rounded-lg')!)
     const figure = (label: string) => lions.getByText(label).closest('div')!
     expect(figure('Platforma toʻlovi')).toHaveTextContent("25 000 so'm")
-    expect(figure('Egasiga avans')).toHaveTextContent("25 000 so'm")
+    expect(figure('Egasining ulushi')).toHaveTextContent("25 000 so'm")
     expect(figure('Egasiga qolgan')).toHaveTextContent("75 000 so'm")
     expect(figure('Egasiga tushadi')).toHaveTextContent("98 500 so'm")
     expect(figure('ATMOS komissiyasi')).toHaveTextContent("1 500 so'm")
@@ -280,6 +309,81 @@ describe('Bronlar', () => {
       '/foydalanuvchilar/u3',
     )
     expect(within(panel).queryByText(/chat/i)).not.toBeInTheDocument()
+    const row = (label: string) => lions.getByText(label, { selector: 'dt' }).closest('div')!
+    expect(row('Toʻlov turi')).toHaveTextContent('Minimal toʻlov')
+    expect(row('Toʻlagan')).toHaveTextContent("100 000 so'm")
+    expect(row('Qoldiq')).toHaveTextContent('Toʻliq toʻlangan')
+    expect(lions.queryByRole('button', { name: 'Belgini bekor qilish' })).toBeNull()
+  })
+
+  it('shows a team’s remainder and mark, and undoes the mark after confirming (T10)', async () => {
+    const team = teamGame.teams![0]!
+    const marked: AdminGameDetail = {
+      ...teamGame,
+      teams: [
+        {
+          ...team,
+          remainderStatus: 'paid',
+          remainderAmount: 7_500_000,
+          remainingAmount: 0,
+          remainderMark: 'cash_received',
+          remainderMarkedAt: '2026-10-22T17:00:00Z',
+        },
+        teamGame.teams![1]!,
+      ],
+    }
+    const owing: AdminGameDetail = {
+      ...teamGame,
+      teams: [
+        {
+          ...team,
+          remainderStatus: 'unpaid',
+          remainderAmount: 7_500_000,
+          remainingAmount: 7_500_000,
+        },
+        teamGame.teams![1]!,
+      ],
+    }
+    const { requests } = backend({
+      '/api/admin/games/g1': [200, marked],
+      'DELETE /api/admin/games/g1/remainder-mark': [200, owing],
+    })
+    signIn()
+    renderAt('/bronlar?tab=oyinlar&oyin=g1')
+    const panel = await screen.findByRole('dialog', { name: /Oʻyin #/ })
+    const teams = await within(panel).findByRole('region', { name: 'Jamoalar' })
+    const lions = within(within(teams).getByText('Chilonzor Lions').closest('div.rounded-lg')!)
+    expect(lions.getByText('Qoldiq belgisi: Naqd olindi')).toBeInTheDocument()
+    fireEvent.click(lions.getByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    expect(modal).toHaveTextContent('naqd toʻlov yozuvi bekor qilinadi')
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(await screen.findByText('Belgi bekor qilindi')).toBeInTheDocument()
+    const del = requests.find(
+      (r) => r.method === 'DELETE' && r.url.pathname === '/api/admin/games/g1/remainder-mark',
+    )
+    expect(del?.url.searchParams.get('side')).toBe('a')
+  })
+
+  it('says when the team’s mark is already gone', async () => {
+    const team = teamGame.teams![0]!
+    backend({
+      '/api/admin/games/g1': [
+        200,
+        { ...teamGame, teams: [{ ...team, remainderMark: 'not_paid' }, teamGame.teams![1]!] },
+      ],
+      'DELETE /api/admin/games/g1/remainder-mark': [409, 'This team has no remainder mark'],
+    })
+    signIn()
+    renderAt('/bronlar?tab=oyinlar&oyin=g1')
+    const panel = await screen.findByRole('dialog', { name: /Oʻyin #/ })
+    fireEvent.click(await within(panel).findByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    expect(modal).toHaveTextContent('«Toʻlanmadi» belgisi bekor qilinadi')
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(
+      await screen.findByText('Bu jamoada belgi yoʻq — u allaqachon bekor qilingan'),
+    ).toBeInTheDocument()
   })
 
   it('shows empty and error states', async () => {
@@ -299,13 +403,119 @@ describe('Bronlar', () => {
     signIn()
     renderAt('/bronlar?bron=b1')
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Maydon')).not.toBeInTheDocument()
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Maydon:/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Oʻyinlar' }))
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()
     expect(
       requests.some((r) => /^\/api\/admin\/(bookings|games|stadiums)/.test(r.url.pathname)),
     ).toBe(false)
+  })
+})
+
+describe('Bronlar — remainder marks (E8, E6)', () => {
+  useAdminTestSetup()
+
+  const owing: AdminBooking = {
+    ...booking,
+    id: 'b3',
+    userName: 'Aziz Karimov',
+    status: 'confirmed',
+    paidAmount: 5_500_000,
+    remainingAmount: 10_000_000,
+    paymentStatus: 'partially_paid',
+    cashReceived: undefined,
+    paidInCash: 0,
+  }
+  const notPaid: AdminBooking = {
+    ...owing,
+    id: 'b4',
+    userName: 'Jasur Toshmatov',
+    remainderMark: 'not_paid',
+    remainderMarkedAt: '2026-10-22T17:10:00Z',
+  }
+  const cashMarked: AdminBooking = {
+    ...owing,
+    id: 'b5',
+    userName: 'Olim Nazarov',
+    paidAmount: 15_500_000,
+    remainingAmount: 0,
+    paymentStatus: 'paid',
+    paidInCash: 10_000_000,
+    remainderMark: 'cash_received',
+    remainderMarkedAt: '2026-10-22T17:10:00Z',
+  }
+
+  function marksBackend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
+    return backend({
+      '/api/admin/bookings': [200, page([owing, notPaid, cashMarked, booking])],
+      '/api/admin/bookings/b3': [200, owing],
+      '/api/admin/bookings/b4': [200, notPaid],
+      '/api/admin/bookings/b5': [200, cashMarked],
+      ...extra,
+    })
+  }
+
+  it('shows the status chip of each booking in the list', async () => {
+    marksBackend()
+    signIn()
+    renderAt('/bronlar')
+    const table = await screen.findByRole('grid')
+    const rowOf = async (name: string) => (await within(table).findByText(name)).closest('tr')!
+    expect(await rowOf('Aziz Karimov')).toHaveTextContent("Qoldiq: 100 000 so'm")
+    expect(await rowOf('Jasur Toshmatov')).toHaveTextContent('Toʻlanmadi')
+    expect(await rowOf('Olim Nazarov')).toHaveTextContent('Naqd olindi')
+    expect(await rowOf('Sardor Aliyev')).toHaveTextContent('Naqd olindi')
+  })
+
+  it('offers no undo on a booking without a mark', async () => {
+    marksBackend()
+    signIn()
+    renderAt('/bronlar?bron=b3')
+    const panel = await screen.findByRole('dialog', { name: /Bron #/ })
+    expect(await within(panel).findByText("Qoldiq: 100 000 so'm")).toBeInTheDocument()
+    expect(
+      within(panel).queryByRole('button', { name: 'Belgini bekor qilish' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('undoes a cash mark after confirming, at any time', async () => {
+    const { requests } = marksBackend({
+      'DELETE /api/admin/bookings/b5/remainder-mark': [200, owing],
+    })
+    signIn()
+    renderAt('/bronlar?bron=b5')
+    const panel = await screen.findByRole('dialog', { name: /Bron #/ })
+    const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
+    expect(within(section).getByText('Naqd olindi')).toBeInTheDocument()
+    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    expect(modal).toHaveTextContent(/pul qaytarilmaydi/)
+    expect(requests.some((r) => r.method === 'DELETE')).toBe(false)
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(await screen.findByText('Belgi bekor qilindi')).toBeInTheDocument()
+    expect(
+      requests.filter(
+        (r) => r.method === 'DELETE' && r.url.pathname === '/api/admin/bookings/b5/remainder-mark',
+      ),
+    ).toHaveLength(1)
+  })
+
+  it('says so when the mark is already gone', async () => {
+    marksBackend({
+      'DELETE /api/admin/bookings/b4/remainder-mark': [409, 'This booking has no remainder mark'],
+    })
+    signIn()
+    renderAt('/bronlar?bron=b4')
+    const panel = await screen.findByRole('dialog', { name: /Bron #/ })
+    const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
+    expect(within(section).getByText('Toʻlanmadi')).toBeInTheDocument()
+    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
+    fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
+    expect(
+      await screen.findByText('Bu bronda belgi yoʻq — u allaqachon bekor qilingan'),
+    ).toBeInTheDocument()
   })
 })

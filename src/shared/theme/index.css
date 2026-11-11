@@ -28,6 +28,7 @@
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
   --color-link: var(--link);
+  --color-link-text: var(--link-text);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -35,6 +36,13 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-neutral-soft: var(--neutral-soft);
+  /* Status text, icons and borders: text-success-text, border-danger-text … (AA on every surface). */
+  --color-success-text: var(--success-text);
+  --color-warning-text: var(--warning-text);
+  --color-danger-text: var(--danger-text);
+  /* Status fills under white text: bg-success-fill, bg-danger-fill. */
+  --color-success-fill: var(--success-fill);
+  --color-danger-fill: var(--danger-fill);
 
   --shadow-*: initial;
   --shadow-sm: var(--shadow-sm);

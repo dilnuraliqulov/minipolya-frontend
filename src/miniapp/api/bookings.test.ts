@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { stubApi } from '../test/api'
 import { makeBooking, makeCard } from '../test/bookings'
 import { createBooking, getBookings } from './bookings'
-import { lastFour } from './cards'
+import { formatMaskedNumber } from './cards'
 
 describe('createBooking', () => {
   it('sends paymentOption uppercase and startsAt unchanged', async () => {
@@ -25,18 +25,29 @@ describe('createBooking', () => {
 })
 
 describe('getBookings', () => {
-  it('asks for a page of 20', async () => {
+  it('asks for one tab (R29), a page of 20', async () => {
     const fetch = stubApi({
       'GET /api/bookings': { content: [], page: 2, size: 20, totalElements: 0, totalPages: 0 },
     })
-    await getBookings(2)
-    expect(fetch.queries('GET /api/bookings')).toEqual([{ page: '2', size: '20' }])
+    await getBookings(2, 'past')
+    expect(fetch.queries('GET /api/bookings')).toEqual([{ when: 'past', page: '2', size: '20' }])
   })
 })
 
-describe('lastFour', () => {
-  it('takes the last four characters of the masked number', () => {
-    expect(lastFour('8600 •••• 1234')).toBe('1234')
-    expect(lastFour(makeCard().maskedNumber)).toHaveLength(4)
+describe('formatMaskedNumber', () => {
+  it('shows the new and the older mask the same way', () => {
+    expect(formatMaskedNumber('8600 •••• •••• 1234')).toBe('8600 •••• •••• 1234')
+    expect(formatMaskedNumber('8600 •••• 1234')).toBe('8600 •••• •••• 1234')
+    expect(formatMaskedNumber('9860 •••• •••• 1840 ')).toBe('9860 •••• •••• 1840')
+  })
+
+  it('reads a provider mask and one without a prefix', () => {
+    expect(formatMaskedNumber('986009******1840')).toBe('9860 •••• •••• 1840')
+    expect(formatMaskedNumber('•••• •••• •••• 1234')).toBe('•••• 1234')
+    expect(formatMaskedNumber('•••• •••• •••• ••••')).toBe('•••• •••• •••• ••••')
+  })
+
+  it('works on a card from the test helper', () => {
+    expect(formatMaskedNumber(makeCard().maskedNumber)).toMatch(/^[0-9]{4} •••• •••• [0-9]{4}$/)
   })
 })

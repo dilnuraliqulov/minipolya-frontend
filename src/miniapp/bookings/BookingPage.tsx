@@ -3,7 +3,7 @@ import { CalendarDays, Clock, MapPin, Phone, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
-import { isApiError } from '../../shared/api'
+import { isApiError, mediaUrl } from '../../shared/api'
 import { formatTime } from '../../shared/format'
 import { BOOKINGS_KEY, bookingKey, type Booking } from '../api/bookings'
 import { getMyPayments } from '../api/payments'
@@ -15,14 +15,15 @@ import {
   ErrorState,
   Header,
   LogoMark,
+  RemainderCard,
   Screen,
   SkeletonList,
 } from '../components'
-import { formatLongDate } from '../format'
+import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { formatLabel } from '../stadiums/labels'
-import { mapLink } from '../stadiums/mapLink'
+import { mapLink } from '../../shared/map'
 import { useStadium } from '../stadiums/queries'
 import { openExternalLink } from '../telegram'
 import { BookingStatusBadge } from './BookingStatusBadge'
@@ -81,7 +82,7 @@ function BookingContent({ booking }: { booking: Booking }) {
   const queryClient = useQueryClient()
   // The stadium adds photo, district, address and phone; the page works without it.
   const stadium = useStadium(booking.stadiumId).data
-  const [sheet, setSheet] = useState<'pay' | 'cancel' | null>(null)
+  const [sheet, setSheet] = useState<'pay' | 'payPending' | 'cancel' | null>(null)
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: bookingKey(booking.id) })
     void queryClient.invalidateQueries({ queryKey: BOOKINGS_KEY })
@@ -89,16 +90,41 @@ function BookingContent({ booking }: { booking: Booking }) {
   const owesRest = booking.paymentStatus === 'partially_paid' && LIVE.has(booking.status)
   // A remainder charge still being settled must not be paid a second time.
   const [settling, setSettling] = useState(false)
+  // The booking says where its latest card payment stands (paymentState); only a
+  // backend older than ccfa4d5 leaves it out, and then the payment rows are read.
+  const knowsState = booking.paymentState !== undefined
   const payments = useQuery({
     queryKey: ['payments', 'my'],
     queryFn: () => getMyPayments(0),
-    enabled: owesRest,
+    enabled: owesRest && !knowsState,
   })
-  const processing = payments.data?.content.some(
-    (p) => p.bookingId === booking.id && p.paymentType === 'remainder' && p.status === 'processing',
-  )
-  const canPayRest = owesRest && !settling && !processing && !payments.isPending
+  const processing = knowsState
+    ? booking.paymentState === 'processing'
+    : payments.data?.content.some(
+        (p) =>
+          p.bookingId === booking.id && p.paymentType === 'remainder' && p.status === 'processing',
+      )
+  const canPayRest = owesRest && !settling && !processing && (knowsState || !payments.isPending)
   const canCancel = CANCELLABLE.has(booking.status)
+  // R28: a pending booking whose card was declined is paid again within its hold.
+  // Not while a payment of it is still on its way, and not once the hold is over.
+  const hold = useCountdown(booking.expiresAt)
+  const canPayPending =
+    booking.status === 'pending' &&
+    booking.paymentStatus === 'unpaid' &&
+    booking.paymentState !== 'processing' &&
+    booking.expiresAt !== undefined &&
+    !hold.expired
+  // The server charges what the first attempt asked for (deposit or in full); that
+  // amount is on its payment row, so the button can show it.
+  const attempts = useQuery({
+    queryKey: ['payments', 'my'],
+    queryFn: () => getMyPayments(0),
+    enabled: canPayPending,
+  })
+  const firstAttempt = attempts.data?.content
+    .filter((p) => p.bookingId === booking.id && p.paymentType === 'booking' && p.amount > 0)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]
 
   return (
     <>
@@ -106,27 +132,29 @@ function BookingContent({ booking }: { booking: Booking }) {
       {booking.status === 'pending' && booking.expiresAt && (
         <PendingBanner expiresAt={booking.expiresAt} />
       )}
+      {owesRest && (
+        // E10: what is still owed, up top — pay it in the app or in cash at the pitch.
+        <RemainderCard
+          amount={booking.remainingAmount}
+          onPay={canPayRest ? () => setSheet('pay') : undefined}
+          status={
+            settling || processing ? (
+              <p className="text-sm text-secondary">
+                {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
+              </p>
+            ) : undefined
+          }
+        />
+      )}
       <Details booking={booking} stadium={stadium} />
 
       <PaymentSummary booking={booking}>
-        {owesRest && (settling || processing) && (
-          <p className="rounded-xl bg-warning-soft p-3 text-sm text-warning">
-            {t('checkout.checkingTitle')} · {t('checkout.checkingText')}
-          </p>
-        )}
-        {canPayRest && (
-          <>
-            <Button haptic onClick={() => setSheet('pay')}>
-              {t('booking.payRest')}
-            </Button>
-            <p className="text-center text-sm text-secondary">{t('booking.cashNote')}</p>
-          </>
-        )}
-        {booking.status === 'pending' && booking.paymentStatus === 'unpaid' && (
-          <>
-            <Button disabled>{t('booking.payNow')}</Button>
-            <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
-          </>
+        {canPayPending && (
+          <Button haptic onClick={() => setSheet('payPending')}>
+            {firstAttempt
+              ? t('booking.payRestButton', { amount: formatMoney(firstAttempt.amount) })
+              : t('booking.payNow')}
+          </Button>
         )}
       </PaymentSummary>
 
@@ -169,8 +197,10 @@ function BookingContent({ booking }: { booking: Booking }) {
       )}
 
       <PayRemainderSheet
-        open={sheet === 'pay'}
+        open={sheet === 'pay' || sheet === 'payPending'}
         booking={booking}
+        mode={sheet === 'payPending' ? 'pending' : 'rest'}
+        amount={firstAttempt?.amount}
         onClose={(outcome) => {
           setSheet(null)
           if (outcome === 'checking') setSettling(true)
@@ -212,7 +242,7 @@ function Head({ booking, stadium }: { booking: Booking; stadium?: StadiumDetail 
       <span className="flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface text-secondary">
         {photo && !broken ? (
           <img
-            src={photo.url}
+            src={mediaUrl(photo.url)}
             alt=""
             width={72}
             height={72}
@@ -236,7 +266,7 @@ function PendingBanner({ expiresAt }: { expiresAt: string }) {
   const { t } = useTranslation()
   const hold = useCountdown(expiresAt)
   return (
-    <div className="flex gap-3 rounded-xl bg-warning-soft p-3 text-warning">
+    <div className="flex gap-3 rounded-xl bg-warning-soft p-3 text-warning-text">
       <Clock size={18} className="mt-0.5 shrink-0" aria-hidden />
       <div className="flex flex-col gap-1 text-sm">
         <p className="font-semibold">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPhone, formatPhoneInput, isCompletePhone, toWirePhone } from './phone'
+import { formatPhone, formatPhoneInput, isCompletePhone, maskPhone, toWirePhone } from './phone'
 
 describe('formatPhoneInput', () => {
   it('keeps +998 and groups what the user types as XX XXX XX XX', () => {
@@ -30,5 +30,12 @@ describe('formatPhone', () => {
   it('shows a stored phone grouped, and anything unexpected as it is', () => {
     expect(formatPhone('+998901234567')).toBe('+998 90 123 45 67')
     expect(formatPhone('12345')).toBe('12345')
+  })
+})
+
+describe('maskPhone', () => {
+  it('hides the middle digits of a stored phone', () => {
+    expect(maskPhone('+998901234567')).toBe('+998 90 ••• •• 67')
+    expect(maskPhone('12345')).toBe('12345')
   })
 })

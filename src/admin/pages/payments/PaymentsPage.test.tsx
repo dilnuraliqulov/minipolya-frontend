@@ -35,6 +35,9 @@ const failedRefund: AdminPayment = {
   amount: -20_000_000,
   ownerAmount: -19_000_000,
   platformAmount: -1_000_000,
+  ownerNet: -18_700_049,
+  platformNet: -985_000,
+  atmosFee: -314_951,
   commissionPercent: 5,
   method: 'card',
   provider: 'atmos',
@@ -52,6 +55,8 @@ const held: AdminPayment = {
   amount: 8_000_000,
   ownerAmount: 7_500_000,
   platformAmount: 500_000,
+  ownerNet: 7_387_500,
+  platformNet: 492_500,
   atmosFee: 120_000,
   providerCommission: 118_000,
   status: 'held',
@@ -68,7 +73,9 @@ const cash: AdminPayment = {
   method: 'cash',
   provider: 'cash',
   providerTxnId: undefined,
-  atmosFee: undefined,
+  atmosFee: 0,
+  ownerNet: 13_000_000,
+  platformNet: 0,
   providerCommission: undefined,
   status: 'paid',
   amount: 13_000_000,
@@ -151,11 +158,12 @@ describe('Toʻlovlar', () => {
     expect(range.get('from')!.endsWith('-01')).toBe(true)
     expect(range.get('to')! >= range.get('from')!).toBe(true)
 
-    const table = screen.getByRole('table')
+    const table = screen.getByRole('grid')
     const refundRow = (await within(table).findByText('Sardor Aliyev')).closest('tr')!
-    expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger')
-    expect(within(refundRow).getByText('Egaga: −190 000')).toBeInTheDocument()
-    expect(within(refundRow).getByText('Platformaga: −10 000')).toBeInTheDocument()
+    expect(within(refundRow).getByText("−200 000 so'm")).toHaveClass('text-danger-text')
+    expect(within(refundRow).getByText('Egaga: −187 000')).toBeInTheDocument()
+    expect(within(refundRow).getByText('Platformaga: −9 850')).toBeInTheDocument()
+    expect(within(refundRow).getByText('ATMOS: −3 150')).toBeInTheDocument()
     expect(within(refundRow).getByText('Muvaffaqiyatsiz')).toBeInTheDocument()
     expect(within(refundRow).getByText('8f3a…fund')).toBeInTheDocument()
     expect(within(refundRow).getByText('28 okt, 14:02')).toBeInTheDocument()
@@ -182,7 +190,7 @@ describe('Toʻlovlar', () => {
     signIn()
     renderAt('/tolovlar')
     const refundsTab = await screen.findByRole('tab', { name: /Qaytarishlar/ })
-    expect(await within(refundsTab).findByText('1')).toHaveClass('text-danger')
+    expect(await within(refundsTab).findByText('1')).toHaveClass('text-danger-text')
     fireEvent.click(refundsTab)
     await waitFor(() => expect(last(requests, '/api/admin/payments').get('type')).toBe('refund'))
     expect(screen.queryByLabelText('Turi')).not.toBeInTheDocument()
@@ -228,7 +236,13 @@ describe('Toʻlovlar', () => {
     expect(
       within(panel).getByText('ATMOS xatosi: «Transaction declined by issuer (code 57)»'),
     ).toBeInTheDocument()
-    expect(within(panel).getByText('Egadan')).toBeInTheDocument()
+    const figure = (label: string) => within(panel).getByText(label).closest('div')!
+    expect(figure('Egadan')).toHaveTextContent("−187 000 so'm")
+    expect(figure('Platformadan')).toHaveTextContent("−9 850 so'm")
+    expect(figure('ATMOS')).toHaveTextContent("−3 150 so'm")
+    expect(figure('Egasining ulushi')).toHaveTextContent("−190 000 so'm")
+    expect(figure('Egasiga sof')).toHaveTextContent("−187 000,49 so'm")
+    expect(figure('ATMOS komissiyasi')).toHaveTextContent("−3 149,51 so'm")
     expect(within(panel).getByText('5 %')).toBeInTheDocument()
     expect(within(panel).getByText('Qaytarish oʻtmadi')).toBeInTheDocument()
     expect(within(panel).getByRole('link', { name: 'Bronni ochish' })).toHaveAttribute(
@@ -236,6 +250,10 @@ describe('Toʻlovlar', () => {
       '/bronlar?bron=b1',
     )
     fireEvent.click(within(panel).getByRole('button', { name: 'Qayta urinish' }))
+    const confirm = screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })
+    expect(confirm).toHaveTextContent('Pul toʻlovchining kartasiga qaytadan yuboriladi')
+    expect(requests.some((r) => r.method === 'POST')).toBe(false)
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Qayta urinish' }))
     expect(await screen.findByText('Pul qaytarildi')).toBeInTheDocument()
     expect(requests.some((r) => r.method === 'POST')).toBe(true)
 
@@ -250,8 +268,69 @@ describe('Toʻlovlar', () => {
     signIn()
     renderAt('/tolovlar?tolov=p1')
     fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })).getByRole(
+        'button',
+        { name: 'Qayta urinish' },
+      ),
+    )
     expect(
       await screen.findByText('ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'),
+    ).toBeInTheDocument()
+  })
+
+  it('cancelling the retry confirmation sends nothing', async () => {
+    const { requests } = backend()
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    const confirm = screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Bekor qilish' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Qaytarishni qayta urinish' })).toBeNull(),
+    )
+    expect(requests.some((r) => r.method === 'POST')).toBe(false)
+  })
+
+  it('says when the refund is no longer failed (retried elsewhere)', async () => {
+    backend({
+      'POST /api/admin/payments/p1/retry-refund': [400, 'Only a failed refund can be retried'],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qayta urinish' }))
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })).getByRole(
+        'button',
+        { name: 'Qayta urinish' },
+      ),
+    )
+    expect(
+      await screen.findByText(
+        'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('says when a refund marked by hand is no longer failed', async () => {
+    backend({
+      'POST /api/admin/payments/p1/mark-refunded': [
+        400,
+        'Only a failed refund can be marked as refunded',
+      ],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Qoʻlda qaytarildi' }))
+    const dialog = screen.getByRole('dialog', { name: 'Qoʻlda qaytarildi deb belgilash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), {
+      target: { value: 'Mijozga maydonda naqd qaytarildi' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Belgilash' }))
+    expect(
+      await screen.findByText(
+        'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi',
+      ),
     ).toBeInTheDocument()
   })
 

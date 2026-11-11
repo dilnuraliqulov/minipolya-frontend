@@ -10,7 +10,7 @@ export function NoAccessPage({ user }: { user: User }) {
   return (
     <AuthCard>
       <span className="flex size-14 items-center justify-center rounded-full bg-danger-soft">
-        <ShieldOff size={26} aria-hidden className="text-danger" />
+        <ShieldOff size={26} aria-hidden className="text-danger-text" />
       </span>
       <h1 className="mt-4.5 text-2xl font-semibold text-primary">Sizda kirish huquqi yoʻq</h1>
       <p className="mt-2 text-base text-secondary">

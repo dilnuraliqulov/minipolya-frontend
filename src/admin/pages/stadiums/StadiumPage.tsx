@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
-import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError, mediaUrl } from '../../../shared/api'
 import { formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { isAvailable } from '../../api/missing'
@@ -59,11 +59,16 @@ import {
   LEGAL_TYPE_LABELS,
   REJECT_REASONS,
 } from './labels'
+import { BookingTermsCard } from './BookingTermsCard'
 import { OwnerDetailsModal } from './OwnerDetailsModal'
+import { mapLink } from '../../../shared/map'
 
 const StadiumMap = lazy(() => import('./StadiumMap'))
 
 const HISTORY_SIZE = 10
+/** Approval needs this many photos (D7). */
+const MIN_PHOTOS = 3
+const TOO_FEW_PHOTOS = 'Tasdiqlash uchun kamida 3 ta rasm kerak'
 
 function Card({
   title,
@@ -95,14 +100,6 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
       <dd className="min-w-0 flex-1 text-primary">{children}</dd>
     </div>
   )
-}
-
-function mapLink(stadium: StadiumDetail): string {
-  if (stadium.latitude !== undefined && stadium.longitude !== undefined) {
-    const { latitude: lat, longitude: lng } = stadium
-    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`
-  }
-  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(`${stadium.address}, Toshkent`)}`
 }
 
 /** A per-hour amount from the backend, or "—" when it is absent. */
@@ -156,7 +153,7 @@ function Gallery({ stadium }: { stadium: StadiumDetail }) {
   return (
     <div className="flex flex-col gap-2">
       <img
-        src={current.url}
+        src={mediaUrl(current.url)}
         alt={`${stadium.name} — ${active + 1}-rasm`}
         className="aspect-[3/2] w-full rounded-lg object-cover"
       />
@@ -174,7 +171,7 @@ function Gallery({ stadium }: { stadium: StadiumDetail }) {
                 i === active ? 'border-accent' : 'border-transparent opacity-70 hover:opacity-100',
               )}
             >
-              <img src={photo.url} alt="" className="size-full object-cover" />
+              <img src={mediaUrl(photo.url)} alt="" className="size-full object-cover" />
             </button>
           ))}
         </div>
@@ -206,7 +203,7 @@ function InfoSection({
             <span className="flex flex-col items-start gap-1">
               {stadium.address}
               <a
-                href={mapLink(stadium)}
+                href={mapLink({ ...stadium, address: `${stadium.address}, Toshkent` })}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 rounded-xs text-sm text-link hover:underline focus-visible:outline-2 focus-visible:outline-accent"
@@ -216,6 +213,7 @@ function InfoSection({
               </a>
             </span>
           </Row>
+          {extras && stadium.landmark && <Row label="Moʻljal">{stadium.landmark}</Row>}
           {extras && stadium.district && <Row label="Tuman">{stadium.district}</Row>}
           {extras && stadium.phone && <Row label="Telefon">{stadium.phone}</Row>}
           <Row label="Format">{formatPitch(stadium.format)}</Row>
@@ -236,6 +234,12 @@ function InfoSection({
               </span>
             </Row>
           )}
+          {extras && stadium.description && (
+            <Row label="Qoʻshimcha maʼlumot">
+              <span className="whitespace-pre-line">{stadium.description}</span>
+            </Row>
+          )}
+          {extras && <Row label="Rasmlar">{`${stadium.photos?.length ?? 0} ta`}</Row>}
           <Row label="Qoʻshilgan">{formatDateTime(stadium.createdAt)}</Row>
           <Row label="Bronlar">{formatNumber(stadium.totalBookings)} ta</Row>
           {!extras && <Row label="Ish vaqti, qulayliklar">{SOON}</Row>}
@@ -308,32 +312,7 @@ function TermsSection({ stadium, extras }: { stadium: StadiumDetail; extras: boo
           </table>
         )}
       </Card>
-      <Card title="Bron shartlari">
-        <dl className="flex flex-col gap-2.5">
-          <Row label="Minimal toʻlov">
-            <span className="flex flex-col gap-0.5">
-              {stadium.minBookingAmount === undefined ? (
-                'Toʻliq toʻlov'
-              ) : (
-                <>
-                  <span>Egasining: {formatSom(stadium.minBookingAmount)}</span>
-                  {stadium.playerMinBookingAmount !== undefined && (
-                    <span>Oʻyinchilar uchun: {formatSom(stadium.playerMinBookingAmount)}</span>
-                  )}
-                </>
-              )}
-              <span className="text-xs text-secondary">
-                Bron qilishda oʻyinchi toʻlaydigan eng kam summa
-              </span>
-            </span>
-          </Row>
-          <Row label="Bekor qilish">
-            {stadium.cancellationHours === undefined
-              ? '—'
-              : `Boshlanishidan ${stadium.cancellationHours} soat oldingacha`}
-          </Row>
-        </dl>
-      </Card>
+      <BookingTermsCard stadium={stadium} row={Row} />
     </div>
   )
 }
@@ -410,7 +389,7 @@ function OwnerCard({ stadium }: { stadium: StadiumDetail }) {
         >
           <Phone size={18} aria-hidden className="text-link" />
           <span className="flex-1 text-lg font-semibold text-primary">{phone}</span>
-          <span className="text-sm text-link">Qoʻngʻiroq qilish</span>
+          <span className="text-sm text-link-text">Qoʻngʻiroq qilish</span>
         </a>
       ) : (
         <p className="text-sm text-secondary">Telefon raqami yoʻq</p>
@@ -524,7 +503,7 @@ function NotesCard({ stadiumId }: { stadiumId: string }) {
       {notes.isPending ? (
         <Skeleton className="h-12 w-full rounded-md" />
       ) : notes.isError ? (
-        <p className="text-sm text-danger">Izohlarni yuklab boʻlmadi</p>
+        <p className="text-sm text-danger-text">Izohlarni yuklab boʻlmadi</p>
       ) : notes.data.length === 0 ? (
         <p className="text-sm text-secondary">Hali izoh yoʻq</p>
       ) : (
@@ -614,7 +593,9 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
           ? 'Maydon topilmadi'
           : isApiError(error) && error.message === API_MESSAGES.contractNotSigned
             ? 'Egasining ATMOS shartnomasi imzolanmagan'
-            : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
+            : isApiError(error) && error.message === API_MESSAGES.tooFewPhotos
+              ? TOO_FEW_PHOTOS
+              : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
       )
     },
   })
@@ -626,39 +607,68 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
     isAvailable(LEGAL_DETAILS_GET) &&
     stadium.ownerContractStatus !== undefined &&
     stadium.ownerContractStatus !== 'signed'
+  // Approval needs at least 3 photos (D7); said up front when the photos are known.
+  const fewPhotos =
+    isAvailable(STADIUM_DETAIL_FIELDS) &&
+    stadium.photos !== undefined &&
+    stadium.photos.length < MIN_PHOTOS
+  const blocker = unsigned
+    ? 'Egasining ATMOS shartnomasi imzolanmagan'
+    : fewPhotos
+      ? TOO_FEW_PHOTOS
+      : null
   const last = decision.data
   const shownStatus = stadium.status
 
+  // Approving is offered for pending and rejected stadiums (the backend allows
+  // both), with the same contract guard.
+  const approveButton = (
+    <Button
+      icon={Check}
+      className="w-full"
+      disabled={blocker !== null || change.isPending}
+      onClick={() => setDialog('approve')}
+    >
+      Tasdiqlash
+    </Button>
+  )
+  const approve = (
+    <>
+      {blocker ? (
+        <DisabledHint hint={blocker} className="w-full">
+          {approveButton}
+        </DisabledHint>
+      ) : (
+        approveButton
+      )}
+      {blocker && (
+        <p className="flex items-center gap-2 text-sm text-warning-text">
+          <TriangleAlert size={16} aria-hidden />
+          {blocker}
+        </p>
+      )}
+    </>
+  )
+  const blockButton = (
+    <Button
+      variant="danger-outline"
+      icon={Lock}
+      className="w-full"
+      disabled={change.isPending}
+      onClick={() => setDialog('block')}
+    >
+      Bloklash
+    </Button>
+  )
+
   let body: ReactNode
   if (shownStatus === 'pending') {
-    const approve = (
-      <Button
-        icon={Check}
-        className="w-full"
-        disabled={unsigned || change.isPending}
-        onClick={() => setDialog('approve')}
-      >
-        Tasdiqlash
-      </Button>
-    )
     body = (
       <>
         <p className="text-sm text-secondary">
           Tasdiqlansa, maydon ilovada koʻrinadi va bron qilish uchun ochiladi
         </p>
-        {unsigned ? (
-          <DisabledHint hint="Egasining ATMOS shartnomasi imzolanmagan" className="w-full">
-            {approve}
-          </DisabledHint>
-        ) : (
-          approve
-        )}
-        {unsigned && (
-          <p className="flex items-center gap-2 text-sm text-warning">
-            <TriangleAlert size={16} aria-hidden />
-            Egasining ATMOS shartnomasi imzolanmagan
-          </p>
-        )}
+        {approve}
         <Button
           variant="danger-outline"
           icon={X}
@@ -676,22 +686,14 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
         <p className="text-sm text-secondary">
           Maydon ilovada koʻrinadi va bron qilish uchun ochiq
         </p>
-        <Button
-          variant="danger-outline"
-          icon={Lock}
-          className="w-full"
-          disabled={change.isPending}
-          onClick={() => setDialog('block')}
-        >
-          Bloklash
-        </Button>
+        {blockButton}
       </>
     )
   } else {
     const rejected = shownStatus === 'rejected'
     body = (
       <>
-        <p className="text-base font-semibold text-danger">
+        <p className="text-base font-semibold text-danger-text">
           {rejected ? 'Rad etilgan' : 'Bloklangan'}
         </p>
         <dl className="flex flex-col gap-2">
@@ -707,7 +709,12 @@ function DecisionPanel({ stadium }: { stadium: StadiumDetail }) {
             )
           )}
         </dl>
-        {!rejected && (
+        {rejected ? (
+          <>
+            {approve}
+            {blockButton}
+          </>
+        ) : (
           <Button
             icon={LockOpen}
             className="w-full"

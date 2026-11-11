@@ -4,7 +4,11 @@ import type { GameDetail, GameTeam } from '../api/games'
 import type { TeamDetail } from '../api/teams'
 import { jsonResponse, stubApi } from '../test/api'
 import { makeCard } from '../test/bookings'
+import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
+
+// Leaflet (the fallback without a Yandex key, as in tests) needs a real layout.
+vi.mock('../stadiums/StadiumMap', () => ({ StadiumMap: () => <div data-testid="map" /> }))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -21,7 +25,11 @@ const teamA: GameTeam = {
   price: 8_800_000,
   remainderAmount: 8_000_000,
   remainderStatus: 'unpaid',
+  paymentOption: 'minimum',
+  paidAmount: 8_800_000,
+  remainingAmount: 8_000_000,
   paidInApp: 8_800_000,
+  heldAmount: 0,
   cancellationDeadline: '2099-11-05T15:00:00Z',
   refundIfCancelledNow: 8_800_000,
 }
@@ -63,6 +71,11 @@ const tigers: TeamDetail = {
   members: [{ userId: RIVAL, userName: 'Rustam', role: 'leader' }],
 }
 
+/** The `dl` row whose label is `label` (its `dt` and `dd` together). */
+function row(container: HTMLElement, label: string): HTMLElement {
+  return within(container).getByText(label, { selector: 'dt' }).parentElement!
+}
+
 function stub(game: GameDetail = confirmed, overrides: Record<string, unknown> = {}) {
   return stubApi({
     'GET /api/games/g1': game,
@@ -84,20 +97,27 @@ describe('Oʻyin — a team game', () => {
     expect(screen.getByRole('link', { name: /Chat/ })).toHaveAttribute('href', '/games/g1/chat')
     expect(await screen.findByText('Bobur')).toBeInTheDocument()
     const pay = screen.getByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('88 000 soʻm')).toBeInTheDocument()
-    expect(within(pay).getByText('80 000 soʻm')).toBeInTheDocument()
-    expect(within(pay).getByText('Toʻlanmagan')).toBeInTheDocument()
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('88 000 soʻm')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
+    const rest = screen.getByRole('region', { name: 'Qolgan summa: 80 000 soʻm' })
+    expect(within(rest).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+    expect(within(rest).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
+    expect(within(pay).queryByText('Raqib topilmasa, toʻliq qaytariladi.')).toBeNull()
   })
 
   it('a captain pays the team remainder', async () => {
     const api = stub(confirmed, {
       'POST /api/games/g1/pay-remainder': {
         ...confirmed,
-        teams: [{ ...teamA, remainderStatus: 'paid' }, teamB],
+        teams: [
+          { ...teamA, remainderStatus: 'paid', paidAmount: 16_800_000, remainingAmount: 0 },
+          teamB,
+        ],
       },
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 80 000 soʻm' }))
     expect(await screen.findByText('Qolgan summa toʻlandi')).toBeInTheDocument()
@@ -113,10 +133,31 @@ describe('Oʻyin — a team game', () => {
       ),
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await within(sheet).findByRole('alert')).toHaveTextContent('Karta rad etildi')
+  })
+
+  it('says insufficient funds from the code and keeps the sheet open with the card outlined', async () => {
+    stub(confirmed, {
+      'POST /api/games/g1/pay-remainder': jsonResponse(
+        400,
+        null,
+        'Card payment was declined; the remainder is still owed',
+        'INSUFFICIENT_FUNDS',
+      ),
+    })
+    renderApp('/games/g1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
+    fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
+    expect(await within(sheet).findByRole('alert')).toHaveTextContent(
+      'Kartada mablagʻ yetarli emas',
+    )
+    expect(within(sheet).getByRole('radio', { checked: true }).className).toContain(
+      'border-danger-text',
+    )
   })
 
   it('cancels with the refund the API shows for my team', async () => {
@@ -149,7 +190,7 @@ describe('Oʻyin — a team game', () => {
       ),
     })
     renderApp('/games/g1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Qolganini toʻlash' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
     fireEvent.click(await within(sheet).findByRole('button', { name: /Toʻlash · / }))
     expect(await screen.findByText(/qayta toʻlamang/)).toBeInTheDocument()
@@ -179,13 +220,105 @@ describe('Oʻyin — a team game', () => {
     expect(screen.queryByRole('button', { name: 'Oʻyinni bekor qilish' })).not.toBeInTheDocument()
   })
 
-  it('shows no unpaid badge or pay button when nothing is owed', async () => {
-    stub({ ...confirmed, teams: [{ ...teamA, remainderAmount: 0 }, teamB] })
+  it('says "Toʻliq toʻlangan" with no remainder row or pay button when nothing is owed', async () => {
+    stub({
+      ...confirmed,
+      teams: [
+        {
+          ...teamA,
+          paymentOption: 'full',
+          price: 13_000_000,
+          remainderAmount: 0,
+          paidAmount: 13_000_000,
+          remainingAmount: 0,
+        },
+        teamB,
+      ],
+    })
     renderApp('/games/g1')
     const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
-    expect(within(pay).getByText('0 soʻm')).toBeInTheDocument()
-    expect(within(pay).queryByText('Toʻlanmagan')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Qolganini toʻlash' })).not.toBeInTheDocument()
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('130 000 soʻm')
+    expect(within(pay).queryByText('Qolgan summa')).toBeNull()
+    expect(within(pay).getByText('Toʻliq toʻlangan')).toBeInTheDocument()
+    expect(screen.queryByText('yoki maydonda naqd toʻlang')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).not.toBeInTheDocument()
+  })
+
+  it('says "Naqd olindi" when the owner took the rest in cash', async () => {
+    stub({
+      ...confirmed,
+      teams: [
+        {
+          ...teamA,
+          remainderStatus: 'paid',
+          paidAmount: 16_800_000,
+          remainingAmount: 0,
+          remainderMark: 'cash_received',
+          remainderMarkedAt: '2026-11-06T17:00:00Z',
+        },
+        teamB,
+      ],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('168 000 soʻm')
+    expect(within(pay).getByText('Naqd olindi')).toBeInTheDocument()
+    expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
+    expect(within(pay).queryByText('Qolgan summa')).toBeNull()
+  })
+
+  it('says "Toʻlanmadi" when the owner marked the rest unpaid, and still lets the captain pay', async () => {
+    stub({
+      ...confirmed,
+      teams: [
+        { ...teamA, remainderMark: 'not_paid', remainderMarkedAt: '2026-11-06T17:00:00Z' },
+        teamB,
+      ],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('Toʻlanmadi')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
+    expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+  })
+
+  it('shows what is paid while only held, and that it all comes back without an opponent', async () => {
+    stub({
+      ...confirmed,
+      status: 'open',
+      teams: [
+        {
+          ...teamA,
+          paidInApp: 5_500_000,
+          heldAmount: 5_500_000,
+          paidAmount: 5_500_000,
+          remainingAmount: 7_500_000,
+        },
+      ],
+    })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('55 000 soʻm')
+    expect(within(pay).getByText('Raqib topilmasa, toʻliq qaytariladi.')).toBeInTheDocument()
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('75 000 soʻm')
+    expect(within(pay).queryByText('Kartangizda band qilingan')).toBeNull()
+    // Nothing to pay before an opponent arrives.
+    expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
+  })
+
+  it('reads a game from before T9 (no paidAmount or remainingAmount)', async () => {
+    const legacy: GameTeam = {
+      ...teamA,
+      paymentOption: undefined,
+      paidAmount: undefined,
+      remainingAmount: undefined,
+      paidInApp: 4_980_000,
+    }
+    stub({ ...confirmed, teams: [legacy, teamB] })
+    renderApp('/games/g1')
+    const pay = await screen.findByRole('region', { name: 'Jamoangiz toʻlovi' })
+    expect(row(pay, 'Toʻlangan')).toHaveTextContent('49 800 soʻm')
+    expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
   })
 
   it('a waiting game shows the opponent placeholder and no chat', async () => {
@@ -193,6 +326,51 @@ describe('Oʻyin — a team game', () => {
     renderApp('/games/g1')
     expect(await screen.findAllByText('Raqib kutilmoqda')).not.toHaveLength(0)
     expect(screen.queryByRole('link', { name: /Chat/ })).not.toBeInTheDocument()
+  })
+
+  describe('while another team is joining (R45 joinPending)', () => {
+    const joining: GameDetail = { ...confirmed, status: 'open', teams: [teamA], joinPending: true }
+
+    it('says the opposing team payment is being confirmed and offers no cancel', async () => {
+      stub(joining)
+      renderApp('/games/g1')
+      expect(await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')).toBeInTheDocument()
+      expect(
+        screen.getByText('Natija aniq boʻlgach, oʻyin shu yerda yangilanadi.'),
+      ).toBeInTheDocument()
+      // The waiting note would contradict it.
+      expect(
+        screen.queryByText(
+          'Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz.',
+        ),
+      ).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Oʻyinni bekor qilish' })).toBeNull()
+    })
+
+    it('offers no pay-the-rest while it lasts', async () => {
+      stub({ ...confirmed, joinPending: true })
+      renderApp('/games/g1')
+      await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')
+      expect(screen.queryByRole('button', { name: 'Ilovada toʻlash' })).toBeNull()
+    })
+
+    it('re-reads the game until the backend settles it, then shows the confirmed game', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      let reads = 0
+      stub(joining, {
+        'GET /api/games/g1': () => (++reads === 1 ? joining : confirmed),
+      })
+      renderApp('/games/g1')
+      await screen.findByText('Raqib jamoa toʻlovi tasdiqlanmoqda')
+      await vi.advanceTimersByTimeAsync(10_500)
+      expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
+      expect(screen.queryByText('Raqib jamoa toʻlovi tasdiqlanmoqda')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
+      // Settled: no more polling.
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(reads).toBe(2)
+      vi.useRealTimers()
+    })
   })
 
   it('a cancelled game without teams shows no opponent placeholders or empty team list', async () => {
@@ -229,5 +407,76 @@ describe('Oʻyin — a team game', () => {
     fail = false
     fireEvent.click(retry)
     expect(await screen.findByText('Tasdiqlangan')).toBeInTheDocument()
+  })
+})
+
+describe('Oʻyin — Joylashuv: where the game is played, for everyone in every state', () => {
+  const location = {
+    id: 's1',
+    name: 'Bunyodkor Arena',
+    address: 'Bunyodkor koʻchasi 12',
+    district: 'Chilonzor',
+    landmark: 'Metro yonida',
+    latitude: 41.28,
+    longitude: 69.2,
+    coverPhotoUrl: '/api/uploads/stadiums/s1/cover.jpg',
+    format: '7x7',
+  }
+  const member = (side: 'a' | 'b') => ({
+    id: 'p1',
+    gameId: 'g1',
+    userId: ME,
+    side,
+    status: 'paid',
+    joinedAt: '2026-11-01T10:00:00Z',
+  })
+  const cases: [string, GameDetail][] = [
+    ['the creating captain while waiting', { ...confirmed, status: 'open', teams: [teamA] }],
+    [
+      'a member of the creating team while waiting',
+      {
+        ...confirmed,
+        status: 'open',
+        creatorId: RIVAL,
+        teams: [{ ...teamA, leaderId: 'x' }],
+        participants: [member('a')],
+      },
+    ],
+    [
+      'while the opponent is joining',
+      { ...confirmed, status: 'open', teams: [teamA], joinPending: true },
+    ],
+    ['the other captain once confirmed', { ...confirmed, creatorId: RIVAL }],
+    ['a cancelled game', { ...confirmed, status: 'cancelled', teams: [] }],
+    ['a completed game', { ...confirmed, status: 'completed' }],
+  ]
+
+  it.each(cases)('%s', async (_name, game) => {
+    const { webApp } = installFakeTelegram()
+    stub({ ...game, location })
+    renderApp('/games/g1')
+    const section = await screen.findByRole('region', { name: 'Joylashuv' })
+    expect(within(section).getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
+    expect(within(section).getByText('Chilonzor tumani')).toBeInTheDocument()
+    expect(within(section).getByText('Metro yonida')).toBeInTheDocument()
+    expect(within(section).getByRole('link', { name: /Bunyodkor Arena/ })).toHaveAttribute(
+      'href',
+      '/stadiums/s1',
+    )
+    fireEvent.click(within(section).getByRole('button', { name: 'Yandex Mapsʼda ochish' }))
+    expect(webApp.openLink).toHaveBeenCalledWith('https://yandex.uz/maps/?pt=69.2,41.28&z=17&l=map')
+    // The interactive map only on request.
+    expect(within(section).queryByTestId('map')).toBeNull()
+    fireEvent.click(within(section).getByRole('button', { name: 'Xaritani koʻrsatish' }))
+    expect(await within(section).findByTestId('map')).toBeInTheDocument()
+    removeFakeTelegram()
+  })
+
+  it('without coordinates offers the address on a map link instead', async () => {
+    stub({ ...confirmed, location: { ...location, latitude: undefined, longitude: undefined } })
+    renderApp('/games/g1')
+    const section = await screen.findByRole('region', { name: 'Joylashuv' })
+    expect(within(section).queryByRole('button', { name: 'Xaritani koʻrsatish' })).toBeNull()
+    expect(within(section).getByRole('button', { name: /Xaritada ochish/ })).toBeInTheDocument()
   })
 })

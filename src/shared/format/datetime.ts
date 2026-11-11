@@ -56,6 +56,12 @@ export function toTashkentParts(value: string | Date): TashkentParts {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
+/** Today's calendar date in Tashkent, `"YYYY-MM-DD"` (a backend `LocalDate`). */
+export function tashkentToday(now: Date = new Date()): string {
+  const { year, month, day } = toTashkentParts(now)
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
 /** `"2026-11-02T15:00:00Z"` → `"02.11.2026"` */
 export function formatDate(value: string | Date): string {
   const p = toTashkentParts(value)

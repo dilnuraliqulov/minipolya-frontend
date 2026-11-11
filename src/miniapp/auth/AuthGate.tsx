@@ -5,7 +5,7 @@ import type { BlockDetails } from '../api/blocked'
 import { Button, ErrorState, Header, Screen, SkeletonList, StateView } from '../components'
 import { formatLongDate } from '../format'
 import { hasSplash, useSplashDone } from '../splash'
-import { getTelegramWebApp } from '../telegram'
+import { openSupport, supportUsername } from '../telegram'
 import { useSession, useSessionState } from './sessionContext'
 
 /**
@@ -71,13 +71,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 function BlockedScreen({ details }: { details: BlockDetails }) {
   const { t } = useTranslation()
-  const support = import.meta.env.VITE_TELEGRAM_SUPPORT_USERNAME
-  const openSupport = () => {
-    const url = `https://t.me/${support}`
-    const webApp = getTelegramWebApp()
-    if (webApp) webApp.openTelegramLink(url)
-    else window.open(url, '_blank', 'noopener')
-  }
+  const support = supportUsername()
   const when = [
     details.blockedAt && t('blocked.date', { date: formatLongDate(details.blockedAt) }),
     t('blocked.questions'),
@@ -88,7 +82,7 @@ function BlockedScreen({ details }: { details: BlockDetails }) {
   return (
     <Screen header={<Header title={t('app.name')} />} className="justify-center">
       <div className="flex flex-col items-center gap-4 p-6 text-center">
-        <div className="flex size-22 items-center justify-center rounded-full bg-danger-soft text-danger">
+        <div className="flex size-22 items-center justify-center rounded-full bg-danger-soft text-danger-text">
           <Ban size={44} aria-hidden />
         </div>
         <h2 className="text-3xl font-bold text-primary">{t('blocked.title')}</h2>
@@ -122,7 +116,7 @@ function NoTelegramScreen() {
         description={t('auth.noTelegramText')}
       >
         {import.meta.env.DEV && (
-          <p className="w-full rounded-lg bg-warning-soft p-3 text-sm text-warning">
+          <p className="w-full rounded-lg bg-warning-soft p-3 text-sm text-warning-text">
             {t('auth.noTelegramDev')}
           </p>
         )}

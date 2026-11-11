@@ -4,7 +4,6 @@ import { LoginPage } from './auth/LoginPage'
 import { RequireAdmin } from './auth/RequireAdmin'
 import { AdminLayout, type RouteHandle } from './layout/AdminLayout'
 import { MENU } from './layout/menu'
-import { ComingSoonPage } from './pages/ComingSoonPage'
 import { BookingsPage } from './pages/bookings/BookingsPage'
 import { JournalPage } from './pages/journal/JournalPage'
 import { OverviewPage } from './pages/overview/OverviewPage'
@@ -17,7 +16,7 @@ import { UsersPage } from './pages/users/UsersPage'
 
 const home = MENU[0]!
 
-/** The built sections; every other menu item shows "Tez orada". */
+/** One page per menu item (CLAUDE.md: add the item to MENU, then its page here). */
 const PAGES: Record<string, ReactNode> = {
   '/maydonlar': <StadiumsPage />,
   '/foydalanuvchilar': <UsersPage />,
@@ -27,9 +26,16 @@ const PAGES: Record<string, ReactNode> = {
   '/sozlamalar': <SettingsPage />,
 }
 
+function pageFor(path: string): ReactNode {
+  const page = PAGES[path]
+  // A menu item without a page is a programming error: fail loudly, in tests too.
+  if (!page) throw new Error(`No page for the admin menu item ${path}`)
+  return page
+}
+
 const sectionRoutes: RouteObject[] = MENU.slice(1).map((item) => ({
   path: item.path,
-  element: PAGES[item.path] ?? <ComingSoonPage />,
+  element: pageFor(item.path),
   handle: {
     title: item.label,
     crumbs: [{ label: home.label, to: home.path }, { label: item.label }],

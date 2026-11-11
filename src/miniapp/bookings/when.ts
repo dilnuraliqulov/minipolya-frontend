@@ -1,6 +1,6 @@
-import { formatTimeRange } from '../../shared/format'
+import { formatTimeRange, tashkentToday } from '../../shared/format'
 import type { Booking } from '../api/bookings'
-import { dayTitle, tashkentToday } from '../stadiums/dates'
+import { dayTitle } from '../stadiums/dates'
 
 /** U+2060 WORD JOINER: invisible, forbids a line break on either side. */
 const WJ = '\u2060'

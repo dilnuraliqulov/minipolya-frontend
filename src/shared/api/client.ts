@@ -26,7 +26,7 @@ type QueryValue = string | number | boolean | undefined | null
 
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  /** Serialised as JSON. */
+  /** Serialised as JSON — or, as `FormData`, sent as multipart (the browser sets the boundary). */
   body?: unknown
   /** `undefined` and `null` values are dropped. */
   query?: Record<string, QueryValue>
@@ -46,6 +46,15 @@ function baseUrl(): string {
     throw new Error('VITE_API_URL is not set for this production build')
   }
   return url.replace(/\/+$/, '')
+}
+
+/**
+ * A URL the backend hands out for a file it serves itself (e.g. an uploaded
+ * photo, `/api/uploads/...`) made absolute against the API host; any other
+ * URL unchanged.
+ */
+export function mediaUrl(url: string): string {
+  return url.startsWith('/') ? baseUrl() + url : url
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
@@ -73,7 +82,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const headers: Record<string, string> = { ...options.headers, Accept: 'application/json' }
   const token = config.tokenStore.get()
   if (token) headers.Authorization = `Bearer ${token}`
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  const multipart = options.body instanceof FormData
+  if (options.body !== undefined && !multipart) headers['Content-Type'] = 'application/json'
 
   // Outside the try: a configuration error must not look like a network failure.
   const url = buildUrl(path, options.query)
@@ -83,7 +93,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await fetch(url, {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options.body === undefined
+          ? undefined
+          : multipart
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
       signal: options.signal,
     })
   } catch (cause) {
@@ -92,11 +107,20 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   const envelope = await readEnvelope<T>(response)
+  return unwrap(response.ok, response.status, response.statusText, envelope)
+}
 
-  if (!response.ok || !envelope?.success) {
+/** The envelope's `data`, or the `ApiError` for a failure (after the 401 / blocked hooks). */
+function unwrap<T>(
+  ok: boolean,
+  status: number,
+  statusText: string,
+  envelope: ApiEnvelope<T> | null,
+): T {
+  if (!ok || !envelope?.success) {
     const error = new ApiError(
-      envelope?.message || response.statusText || 'Request failed',
-      response.status,
+      envelope?.message || statusText || 'Request failed',
+      status,
       envelope?.code,
       envelope?.data ?? undefined,
     )
@@ -106,8 +130,59 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
     throw error
   }
-
   return envelope.data as T
+}
+
+export interface UploadOptions {
+  /** 0–1, as the request body goes out. */
+  onProgress?: (fraction: number) => void
+  signal?: AbortSignal
+}
+
+/**
+ * `POST` a multipart body with upload progress — `fetch` cannot report it, so
+ * this one request type uses `XMLHttpRequest`. Same base URL, bearer token,
+ * envelope and errors as `apiRequest`.
+ */
+export function uploadWithProgress<T>(
+  path: string,
+  body: FormData,
+  { onProgress, signal }: UploadOptions = {},
+): Promise<T> {
+  const url = buildUrl(path)
+  return new Promise<T>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url)
+    xhr.setRequestHeader('Accept', 'application/json')
+    const token = config.tokenStore.get()
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) onProgress?.(event.loaded / event.total)
+    }
+    xhr.onload = () => {
+      let envelope: ApiEnvelope<T> | null
+      try {
+        envelope = JSON.parse(xhr.responseText) as ApiEnvelope<T>
+      } catch {
+        envelope = null
+      }
+      try {
+        const ok = xhr.status >= 200 && xhr.status < 300
+        resolve(unwrap(ok, xhr.status, xhr.statusText, envelope))
+      } catch (error) {
+        reject(error)
+      }
+    }
+    xhr.onerror = () => reject(new ApiError('Network request failed', 0))
+    xhr.ontimeout = xhr.onerror
+    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'))
+    signal?.addEventListener('abort', () => xhr.abort(), { once: true })
+    xhr.send(body)
+  })
 }
 
 export const api = {

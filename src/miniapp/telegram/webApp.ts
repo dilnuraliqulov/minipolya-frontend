@@ -50,6 +50,14 @@ export interface TelegramWebApp {
   offEvent(event: TelegramEvent, handler: () => void): void
   openTelegramLink(url: string): void
   openLink(url: string): void
+  /**
+   * Bot API 6.9+: asks the user to share their phone with the bot. The
+   * callback only says whether they agreed — the number reaches the backend
+   * through the bot, never from here.
+   */
+  requestContact?(callback?: (shared: boolean) => void): void
+  /** Bot API 8.0+: the device location, after the user allows it. */
+  LocationManager?: TelegramLocationManager
   BackButton: {
     isVisible: boolean
     show(): void
@@ -62,6 +70,24 @@ export interface TelegramWebApp {
     notificationOccurred(type: 'error' | 'success' | 'warning'): void
     selectionChanged(): void
   }
+}
+
+/** `LocationData` (Bot API 8.0); only the fields the app reads. */
+export interface TelegramLocationData {
+  latitude: number
+  longitude: number
+}
+
+/** `WebApp.LocationManager` (Bot API 8.0). */
+export interface TelegramLocationManager {
+  isInited: boolean
+  isLocationAvailable: boolean
+  isAccessRequested: boolean
+  isAccessGranted: boolean
+  init(callback?: () => void): TelegramLocationManager
+  /** `null` when the user refused (or had refused) access. */
+  getLocation(callback: (data: TelegramLocationData | null) => void): TelegramLocationManager
+  openSettings(): void
 }
 
 declare global {

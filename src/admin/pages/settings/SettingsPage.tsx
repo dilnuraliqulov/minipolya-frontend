@@ -1,8 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { isApiError } from '../../../shared/api'
-import { formatDateTime, formatSom } from '../../../shared/format'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { formatDateTime, formatSom, somInputToTiyin, tiyinToSomInput } from '../../../shared/format'
 import { getAuditLog, type AuditChange, type AuditEntry } from '../../api/audit'
 import {
   getSettings,
@@ -33,29 +33,31 @@ const settingsKeys = {
 const HISTORY_PAGE_SIZE = 10
 
 /**
- * The form keeps the values as typed: the card fee in percent with up to two
- * decimals ("1.5"), the fees and the rounding step in whole so'm.
+ * The form keeps the values as typed, each with up to two decimals: the card
+ * fee in percent ("1.5"), the fees and the rounding step in so'm ("123.45").
+ * The API values are tiyin, so nothing is rounded either way.
  */
 type Draft = Record<SettingsField, string>
 
-const TIYIN_PER_SOM = 100
-
 function toDraft(settings: PlatformSettings): Draft {
   return {
-    teamGamePlatformFee: String(Math.round(settings.teamGamePlatformFee / TIYIN_PER_SOM)),
-    casualGameServiceFee: String(Math.round(settings.casualGameServiceFee / TIYIN_PER_SOM)),
+    teamGamePlatformFee: tiyinToSomInput(settings.teamGamePlatformFee),
+    casualGameServiceFee: tiyinToSomInput(settings.casualGameServiceFee),
     cardFeeBps: bpsToPercent(settings.cardFeeBps),
-    paymentRoundingStep: String(Math.round(settings.paymentRoundingStep / TIYIN_PER_SOM)),
+    paymentRoundingStep: tiyinToSomInput(settings.paymentRoundingStep),
+    defaultMinBookingAmount: tiyinToSomInput(settings.defaultMinBookingAmount),
   }
 }
 
 /** The draft as the API wants it: the card fee in basis points, so'm → tiyin. */
 function fromDraft(draft: Draft): Record<SettingsField, number> {
+  const tiyin = (text: string) => (text === '' ? 0 : somInputToTiyin(text))
   return {
-    teamGamePlatformFee: Number(draft.teamGamePlatformFee) * TIYIN_PER_SOM,
-    casualGameServiceFee: Number(draft.casualGameServiceFee) * TIYIN_PER_SOM,
+    teamGamePlatformFee: tiyin(draft.teamGamePlatformFee),
+    casualGameServiceFee: tiyin(draft.casualGameServiceFee),
     cardFeeBps: percentToBps(draft.cardFeeBps),
-    paymentRoundingStep: Number(draft.paymentRoundingStep) * TIYIN_PER_SOM,
+    paymentRoundingStep: tiyin(draft.paymentRoundingStep),
+    defaultMinBookingAmount: tiyin(draft.defaultMinBookingAmount),
   }
 }
 
@@ -64,6 +66,7 @@ const FIELDS: SettingsField[] = [
   'casualGameServiceFee',
   'cardFeeBps',
   'paymentRoundingStep',
+  'defaultMinBookingAmount',
 ]
 
 /**
@@ -76,11 +79,31 @@ const FIELD_ERRORS: Record<SettingsField, string> = {
   teamGamePlatformFee: 'Haq manfiy boʻlishi mumkin emas',
   casualGameServiceFee: 'Haq manfiy boʻlishi mumkin emas',
   cardFeeBps: 'Komissiya 0 dan 10% gacha boʻlishi kerak',
-  paymentRoundingStep: "Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak",
+  paymentRoundingStep: "Qadam 0,01 so'mdan 10 000 so'mgacha boʻlishi kerak",
+  defaultMinBookingAmount: 'Summa manfiy boʻlishi mumkin emas',
 }
 
 function fieldOfError(message: string): SettingsField | undefined {
   return FIELDS.find((field) => message.startsWith(field))
+}
+
+/**
+ * T2: the default minimum must stay above the team fee. The backend names the fee
+ * (or the minimum) in force or sent; the form shows the values it holds, which are
+ * the same ones.
+ */
+function fieldErrorText(
+  field: SettingsField,
+  message: string,
+  values: Record<SettingsField, number>,
+): string {
+  if (message.startsWith(API_MESSAGES.defaultMinimumNotAboveFee)) {
+    return `Platforma haqidan (${formatSom(values.teamGamePlatformFee)}) koʻp boʻlishi kerak`
+  }
+  if (message.startsWith(API_MESSAGES.teamFeeNotBelowDefaultMinimum)) {
+    return `Standart minimal toʻlovdan (${formatSom(values.defaultMinBookingAmount)}) kam boʻlishi kerak`
+  }
+  return FIELD_ERRORS[field]
 }
 
 function SettingRow({
@@ -117,7 +140,7 @@ function SettingRow({
 function SettingsSkeleton() {
   return (
     <div aria-busy className={`${CARD} flex flex-col`}>
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} className="flex flex-col gap-3 border-b border-border p-5 last:border-b-0">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-3 w-72" />
@@ -201,6 +224,7 @@ function SettingsHistory() {
         Oʻzgarishlar tarixi
       </h2>
       <DataTable
+        label="Oʻzgarishlar tarixi"
         columns={HISTORY_COLUMNS}
         rows={data ? historyRows(data.content) : undefined}
         rowKey={(row) => row.key}
@@ -234,7 +258,11 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
   const [errors, setErrors] = useState<Partial<Record<SettingsField, string>>>({})
   const [confirming, setConfirming] = useState(false)
 
-  const changed = FIELDS.filter((field) => draft[field] !== saved[field])
+  const values = fromDraft(draft)
+  // Compared by value, so "123.4" and "123.40" are the same fee.
+  const changed = FIELDS.filter((field) =>
+    draft[field] === '' ? saved[field] !== '' : values[field] !== settings[field],
+  )
   const dirty = changed.length > 0
 
   const save = useMutation({
@@ -249,7 +277,8 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
     onError: (error) => {
       const field =
         isApiError(error) && error.status === 400 ? fieldOfError(error.message) : undefined
-      if (field) setErrors({ [field]: FIELD_ERRORS[field] })
+      if (field && isApiError(error))
+        setErrors({ [field]: fieldErrorText(field, error.message, values) })
       else toast.error('Saqlab boʻlmadi. Qayta urinib koʻring')
     },
     onSettled: () => setConfirming(false),
@@ -269,7 +298,6 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
     setConfirming(true)
   }
 
-  const values = fromDraft(draft)
   const filled = (field: SettingsField) => draft[field] !== ''
 
   return (
@@ -287,9 +315,29 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Platforma haqi"
             suffix="so'm"
+            decimals={2}
             value={draft.teamGamePlatformFee}
             onChange={set('teamGamePlatformFee')}
             error={errors.teamGamePlatformFee}
+          />
+        </SettingRow>
+        <SettingRow
+          title="Standart minimal toʻlov"
+          description="Oʻz minimal toʻlovi belgilanmagan har bir maydon uchun bron va jamoa oʻyinida toʻlanadigan eng kam summa (egasining narxida)"
+          hint="Jamoa oʻyinlarining platforma haqidan koʻp boʻlishi kerak."
+          preview={
+            filled('defaultMinBookingAmount')
+              ? `Maydonning oʻz summasi boʻlmasa: ${formatSom(values.defaultMinBookingAmount)}`
+              : null
+          }
+        >
+          <NumberField
+            label="Minimal toʻlov"
+            suffix="so'm"
+            decimals={2}
+            value={draft.defaultMinBookingAmount}
+            onChange={set('defaultMinBookingAmount')}
+            error={errors.defaultMinBookingAmount}
           />
         </SettingRow>
         <SettingRow
@@ -304,6 +352,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Xizmat haqi"
             suffix="so'm"
+            decimals={2}
             value={draft.casualGameServiceFee}
             onChange={set('casualGameServiceFee')}
             error={errors.casualGameServiceFee}
@@ -342,9 +391,10 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           <NumberField
             label="Yaxlitlash qadami"
             suffix="so'm"
+            decimals={2}
             value={draft.paymentRoundingStep}
             onChange={set('paymentRoundingStep')}
-            helper="1 dan 10 000 so'mgacha"
+            helper="0,01 dan 10 000 so'mgacha"
             error={errors.paymentRoundingStep}
           />
         </SettingRow>
@@ -356,7 +406,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
           aria-label="Saqlanmagan oʻzgarishlar"
           className="sticky bottom-4 z-10 flex items-center gap-3 rounded-xl border border-border bg-background px-6 py-4 shadow-lg"
         >
-          <TriangleAlert size={18} aria-hidden className="text-warning" />
+          <TriangleAlert size={18} aria-hidden className="text-warning-text" />
           <p className="flex-1 text-base font-medium text-primary">Saqlanmagan oʻzgarishlar bor</p>
           <Button
             variant="secondary"

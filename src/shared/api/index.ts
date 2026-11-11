@@ -1,6 +1,13 @@
 export { ApiError, isApiError } from './ApiError'
-export { api, apiRequest, configureApiClient, getTokenStore } from './client'
-export type { ApiClientConfig, RequestOptions } from './client'
+export {
+  api,
+  apiRequest,
+  configureApiClient,
+  getTokenStore,
+  mediaUrl,
+  uploadWithProgress,
+} from './client'
+export type { ApiClientConfig, RequestOptions, UploadOptions } from './client'
 export { isJwtExpired, readJwtClaims } from './jwt'
 export type { JwtClaims } from './jwt'
 export { API_CODES, API_MESSAGES } from './messages'

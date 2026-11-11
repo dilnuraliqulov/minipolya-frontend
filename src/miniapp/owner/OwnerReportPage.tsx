@@ -1,12 +1,13 @@
 import { ChartColumn } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isAvailable } from '../api/missing'
-import { OWNER_UNPAID, type OwnerStadium } from '../api/owner'
+import type { OwnerStadium } from '../api/owner'
 import { Card, cx, EmptyState, ErrorState, SkeletonList } from '../components'
+import { UnpaidList } from './UnpaidList'
 import { formatMoney } from '../format'
 import { ratingLabel } from '../stadiums/labels'
 import { OwnerTabScreen } from './OwnerTabScreen'
+import { RevenueChart } from './RevenueChart'
 import { useOwnerStats } from './queries'
 import { WithOwnerStadium } from './StadiumPicker'
 
@@ -37,6 +38,15 @@ function Report({ stadium }: { stadium: OwnerStadium }) {
   }
   const bookings = { today: s.todayBookings, week: s.weekBookings, month: s.monthBookings }[period]
   const revenue = { today: s.todayRevenue, week: s.weekRevenue, month: s.monthRevenue }[period]
+  const inApp = { today: s.todayPaidInApp, week: s.weekPaidInApp, month: s.monthPaidInApp }[period]
+  const inCash = { today: s.todayPaidInCash, week: s.weekPaidInCash, month: s.monthPaidInCash }[
+    period
+  ]
+  const outstanding = {
+    today: s.todayOutstanding,
+    week: s.weekOutstanding,
+    month: s.monthOutstanding,
+  }[period]
   return (
     <>
       <div
@@ -68,13 +78,12 @@ function Report({ stadium }: { stadium: OwnerStadium }) {
           value={s.reviewCount > 0 ? `★ ${ratingLabel(s.averageRating)} (${s.reviewCount})` : '—'}
         />
         <Stat label={t('owner.report.occupancy')} value={`${Math.round(s.occupancyPercent)}%`} />
+        <Stat label={t('owner.report.inApp')} value={formatMoney(inApp)} />
+        <Stat label={t('owner.report.inCash')} value={formatMoney(inCash)} />
       </div>
-      <Card className="flex flex-col gap-1 p-4">
-        <h3 className="text-lg font-semibold text-primary">{t('owner.report.unpaid')}</h3>
-        {!isAvailable(OWNER_UNPAID) && (
-          <p className="text-sm text-secondary">{t('owner.soonDetail')}</p>
-        )}
-      </Card>
+      <Stat label={t('owner.report.outstanding')} value={formatMoney(outstanding)} />
+      <RevenueChart stadiumId={stadium.id} />
+      <UnpaidList stadiumId={stadium.id} stadiumName={stadium.name} />
     </>
   )
 }

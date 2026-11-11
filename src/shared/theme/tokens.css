@@ -19,13 +19,16 @@
 
   /* Text */
   --text: #0b1220;
-  --text-secondary: #6b7280;
+  /* Design: #6B7280 — 4.39:1 on surface; darkened for WCAG AA (≥ 4.5:1 on every surface). */
+  --text-secondary: #5b6270;
 
   /* Brand */
   --accent: #2563eb;
   --accent-soft: #2563eb14;
   --on-accent: #ffffff;
   --link: #2563eb;
+  /* Link-coloured text on accent-soft (AA). */
+  --link-text: #1d4ed8;
 
   /* Status */
   --success: #16a34a;
@@ -35,6 +38,16 @@
   --danger: #dc2626;
   --danger-soft: #dc26261a;
   --neutral-soft: #6b72801a;
+  /*
+   * Status TEXT (and icons, borders): the fills above are too light for text on
+   * white, surface or their own -soft fill. Checked by contrast.test.ts.
+   */
+  --success-text: #137336;
+  --warning-text: #a04806;
+  --danger-text: #b91c1c;
+  /* Status fills under white text (on-accent): danger is #EF4444 in dark, 3.8:1 with white. */
+  --success-fill: #15803d;
+  --danger-fill: #dc2626;
 
   /* Shadows (design effects; only the small one differs in dark mode) */
   --shadow-sm: 0 1px 2px #0000001a; /* segmented control */
@@ -60,6 +73,7 @@
   --accent-soft: #2563eb33;
   --on-accent: #ffffff;
   --link: #60a5fa;
+  --link-text: #60a5fa;
 
   --success: #22c55e;
   --success-soft: #22c55e26;
@@ -68,6 +82,11 @@
   --danger: #ef4444;
   --danger-soft: #ef444426;
   --neutral-soft: #9ca3af26;
+  --success-text: #4ade80;
+  --warning-text: #f59e0b;
+  --danger-text: #f87171;
+  --success-fill: #15803d;
+  --danger-fill: #dc2626;
 
   --shadow-sm: 0 1px 2px #00000080;
 }

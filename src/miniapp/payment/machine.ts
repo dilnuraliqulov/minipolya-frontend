@@ -1,4 +1,4 @@
-import { isApiError } from '../../shared/api'
+import { API_CODES, isApiError } from '../../shared/api'
 import { getBooking, type Booking } from '../api/bookings'
 import { errorMessageKey, type ErrorMessageKey } from '../api/errors'
 import { getMyPayments } from '../api/payments'
@@ -9,9 +9,12 @@ export type PaymentState =
   | { kind: 'idle' }
   | { kind: 'paying' }
   | { kind: 'success'; booking: Booking }
-  | { kind: 'declined'; booking: Booking }
+  /** `reason`: R44 `declineReason`, when the backend says why. */
+  | { kind: 'declined'; booking: Booking; reason?: string }
   | { kind: 'checking'; booking: Booking }
   | { kind: 'slotTaken' }
+  /** R28: the booking's hold ran out before it was paid; the slot must be booked again. */
+  | { kind: 'holdExpired' }
   | { kind: 'failed'; errorKey: ErrorMessageKey }
 
 export interface RunPaymentOptions {
@@ -20,6 +23,12 @@ export interface RunPaymentOptions {
   pollTimes?: number
   pollMs?: number
   sleep?: (ms: number) => Promise<void>
+  /**
+   * R28: the pending booking being paid again. Its 409s are read against it: a
+   * payment already on its way, or the booking no longer pending, is looked up
+   * instead of being reported as a failure.
+   */
+  booking?: Booking
   /** Checked after every await; when true nothing more is requested. */
   isCancelled?: () => boolean
 }
@@ -41,6 +50,30 @@ export function canRetry(state: PaymentState): boolean {
   return state.kind === 'failed'
 }
 
+const declined = (booking: Booking): PaymentState => ({
+  kind: 'declined',
+  booking,
+  reason: booking.declineReason,
+})
+
+/**
+ * What the booking itself says (backend ccfa4d5+): true = refused (or failed without a
+ * refusal), false = not refused, undefined = an older backend that does not say — then
+ * the payment row in GET /api/payments/my is read instead.
+ */
+function refusedOnBooking(booking: Booking): boolean | undefined {
+  if (booking.declineReason) return true
+  if (booking.paymentState === undefined) return undefined
+  return booking.paymentState === 'declined' || booking.paymentState === 'failed'
+}
+
+/** Refused, from the booking when it says, else from its payment row. */
+async function isRefused(booking: Booking, type: PaymentType): Promise<boolean> {
+  const said = refusedOnBooking(booking)
+  if (said !== undefined) return said
+  return (await paymentRowStatus(booking, type)) === 'failed'
+}
+
 /** The newest payment row of this booking (and kind), or undefined. */
 async function paymentRowStatus(booking: Booking, type: PaymentType): Promise<string | undefined> {
   try {
@@ -53,9 +86,9 @@ async function paymentRowStatus(booking: Booking, type: PaymentType): Promise<st
 
 /**
  * Runs one charge and works out what happened. `charge` creates and charges
- * the booking (or pays its remainder). An unpaid answer cannot tell declined
- * from still-processing: the payment row says it, and while it is not settled
- * the booking is polled.
+ * the booking (or pays its remainder). An unpaid answer is told apart by the
+ * booking's own `paymentState` / `declineReason` (R44) — or, from an older
+ * backend, by the payment row — and while it is not settled the booking is polled.
  */
 export async function runPayment(
   charge: () => Promise<Booking>,
@@ -73,17 +106,31 @@ export async function runPayment(
   try {
     booking = await charge()
   } catch (error) {
-    if (paymentType === 'booking' && isApiError(error) && error.status === 409) {
+    const code = isApiError(error) ? error.code : undefined
+    if (code === API_CODES.bookingExpired) return { kind: 'holdExpired' }
+    const elsewhere = code === API_CODES.paymentInProgress || code === API_CODES.bookingNotPending
+    if (elsewhere && opts.booking) {
+      // Not this call's charge: see where the booking stands now, and if a payment
+      // of it is still on its way, wait for it like any unsettled payment.
+      try {
+        booking = await getBooking(opts.booking.id)
+      } catch {
+        return { kind: 'checking', booking: opts.booking }
+      }
+      if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
+      if (booking.status !== 'pending') return { kind: 'holdExpired' }
+    } else if (code === API_CODES.bookingNotPending) {
+      return { kind: 'holdExpired' }
+    } else if (paymentType === 'booking' && isApiError(error) && error.status === 409) {
       return { kind: 'slotTaken' }
+    } else {
+      return { kind: 'failed', errorKey: errorMessageKey(error) }
     }
-    return { kind: 'failed', errorKey: errorMessageKey(error) }
   }
   if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
   if (isCancelled()) return { kind: 'checking', booking }
 
-  if ((await paymentRowStatus(booking, paymentType)) === 'failed') {
-    return { kind: 'declined', booking }
-  }
+  if (await isRefused(booking, paymentType)) return declined(booking)
 
   for (let i = 0; i < pollTimes; i++) {
     if (isCancelled()) break
@@ -96,8 +143,7 @@ export async function runPayment(
     }
     if (isCancelled()) break
     if (isSuccess(booking, paymentType)) return { kind: 'success', booking }
-    const status = await paymentRowStatus(booking, paymentType)
-    if (status === 'failed') return { kind: 'declined', booking }
+    if (await isRefused(booking, paymentType)) return declined(booking)
   }
   return { kind: 'checking', booking }
 }

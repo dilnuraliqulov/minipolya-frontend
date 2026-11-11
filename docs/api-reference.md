@@ -8,9 +8,9 @@ when the backend changes.
 |---|---|
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `ed403c7` (Telegram bot steps 1–6; was `4d5faf0` — _Document R18-R23 and one-hour bookings; update the Postman collection_, 2026-11-01) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks) |
-| Endpoints documented | **109** callable by the frontend, plus 3 webhooks and 2 dev-profile-only endpoints (§2) |
+| Commit | `817a2b8` (_Team games: return where the game is played (location) on the board and the detail_, 2026-11-10; was `cf654ad`) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`); updated 2026-11-06 for `08687d6..ba6db84` (`GameTeamResponse.heldAmount`; no endpoint changed); updated 2026-11-06 for `ba6db84..d0ad9d7` (add-stadium rework, backend `docs/frontend-field-changes-2026-11-06.md`: create/update rules in `StadiumRules` — name 3–150, address 5–300, district/phone/location required on create, Uzbekistan box, price 10 000–5 000 000 so'm, whole hours, no closing after midnight, description ≤ 500; `landmark` and four amenities (changeset 048); booking terms and photo URLs leave the owner's requests; new `PUT /api/admin/stadiums/{id}/booking-terms` and audit `STADIUM_BOOKING_TERMS_CHANGED`; photos ≤ 5 MB re-encoded to JPEG without EXIF and open to any signed-in user for their own stadium; approval needs ≥ 3 photos); updated 2026-11-06 for `d0ad9d7..f4527f1` (deposit/remainder, backend `docs/frontend-field-changes-2026-11-06-payments.md`: rounding step 500 000 tiyin by default (changeset 049); `TimeSlot.depositAmount` / `remainderAmount` (R27 superseded); `BookingResponse.paidInCash` (R30), `remainderMark`, owner/admin `remainderMarkedAt`, owner `remainderMarkUndoableUntil` (changeset 050); `/cash` 400s now 409 and it sets the mark; new `POST /api/owner/bookings/{id}/not-paid`, `DELETE /api/owner/bookings/{id}/remainder-mark`, `DELETE /api/admin/bookings/{id}/remainder-mark`; payment status `cancelled` for a voided cash row; audit `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE`; `GameChallengeResponse.stadiumPhotoUrl` / `stadiumDistrict`); updated 2026-11-07 for `f4527f1..cc3bcb6` (team vs team minimum / full payment, backend `docs/frontend-field-changes-2026-11-06-team-payments.md`: platform setting `defaultMinBookingAmount` (changeset 051) — every stadium has a minimum, `minBookingAmount: null` in booking terms = the platform default, `MINIMUM` bookings never refused; quotes `GET /api/stadiums/{id}/team-game-quote` and `GET /api/games/{id}/join-quote` (R33); `paymentOption` on `POST /api/games` and join; `GameChallengeResponse.fullAmount`, `amountToPayNow` = the minimum; `GameTeamResponse.paymentOption` / `paidAmount` / `remainingAmount` / `remainderMark` / `remainderMarkedAt`, owner `remainderMarkUndoableUntil`, admin `ownerPart` (changeset 052); team marks `POST /api/games/{id}/not-paid`, `DELETE /api/games/{id}/remainder-mark`, `DELETE /api/admin/games/{id}/remainder-mark`, `/cash` sets the mark and its 400 "Already paid" is now 409; new 400s for a minimum not above the team fee); updated 2026-11-09 for `cc3bcb6..b17ad47` (`GET /api/stadiums?date=` and `freeSlotsCount`; walk-ins: `price`, `paymentStatus`, `clientPhone` must be `+998XXXXXXXXX`, `paymentMethod` removed, `GET /api/owner/stadiums/{id}/bookings/suggested-price`; bot `/start` in two messages); updated 2026-11-10 for `cf654ad..817a2b8` (`location` — `StadiumLocationResponse`: id, name, address, district, landmark, latitude, longitude, coverPhotoUrl, format — on every `GameDetailResponse` and each `GameChallengeResponse`) |
+| Endpoints documented | **130** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
 
 ---
 
@@ -52,7 +52,7 @@ Every endpoint — success or error — answers with the same wrapper
 
 | Field | Type | Notes |
 |---|---|---|
-| `success` | `boolean` | `true` on 2xx, `false` on every error |
+| `success` | `boolean` | `true` on a success, `false` on every error — **and on the one 2xx that is not a success**, 202 `PAYMENT_PENDING` (below) |
 | `data` | `T \| null` | the payload; `null` on an error, and `null` on endpoints that return nothing |
 | `message` | `string \| null` | human-readable; `null` on a plain success, always set on an error |
 | `code` | `string`? | machine-readable; **present only on the few errors that carry one** (table below), absent everywhere else |
@@ -69,6 +69,14 @@ Every endpoint — success or error — answers with the same wrapper
 | `ACCOUNT_BLOCKED` | 403 | `{ reason?, blockedAt? }` | **any** authenticated request (`JwtAuthFilter`), `POST /api/auth/telegram`, `POST /api/auth/admin/login` — `data` from the latest `USER_BLOCKED` audit entry: the reason as the admin typed it (absent when none) and when (UTC); either may be absent |
 | `TOKEN_REVOKED` | 401 | — | **any** authenticated request (§1.5) |
 | `PHONE_TAKEN` | 409 | — | `PATCH /api/users/me` — the phone belongs to another account |
+| `CARD_NOT_SUPPORTED`, `CARD_EXPIRY_INVALID`, `CARD_EXPIRED`, `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`, `SMS_RESEND_TOO_EARLY`, `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` | 400 | — | `POST /api/cards`, `/api/cards/resend`, `/api/cards/confirm` (`CardBindingException`, since `9e9acb5`) — §7.1 |
+| `PAYMENT_PENDING` | **202**, `success: false` | — | `POST /api/games/{id}/join` (team game): paid, the other team's capture has no clear answer yet (`PaymentPendingException`) — §9 |
+| `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `CARD_DECLINED` | 400 | — | since `41a786c` (R44, `CardDeclinedException`): why a card payment was refused, on the declines of `POST /api/games` (team game), `POST /api/games/{id}/join`, `POST /api/games/{id}/pay-remainder` and `POST /api/games/{id}/pay?cardId=`; the `message` is the old prose. A **booking** decline is 200 and says it in `declineReason` instead (§5) |
+| `BOOKING_NOT_PENDING`, `BOOKING_EXPIRED`, `PAYMENT_IN_PROGRESS` | 409 | — | `POST /api/bookings/{id}/pay` (R28, `BookingPaymentConflictException`) — §5 |
+
+A 202 `PAYMENT_PENDING` is a **2xx with `success: false`**: a client that only
+checks `response.ok` would read it as a success with `data: null`. Check
+`success` (the Mini App's client throws an `ApiError` with status 202 and the code).
 
 Everywhere else the frontend still branches on the **HTTP status** plus, where
 it has to, the exact `message` string — see
@@ -148,9 +156,9 @@ Two things the frontend must handle:
 
 | Level | How it is enforced |
 |---|---|
-| **public** | `/api/auth/**`, `GET /api/stadiums/**`, `GET /api/reviews/stadium/**`, `/webhooks/**` |
-| **user** | any other path — a valid JWT is required |
-| **owner** | `/api/owner/**` → requires `ROLE_OWNER` (the `isOwner` claim) |
+| **public** | `/api/auth/**`, `GET /api/stadiums/**`, `GET /api/reviews/stadium/**`, `GET /api/uploads/**` (uploaded stadium photos, R36), `/webhooks/**` |
+| **user** | any other path — a valid JWT is required; also exactly `POST /api/owner/stadiums` and `GET /api/owner/stadiums` (no sub-paths, R42) |
+| **owner** | the rest of `/api/owner/**` → requires `ROLE_OWNER` (the `isOwner` claim) |
 | **admin** | `/api/admin/**` → requires `ROLE_ADMIN` (the `isAdmin` claim) |
 
 Roles come from the **JWT claims**, not from the live database row — so a user
@@ -170,13 +178,19 @@ These apply to every endpoint and are not repeated below.
 | 400 | `"<field>: <constraint message>"`, comma-joined | bean validation failed on `@Valid`; e.g. `"rating: must be less than or equal to 5"` |
 | 401 | `"Authentication required"` | no/invalid token on a protected endpoint |
 | 401 | `"Session ended because the password was changed; sign in again"`, `code: "TOKEN_REVOKED"` | token predates the user's last password change (§1.5) |
-| 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` or `/api/admin/**` |
+| 403 | `"Access denied"` | valid token, wrong role for `/api/owner/**` (except the two R42 paths, §1.6) or `/api/admin/**` |
 | 403 | `"Account is blocked"`, `code: "ACCOUNT_BLOCKED"`, `data: { reason?, blockedAt? }` | the user is blocked (§1.2) |
 | 404 | `"<Thing> not found"` | `ResourceNotFoundException` |
 | 404 | `"Not found"` | no endpoint serves the path |
 | 405 | `"Method not allowed"` | the path exists but not with this method |
 | 409 | `"Data conflict"` | a database constraint other than the booking overlap |
+| 409 | the endpoint's own message | `ConflictException` (since `5cc6ef6`: the owner's cash while a card payment is in flight, §5; joining a team already joined, §8) |
+| 400 | `"file is required"` | a multipart request without its `file` part, or a broken multipart body (photo upload, §4) |
+| 413 | `"File too large"` | an upload over 5 MB, or a multipart body over 6 MB (`spring.servlet.multipart.*`, or the service's own check) |
+| 415 | `"Unsupported media type"` | a body type the endpoint does not take (e.g. JSON to the photo upload) |
 | 410 | `"Booking has expired"` | `BookingExpiredException` |
+| 502 | `"To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring"` (Uzbek, like Q7) | since `9e9acb5`: the payment provider could not be reached (HTTP 5xx, or ATMOS `STPIMS-ERR-024/-026/-041/-094/-102`) while **creating** a charge or hold, or on any card-binding call. **Nothing was charged, held or bound** — the request may simply be sent again. Not a decline. Any card call: `POST /api/cards`, `/resend`, `/confirm`, `POST /api/bookings`, the two `pay-remainder`s, `POST /api/games` (team), `POST /api/games/{id}/join` (team) |
+| 502 | `"Payment provider unavailable"` | admin refund retry only (§10.9) |
 | 500 | `"Internal server error"` | anything unhandled |
 
 Source: `exception/GlobalExceptionHandler.java`.
@@ -226,7 +240,7 @@ Source: `exception/GlobalExceptionHandler.java`.
 | `payment.paymentType` | `booking`, `remainder`, `team_game`, `game_share`, `service_fee`, `refund` |
 | `payment.method` | `card`, `cash` |
 | `payment.provider` | `atmos`, `payme`, `click`, `cash` |
-| `payment.status` | `processing`, `return_pending`, `capture_pending`, `refund_failed`, `held`, `captured`, `released`, `paid`, `refunded`, `failed`, `pending`, `completed` — see below |
+| `payment.status` | `processing`, `return_pending`, `capture_pending`, `refund_failed`, `held`, `captured`, `released`, `paid`, `refunded`, `failed`, `pending`, `completed`, `cancelled` — see below |
 | `ownerApplication.status` | `pending`, `under_review`, `approved`, `rejected` |
 | `ownerLegalDetails.legalType` | `yatt` (YaTT), `mchj` (MChJ), `self_employed` (oʻzini oʻzi band qilgan) |
 | `ownerLegalDetails.atmosContractStatus` / `ownerContractStatus` | `none`, `pending`, `signed` |
@@ -251,6 +265,7 @@ was deliberately not renamed because casual games share the column.
 | `capture_pending` | a hold being taken; the reconcile job finishes it |
 | `return_pending` | being given back (a charge reversed or a hold released); the reconcile job finishes it |
 | `refunded` | given back in full |
+| `cancelled` | since `32afe9f`: a **cash** row voided when the owner or an admin undid "Naqd olindi" — never a refund; it no longer counts anywhere |
 | `refund_failed` | on an **original** payment: ATMOS declined to give it back, the money is still owed; its refund row is `failed` until an admin retries it or marks it refunded by hand (§10.9) |
 | `failed` | a declined charge, or a **refund row** ATMOS declined (`failureReason` on the admin view) |
 | `pending`, `completed` | legacy Payme/Click hosted checkout only |
@@ -275,10 +290,13 @@ figure; the client only displays them.
   **d = min(playerAmount(minBookingAmount), D)**. The rest **r = D − d** is the
   **same amount** whether paid in the app or taken by the owner in cash.
   A manual (walk-in) booking is the owner's own price, not converted.
-- **Team game, per team:** pays `playerAmount(advance + fee)` on joining; the
-  platform's split nets exactly the fee (its only money in a team game), the
-  rest is the owner's. A team's remainder is `playerAmount(remainder)`, the
-  same in the app or in cash, all the owner's.
+- **Team game, per team** (since `f9ac033`, T4): each team chooses `minimum`
+  (net M, the stadium's effective minimum) or `full` (net P/2 + fee) and pays
+  `playerAmount(net)` on joining; the platform's split nets exactly the fee (its
+  only money in a team game), the rest is the owner's. A team's remainder is the
+  full option's player amount less what it paid — never rounded on its own, the
+  same in the app or in cash, all the owner's. Games from before keep their stored
+  amounts (`paymentOption` absent).
 - **Friends game, per player:** `playerAmount(pitch share + service fee)`; all
   the owner's unless `casualGameServiceFee > 0`, which is split like the team fee.
 - Cash goes to the owner in full. A full refund returns everything paid by card.
@@ -294,7 +312,7 @@ figure; the client only displays them.
 |---|---|
 | **Player** — public stadium list/detail, availability slots, public pricing rules, the player's own bookings, games and payments | `pricePerHour` (a slot's `originalPrice` too) and a stadium's `minBookingAmount` are **player prices**. A booking's `price` is D, `paidAmount` what was paid of it, `remainingAmount` what is left. `refundIfCancelledNow` is everything paid by card. Games: `totalPrice` is what all players pay together, a friends game's `price` one share, a team's `price` its joining payment and `remainderAmount` its remainder; the challenge board's `amountToPayNow` / `remainderAmount` likewise. **No breakdown field exists** in these views. |
 | **Owner** | `pricePerHour` / `minBookingAmount` are the **owner's own** (what they edit), with `playerPrice` / `playerMinBookingAmount` alongside. A booking shows `price` (what the player pays), `ownerPrice`, `paidInApp`, `remainingAmount` (the remainder to collect in cash) and `ownerReceives` (card splits after ATMOS, plus cash). |
-| **Admin** | the owner's view, plus `ownerReceives` and `atmosFee` on stadiums, pricing rules and bookings; a team adds `platformFee`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee`; a payment shows `ownerAmount`, `platformAmount`, `atmosFee` and `providerCommission`. |
+| **Admin** | the owner's view, plus `ownerReceives` and `atmosFee` on stadiums, pricing rules and bookings; a team adds `platformFee`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee`; a payment shows `ownerAmount`, `platformAmount`, `atmosFee`, `ownerNet`, `platformNet` and `providerCommission`. |
 
 Removed everywhere: `cardFee`, `netPrice`, `remainderByCard`,
 `remainderInCash`, `price` on stadium / pricing-rule / slot responses, a
@@ -357,9 +375,26 @@ For testing the Mini App in a plain browser, without Telegram `initData`.
 `DevAuthController` exists **only under `SPRING_PROFILES_ACTIVE=dev`**: in
 every other profile both paths answer 404 `"Not found"`, and the backend
 refuses to start with `dev` together with `prod` or `atmos`
-(`DevProfileGuard`). Not counted in the endpoint total. The frontend now uses
-them, in dev builds only (`src/miniapp/auth/dev/`), and sends `X-Dev-Login-Key`
-(from `VITE_DEV_LOGIN_KEY`); backend `ed403c7` does not check that header yet.
+(`DevProfileGuard`). Not counted in the endpoint total. The frontend uses
+them in dev builds only (`src/miniapp/auth/dev/`).
+
+**Dev login key (R26, since `253f585`).** Both paths require the header
+**`X-Dev-Login-Key`**, equal to the backend's `DEV_LOGIN_KEY`
+(`app.dev.login-key`); the Mini App's dev build sends it from
+`VITE_DEV_LOGIN_KEY` (`.env.local`).
+
+- `DevLoginKeyInterceptor` (dev profile only, on `/api/auth/dev/**`) checks it
+  before the controller runs and before the body is read: SHA-256 of both
+  values compared in constant time. A **missing, empty or wrong** key answers
+  exactly like an unknown path — **404 `"Not found"`** (`NoHandlerFoundException`
+  → `GlobalExceptionHandler`), nothing hinting that the endpoints exist. So a
+  404 here can mean a wrong/missing key as well as "backend not in the `dev`
+  profile"; the response does not tell them apart. `POST /login`'s own 404
+  `"User not found"` is only reachable with the right key.
+- With `dev` active, the backend **refuses to start** when `DEV_LOGIN_KEY` is
+  unset, empty or shorter than **16 characters** (`DevProfileGuard`, and the
+  interceptor's constructor does the same check). There is no "key unset →
+  open" mode. Outside the `dev` profile the setting is ignored.
 
 - `GET /api/auth/dev/users` — public. The 50 newest users, not paged:
   `{ id: UUID, name: string, isOwner: boolean, isAdmin: boolean, isBlocked: boolean }[]`.
@@ -464,6 +499,7 @@ another account"`, `code: "PHONE_TAKEN"`; 401; 404 `"User not found"`.
 | `name`, `address` | string | |
 | `district` | string? | one of the twelve districts (§1.9); absent on stadiums added before it existed |
 | `latitude`, `longitude` | number? | |
+| `landmark` | string? | "Moʻljal": a landmark near the pitch, ≤ 150 characters; absent when none (since `b99d569`) |
 | `format`, `surfaceType`, `status` | string | §1.9 |
 | `statusReason` | string? | the admin's reason for a `rejected` or `blocked` status — on the owner's endpoints; absent otherwise |
 | `pricePerHour` | number **(tiyin)** | public: the **player** price — the one price players pay; owner endpoints: the **owner's own** price, as they set it (§1.10) |
@@ -475,6 +511,7 @@ another account"`, `code: "PHONE_TAKEN"`; 401; 404 `"User not found"`.
 | `reviewCount` | number? | |
 | `coverPhotoUrl` | string? | the stadium's first photo (lowest `position`); absent when it has none |
 | `isFavorited` | boolean? | **player lists** (`GET /api/stadiums`, `GET /api/favorites`), for a signed-in caller only |
+| `freeSlotsCount` | number? | **`GET /api/stadiums` only**: free one-hour slots on its `date`, by the same rules as availability |
 
 No photo gallery and no `amenities` — fetch the detail endpoint for those.
 Rating, cover photo and favourite flag are loaded for the whole page at once.
@@ -488,15 +525,15 @@ Rating, cover photo and favourite flag are loaded for the whole page at once.
 | `ownerName`, `ownerPhone` | string? | |
 | `phone`, `description` | string? | |
 | `openTime`, `closeTime` | time | `"09:00:00"` |
-| `minBookingAmount` | number? **(tiyin)** | absent ⇒ the player must pay in full. Public: the deposit as players pay it; owner/admin: the owner's own minimum |
+| `minBookingAmount` | number? **(tiyin)** | Public: since `ef59a78` (T1) **always present** — the stadium's own minimum or the platform default (`defaultMinBookingAmount`), as players pay it. Owner/admin: the owner's own minimum, absent = the platform default is used (`playerMinBookingAmount` is then always present, the effective minimum's player price) |
 | `playerMinBookingAmount` | number? **(tiyin)** | **owner/admin responses only**: the deposit as players see and pay it |
 | `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin detail only** (§10.9): what the owner receives of one hour at `playerPrice` paid by card, after ATMOS, and what ATMOS takes of it |
 | `isFavorited` | boolean? | only present for an authenticated caller |
 | `averageRating` | number? | as on the list; absent with no reviews |
 | `reviewCount` | number? | `0` when none |
-| `cancellationPolicy` | `{ cancellationHours: number }` | |
-| `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position` |
-| `amenities` | `AmenitiesResponse` | `parking`, `lighting`, `showers`, `lockerRoom`, `wifi`, `cafe`, `equipmentRental`, `tribune` — all boolean |
+| `cancellationPolicy` | `{ cancellationHours: number }` | 24 until an admin sets the terms (§10.9) |
+| `photos` | `{ id: UUID, url: string, position: number }[]` | ordered by `position`; the lowest is the cover. An uploaded photo's `url` is a **relative path** `/api/uploads/stadiums/<stadiumId>/<file>` (R36) — prefix the API base URL (§1.1); older photos once sent as URLs keep that URL (the requests no longer take URLs) |
+| `amenities` | `AmenitiesResponse` | `parking`, `lighting`, `showers`, `lockerRoom`, `wifi`, `cafe`, `equipmentRental`, `tribune`, and since `b99d569` `toilet`, `covered` (covered / indoor), `bibs`, `drinkingWater` — all boolean, always present |
 | `createdAt`, `updatedAt` | timestamp (UTC) | |
 
 ### `GET /api/stadiums` — public · paged
@@ -509,12 +546,13 @@ Approved, active stadiums only.
 | `format` | string | no | `5x5` \| `7x7` \| `9x9` \| `11x11` |
 | `maxPrice` | number (tiyin) | no | upper bound on the **player** `pricePerHour` players see (converted to the largest fitting owner price) |
 | `district` | string | no | one of the twelve districts exactly as in §1.9; blank = none |
+| `date` | `YYYY-MM-DD` | no | Tashkent; default today. The day `freeSlotsCount` counts; outside the booking window it is 0 |
 | `page`, `size` | number | no | `0` / `20` |
 
-**Response** — paged `StadiumResponse`, with `coverPhotoUrl` and, when a JWT
-is sent, `isFavorited`.
+**Response** — paged `StadiumResponse`, with `coverPhotoUrl`, `freeSlotsCount` and,
+when a JWT is sent, `isFavorited`.
 
-**Errors** — 400 `"Invalid district"`.
+**Errors** — 400 `"Invalid district"`; 400 for a malformed `date`.
 
 ### `GET /api/stadiums/{id}` — public
 
@@ -550,6 +588,8 @@ free hour costs, and whether a team is waiting on it.
 | `status` | string | `free`; `booked` (a pending or confirmed booking holds it); `closed` (a stadium closure); `past` (today, the hour has started). When several apply: `past`, then `booked`, then `closed` |
 | `pricePerHour` | number? **(tiyin)** | the one price the player pays for this hour (§1.10); absent when not available |
 | `originalPrice` | number? **(tiyin)** | the player price before the promotion; absent when there is none |
+| `depositAmount` | number? **(tiyin)** | since `6a838e7` (E3): on a `free` slot whose deposit is below `pricePerHour` — exactly what `POST /api/bookings` with `MINIMUM` charges. Since `ef59a78` (T1) every stadium has a minimum (its own or the platform default), so it is absent only when the deposit would be the whole price ⇒ full payment only |
+| `remainderAmount` | number? **(tiyin)** | with `depositAmount`: `pricePerHour − depositAmount`, the same in the app or in cash |
 | `discountPercent` | number? | absent when there is no promotion |
 | `promotionName` | string? | |
 | `hasWaitingGame` | boolean | **`team_vs_team` only** — a team looking for an opponent. Casual games are private and never marked |
@@ -578,59 +618,154 @@ shape).
 **Response** — `PromotionResponse[]` (currently active promotions only; shape
 in §10).
 
-### `POST /api/owner/stadiums` — owner
+### `POST /api/owner/stadiums` — user (any signed-in user, R42)
 
-**Body** — `CreateStadiumRequest`
+**Body** — `CreateStadiumRequest`. Since `a8e66d4` the field rules live in
+the backend's `StadiumRules` (design D1, D10–D15), shared with the update so
+the messages match; they are checked in this order and the first failure wins:
+name, address, district, phone, description, landmark, location, price, hours
+(`format` / `surfaceType` are bean-validated before all of them).
 
-| Field | Type | Required | Validation |
+| Field | Type | Required | Rule → 400 message |
 |---|---|---|---|
-| `name` | string | yes | `@NotBlank @Size(max=150)` |
-| `address` | string | yes | `@NotBlank @Size(max=300)` |
-| `district` | string | no | `@Size(max=30)`; one of the twelve districts exactly as in §1.9, else 400 `"Invalid district"`; blank = none |
-| `latitude` | number | no | −90 … 90 |
-| `longitude` | number | no | −180 … 180 |
-| `phone` | string | no | max 20 |
-| `description` | string | no | |
+| `name` | string | yes | trimmed, 3–150 → `"name is required"`, `"name must be between 3 and 150 characters"` |
+| `address` | string | yes | trimmed, 5–300 → `"address is required"`, `"address must be between 5 and 300 characters"` |
+| `district` | string | **yes** | one of the twelve (§1.9) → `"district is required"`, `"Invalid district"` |
+| `landmark` | string | no | "Moʻljal": trimmed, ≤ 150, blank = none → `"landmark must be at most 150 characters"` |
+| `latitude`, `longitude` | number | **yes** | inside Uzbekistan: lat 37.1–45.6, lon 55.9–73.2 → `"latitude and longitude are required"`, `"Location must be inside Uzbekistan"` |
+| `phone` | string | **yes** | exactly `+998XXXXXXXXX`, no spaces → `"phone is required"`, `"phone must be in the format +998XXXXXXXXX"` |
+| `description` | string | no | "Qoʻshimcha maʼlumot", ≤ 500 → `"description must be at most 500 characters"` |
 | `format` | string | yes | `5x5\|7x7\|9x9\|11x11` |
 | `surfaceType` | string | yes | `natural\|artificial\|hybrid` |
-| `openTime` | time | yes | `"09:00:00"` |
-| `closeTime` | time | yes | treated as a **same-day** bound — `closeTime <= openTime` makes the stadium unbookable |
-| `pricePerHour` | number **(tiyin)** | yes | `@PositiveOrZero` |
-| `minBookingAmount` | number **(tiyin)** | no | `@PositiveOrZero`, and **≥ 50 000** when set; null ⇒ full payment required |
-| `cancellationHours` | number | no | `@PositiveOrZero`; defaults to **24** |
-| `photos` | string[] | no | each non-blank, max 500 chars (URLs — there is no upload endpoint, see [Q5](#11-questions-about-the-backend)) |
-| `amenities` | object | no | the eight booleans |
+| `openTime`, `closeTime` | time | yes | `"08:00"`; **both on the hour** → `"openTime and closeTime must be on the hour"`; **close after open**, no closing after midnight → `"closeTime must be after openTime; closing after midnight is not supported"`; `"openTime is required"` / `"closeTime is required"` |
+| `pricePerHour` | number **(tiyin)** | yes | the owner's own price, 1 000 000–500 000 000 → `"pricePerHour is required"`, `"pricePerHour must be between 10 000 and 5 000 000 so'm"` |
+| `amenities` | object | no | the twelve booleans (§4 `AmenitiesResponse`); a flag left out is `false` |
+
+**Removed** (ignored if sent, not refused, so an old build keeps working):
+`minBookingAmount`, `cancellationHours` (an admin sets them, §10.9) and the
+`photos` URL list (upload files after creating, below). A new stadium starts
+with `cancellationPolicy.cancellationHours = 24` and no minimum (full payment).
 
 **Response** — `StadiumDetailResponse` in the owner's own prices (with
 `playerPrice`/`playerMinBookingAmount`, §1.10), `message: "Stadium submitted for review"`.
 The stadium is created with `status: "pending"` and is invisible to players
-until an admin approves it (which needs the owner's signed ATMOS contract,
-§10.9).
+until an admin approves it (which needs the owner's signed ATMOS contract and
+at least 3 photos, §10.9).
 
-**Errors** — 400 validation; 400 `"Invalid district"`; 400 `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 401; 403 `"Access denied"`.
+**Errors** — the 400s above; 400 validation (`format`, `surfaceType`); 401.
 
-**Note** — this path is behind `ROLE_OWNER`, so a user who is not yet an owner
-cannot create their first stadium here; they go through
-`POST /api/owner-applications` first (§9) and must then obtain a **new token**
-for the `isOwner` claim to appear.
+**Note** — since R42 (`025b302`) this exact path needs only a token, **not**
+`ROLE_OWNER`: a player adds their first stadium here and follows its review
+with `GET /api/owner/stadiums`; since `7cf837a` the photo endpoints (below)
+are open to them too, for their own stadium. Approval sets `is_owner`, and the
+user then needs a **new token** (the flag is a JWT claim, §1.6) for the rest of
+`/api/owner/**`, which stays owner-only — including `GET`/`PUT
+/api/owner/stadiums/{id}`.
 
 ### `PUT /api/owner/stadiums/{id}` — owner
 
-**Body** — `UpdateStadiumRequest`: every field of the create body optional
-(only non-null values applied), plus `isActive` (boolean). `status` is
-deliberately absent — only an admin changes it.
+**Body** — `UpdateStadiumRequest`: every create field optional (only non-null
+values applied), each checked with the **same rules and messages**, plus
+`isActive` (boolean). `status` is deliberately absent — only an admin changes it.
 
-An absent `district` leaves it unchanged.
+- `district`, `phone`, `latitude`/`longitude` are optional; the coordinates
+  come **together** → 400 `"Send both latitude and longitude"`.
+- `landmark` sent blank (`""`) **clears** it; absent leaves it.
+- `openTime` / `closeTime` may be sent alone; the pair that results (sent
+  value, else the current one) must be valid.
+- `amenities`, when sent, **replaces the whole block**: send all twelve flags
+  (the Mini App offers ten and sends `wifi` / `cafe` back unchanged).
+- **Removed, ignored if sent**: `minBookingAmount`, `cancellationHours`,
+  `clearMinBookingAmount` (R41), `photos`. The old 400 `"Send either
+  minBookingAmount or clearMinBookingAmount"` no longer exists.
 
 **Response** — `StadiumDetailResponse` (owner's own prices + `playerPrice`/`playerMinBookingAmount`).
 
-**Errors** — 400 validation / `"Invalid district"` / `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+**Errors** — the create rules' 400s / `"Send both latitude and longitude"`; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
 
-### `GET /api/owner/stadiums` — owner
+### `GET /api/owner/stadiums` — user (any signed-in user, R42)
 
-**Response** — `StadiumResponse[]` (not paged) for the calling owner, any
+**Response** — `StadiumResponse[]` (not paged) for the caller, any
 status, in the owner's own prices with `playerPrice` alongside; `statusReason` tells the owner why a stadium is
-`rejected` or `blocked`.
+`rejected` or `blocked`. A caller with no stadiums gets `[]`. Like `POST`, this
+exact path needs only a token, not `ROLE_OWNER` (R42).
+
+### `GET /api/owner/stadiums/{id}` — owner
+
+One of the caller's stadiums in **any** status (R35) — the same
+`StadiumDetailResponse` that `PUT` returns, built by the same code: the owner's
+own prices with `playerPrice` / `playerMinBookingAmount`, `status`,
+`statusReason`, photos.
+
+**Errors** — 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+### Stadium photos — any signed-in user, own stadium (R36, D6)
+
+Since `7cf837a` the three need only a token (not `ROLE_OWNER`), so a player
+can upload the photos of the pending stadium they just created; ownership is
+still checked. All three work in any stadium status. Each checks ownership (404
+`"Stadium not found"`, then 403 `"You do not own this stadium"`), locks the
+stadium row (so concurrent uploads cannot pass the limit) and is audited as
+`STADIUM_UPDATED` with the `photos` URL list before → after. The photo with
+the lowest `position` is the cover (`coverPhotoUrl`).
+
+`PhotoResponse` — `{ id: UUID, url: string, position: number }`.
+
+#### `POST /api/owner/stadiums/{id}/photos` — user, own stadium
+
+**Body** — `multipart/form-data` with one part, **`file`**: a JPEG, PNG or
+WebP image, at most **5 MB** (since `7cf837a`). The type is told from the
+file's **magic bytes**, never from its content type or name, and the file must
+actually decode. The server **re-encodes every photo to JPEG** (quality 0.85,
+long side ≤ 2000 px, transparency on white, **no EXIF** — so no GPS or camera
+data, and EXIF orientation is **not** applied: rotate on the device first)
+and stores it as `stadiums/<stadiumId>/<random uuid>.jpg`; the new photo goes
+**last** (`max(position) + 1`).
+
+**Response** — `PhotoResponse`, `message: "Photo uploaded"`. Its `url` is
+`/api/uploads/stadiums/<stadiumId>/<file>` — relative, see below.
+
+**Errors**
+
+| Status | `message` |
+|---|---|
+| 400 | `"file is required"` — no `file` part |
+| 400 | `"Unsupported image type"` — not JPEG, PNG or WebP, or does not decode |
+| 400 | `"Image is too large"` — over 40 megapixels (read from the header before decoding) |
+| 400 | `"A stadium can have at most 10 photos"` |
+| 403 | `"You do not own this stadium"` |
+| 404 | `"Stadium not found"` |
+| 413 | `"File too large"` — over 5 MB |
+| 415 | `"Unsupported media type"` — not a multipart body |
+
+#### `DELETE /api/owner/stadiums/{id}/photos/{photoId}` — user, own stadium
+
+**Response** — `data: null`, `message: "Photo deleted"`. The remaining photos
+are renumbered `0..n-1`; an uploaded file is removed from disk after the
+deletion commits (a photo added as an external URL is never touched).
+
+**Errors** — 403 `"You do not own this stadium"`; 404 `"Stadium not found"` / `"Photo not found"` (also when the photo belongs to another stadium).
+
+#### `PUT /api/owner/stadiums/{id}/photos/order` — user, own stadium
+
+**Body** — `ReorderPhotosRequest`: `{ "photoIds": UUID[] }` (`@NotNull`, no
+null items) — **every** photo of the stadium exactly once, in the new order;
+the first becomes the cover.
+
+**Response** — `PhotoResponse[]` in the new order, `message: "Photos reordered"`.
+
+**Errors** — 400 `"photoIds must list every photo of the stadium exactly once"`; 400 validation; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`.
+
+#### `GET /api/uploads/stadiums/{stadiumId}/{file}` — **public**
+
+Serves an uploaded photo (the `url` above) — the raw image, **not** the JSON
+envelope — with its `Content-Type`, `Cache-Control: max-age=31536000, public,
+immutable` and `X-Content-Type-Options: nosniff`. Only a
+`<uuid>.<jpg|png|webp>` name under a stadium id resolves; anything else (other
+names, directories, `..`) answers 404 `"Not found"` (400 `"Invalid id"` for a
+bad stadium id) — no listing, no traversal. Since the stored `url` is
+relative, an `<img>` on another origin needs the API base URL in front of it
+(§1.1).
 
 ---
 
@@ -666,6 +801,12 @@ status, in the owner's own prices with `playerPrice` alongside; `statusReason` t
 | `cancellationDeadline` | timestamp (UTC)? | last moment a cancellation still refunds |
 | `refundIfCancelledNow` | number **(tiyin)**? | **display this, never recompute it**; everything paid by card |
 | `refundAmount` | number **(tiyin)**? | only on a cancellation response: what was actually refunded |
+| `declineReason` | string? | since `41a786c` (R44): the booking's **latest card payment** (in full, deposit or remainder) was refused, and why — **uppercase**: `INSUFFICIENT_FUNDS` (ATMOS `-057`, `-112`), `CARD_EXPIRED` (`-067`), `CARD_DECLINED` (any other refusal). Absent otherwise, including once a later payment went through. Every view |
+| `paidInCash` | number **(tiyin)** | since `32afe9f` (E4, R30), **always present** (0 when none), every view: cash the owner took that still counts (a voided cash row does not) |
+| `remainderMark` | string? | since `32afe9f`, every view: `cash_received` ("Naqd olindi") or `not_paid` ("Toʻlanmadi"); absent when none |
+| `remainderMarkedAt` | timestamp (UTC)? | **owner and admin views**: when the mark was set |
+| `remainderMarkUndoableUntil` | timestamp (UTC)? | **owner view only**: the end of the Tashkent day the mark was set; the owner may undo before it |
+| `paymentState` | string | since `ccfa4d5`, **always present**, lowercase: where that latest card payment stands — `paid` (its money arrived, even if given back since), `processing` (no answer yet), `declined` (refused; **exactly when `declineReason` is present**), `failed` (failed without a refusal, e.g. never acknowledged), `none` (no card payment: cash, manual and game bookings). Every view |
 | `createdAt` | timestamp (UTC) | |
 
 ### `POST /api/bookings` — user
@@ -722,7 +863,9 @@ Creates the booking **and charges the chosen saved card in the same call.**
   `min(minBookingAmount as players see it, D)` — the figure public stadium
   responses already show, capped at the booking's price. `MINIMUM` is no
   longer refused when the minimum is not below the price (that 400 is gone);
-  the deposit then simply covers the whole booking.
+  the deposit then simply covers the whole booking. Since `ef59a78` (T1) every
+  stadium has a minimum (its own or the platform default), so the 400 "This
+  stadium requires full payment; it has no minimum booking amount" is gone too.
 - Creating a booking cancels any waiting game on those hours and refunds that
   game's team(s).
 
@@ -741,18 +884,47 @@ before **or after** the game. Paying after the game leaves the booking
 
 | Status | `message` |
 |---|---|
-| 400 | `"Already paid"` — the owner took it in cash first |
+| 400 | `"Already paid"` — the owner took it in cash first (`POST /api/owner/bookings/{id}/cash`; both lock the booking row, so whichever lands first wins) |
 | 400 | `"This booking has no part payment to complete"` |
 | 400 | `"Only a live booking can be paid off"` (status is not `confirmed`/`completed`) |
 | 403 | `"This booking does not belong to you"` |
 | 404 | `"Booking not found"` / `"Card not found"` |
 
+### `POST /api/bookings/{id}/pay` — user
+
+_Since `e14bd5e` (R28)._ Pays a **pending** booking again — with the same or
+another card, after a decline — while its hold lasts. The amount is not a
+choice: **the same as the first attempt** (the deposit or the whole price), on
+the same path as `POST /api/bookings`. The booking row is locked for the call,
+so two taps at once charge once.
+
+**Body** — `{ "cardId": UUID }` (`@NotNull`; an active card of the caller).
+
+**Response** — `BookingResponse`, with the same `message`s as `POST /api/bookings`.
+Success confirms the booking (`paid` / `partially_paid`). A decline is still
+**200**: `pending`, `paymentStatus: unpaid`, the new `declineReason`, and the
+**same `expiresAt`** — the hold is never extended. Audited
+`BOOKING_PAYMENT_RETRIED`.
+
+**Errors**
+
+| Status | `code` | `message` |
+|---|---|---|
+| 409 | `BOOKING_NOT_PENDING` | `"This booking is not awaiting payment"` — confirmed, cancelled, or expired by the job |
+| 409 | `BOOKING_EXPIRED` | `"The booking's hold has expired; book the slot again"` |
+| 409 | `PAYMENT_IN_PROGRESS` | `"A payment for this booking is being processed"` — a payment of it is `processing` or arrived |
+| 403 | — | `"This booking does not belong to you"` |
+| 404 | — | `"Booking not found"` / `"Card not found"` |
+| 502 | — | the payment provider is unreachable (§1.7) |
+
 ### `GET /api/bookings` — user · paged
 
 The caller's own bookings.
 
-| Query | `page`, `size` |
-|---|---|
+| Query | Type | Required | Notes |
+|---|---|---|---|
+| `when` | `upcoming` \| `past` | no | since `08687d6` (R29): `upcoming` — `startsAt` now or later, **soonest first**; `past` — `startsAt` before now, **newest first**; absent — every booking, latest `startsAt` first (as before); any other value 400 `"Invalid when"` |
+| `page`, `size` | number | no | |
 
 **Response** — paged `BookingResponse`.
 
@@ -788,8 +960,8 @@ platform.
 
 ### `POST /api/owner/stadiums/{stadiumId}/bookings` — owner
 
-A walk-in / phone booking. Confirmed immediately, no hold. When
-`paymentMethod` is `"cash"`, blank or omitted, a cash payment is recorded for
+A walk-in / phone booking. Confirmed immediately, no hold. Added as `paymentStatus: paid`,
+a cash payment is recorded for
 the full price.
 
 **Body** — `CreateManualBookingRequest`
@@ -802,11 +974,17 @@ the full price.
 | `startsAt` | timestamp (UTC) | yes | `@NotNull`; on the hour (Tashkent). **No `@Future`** — a past slot is accepted here |
 | `duration` | number | no | absent or `1`; anything else is 400 `"A booking is exactly one hour"` (note the name is `duration`, not `durationHours`) |
 | `notes` | string | no | |
-| `paymentMethod` | string | no | `"cash"` or null |
+| `price` | number (tiyin) | no | the owner's price for this hour; absent = the stadium's own price for it |
+| `paymentStatus` | string | no | `unpaid` (default) or `paid` (a cash row and the `cash_received` mark, undoable the same day) |
 
 **Response** — `BookingResponse` in the **owner's view** (`ownerPrice`, `paidInApp`, `ownerReceives`; a walk-in pays the owner's own price, so `price` = `ownerPrice`), `message: "Manual booking created"`.
 
 **Errors** — the booking-window 400s above; 403 `"You do not own this stadium"`; 404 `"Stadium not found"`; 409 overlap.
+
+### `GET /api/owner/stadiums/{stadiumId}/bookings/suggested-price?startsAt=` — owner
+
+`{ "price": number }`: the owner's price (tiyin) of one walk-in hour starting at
+`startsAt` (ISO with offset). 403 for another owner's stadium.
 
 ### `GET /api/owner/stadiums/{stadiumId}/bookings` — owner · paged
 
@@ -816,6 +994,60 @@ the full price.
 | `page`, `size` | number | no |
 
 **Response** — paged `BookingResponse` in the **owner's view** (§1.10). **Errors** — 403 `"You do not own this stadium"`.
+
+### `POST /api/owner/bookings/{bookingId}/cash` — owner
+
+The owner marks the rest of a booking as received in cash (R37, E5) — the
+booking's `remainingAmount`, the same amount the player would pay with
+`pay-remainder`, not the full price. **No body.** Since `32afe9f` it also sets
+`remainderMark: "cash_received"` (replacing `not_paid`). The player's app
+payment and this lock the booking row and settle one at a time: whichever lands
+first wins. Audited as `CASH_RECEIVED` (with the `remainderMark` change).
+
+Applies to a `confirmed` / `completed` booking that is `partially_paid`, or a
+manual (walk-in) booking still `unpaid`. A team game's booking is not settled
+here — its teams' remainders go through `POST /api/games/{id}/cash` (§9).
+
+**Response** — `BookingResponse` in the **owner's view** (§1.10), `message: "Cash recorded"`.
+
+**Errors**
+
+| Status | `message` |
+|---|---|
+| 409 | `"Already paid"` — nothing left (e.g. the player paid in the app first); 400 before `32afe9f` |
+| 409 | `"This booking has no part payment to complete"` — pending, cancelled or expired, not part-paid, or a game booking; 400 before `32afe9f` |
+| 403 | `"You do not own this stadium"` |
+| 404 | `"Booking not found"` |
+| 409 | `"A payment for this booking is being processed"` — a card payment of the booking is still `processing` / `capture_pending` (outcome unknown) |
+
+### `POST /api/owner/bookings/{bookingId}/not-paid` — owner
+
+Since `32afe9f` (E5): "Toʻlanmadi" — the player did not pay the rest. **No
+body.** Sets `remainderMark: "not_paid"`; nothing is charged, no penalty, the
+remainder stays and the player can still pay it (`pay-remainder` clears the
+mark; `/cash` later replaces it). Sending it again changes nothing (200).
+Audited as `REMAINDER_NOT_PAID`.
+
+**Response** — owner `BookingResponse`, `message: "Marked as not paid"`.
+**Errors** — as `/cash` (409 `"Already paid"`, 409 `"This booking has no part
+payment to complete"`, 403, 404), without the "being processed" one.
+
+### `DELETE /api/owner/bookings/{bookingId}/remainder-mark` — owner
+
+Since `32afe9f` (E5, E6): undoes the mark until `remainderMarkUndoableUntil`
+(the end of the Tashkent day it was set). `cash_received`: the cash row is
+voided (payment status `cancelled`, not a refund) and `paidAmount`,
+`remainingAmount`, `paymentStatus`, `paidInCash` go back to before the cash;
+`not_paid`: only the mark is cleared. Audited as `REMAINDER_MARK_UNDONE`.
+
+**Response** — owner `BookingResponse`, `message: "Mark undone"`.
+
+| Status | `message` |
+|---|---|
+| 409 | `"Only an admin can change this mark"` — after the mark's Tashkent day |
+| 409 | `"This booking has no remainder mark"` |
+| 403 | `"You do not own this stadium"` |
+| 404 | `"Booking not found"` |
 
 ### `DELETE /api/owner/bookings/{bookingId}` — owner
 
@@ -889,8 +1121,8 @@ never stored, logged or returned.
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | the only handle the client ever uses |
-| `maskedNumber` | string | e.g. `"8600 •••• 1234"` |
-| `cardType` | string | |
+| `maskedNumber` | string | `"8600 •••• •••• 1234"` (`provider/CardMask`, both providers, since `9e9acb5`); cards saved earlier keep `"8600 •••• 1234"` — the client must show both |
+| `cardType` | string | `uzcard` (8600…) \| `humo` (9860…) \| `unknown` |
 | `expiry` | string | `MM/YY` as the provider reports it |
 | `isActive` | boolean | |
 | `createdAt` | timestamp (UTC) | |
@@ -906,11 +1138,44 @@ There is **no token field** — payment calls take `cardId`.
 | `cardNumber` | string | yes | `@Pattern(\d{16})` — `"cardNumber must be 16 digits"` |
 | `expiry` | string | yes | `@Pattern(\d{2}/\d{2})` — `"expiry must be MM/YY"` |
 
-**Response** — `{ "bindingId": string, "maskedPhone": string }` (where the
-SMS went, e.g. `"********9999"`), `message: "SMS code sent"`. Nothing
-is persisted yet; an abandoned binding expires at the provider.
+Only **Uzcard (`8600…`) and Humo (`9860…`)** are bound; the expiry must not have
+passed. No Luhn check.
 
-**Errors** — 400 validation; 404 `"User not found"`.
+**Response** — `{ "bindingId": string, "maskedPhone": string }` (where the
+SMS went: `"+998 ** *** ** 58"` from the fake provider, `"********9999"` from
+ATMOS), `message: "SMS code sent"`. Nothing is persisted yet; an abandoned
+binding expires at the provider.
+
+**Errors** — 400 validation; 400 with a `code` (below); 404 `"User not found"`;
+502 provider unreachable (§1.7).
+
+**Card binding errors** (`CardBindingException`, 400, all three card calls).
+The `message` is Uzbek Latin with `'` for ʻ/ʼ; branch on `code`:
+
+| `code` | When | `message` |
+|---|---|---|
+| `CARD_NOT_SUPPORTED` | not Uzcard / Humo (ATMOS `STPIMS-ERR-117`, `-050`) | `"Faqat Uzcard va Humo kartalari qabul qilinadi"` |
+| `CARD_EXPIRY_INVALID` | the expiry does not match the card (`-090`, `-004`) | `"Karta raqami yoki amal qilish muddati noto'g'ri"` |
+| `CARD_EXPIRED` | the card has expired (`-067`) | `"Kartaning amal qilish muddati tugagan"` |
+| `SMS_CODE_WRONG` | wrong SMS code (`-098`); the binding stays open | `"SMS kod noto'g'ri"` |
+| `SMS_CODE_EXPIRED` | the code is no longer valid (fake: after 180 s) — resend it | `"SMS kodning muddati tugagan. Kodni qayta yuboring"` |
+| `SMS_RESEND_TOO_EARLY` | `/resend` within 60 s of the last code | `"Kodni qayta yuborish uchun biroz kuting"` |
+| `SMS_RESEND_UNAVAILABLE` | the provider cannot resend — **always, with real ATMOS** (no binding resend is documented): enter the card again | `"Kodni qayta olish uchun karta ma'lumotlarini qaytadan kiriting"` |
+| `BINDING_NOT_FOUND` | unknown or already confirmed binding — start again | `"Karta qo'shish jarayoni topilmadi. Qaytadan boshlang"` |
+| `CARD_BINDING_FAILED` | any other refusal | `"Kartani qo'shib bo'lmadi. Boshqa karta bilan urinib ko'ring"` |
+
+#### `POST /api/cards/resend` — user
+
+_Since `9e9acb5`._ The SMS code again, for the same binding.
+
+**Body** — `{ "bindingId": string }` (`@NotBlank`).
+
+**Response** — `{ "bindingId": string, "maskedPhone": string }` (the same
+shape as `POST /api/cards`), `message: "SMS code sent"`.
+
+**Errors** — 400 validation; 400 `SMS_RESEND_TOO_EARLY` (before the 60 s
+cooldown), `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`; 404
+`"User not found"`; 502 (§1.7).
 
 #### `POST /api/cards/confirm` — user
 
@@ -918,9 +1183,34 @@ is persisted yet; an abandoned binding expires at the provider.
 
 **Response** — `SavedCardResponse`, `message: "Card saved"`.
 
-**Errors** — 400 validation; 404 `"User not found"`; a wrong SMS code or
-unknown binding comes from the provider (with the fake provider the code is
-always `111111`).
+**Errors** — 400 validation; 400 `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`,
+`BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` (above); 404 `"User not found"`;
+502 (§1.7).
+
+**Fake provider (dev and tests, since `9e9acb5`).** It answers like ATMOS and
+keeps its state across restarts. Any 16 digits starting `8600`/`9860` with an
+expiry not passed bind (`13/29` → `CARD_EXPIRY_INVALID`, last month →
+`CARD_EXPIRED`, `4111…` → `CARD_NOT_SUPPORTED`); **any 6-digit code** confirms,
+`000000` → `SMS_CODE_WRONG`, `999999` → `SMS_CODE_EXPIRED`. Card endings pick a
+payment scenario: `0002` declined, `0051` insufficient funds, `0054` expired at
+payment, `0091`/`0092` lost answer (did / did not charge), `0099` provider down
+(502), `0098` refunds refused, `0097` (team game creator) capture refused.
+The table is "To simulate X in dev" in the backend `CLAUDE.md`.
+
+**Dev-only: `GET /api/dev/fake-payments?limit=`** — `dev` profile with the fake
+provider only, `X-Dev-Login-Key` like §2, **no JWT**; 404 `"Not found"`
+otherwise. Not counted in the endpoint total. `limit` 1–100 per list (default
+20). `DevFakePaymentsResponse`: `cards` (`cardId`, `maskedPan`, `cardType`,
+`expiry`, `cardHolder`, `maskedPhone`, `balance` tiyin, `scenario`,
+`isActive`, `createdAt`, `removedAt`), `charges` and `holds` (`id`,
+`account` = our payment id, `cardId`, `maskedPan`, `status` PENDING / SUCCESS /
+FAILED / REVERSED / HELD / CAPTURED / RELEASED, `errorCode`, `amount`,
+`commission`, `holdTill`, `succeededAt`, `createdAt`, `updatedAt`, `splits`
+[`transactionId`, `recipient` owner / platform, `recipientId`, `amount`,
+`commission`, `recipientReceives`, `successTransId`, `reversedAt`]) and
+`reverses` (`id`, `operationId`, `transactionId`, `amount`, `outcome`
+REVERSED / REFUSED, `errorCode`, `reason`, `createdAt`). Newest first; no token
+anywhere. The Mini App does not call it.
 
 #### `GET /api/cards` — user
 
@@ -949,6 +1239,7 @@ Soft delete (`isActive = false`) so past payments stay explainable.
 | `providerTxnId` | string? | unique — makes webhooks idempotent |
 | `status` | string | §1.9 |
 | `refundReason` | string? | |
+| `declineReason` | string? | since `41a786c` (R44): on a `failed` row the provider **refused** — `INSUFFICIENT_FUNDS`, `CARD_EXPIRED` or `CARD_DECLINED` (uppercase); absent when a payment failed without a refusal. Never the provider's own code or text (`failureReason` stays admin-only). `AdminPaymentResponse` has it too |
 | `createdAt` | timestamp (UTC) | |
 
 #### `POST /api/payments/initiate` — user
@@ -983,6 +1274,13 @@ Newest first (`createdAt` desc). **Response** — paged `PaymentResponse`.
 | `TeamResponse` | `id` UUID, `name` string, `leaderName` string?, `memberCount` number? |
 | `TeamDetailResponse` | `id` UUID, `name` string, `leaderId` UUID, `leaderName` string?, `members` `TeamMemberResponse[]` |
 | `TeamMemberResponse` | `userId` UUID, `userName` string?, `role` string (`leader` \| `member`) |
+| `TeamInviteResponse` | `code` string — the invite code (R32) |
+| `TeamInvitePreviewResponse` | `team` `TeamResponse`, `isMember` boolean |
+
+The invite code (changeset 043, `teams.invite_code`, unique, null until the
+leader first asks for it) is 128 random bits, base64url without padding — **22
+characters**, safe in a link. It never appears in a team response; only the
+leader gets it from the invite endpoints. Team changes are not audited.
 
 ### `POST /api/teams` — user
 
@@ -1008,6 +1306,42 @@ membership check).
 **Response** — `TeamDetailResponse`, `message: "Member added"`.
 
 **Errors** — 400 `"User is already a member of this team"`; 403 `"Only the team leader can perform this action"`; 404 `"Team not found"` / `"User not found"`.
+
+### `GET /api/teams/{id}/invite` — user (leader only)
+
+**Response** — `TeamInviteResponse` `{ code }`. The code is **created on the
+first request** and returned unchanged after that; the client builds the
+invite link from it.
+
+**Errors** — 403 `"Only the team leader can perform this action"`; 404 `"Team not found"`.
+
+### `POST /api/teams/{id}/invite` — user (leader only)
+
+A new invite code; links with the old one **stop working**. No body.
+
+**Response** — `TeamInviteResponse` `{ code }`, `message: "Invite link renewed"`.
+
+**Errors** — 403 `"Only the team leader can perform this action"`; 404 `"Team not found"`.
+
+### `GET /api/teams/invite/{code}` — user
+
+What an invite link leads to — any signed-in user.
+
+**Response** — `TeamInvitePreviewResponse` `{ team: TeamResponse, isMember }`;
+`isMember` says whether the caller is already in the team.
+
+**Errors** — 404 `"Invite not found"` (unknown or renewed-away code, blank, or over 32 characters).
+
+### `POST /api/teams/join` — user
+
+Joins the team an invite code belongs to, as a `member` — the same membership
+add-member gives.
+
+**Body** — `JoinTeamRequest`: `{ "code": string }` (`@NotBlank`; trimmed).
+
+**Response** — `TeamDetailResponse`, `message: "Joined team"`.
+
+**Errors** — 400 `"code: must not be blank"`; 404 `"Invite not found"`; **409** `"User is already a member of this team"` (add-member keeps its 400 for the same case; only the join answers 409).
 
 ### `DELETE /api/teams/{id}/members/{userId}` — user (leader only)
 
@@ -1046,10 +1380,13 @@ them in the client.**
 `GameDetailResponse` (`NON_NULL`) — the above plus `description`, `stadiumId`,
 `creatorId`, `minPlayers`, `teamAId`, `teamAName`, `teamBId`, `teamBName`,
 `bookingId`, `inviteLink` (Telegram deep link `t.me/{bot}?start=game_{id}`),
-`createdAt`, and `price` _(tiyin)_? — **casual/open games only**: what one
+`createdAt`, `location` (`StadiumLocationResponse`, as on the challenge board: every game type, every status, everyone who opens it — since `817a2b8`), and `price` _(tiyin)_? — **casual/open games only**: what one
 player pays for their share (§1.10). No `serviceFeePerPerson` and no
 `cardFee` any more (the admin game detail still has `serviceFeePerPerson`,
-§10.9) — plus:
+§10.9) — plus `joinPending` boolean? — **`team_vs_team` only**, since `b896a07`
+(R45): `true` while a team is half-way through joining (its status `joining`,
+e.g. after 202 `PAYMENT_PENDING`), until the backend confirms or undoes the join —
+plus:
 
 `teams` — **`team_vs_team` only**, `GameTeamResponse[]`:
 
@@ -1061,8 +1398,15 @@ player pays for their share (§1.10). No `serviceFeePerPerson` and no
 | `price` | number **(tiyin)** | what this team pays in the app on joining (§1.10) |
 | `remainderAmount` | number **(tiyin)** | what this team owes after joining (or owed, once `remainderStatus` is `paid`) — the **same amount** in the app or in cash |
 | `remainderStatus` | `"unpaid"` \| `"paid"` | |
+| `paymentOption` | `"minimum"` \| `"full"`? | since `f9ac033` (T9): what the team chose on joining; absent on games created before |
+| `paidAmount` | number **(tiyin)** | since `f9ac033` (T9): player money the team has put in — held on its card or arrived, card or cash (a voided cash row does not count). "Toʻlangan: X", also while held |
+| `remainingAmount` | number **(tiyin)** | since `f9ac033` (T9): what the team still owes now — `remainderAmount` while unpaid, else 0 |
+| `remainderMark` | `"cash_received"` \| `"not_paid"`? | since `f9ac033` (T10): the stadium owner's mark on the remainder; absent with none |
+| `remainderMarkedAt` | timestamp? (UTC) | with the mark |
+| `remainderMarkUndoableUntil` | timestamp? (UTC) | **the stadium's owner only**, with a mark: the end of the Tashkent day it was set — the owner's undo is allowed before it |
 | `paidInApp` | number **(tiyin)** | everything this team has paid through the app so far (holds and charges not given back) |
-| `platformFee`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin game detail only** (§10.9) |
+| `heldAmount` | number **(tiyin)** | since `ba6db84`; **always present**, 0 when nothing is held: what is on hold on this team's card right now — holds `held`, or `capture_pending` while the capture is asked for, whose hold expiry is still ahead. Not counted: a hold still being created (`processing`), one being given back (`return_pending`), captured or released |
+| `platformFee`, `ownerPart`, `ownerAdvance`, `ownerRemainder`, `ownerReceives`, `atmosFee` | number? **(tiyin)** | **admin game detail only** (§10.9); `ownerPart` since `f9ac033` (T9) — the owner's net part of the joining payment (M − fee for `minimum`, its half of P for `full`) |
 | `cancellationDeadline` | timestamp (UTC) | |
 | `refundIfCancelledNow` | number **(tiyin)** | 0 when nothing would come back — **display, never recompute** |
 
@@ -1084,18 +1428,19 @@ player pays for their share (§1.10). No `serviceFeePerPerson` and no
 | `duration` | number | no | a game is exactly one hour: absent or `1`; anything else is 400 `"A booking is exactly one hour"` |
 | `teamAId` | UUID | **required for `team_vs_team`** | caller must be that team's leader |
 | `cardId` | UUID | **required for `team_vs_team`** | ignored for other types |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | since `f9ac033` (T6), `team_vs_team` only; absent → `MINIMUM`; a `MINIMUM` the stadium does not offer is taken as `FULL`; any other value → 400 (JSON parse) |
 
 **Response** — `GameDetailResponse`, `message: "Game created"`.
 
 For `team_vs_team` the creating leader's card is put **on hold** for the
-team's joining `price` (`playerAmount(advance + fee)`, §1.10); no slot is booked and `status` stays `open` (= waiting).
+chosen option's amount (the quote's `amount`, §1.10); no slot is booked and `status` stays `open` (= waiting).
 
 **Errors**
 
 | Status | `message` |
 |---|---|
 | 400 | validation; `"teamAId is required for a team_vs_team game"`; `"cardId is required to create a team game"` |
-| 400 | `"Card payment was declined; the game was not created"` |
+| 400 | `"Card payment was declined; the game was not created"`, `code` `INSUFFICIENT_FUNDS` / `CARD_EXPIRED` / `CARD_DECLINED` (R44, §1.2) |
 | 400 | `"A team game can be created at most <N> days before it is played"` — the hold would outlast `app.payments.hold-max-minutes` (default 43 200 min; with the 120-minute slack the message reads **29** days) |
 | 403 | `"Only the team leader can create a team game"` |
 | 404 | `"Stadium not found"` / `"Team not found"` / `"Card not found"` |
@@ -1104,6 +1449,32 @@ team's joining `price` (`playerAmount(advance + fee)`, §1.10); no slot is booke
 ### `GET /api/games/{id}` — user
 
 **Response** — `GameDetailResponse`. **Errors** — 404 `"Game not found"`.
+
+### Team game quotes — since `f9ac033` (T7, R33)
+
+What one side of a team game may pay, in **player amounts only**, before creating or
+joining it. Both answer `TeamGameQuoteResponse`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `options` | `{ option, amount, remainderAmount }[]` | `option` `"minimum"` (listed only when the stadium offers it for this game) or `"full"` (always, last); `amount` **(tiyin)** what is paid now (held when creating, charged when joining); `remainderAmount` **(tiyin)** what is left after it, in the app or in cash — 0 for `full` |
+| `cancellationDeadline` | timestamp (UTC) | the last moment the team could cancel and get its money back |
+
+Example (fee 25 000, card fee 1.5 %, step 5 000 so'm; P = 200 000, M = 50 000):
+`minimum` 5 500 000 now / 7 500 000 later; `full` 13 000 000 / 0. When only `full` is
+listed, show no choice.
+
+#### `GET /api/stadiums/{id}/team-game-quote?startsAt=` — **public**
+
+Creating ("Raqib qidirish"), side A. `startsAt` ISO-8601.
+
+**Errors** — 400 an hour that cannot be booked: `"startsAt must be in the future"`, the booking-window messages (off the hour, outside opening hours, closed), `"That time slot is already booked"`; 404 `"Stadium not found"` (unknown, not approved or inactive).
+
+#### `GET /api/games/{id}/join-quote` — user
+
+Accepting, for the free side.
+
+**Errors** — 404 `"Game not found"`; 400 `"Only a team game has a join quote"`, `"Game is not open for joining"`, `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"`.
 
 ### `GET /api/games/open` — user · paged
 
@@ -1119,8 +1490,10 @@ Public `open` games, soonest first (`startsAt` asc).
 ### `GET /api/games/challenges` — user · paged
 
 Waiting `team_vs_team` games an opponent could still join (before their
-3-hour point), **excluding** ones the caller's own team is waiting on. Soonest
-first.
+3-hour point), **excluding** ones the caller's own team is waiting on and, since
+`b896a07` (R45), any game another team is half-way through joining — for
+everyone, the joining captain too; it is back on the board if that join fails.
+Soonest first.
 
 | Query | Type | Required |
 |---|---|---|
@@ -1136,12 +1509,16 @@ first.
 | `gameId` | UUID | |
 | `title` | string? | |
 | `waitingTeamId` | UUID, `waitingTeamName` string? | |
-| `stadiumId` UUID, `stadiumName`, `stadiumAddress`, `format` | string | `stadiumAddress` stands in for a district — the board has no `district` field, although stadiums now have one ([Q15](#11-questions-about-the-backend)) |
+| `stadiumId` UUID, `stadiumName`, `stadiumAddress`, `format` | string | |
+| `stadiumPhotoUrl` | string? | since `cd71d5b` (E9): the stadium's cover photo (`/api/uploads/...`); absent when none |
+| `stadiumDistrict` | string? | since `cd71d5b` (E9): one of the 12 districts; absent for older stadiums |
+| `location` | object? | since `817a2b8`: where the game is played — `id`, `name`, `address`, `district`?, `landmark`? (Moʻljal), `latitude`?, `longitude`?, `coverPhotoUrl`?, `format` (`StadiumLocationResponse`, the same shape on the game detail) |
 | `startsAt`, `endsAt` | timestamp (UTC) | |
 | `durationHours` | number | |
-| `totalPrice` | number **(tiyin)** | what both teams pay for the game altogether (each side's joining price and remainder) |
-| `amountToPayNow` | number **(tiyin)** | what the joining team pays in the app on joining |
-| `remainderAmount` | number **(tiyin)** | what the joining team still owes afterwards — the same in the app or in cash |
+| `totalPrice` | number **(tiyin)** | what both teams pay for the game altogether: a team already in counts what it fixed on joining, a free side counts in full |
+| `amountToPayNow` | number **(tiyin)** | since `f9ac033` (T8): the **minimum** option's amount (the full one when the stadium offers no minimum for this game) |
+| `remainderAmount` | number **(tiyin)** | what the joining team still owes after `amountToPayNow` — the same in the app or in cash |
+| `fullAmount` | number **(tiyin)** | since `f9ac033` (T8): what the joining team pays in full (nothing left afterwards) |
 
 ### `GET /api/games/my` — user · paged
 
@@ -1150,14 +1527,34 @@ Games the caller is in, latest `startsAt` first. **Response** — paged `GameRes
 ### `POST /api/games/{id}/join` — user
 
 **Body** — `JoinGameRequest`, and the **body as a whole is optional** (an
-invited casual player or team member can POST with no body at all).
+invited casual player can POST with no body at all).
+
+**Team games (since `eabfd85`/`2816c90`).** Only the joining team's **leader**
+joins, with `teamId` + `cardId`, and always pays; an invited **member cannot**
+join through this endpoint (403). **The server picks the side** — the free one
+(A when the team left behind is on B). `side` is optional; `"b"` is still
+accepted from older clients, any other side that is not the free one → 400. The
+join runs in committed steps (the team as `joining`, the slot, the joiner's
+charge, then the capture of the waiting team's hold), so a crash or an unclear
+answer leaves a record the reconcile job finishes:
+
+- the joiner's card declined → 400, the game keeps waiting;
+- the capture refused → the game is cancelled (`cancelled_slot_taken`), the
+  joiner's charge reversed and the hold released → 400 (below);
+- the capture without a clear answer → **202 `PAYMENT_PENDING`**, `success:
+  false`, `data: null`, message `"To'lov tasdiqlanmoqda. O'yin tasdiqlangani yoki
+  bekor qilingani haqida xabar beramiz"`. The joiner **has paid**; the reconcile
+  job (every ~5 min) confirms or undoes the game and notifies both teams. Never
+  pay again. Meanwhile the game stays `open` but is **off**
+  `GET /api/games/challenges`, and its `joinPending` is `true` (R45).
 
 | Field | Type | Required | Validation |
 |---|---|---|---|
 | `gameId` | UUID | see note | `@NotNull` **but the path value is what is used** |
-| `side` | `"a"` \| `"b"` | no | `@Pattern(a\|b)` |
+| `side` | `"a"` \| `"b"` | no | `@Pattern(a\|b)`; team games: optional, the server picks the free side; `"b"` or the free side accepted |
 | `teamId` | UUID | required when a leader joins a `team_vs_team` game | caller must lead it |
 | `cardId` | UUID | required when a leader joins a `team_vs_team` game | |
+| `paymentOption` | `"MINIMUM"` \| `"FULL"` | no | since `f9ac033` (T6), team games: absent → `MINIMUM`; a `MINIMUM` the stadium does not offer is taken as `FULL` |
 
 > **Trap:** the controller reads the game id from the **path** and never uses
 > `gameId`, yet the DTO still declares it `@NotNull`. So sending a body
@@ -1172,10 +1569,14 @@ invited casual player or team member can POST with no body at all).
 | Status | `message` |
 |---|---|
 | 400 | `"Game is not open for joining"`, `"You have already joined this game"`, `"Game is already full"` |
-| 400 | `"teamId is required to join as team B"`, `"cardId is required to join a team game"` |
+| 400 | `"cardId is required to join a team game"`, `"The opposing team joins as side <a\|b>"` (a side that is neither `b` nor the free one) |
+| 400 | `"Card payment was declined; the game is still looking for an opponent"`, with the decline `code` (R44, §1.2) |
+| 400 | `"The card payment could not be confirmed; the game is still looking for an opponent. If the money was taken it will be returned in full"`, `"The other team's payment is still being confirmed; try again in a few minutes"`, `"The other team's payment could not be taken, so the game is cancelled; your payment is being returned in full"` |
 | 400 | `"A team cannot play against itself"`, `"This game already has an opponent"` |
-| 400 | `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"` — past the 3-hour point (**the only Uzbek message the API returns**; see [Q7](#11-questions-about-the-backend)) |
-| 403 | `"Only the team leader can accept"` |
+| 400 | `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"` — past the 3-hour point (Uzbek; see [Q7](#11-questions-about-the-backend)) |
+| 403 | `"Only the joining team's leader can join a team game, with their team and a card"` — a team game joined by anyone but the leader of `teamId`, or without `teamId` (an invited member) |
+| 202 | `code: "PAYMENT_PENDING"` — see above |
+| 502 | the payment provider is unreachable (§1.7); the join is dropped, nothing charged |
 | 404 | `"Game not found"` / `"Team not found"` / `"Card not found"` |
 | 409 | `"That time slot is already booked"` |
 
@@ -1202,21 +1603,46 @@ after the game.
 
 **Body** — `{ "cardId": UUID }` (`@NotNull`).
 
-**Response** — the refreshed `GameDetailResponse`, `message: "Remainder paid"`.
+**Response** — the refreshed `GameDetailResponse`, `message: "Remainder paid"`. Since
+`f9ac033` paying the rest **clears** a `not_paid` mark (audited `GAME_REMAINDER_PAID`
+with the cleared mark).
 
-**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"`; 404 `"Game not found"` / `"Card not found"`.
+**Errors** — 400 `"Already paid"`, `"Card payment was declined; the remainder is still owed"` (with the decline `code`, R44, §1.2); 404 `"Game not found"` / `"Card not found"`; 502 (§1.7).
 
 ### `POST /api/games/{id}/cash` — owner (the stadium's owner)
 
 The owner marks one team's remainder as received in cash — the team's
-`remainderAmount`, the same amount it would pay in the app. Whichever of cash
-and card lands first wins; the other then answers 400 `"Already paid"`.
+`remainderAmount`, the same amount it would pay in the app — and, since `f9ac033`
+(T10), sets the team's `remainderMark` to `cash_received` (replacing `not_paid`).
+Whichever of cash and card lands first wins; the cash call then answers **409**
+`"Already paid"` (400 before `f9ac033`; the player's `pay-remainder` still answers 400).
+Audited `CASH_RECEIVED` (`teamX.remainderMark`).
 
 **Body** — `{ "side": "a" | "b" }` (`@NotNull @Pattern(a|b)`).
 
 **Response** — the refreshed `GameDetailResponse`, `message: "Cash recorded"`.
 
-**Errors** — 400 `"side must be 'a' or 'b'"`, `"Already paid"`; 403 `"You do not own this stadium"`; 404 `"Game not found"`, `"No team is on side <a|b>"`.
+**Errors** — 400 `"side must be 'a' or 'b'"`; 403 `"You do not own this stadium"`; 404 `"Game not found"`, `"No team is on side <a|b>"`; 409 `"This game is cancelled"`, `"This game is not confirmed yet"` (a waiting game), `"Already paid"` (nothing left), `"A payment for this team is being processed"` (a card payment of the rest unconfirmed).
+
+### `POST /api/games/{id}/not-paid` — owner (the stadium's owner)
+
+Since `f9ac033` (T10): the owner marks one team's remainder `not_paid` ("Toʻlanmadi") —
+no charge, no penalty; the team can still pay in the app (which clears it) and the owner
+can still take cash (which replaces it). Marking again changes nothing.
+
+**Body** — `{ "side": "a" | "b" }`. **Response** — `GameDetailResponse`, `message: "Marked as not paid"`.
+
+**Errors** — as `/cash`. Audited `REMAINDER_NOT_PAID`.
+
+### `DELETE /api/games/{id}/remainder-mark?side=a|b` — owner (the stadium's owner)
+
+Since `f9ac033` (T10): the owner undoes their mark on one team, until the team's
+`remainderMarkUndoableUntil` (the end of the Tashkent day it was set). Undoing
+`cash_received` voids that cash row (payment status `cancelled`) and the rest is owed again.
+
+**Response** — `GameDetailResponse`, `message: "Mark undone"`.
+
+**Errors** — 400 `"side must be 'a' or 'b'"`; 403 `"You do not own this stadium"`; 404 `"Game not found"`, `"No team is on side <a|b>"`; 409 `"This team has no remainder mark"`, `"Only an admin can change this mark"` (after the day). Audited `REMAINDER_MARK_UNDONE` (OWNER).
 
 > Note the path is `/api/games/**`, **not** `/api/owner/**`, so `ROLE_OWNER` is
 > not required by the security config — ownership of this particular stadium is
@@ -1409,19 +1835,40 @@ All under `/api/owner/dashboard`, all owner-only, all 403
 |---|---|
 | `GET /api/owner/dashboard/stadiums` | `StadiumResponse[]` (owner's own prices + `playerPrice`) |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/stats` | `OwnerDashboardStatsResponse` |
-| `GET /api/owner/dashboard/stadiums/{stadiumId}/revenue` | `OwnerRevenueResponse` |
+| `GET /api/owner/dashboard/stadiums/{stadiumId}/revenue` | `OwnerRevenueResponse` — query `days`: `7` or `30` (default `30`, R43) |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/schedule` | `OwnerScheduleResponse[]` |
 | `GET /api/owner/dashboard/stadiums/{stadiumId}/reviews` | paged `ReviewResponse`, newest first |
-| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` (owner's view, §5) |
+| `GET /api/owner/dashboard/stadiums/{stadiumId}/bookings` | paged `BookingResponse` (owner's view, §5) — query `from`, `to` (`LocalDate`, optional), `unpaid` (boolean, default `false`, R38), `page`, `size` |
 
 `OwnerDashboardStatsResponse` (all fields present): `stadiumId` UUID,
 `stadiumName` string, `todayBookings`/`weekBookings`/`monthBookings`/
 `totalBookings` number, `todayRevenue`/`weekRevenue`/`monthRevenue`/
 `totalRevenue` number **(tiyin)**, `averageRating` number, `reviewCount`
-number, `occupancyPercent` number.
+number, `occupancyPercent` number, and (R38, all **tiyin**):
+
+| Field | What |
+|---|---|
+| `todayPaidInApp`, `weekPaidInApp`, `monthPaidInApp` | money that **arrived** for the stadium's bookings by card (payment status `paid`, `captured` or `completed`), as players paid it, counted by the payment's `createdAt` in the period |
+| `todayPaidInCash`, `weekPaidInCash`, `monthPaidInCash` | the same for `cash` payments |
+| `todayOutstanding`, `weekOutstanding`, `monthOutstanding` | the sum of `remainingAmount` (exactly as the booking responses show it) of **live** bookings (`pending`, `confirmed`, `completed`) **starting** in the period |
+
+Periods are Tashkent: today, this Monday–Sunday week, this calendar month.
 
 `OwnerRevenueResponse`: `stadiumId` UUID, `dailyRevenue`
-`{ date: LocalDate, revenue: number (tiyin), bookingCount: number }[]`.
+`{ date: LocalDate, revenue: number (tiyin), bookingCount: number }[]` —
+since R43 **every** Tashkent day of the window is present, oldest first,
+ending today (`0` / `0` on a day without payments): 7 entries for `days=7`,
+30 for `days=30` (the default). Any other `days` is 400
+`"days must be 7 or 30"`. The revenue definition itself is unchanged
+(completed `booking` payments, by `createdAt`).
+
+`…/bookings?unpaid=true` (R38) returns only **live** bookings (`pending`,
+`confirmed`, `completed` — not cancelled or expired) with
+`remainingAmount > 0`, **soonest `startsAt` first**; `from` / `to` still
+apply (by `startsAt`, Tashkent days). Filtered in the query, so pages and
+`totalElements` are exact. Without `unpaid` the list is as before. The
+similar `GET /api/owner/stadiums/{stadiumId}/bookings` (§5) has **no**
+`unpaid` parameter.
 
 `OwnerScheduleResponse` (one per day; `from`/`to` are optional `LocalDate`
 query parameters): `date`, `bookings` `BookingResponse[]` (owner's view), `waitingGames`
@@ -1434,6 +1881,23 @@ query parameters): `date`, `bookings` `BookingResponse[]` (owner's view), `waiti
 > **Two revenue definitions.** `…/stats` sums only `payment_type = booking`
 > rows; `…/schedule` sums booking prices. They disagree for game bookings —
 > see [Q8](#11-questions-about-the-backend).
+
+#### `GET /api/owner/legal-details` — owner
+
+The caller's own legal form and ATMOS contract status (R39), read-only — the
+details themselves are kept by admins (§10.9).
+
+**Response** — `OwnerContractStatusResponse` (`NON_NULL`):
+
+| Field | Type | Notes |
+|---|---|---|
+| `legalType` | string? | `yatt` \| `mchj` \| `self_employed` (§1.9); absent when nothing has been entered |
+| `atmosContractStatus` | string | `none` \| `pending` \| `signed` |
+| `ownerContractStatus` | string | the **same value** as `atmosContractStatus`, under the admin stadium list's name |
+
+Never the `tin`, the `atmosRecipientId` or who changed them. With no legal
+details yet it answers both statuses `none` and no `legalType` (the admin's
+`GET /api/admin/users/{id}/legal-details` still answers `data: null` then).
 
 ### 10.8 Owner applications
 
@@ -1544,6 +2008,7 @@ user need not be an owner yet.
 | `GET /api/admin/stadiums` · paged | **every status**, newest first. Query `status` (`pending` \| `approved` \| `rejected` \| `blocked`), `search` (name or address), `district` (§1.9), `format` (`5x5` \| `7x7` \| `9x9` \| `11x11`), `ownerId` (UUID — an owner's stadiums) |
 | `GET /api/admin/stadiums/{id}` | `AdminStadiumDetailResponse`, **any status** |
 | `PUT /api/admin/stadiums/{id}/status` | body below; response `AdminStadiumResponse`, `message: "Stadium status updated"` |
+| `PUT /api/admin/stadiums/{id}/booking-terms` | since `010da76`: body below; response `AdminStadiumDetailResponse`, `message: "Booking terms updated"` |
 | `GET /api/admin/stadiums/{id}/notes` | `StadiumNoteResponse[]`, newest first, not paged |
 | `POST /api/admin/stadiums/{id}/notes` | body `{ text }`; response `StadiumNoteResponse`, `message: "Note added"` |
 
@@ -1588,6 +2053,20 @@ field (§4) at the top level, in the **owner's prices** (`pricePerHour` and
 | `totalRevenue` | number? **(tiyin)** | as on the row |
 | `pricingRules` | `PricingRuleResponse[]` | active rules, each with `pricePerHour` (the owner's own), `playerPrice`, `ownerReceives`, `atmosFee` (§10.4) |
 
+**Booking-terms body** (`AdminBookingTermsRequest`, design D3) — the whole
+terms each time, any stadium status:
+
+| Field | Type | Required | Rule → 400 message |
+|---|---|---|---|
+| `minBookingAmount` | number? **(tiyin)** | no | `null` / absent = **the platform default** (`defaultMinBookingAmount`; since `ef59a78` there is no full-payment-only stadium); else ≥ 50 000 → `"minBookingAmount must be at least 50000 tiyin (500 so'm)"`, ≤ the stadium's `pricePerHour` (the owner's own) → `"minBookingAmount must not be more than pricePerHour"`, and more than the team fee → `"minBookingAmount must be more than the team game platform fee (25 000 so'm)"` (the fee in force) |
+| `cancellationHours` | number | yes | 0–168 → `"cancellationHours is required"`, `"cancellationHours must be between 0 and 168"` |
+
+401 / 403 for non-admins; 404 `"Stadium not found"`. Audited as
+`STADIUM_BOOKING_TERMS_CHANGED` (ADMIN; `minBookingAmount` /
+`cancellationHours` old → new; no entry when nothing changed). The owner sees
+the terms read-only (`minBookingAmount`, `playerMinBookingAmount`,
+`cancellationPolicy.cancellationHours` on their detail).
+
 **Status body** (`AdminUpdateStadiumStatusRequest`)
 
 | Field | Type | Required | Validation |
@@ -1599,7 +2078,7 @@ What each status does:
 
 | `status` | Rules | Effect |
 |---|---|---|
-| `approved` | needs the owner's **signed** ATMOS contract with a recipient id, else 400 `"The owner's ATMOS contract is not signed"` — also when un-blocking | clears `statusReason`; sets the owner's `is_owner = true` (they need a **new token** before `/api/owner/**` admits them); notifies the owner. Audit `STADIUM_APPROVED`, or `STADIUM_UNBLOCKED` from `blocked` |
+| `approved` | needs the owner's **signed** ATMOS contract with a recipient id, else 400 `"The owner's ATMOS contract is not signed"`, then (since `bdaee5d`) **at least 3 photos**, else 400 `"A stadium needs at least 3 photos to be approved"` — both also when un-blocking or approving a rejected stadium | clears `statusReason`; sets the owner's `is_owner = true` (they need a **new token** before `/api/owner/**` admits them); notifies the owner. Audit `STADIUM_APPROVED`, or `STADIUM_UNBLOCKED` from `blocked` |
 | `rejected` | **only from `pending`**, else 400 `"Only a pending stadium can be rejected"`; reason required | stores `statusReason`; notifies the owner. Audit `STADIUM_REJECTED` |
 | `blocked` | reason required | stores `statusReason`; **cancels every future `pending`/`confirmed` booking with a full refund**; notifies the owner. Audit `STADIUM_BLOCKED` |
 | `pending` | — | clears `statusReason`. Audit `STADIUM_STATUS_CHANGED` |
@@ -1618,13 +2097,15 @@ the service: `"text is required"`, `"text must be at most 1000 characters"`
 
 #### Bookings and games
 
-Read-only; no chat and no actions. A booking's or game's status history comes
+No chat; the one action is undoing a booking's remainder mark. A booking's or game's status history comes
 from the audit log (`?entityType=booking&entityId=…`, `game`).
 
 | Endpoint | Notes |
 |---|---|
 | `GET /api/admin/bookings` · paged | every booking, **newest `startsAt` first** |
 | `GET /api/admin/bookings/{id}` | `AdminBookingResponse` |
+| `DELETE /api/admin/bookings/{id}/remainder-mark` | since `32afe9f` (E6): undo any mark at any time, same effect as the owner's undo; answers `AdminBookingResponse`, `message: "Mark undone"`. 409 `"This booking has no remainder mark"`, 404 `"Booking not found"`. Audited as `REMAINDER_MARK_UNDONE` (admin actor) |
+| `DELETE /api/admin/games/{id}/remainder-mark?side=a\|b` | since `f9ac033` (T10): undo one team's mark at any time, same effect as the owner's undo; answers `AdminGameDetailResponse`, `message: "Mark undone"`. 409 `"This team has no remainder mark"`, 404 `"Game not found"` / `"No team is on side <a\|b>"`, 400 `"side must be 'a' or 'b'"`. Audited as `REMAINDER_MARK_UNDONE` (admin actor) |
 | `GET /api/admin/games` · paged | every game, **newest `startsAt` first** |
 | `GET /api/admin/games/{id}` | `AdminGameDetailResponse` |
 
@@ -1649,7 +2130,8 @@ figures — plus:
 |---|---|---|
 | `userName`, `userPhone` | string? | the booking user; absent on a walk-in (whose name is `clientName`) |
 | `cashReceived` | number? **(tiyin)** | cash the owner marked as received; absent when none |
-| `cashReceivedAt` | timestamp (UTC)? | when the owner last marked cash |
+| `cashReceivedAt` | timestamp (UTC)? | when the owner last marked cash (a voided cash row no longer counts) |
+| `paidInCash`, `remainderMark`, `remainderMarkedAt` | | as on `BookingResponse` (§5); **no** `remainderMarkUndoableUntil` |
 
 `AdminGameResponse` (`NON_NULL`):
 
@@ -1674,7 +2156,7 @@ figures — plus:
 
 | Field | Type | Notes |
 |---|---|---|
-| `teams` | `AdminGameTeamResponse[]`? | **`team_vs_team` only**: each is a `GameTeamResponse` (§9 — `side`, `price`, `remainderAmount`, `remainderStatus`, `paidInApp`, `cancellationDeadline`, `refundIfCancelledNow`, …) at the top level, **plus the admin-only** `platformFee` (the platform's fixed fee in the team's payment — what it nets), `ownerAdvance` and `ownerRemainder` (the owner's terms), `ownerReceives` (what the owner receives of the team's payments, after ATMOS; cash in full) and `atmosFee` (what ATMOS takes of its card payments), plus `players` |
+| `teams` | `AdminGameTeamResponse[]`? | **`team_vs_team` only**: each is a `GameTeamResponse` (§9 — `side`, `price`, `remainderAmount`, `remainderStatus`, `paymentOption`, `paidAmount`, `remainingAmount`, `remainderMark`, `remainderMarkedAt`, `paidInApp`, `heldAmount`, `cancellationDeadline`, `refundIfCancelledNow`, …) at the top level, **plus the admin-only** `platformFee` (the platform's fixed fee in the team's payment — what it nets), `ownerPart` (since `f9ac033`: the owner's net part of the joining payment), `ownerAdvance` and `ownerRemainder` (the owner's terms), `ownerReceives` (what the owner receives of the team's payments, after ATMOS; cash in full) and `atmosFee` (what ATMOS takes of its card payments), plus `players` |
 | `participants` | `AdminGamePlayerResponse[]`? | casual and open games: every participant |
 | `serviceFeePerPerson` | number? **(tiyin)** | casual and open games: the platform's fee per player |
 
@@ -1720,6 +2202,7 @@ List query parameters:
 | `bookingId`, `gameId` | UUID? | what it paid for |
 | `amount`, `ownerAmount`, `platformAmount` | number **(tiyin)** | `amount` is the gross charged (or the cash taken) |
 | `atmosFee` | number? **(tiyin)** | what ATMOS was expected to take, its rate on each split (`card_fee_expected`; 0 for cash). Was `cardFee`; on rows from before the one-player-price rule it is what the card fee and rounding added |
+| `ownerNet`, `platformNet` | number **(tiyin)** | what each side keeps after ATMOS, negative on a refund; `ownerNet + platformNet + atmosFee = amount`. `platformNet` is exactly the team fee on a team payment; cash is all `ownerNet` |
 | `providerCommission` | number? **(tiyin)** | what ATMOS reports having taken; absent until it does |
 | `commissionPercent` | number? | the booking commission stored on the row when it was taken; **0 on every new payment** (there is no booking commission any more) |
 | `method` | string | `card` \| `cash` |
@@ -1791,7 +2274,7 @@ qualifies: 400 `"Only a failed refund can be retried"` /
 | Endpoint | Notes |
 |---|---|
 | `GET /api/admin/settings` | `PlatformSettingsResponse` |
-| `PUT /api/admin/settings` | all four fields optional, only non-null values applied; `message: "Settings updated"` |
+| `PUT /api/admin/settings` | all five fields optional, only non-null values applied; `message: "Settings updated"` |
 
 `PlatformSettingsResponse` (all present):
 
@@ -1801,7 +2284,8 @@ qualifies: 400 `"Only a failed refund can be retried"` /
 | `teamGamePlatformFee` | number **(tiyin)** | 2 500 000 | per team on a team game — the platform's only money in one |
 | `casualGameServiceFee` | number **(tiyin)** | 0 | per player on a casual game |
 | `cardFeeBps` | number | 150 | the ATMOS fee in **basis points** (150 = 1.5%); player prices are grossed up by it (§1.10) |
-| `paymentRoundingStep` | number **(tiyin)** | 10 000 | player prices are rounded **up** to a multiple of it (10 000 = 100 so'm) |
+| `paymentRoundingStep` | number **(tiyin)** | 500 000 | player prices are rounded **up** to a multiple of it (500 000 = 5 000 so'm; changeset 049, an admin-set value is kept) |
+| `defaultMinBookingAmount` | number **(tiyin)** | 5 000 000 | since `ef59a78` (T1, changeset 051), owner's terms: the minimum booking amount of every stadium without its own (a stadium value not above the team fee is ignored at runtime) |
 | `updatedAt` | timestamp (UTC) | | |
 
 There is **no booking commission**: the platform takes nothing from ordinary
@@ -1810,7 +2294,7 @@ bookings. `bookingCommissionPercent` is gone from the response and the body
 ignored (Jackson's default). Old `SETTINGS_CHANGED` audit entries can still
 carry a `bookingCommissionPercent` change.
 
-**Body** — the same four value fields, validated in the service (not bean
+**Body** — the same five value fields, validated in the service (not bean
 validation), all before the first write, so a rejected value writes
 **nothing**:
 
@@ -1820,6 +2304,10 @@ validation), all before the first write, so a rejected value writes
 | `casualGameServiceFee` | ≥ 0 | `"casualGameServiceFee must not be negative"` |
 | `cardFeeBps` | 0–1000 | `"cardFeeBps must be between 0 and 1000"` |
 | `paymentRoundingStep` | 1–1 000 000 | `"paymentRoundingStep must be between 1 and 1000000"` |
+| `defaultMinBookingAmount` | ≥ 0, and more than the team fee (in force, or sent with it) | `"defaultMinBookingAmount must not be negative"`, `"defaultMinBookingAmount must be more than the team game platform fee (25 000 so'm)"` |
+| `teamGamePlatformFee` | less than the default minimum (in force, or sent with it) | `"teamGamePlatformFee must be less than the default minimum booking amount (50 000 so'm)"` |
+
+The amount in the T2 messages is the value in force, so match them by their prefix.
 
 An update that changes nothing writes no audit entry; otherwise one
 `SETTINGS_CHANGED` lists each changed field.
@@ -1919,9 +2407,9 @@ was done in, not the user's flags.
 
 | Area | Codes |
 |---|---|
-| Admin | `ADMIN_LOGIN_SUCCEEDED`, `ADMIN_LOGIN_FAILED`, `APPLICATION_APPROVED`, `APPLICATION_REJECTED`, `STADIUM_APPROVED`, `STADIUM_REJECTED` (pending → rejected; before changeset 038, pending → blocked), `STADIUM_BLOCKED`, `STADIUM_UNBLOCKED` (blocked → approved), `STADIUM_STATUS_CHANGED` (back to pending) — each with `status` and `statusReason` changes, `STADIUM_NOTE_ADDED` (entity `stadium`; records the note's id as `noteId`, never its text), `USER_BLOCKED`, `USER_UNBLOCKED`, `USER_ROLE_CHANGED`, `OWNER_LEGAL_DETAILS_CHANGED` (entity `user`), `REFUND_RETRIED`, `REFUND_MARKED_MANUAL` (entity `payment`, the refund row), `SETTINGS_CHANGED` |
-| Owner | `STADIUM_CREATED`, `STADIUM_UPDATED`, `PRICING_RULE_CREATED` / `_UPDATED` / `_DELETED`, `CLOSURE_CREATED` / `_DELETED`, `PROMOTION_CREATED` / `_DEACTIVATED`, `MANUAL_BOOKING_CREATED`, `CASH_RECEIVED`, `BOOKING_CANCELLED_BY_OWNER` |
-| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID`, `PHONE_SHARED_VIA_BOT` (the player shared their phone through the Telegram bot) |
+| Admin | `ADMIN_LOGIN_SUCCEEDED`, `ADMIN_LOGIN_FAILED`, `APPLICATION_APPROVED`, `APPLICATION_REJECTED`, `STADIUM_APPROVED`, `STADIUM_REJECTED` (pending → rejected; before changeset 038, pending → blocked), `STADIUM_BLOCKED`, `STADIUM_UNBLOCKED` (blocked → approved), `STADIUM_STATUS_CHANGED` (back to pending) — each with `status` and `statusReason` changes, `STADIUM_NOTE_ADDED` (entity `stadium`; records the note's id as `noteId`, never its text), `STADIUM_BOOKING_TERMS_CHANGED` (since `010da76`; `minBookingAmount` / `cancellationHours`), `USER_BLOCKED`, `USER_UNBLOCKED`, `USER_ROLE_CHANGED`, `OWNER_LEGAL_DETAILS_CHANGED` (entity `user`), `REFUND_RETRIED`, `REFUND_MARKED_MANUAL` (entity `payment`, the refund row), `SETTINGS_CHANGED` |
+| Owner | `STADIUM_CREATED`, `STADIUM_UPDATED`, `PRICING_RULE_CREATED` / `_UPDATED` / `_DELETED`, `CLOSURE_CREATED` / `_DELETED`, `PROMOTION_CREATED` / `_DEACTIVATED`, `MANUAL_BOOKING_CREATED`, `CASH_RECEIVED`, `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE` (ADMIN actor for the admin's undo), `BOOKING_CANCELLED_BY_OWNER` |
+| Player | `BOOKING_CREATED`, `BOOKING_CANCELLED_BY_USER`, `BOOKING_REMAINDER_PAID`, `BOOKING_SERIES_CREATED` / `_CANCELLED`, `GAME_CREATED`, `GAME_JOINED`, `GAME_LEFT`, `GAME_CANCELLED`, `GAME_OPPONENT_LEFT`, `GAME_REMAINDER_PAID`, `PROFILE_UPDATED` (entity `user`; `PATCH /api/users/me`, the phone itself never logged, only `phoneChanged`), `PHONE_SHARED_VIA_BOT` (the player shared their phone through the Telegram bot) |
 | System | `BOOKING_CONFIRMED`, `BOOKING_EXPIRED`, `BOOKING_COMPLETED`, `BOOKING_CANCELLED_BY_OWNER` (by a stadium block), `GAME_CONFIRMED`, `GAME_AUTO_CANCELLED`, `PAYMENT_COMPLETED`, `PAYMENT_RELEASED`, `REFUND_CREATED`, `REFUND_FAILED` (ATMOS declined a refund; entity `payment` = the original; `reason` = its error), `PROMOTION_EXPIRED` |
 
 New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
@@ -1937,13 +2425,16 @@ New since `ed5dec6`: `STADIUM_NOTE_ADDED`, `OWNER_LEGAL_DETAILS_CHANGED`,
 `isAdmin`, `isBlocked`, `failedLoginAttempts`, `lockedUntil`, `lastLoginAt`,
 `teamGamePlatformFee`, `casualGameServiceFee`,
 `cardFeeBps`, `paymentRoundingStep`, `noteId`, `failureReason`,
-`originalStatus`, `refundedManually`; the legal-details snapshot: `legalType`,
+`originalStatus`, `refundedManually`; on `PROFILE_UPDATED`: `firstName`,
+`lastName`, `name`, `language`, and `phoneChanged` (`false` → `true`, also
+the only change on `PHONE_SHARED_VIA_BOT`); the legal-details snapshot: `legalType`,
 `tin`, `atmosContractStatus`, `atmosRecipientId`; plus the stadium snapshot
 (`StadiumService.auditSnapshot`): `address`, `district`, `latitude`,
 `longitude`, `phone`, `description`, `format`, `surfaceType`, `openTime`,
 `closeTime`, `minBookingAmount`, `cancellationHours`, `photos`,
 `amenities.parking` / `.lighting` / `.showers` / `.lockerRoom` / `.wifi` /
-`.cafe` / `.equipmentRental`. `bookingCommissionPercent` is no longer
+`.cafe` / `.equipmentRental` / `.tribune`, and since `b99d569` `landmark` and
+`amenities.toilet` / `.covered` / `.bibs` / `.drinkingWater`. `bookingCommissionPercent` is no longer
 written (since `057ac44`), but older `SETTINGS_CHANGED` entries still carry
 it — keep a label for it. Secret-looking fields (password, hash, token,
 card number, cvv, secret, jwt) are never recorded.
@@ -1990,6 +2481,30 @@ price` in every view). Also shipped: R19–R23 from `docs/backend-requests.md`
 (dev sign-in, profile fields, blocked reason, Uzbek by default, the player
 stadium list fields and slot `status`); a booking is now exactly one hour.
 
+**`ed403c7..253f585`:** resolves nothing listed here; ships R26 (the dev
+sign-in requires `X-Dev-Login-Key`, §2).
+
+**`253f585..5cc6ef6`:** resolves Q5 (R36, `29739b6` — photo upload) and Q6
+(R37, `f2af228` — the owner's cash on an ordinary booking, at
+`/api/owner/bookings/{id}/cash`). Also ships R32 (team invite links), R35,
+R38, R39, R41, R42 and R43 from `docs/backend-requests.md`. Q11 still stands:
+R42 only lets a not-yet-owner add and list stadiums; the rest of
+`/api/owner/**` still needs a fresh token after approval.
+
+**`08687d6..ba6db84`:** resolves nothing listed here; adds
+`GameTeamResponse.heldAmount` (what is on hold on a team's card now).
+
+**`9e9acb5..08687d6`:** ships R28 (`POST /api/bookings/{id}/pay`), R29
+(`?when=`), R44 (`declineReason` and the decline `code`s, plus `paymentState`)
+and R45 (the board leaves out games being joined; `joinPending`). Q1 is answered
+further still: every refused card payment now says why with a code. Q3 stands.
+
+**`5cc6ef6..9e9acb5`:** resolves nothing listed here. Q1 is answered a little
+further (card binding and `PAYMENT_PENDING` carry a `code`; payment declines
+still do not — R44). Q3 stands. New: a game being joined stays on the
+challenge board (R45); with real ATMOS `/api/cards/resend` always answers
+`SMS_RESEND_UNAVAILABLE` (no binding resend documented by ATMOS).
+
 **Q1 — Most errors still have no `code`.** _Partly answered:_ the envelope
 now has an optional `code` (§1.2), but only the admin-login errors and
 `TOKEN_REVOKED` set it; everything else is prose only. Clients that want to react
@@ -2024,13 +2539,13 @@ on `:5173`, the Mini App on its hosted origin, the admin panel) cannot call
 this API at all until CORS is configured. **This blocks all browser-based
 frontend work** and needs an allowed-origins list.
 
-**Q5 — No file/photo upload endpoint.**
+**Q5 — No file/photo upload endpoint.** _(Resolved in `29739b6`, request R36: `POST /api/owner/stadiums/{id}/photos` takes a multipart `file` (JPEG/PNG/WebP, ≤ 10 MB, ≤ 10 photos), stores it on the backend's filesystem and serves it publicly at `GET /api/uploads/stadiums/{stadiumId}/{file}`; plus delete and reorder — §4.)_
 `CreateStadiumRequest.photos` and `UpdateStadiumRequest.photos` are
 `List<String>` of URLs (max 500 chars). Nothing in the API accepts an image, so
 it is unclear where an owner's photos are meant to be hosted and how the
 frontend should produce those URLs.
 
-**Q6 — `POST /api/bookings/{id}/cash` does not exist.**
+**Q6 — `POST /api/bookings/{id}/cash` does not exist.** _(Resolved in `f2af228`, request R37: the endpoint is `POST /api/owner/bookings/{id}/cash` — no body, takes `remainingAmount`, answers the owner's `BookingResponse`, `"Cash recorded"` — §5. The backend `CLAUDE.md` now documents that path.)_
 The backend `CLAUDE.md` documents it ("the owner marks the same money as
 received in cash (it takes `remainingAmount`, not the full price)") as one of
 the two ways a booking remainder is settled, and the `PaymentService` has the
@@ -2042,7 +2557,10 @@ machinery. But `BookingController` has no `cash` mapping — only
 `TeamGameService.TOO_LATE_TO_JOIN` is
 `"O'yin boshlanishiga 3 soatdan kam qoldi, qo'shilib bo'lmaydi"`. Every other
 API message is English, so the frontend's translation layer has to special-case
-this one. It also writes "3" into the text while the cutoff itself is
+this one. _Since `9e9acb5` it is no longer the only one: the card-binding
+messages (§7.1), the 502 "To'lov tizimi vaqtincha ishlamayapti…" (§1.7) and the 202
+`PAYMENT_PENDING` message are Uzbek too. The card ones and the 202 carry a `code`; the Mini App matches the
+502 on its exact text, to tell it from a proxy's 502 whose outcome is unknown._ It also writes "3" into the text while the cutoff itself is
 configurable (`app.game.opponent-deadline-hours`), so changing the setting
 makes the message wrong.
 
@@ -2099,7 +2617,7 @@ therefore record a walk-in in the past. That may well be intentional
 also disagree on the field name for the length (`durationHours` vs `duration`)
 — both now optional and only ever `1`.
 
-**Q15 — The challenge board has no `district`.**
+**Q15 — The challenge board has no `district`.** _Resolved in `cd71d5b`: `stadiumDistrict` (and `stadiumPhotoUrl`)._
 Stadiums have `district` since `9f4040a`, but `GameChallengeResponse` still
 carries only `stadiumAddress` (its Javadoc still says "stadiums have no
 district column"). A district filter or label on the board needs the field.

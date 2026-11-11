@@ -1,5 +1,5 @@
 import { Plus, Store } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import type { OwnerStadium } from '../api/owner'
@@ -16,6 +16,14 @@ export function WithOwnerStadium({ children }: { children: (stadium: OwnerStadiu
   const navigate = useNavigate()
   const [search, setSearch] = useSearchParams()
   const list = useOwnerStadiumList()
+  const strip = useRef<HTMLDivElement>(null)
+  const chosen = search.get('stadium')
+  // A stadium chosen by link (e.g. just added) may sit past the edge of the chips: bring it in.
+  useEffect(() => {
+    strip.current
+      ?.querySelector<HTMLElement>('[aria-selected="true"]')
+      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [chosen, list.data])
   if (list.isPending) return <SkeletonList count={3} />
   if (list.isError) return <ErrorState onRetry={() => void list.refetch()} />
   if (list.data.length === 0) {
@@ -35,6 +43,7 @@ export function WithOwnerStadium({ children }: { children: (stadium: OwnerStadiu
     <>
       {list.data.length > 1 && (
         <div
+          ref={strip}
           role="tablist"
           aria-label={t('owner.pickStadium')}
           className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]"

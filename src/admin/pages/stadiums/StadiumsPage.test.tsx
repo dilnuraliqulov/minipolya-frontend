@@ -81,7 +81,13 @@ const detail: StadiumDetail = {
   longitude: 69.2,
   openTime: '08:00:00',
   closeTime: '23:00:00',
-  photos: [{ id: 'p1', url: 'https://cdn.example/s1.jpg', position: 0 }],
+  photos: [
+    { id: 'p1', url: 'https://cdn.example/s1.jpg', position: 0 },
+    { id: 'p2', url: '/api/uploads/stadiums/s1/b.jpg', position: 1 },
+    { id: 'p3', url: '/api/uploads/stadiums/s1/c.jpg', position: 2 },
+  ],
+  landmark: 'Novza metro bekati yonida',
+  description: 'Kirish orqa tomonda',
   amenities: {
     parking: true,
     lighting: true,
@@ -91,6 +97,10 @@ const detail: StadiumDetail = {
     cafe: false,
     equipmentRental: false,
     tribune: false,
+    toilet: true,
+    covered: false,
+    bibs: false,
+    drinkingWater: false,
   },
   minBookingAmount: 5_000_000,
   playerMinBookingAmount: 5_500_000,
@@ -172,6 +182,18 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
     '/api/admin/stadiums/s4/notes': [200, []],
     '/api/admin/stadiums/s5/notes': [200, []],
     '/api/admin/users/o1': [200, owner],
+    '/api/admin/settings': [
+      200,
+      {
+        id: 'ps',
+        teamGamePlatformFee: 2_500_000,
+        casualGameServiceFee: 0,
+        cardFeeBps: 150,
+        paymentRoundingStep: 500_000,
+        defaultMinBookingAmount: 5_000_000,
+        updatedAt: '2026-11-06T00:00:00Z',
+      },
+    ],
     '/api/admin/users/o1/legal-details': [200, signed],
     '/api/admin/audit-log': (request) =>
       request.url.searchParams.get('entityId') === 's4'
@@ -194,7 +216,7 @@ describe('Maydonlar — list', () => {
     expect(await screen.findByText('Chilonzor Arena', { selector: 'span' })).toBeInTheDocument()
     expect(lastList(requests).get('status')).toBe('pending')
     expect(screen.getByRole('tab', { name: /Kutilmoqda/ })).toHaveAttribute('aria-selected', 'true')
-    const table = within(screen.getByRole('table'))
+    const table = within(screen.getByRole('grid'))
     for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.getByText(header)).toBeInTheDocument()
     }
@@ -217,7 +239,7 @@ describe('Maydonlar — list', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Tasdiqlangan/ }))
     await waitFor(() => expect(lastList(requests).get('status')).toBe('approved'))
     expect(await screen.findByText('Uchtepa Futsal', { selector: 'span' })).toBeInTheDocument()
-    expect(within(screen.getByRole('table')).queryByText('ATMOS')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('grid')).queryByText('ATMOS')).not.toBeInTheDocument()
     expect(router.state.location.search).toBe('?holat=approved')
 
     fireEvent.click(screen.getByRole('tab', { name: /Barchasi/ }))
@@ -286,7 +308,7 @@ describe('Maydonlar — list', () => {
     signIn()
     renderAt('/maydonlar?tuman=Chilonzor')
     await screen.findByText('Chilonzor Arena', { selector: 'span' })
-    const table = within(screen.getByRole('table'))
+    const table = within(screen.getByRole('grid'))
     for (const header of ['Tuman', 'Egasining narxi', 'Oʻyinchilar uchun', 'ATMOS']) {
       expect(table.queryByText(header)).not.toBeInTheDocument()
     }
@@ -308,7 +330,7 @@ describe('Maydonlar — list', () => {
     signIn()
     renderAt('/maydonlar?holat=rejected')
     expect(await screen.findByText('Tez orada')).toBeInTheDocument()
-    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument()
     expect(requests.some((r) => r.url.pathname === '/api/admin/stadiums')).toBe(false)
   })
 })
@@ -440,14 +462,54 @@ describe('Maydonlar — detail', () => {
     expect(audit?.url.searchParams.get('entityId')).toBe('s4')
   })
 
-  it('shows a rejected stadium with its reason and no actions', async () => {
-    backend()
+  it('shows a rejected stadium with its reason; approve and block go through confirmations', async () => {
+    const { requests } = backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'signed' }],
+      'PUT /api/admin/stadiums/s5/status': [200, { ...rejected, status: 'approved' }],
+    })
     signIn()
     renderAt('/maydonlar/s5')
     const panel = await screen.findByRole('region', { name: 'Qaror' })
     expect(within(panel).getByText('Rad etilgan')).toBeInTheDocument()
     expect(within(panel).getByText('Rasmlar mos emas')).toBeInTheDocument()
-    expect(within(panel).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Bloklash' })).toBeEnabled()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Tasdiqlash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Maydonni tasdiqlash' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tasdiqlash' }))
+    expect(await screen.findByText('Maydon tasdiqlandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({ status: 'approved' })
+  })
+
+  it('blocks a rejected stadium with a reason', async () => {
+    const { requests } = backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'signed' }],
+      'PUT /api/admin/stadiums/s5/status': [200, { ...rejected, status: 'blocked' }],
+    })
+    signIn()
+    renderAt('/maydonlar/s5')
+    const panel = await screen.findByRole('region', { name: 'Qaror' })
+    fireEvent.click(within(panel).getByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Maydonni bloklash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), {
+      target: { value: 'Soxta maʼlumotlar' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Bloklash' }))
+    expect(await screen.findByText('Maydon bloklandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+      status: 'blocked',
+      reason: 'Soxta maʼlumotlar',
+    })
+  })
+
+  it('keeps approval of a rejected stadium disabled while the contract is not signed', async () => {
+    backend({
+      '/api/admin/stadiums/s5': [200, { ...detail, ...rejected, ownerContractStatus: 'pending' }],
+    })
+    signIn()
+    renderAt('/maydonlar/s5')
+    const panel = await screen.findByRole('region', { name: 'Qaror' })
+    expect(within(panel).getByRole('button', { name: 'Tasdiqlash' })).toBeDisabled()
+    expect(within(panel).getByRole('button', { name: 'Bloklash' })).toBeEnabled()
   })
 
   it('enters the owner details, validating STIR and the recipient id', async () => {
@@ -545,6 +607,127 @@ describe('Maydonlar — detail', () => {
     expect(screen.getByRole('button', { name: 'Tasdiqlash' })).toBeEnabled()
     expect(requests.some((r) => r.url.pathname.endsWith('/legal-details'))).toBe(false)
     expect(requests.some((r) => r.url.pathname.endsWith('/notes'))).toBe(false)
+  })
+
+  it('shows Moʻljal, the additional details, the photo count and every facility for review', async () => {
+    backend({
+      '/api/admin/stadiums/s1': [
+        200,
+        { ...detail, amenities: { ...detail.amenities!, wifi: true, drinkingWater: true } },
+      ],
+    })
+    signIn()
+    renderAt('/maydonlar/s1')
+    const info = within(await screen.findByRole('region', { name: 'Maʼlumotlar' }))
+    expect(info.getByText('Novza metro bekati yonida')).toBeInTheDocument()
+    expect(info.getByText('Kirish orqa tomonda')).toBeInTheDocument()
+    expect(info.getByText('3 ta')).toBeInTheDocument()
+    for (const label of ['Hojatxona', 'Ichimlik suvi', 'Wi-Fi', 'Yoritish (kechki oʻyin)']) {
+      expect(info.getByText(label)).toBeInTheDocument()
+    }
+    expect(info.queryByText('Maykalar (manishka)')).not.toBeInTheDocument()
+  })
+
+  it('edits the booking terms through a confirmation and the booking-terms endpoint', async () => {
+    const saved = { ...detail, minBookingAmount: 3_000_000, cancellationHours: 12 }
+    let current: StadiumDetail = detail
+    const { requests } = backend({
+      '/api/admin/stadiums/s1': () => [200, current],
+      'PUT /api/admin/stadiums/s1/booking-terms': () => {
+        current = saved
+        return [200, saved]
+      },
+    })
+    signIn()
+    renderAt('/maydonlar/s1')
+    const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
+    fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
+    const amount = dialog.getByLabelText('Minimal toʻlov (egasining narxida)')
+    expect(amount).toHaveValue('50 000')
+    // Above the owner's hourly price (150 000 so'm): refused before asking.
+    fireEvent.change(amount, { target: { value: '200000' } })
+    fireEvent.change(dialog.getByLabelText('Bepul bekor qilish'), { target: { value: '200' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
+    expect(dialog.getByText(/Soatlik narxdan .* oshmasin/)).toBeInTheDocument()
+    expect(dialog.getByText('0 dan 168 soatgacha')).toBeInTheDocument()
+    fireEvent.change(amount, { target: { value: '30000' } })
+    fireEvent.change(dialog.getByLabelText('Bepul bekor qilish'), { target: { value: '12' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
+    const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
+    expect(confirm).toHaveTextContent("Minimal toʻlov 30 000 so'm")
+    expect(confirm).toHaveTextContent('12 soat oldingacha')
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Bron shartlari saqlandi')).toBeInTheDocument()
+    expect(
+      requests.find((r) => r.method === 'PUT' && r.url.pathname.endsWith('/booking-terms'))?.body,
+    ).toEqual({ minBookingAmount: 3_000_000, cancellationHours: 12 })
+    expect(await screen.findByText('Boshlanishidan 12 soat oldingacha')).toBeInTheDocument()
+  })
+
+  it('sets the platform default (null minimum) and shows the defaults when nothing is set', async () => {
+    const bare = { ...detail, minBookingAmount: undefined, playerMinBookingAmount: 5_500_000 }
+    const { requests } = backend({
+      '/api/admin/stadiums/s1': [200, { ...bare, cancellationHours: undefined }],
+      'PUT /api/admin/stadiums/s1/booking-terms': [
+        400,
+        'cancellationHours must be between 0 and 168',
+      ],
+    })
+    signIn()
+    renderAt('/maydonlar/s1')
+    const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
+    expect(await terms.findByText("Platforma standarti: 50 000 so'm")).toBeInTheDocument()
+    expect(terms.getByText("Oʻyinchilar uchun: 55 000 so'm")).toBeInTheDocument()
+    expect(terms.queryByText('Toʻliq toʻlov')).toBeNull()
+    expect(terms.getByText('Boshlanishidan 24 soat oldingacha')).toBeInTheDocument()
+    fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
+    expect(dialog.getByRole('radio', { name: /Platforma standarti/ })).toBeChecked()
+    fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
+    const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText('Bekor qilish muddati 0 dan 168 soatgacha boʻlsin'),
+    ).toBeInTheDocument()
+    expect(
+      requests.find((r) => r.method === 'PUT' && r.url.pathname.endsWith('/booking-terms'))?.body,
+    ).toEqual({ minBookingAmount: null, cancellationHours: 24 })
+  })
+
+  it('says the minimum must be above the team fee when the backend refuses it (T2)', async () => {
+    backend({
+      'PUT /api/admin/stadiums/s1/booking-terms': [
+        400,
+        "minBookingAmount must be more than the team game platform fee (25 000 so'm)",
+      ],
+    })
+    signIn()
+    renderAt('/maydonlar/s1')
+    const terms = within(await screen.findByRole('region', { name: 'Bron shartlari' }))
+    fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
+    fireEvent.change(dialog.getByLabelText('Minimal toʻlov (egasining narxida)'), {
+      target: { value: '20000' },
+    })
+    fireEvent.click(dialog.getByRole('button', { name: 'Saqlash' }))
+    const confirm = screen.getByRole('dialog', { name: 'Bron shartlarini oʻzgartirish' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText(
+        "Minimal toʻlov jamoa oʻyini platforma haqidan (25 000 so'm) koʻp boʻlsin",
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps Tasdiqlash disabled with fewer than 3 photos', async () => {
+    backend({ '/api/admin/stadiums/s1': [200, { ...detail, photos: detail.photos!.slice(0, 2) }] })
+    signIn()
+    renderAt('/maydonlar/s1')
+    expect(
+      await screen.findByText('Tasdiqlash uchun kamida 3 ta rasm kerak', { selector: 'p' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tasdiqlash' })).toBeDisabled()
   })
 
   it('says when the stadium does not exist', async () => {

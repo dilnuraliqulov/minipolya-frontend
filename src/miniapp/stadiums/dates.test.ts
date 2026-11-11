@@ -1,23 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import i18n from '../i18n'
-import {
-  BOOKING_WINDOW_DAYS,
-  bookingDates,
-  dayTitle,
-  isInBookingWindow,
-  slotLabel,
-  tashkentToday,
-} from './dates'
+import { BOOKING_WINDOW_DAYS, bookingDates, dayTitle, isInBookingWindow, slotLabel } from './dates'
 
 afterEach(async () => {
   await i18n.changeLanguage('uz')
-})
-
-describe('tashkentToday', () => {
-  it('is the calendar date in Tashkent, not UTC', () => {
-    expect(tashkentToday(new Date('2026-10-31T18:59:00Z'))).toBe('2026-10-31')
-    expect(tashkentToday(new Date('2026-10-31T19:00:00Z'))).toBe('2026-11-01')
-  })
 })
 
 describe('bookingDates — the date strip', () => {

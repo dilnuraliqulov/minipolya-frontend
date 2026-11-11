@@ -4,7 +4,35 @@
     "tagline": "Toshkentda futbol maydonini band qiling"
   },
   "home": {
-    "greeting": "Salom, {{name}}"
+    "greeting": "Salom, {{name}}",
+    "challengesTitle": "Raqib qidirayotgan jamoalar",
+    "challengesAll": "Hammasi",
+    "captainAccepts": "Sardoringiz qabul qila oladi",
+    "whyUs": {
+      "label": "Nega MiniPolya",
+      "roledescription": "karusel",
+      "close": "Yopish",
+      "verified": {
+        "title": "Tasdiqlangan maydonlar",
+        "text": "Har bir maydonni tekshiramiz va egasi bilan shartnoma tuzamiz."
+      },
+      "payment": {
+        "title": "Xavfsiz toʻlov",
+        "text": "Uzcard va Humo orqali. Belgilangan muddatgacha bekor qilsangiz, pul toʻliq qaytariladi."
+      },
+      "opponent": {
+        "title": "Raqib jamoa toping",
+        "text": "Jamoangiz bilan oʻyin yarating, raqib jamoa qoʻshiladi."
+      },
+      "quick": {
+        "title": "1 daqiqada bron",
+        "text": "Boʻsh vaqtni tanlang va darhol band qiling."
+      }
+    },
+    "pickDate": "Sanani tanlash",
+    "pickDateTitle": "Sanani tanlang",
+    "vs": "vs",
+    "opponentWanted": "Raqib kutilmoqda"
   },
   "common": {
     "retry": "Qayta urinish",
@@ -77,10 +105,48 @@
     "alreadyReviewed": "Siz bu maydonni allaqachon baholagansiz.",
     "reviewNotPlayed": "Faqat oʻynagan maydoningizni baholashingiz mumkin.",
     "cardDeclined": "Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.",
+    "insufficientFunds": "Kartada mablagʻ yetarli emas. Boshqa karta tanlang yoki kartani toʻldiring.",
+    "providerUnavailable": "Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring.",
+    "cardNotSupported": "Faqat Uzcard va Humo kartalari qabul qilinadi.",
+    "cardExpiryInvalid": "Karta raqami yoki amal qilish muddati notoʻgʻri. Tekshirib, qayta kiriting.",
+    "cardExpired": "Kartaning amal qilish muddati tugagan. Boshqa kartadan foydalaning.",
+    "smsCodeWrong": "SMS kod notoʻgʻri. Qaytadan kiriting.",
+    "smsCodeExpired": "SMS kodning muddati tugadi. Kodni qayta yuboring.",
+    "smsResendTooEarly": "Yangi kodni biroz kutib soʻrang.",
+    "smsResendUnavailable": "Kodni qayta yuborib boʻlmadi. Karta maʼlumotlarini qaytadan kiriting.",
+    "bindingNotFound": "Karta qoʻshish jarayoni tugagan. Qaytadan boshlang.",
+    "cardBindingFailed": "Kartani qoʻshib boʻlmadi. Boshqa karta bilan urinib koʻring.",
     "tooLate": "Oʻyin boshlanishiga 3 soatdan kam qoldi — endi qoʻshilib boʻlmaydi.",
     "paymentConfirming": "Toʻlov hali tasdiqlanmoqda — qayta toʻlamang, natija tez orada koʻrinadi.",
     "paymentUnclear": "Toʻlov tasdiqlanmadi. Pul yechilgan boʻlsa, toʻliq qaytariladi — Oʻyinlarim boʻlimida tekshiring.",
-    "minimumTooLow": "Oldindan toʻlov kamida 500 soʻm boʻlishi kerak."
+    "paymentPending": "Toʻlov tasdiqlanmoqda. Natija bildirishnoma orqali keladi.",
+    "hasOpponent": "Bu oʻyinga raqib allaqachon topilgan.",
+    "onlyLeaderJoins": "Raqib chaqiruvini faqat jamoa sardori qabul qila oladi — u jamoa nomidan toʻlaydi.",
+    "notYourStadium": "Bu bron sizning maydoningizga tegishli emas.",
+    "nothingToMark": "Bu bronda belgilanadigan qoldiq yoʻq — u bekor qilingan, muddati oʻtgan yoki toʻliq toʻlangan.",
+    "markAdminOnly": "Bu belgini endi faqat administrator oʻzgartira oladi.",
+    "noMark": "Bu bronda belgi yoʻq — u allaqachon bekor qilingan.",
+    "cardPaymentInFlight": "Bu bron uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.",
+    "gameCancelled": "Bu oʻyin bekor qilingan.",
+    "gameNotConfirmed": "Oʻyin hali tasdiqlanmagan — raqib topilgach belgilash mumkin.",
+    "teamPaymentInFlight": "Bu jamoa uchun karta toʻlovi hali tasdiqlanmoqda. Birozdan soʻng qayta urinib koʻring.",
+    "teamNoMark": "Bu jamoada belgi yoʻq — u allaqachon bekor qilingan.",
+    "alreadyPaid": "Bu toʻlov allaqachon qayd etilgan.",
+    "imageType": "Faqat JPG, PNG yoki WebP rasm yuklash mumkin.",
+    "tooManyPhotos": "Maydonda koʻpi bilan 10 ta rasm boʻlishi mumkin.",
+    "fileTooLarge": "Rasm juda katta — 5 MB gacha boʻlishi kerak.",
+    "imageTooLarge": "Rasm oʻlchami juda katta. Kichikroq rasm tanlang.",
+    "phoneFormat": "Raqamni toʻliq kiriting, masalan: +998 90 123 45 67",
+    "outsideUzbekistan": "Joy Oʻzbekiston hududida boʻlishi kerak.",
+    "priceRange": "Narx 10 000 dan 5 000 000 soʻmgacha boʻlishi kerak.",
+    "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlishi kerak. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+    "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00).",
+    "nameLength": "Maydon nomi 3 dan 150 belgigacha boʻlishi kerak.",
+    "addressLength": "Manzil 5 dan 300 belgigacha boʻlishi kerak.",
+    "districtRequired": "Tumanni tanlang.",
+    "descriptionLength": "Qoʻshimcha maʼlumot koʻpi bilan 500 belgi boʻlishi mumkin.",
+    "landmarkLength": "Moʻljal koʻpi bilan 150 belgi boʻlishi mumkin.",
+    "locationRequired": "Maydon joyini xaritada belgilang."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -114,18 +180,27 @@
     "saved": "Saqlandi",
     "setupTitle": "Profilingizni toʻldiring",
     "setupSubtitle": "Maydon egasi siz bilan bogʻlana olishi uchun",
-    "continue": "Davom etish"
+    "continue": "Davom etish",
+    "sectionAccount": "Hisob",
+    "sectionApp": "Ilova",
+    "phoneNotSet": "Kiritilmagan",
+    "version": "MiniPolya v{{version}} · Telegram ilovasi",
+    "versionOwner": "MiniPolya v{{version}} · Ega rejimi",
+    "ownerCard": {
+      "noneTitle": "Maydoningiz bormi?",
+      "noneText": "Uni MiniPolyaʼga qoʻshing va bronlarni onlayn qabul qiling",
+      "reviewText": "Koʻrib chiqilmoqda. Tez orada siz bilan bogʻlanamiz.",
+      "enter": "Ega rejimiga oʻtish"
+    }
   },
   "stadiums": {
     "search": "Maydon yoki manzilni qidiring",
     "filters": "Filtrlar",
     "allFormats": "Hammasi",
     "format": "Format",
-    "allTitle": "Barcha maydonlar",
-    "allCount": "Barcha maydonlar · {{count}}",
+    "allTitle": "Maydonlar",
+    "allCount": "Maydonlar · {{count}}",
     "foundCount": "Topilgan maydonlar · {{count}}",
-    "bannerText": "Toʻlov xavfsiz · Bekor qilish shartlari aniq",
-    "bannerClose": "Yopish",
     "perHour": "soʻm/soat",
     "perHourShort": "/soat",
     "book": "Band qilish",
@@ -141,7 +216,10 @@
     "allDistricts": "Barcha tumanlar",
     "chooseDistrict": "Tumanni tanlang",
     "apply": "Qoʻllash",
-    "resetFilters": "Filtrlarni tozalash"
+    "resetFilters": "Filtrlarni tozalash",
+    "freeSlots": "{{day}} {{count}} ta boʻsh vaqt",
+    "noFreeSlots": "Bu kunga boʻsh vaqt yoʻq",
+    "dayMonth": "{{day}}-{{month}}"
   },
   "stadium": {
     "title": "Maydon",
@@ -154,14 +232,18 @@
       "hybrid": "Gibrid gazon"
     },
     "amenity": {
-      "lighting": "Yoritish",
+      "lighting": "Yoritish (kechki oʻyin)",
       "lockerRoom": "Kiyinish xonasi",
       "showers": "Dush",
       "parking": "Avtoturargoh",
-      "tribune": "Tribuna",
+      "tribune": "Tomoshabin oʻrindiqlari",
       "equipmentRental": "Toʻp ijarasi",
       "wifi": "Wi-Fi",
-      "cafe": "Kafe"
+      "cafe": "Kafe",
+      "toilet": "Hojatxona",
+      "covered": "Yopiq / usti yopiq",
+      "bibs": "Maykalar (manishka)",
+      "drinkingWater": "Ichimlik suvi"
     },
     "amenities": "Qulayliklar",
     "address": "Manzil",
@@ -178,7 +260,13 @@
     "ownerReply": "Maydon egasi javobi",
     "photoAlt": "{{name}}, {{n}}-rasm",
     "notFoundTitle": "Maydon topilmadi",
-    "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan."
+    "notFoundText": "Bu maydon endi mavjud emas yoki yopilgan.",
+    "landmark": "Moʻljal",
+    "openYandex": "Yandex Mapsʼda ochish",
+    "openGoogle": "Google Mapsʼda ochish",
+    "mapTapHint": "Surish uchun xaritaga bosing",
+    "showMap": "Xaritani koʻrsatish",
+    "location": "Joylashuv"
   },
   "weekdays": {
     "short": {
@@ -226,18 +314,22 @@
     "total": "Jami",
     "paymentType": "Toʻlov turi",
     "deposit": "Oldindan toʻlov: {{amount}}",
+    "minimum": "Minimal toʻlov: {{amount}}",
     "full": "Toʻliq toʻlov: {{amount}}",
-    "remainderNote": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
-    "fullOnly": "Bu maydon toʻliq toʻlovni talab qiladi.",
+    "remainderNote": "Qolgan {{amount}}ni keyin ilovada yoki maydonda naqd toʻlaysiz.",
+    "remainderNoteGeneric": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
+    "fullOnly": "Bu vaqt uchun faqat toʻliq toʻlov mavjud.",
     "card": "Karta",
     "addCardFirst": "Toʻlash uchun avval karta qoʻshing",
     "cancelNote": "Oʻyin boshlanishidan {{hours}} soat oldingacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi.",
     "pay": "Toʻlash · {{amount}}",
     "paying": "Toʻlanmoqda…",
     "declinedTitle": "Toʻlov amalga oshmadi",
-    "declinedText": "Karta rad etildi. Boshqa karta tanlang yoki kartani tekshiring.",
     "hold": "Bron {{time}} davomida saqlanadi",
     "holdExpired": "Bron muddati tugadi",
+    "holdExpiredText": "Bron saqlanish vaqti tugadi, bu vaqt yana boʻshatildi. Vaqtni qaytadan tanlang.",
+    "chooseAgain": "Vaqtni qayta tanlash",
+    "chooseCard": "Boshqa kartani tanlang yoki yangisini qoʻshing.",
     "retry": "Qayta urinish",
     "otherCard": "Boshqa karta",
     "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
@@ -271,12 +363,13 @@
     "confirm": "Tasdiqlash",
     "resend": "Kodni qayta yuborish",
     "resendIn": "Kodni qayta yuborish ({{time}})",
-    "newCode": "Yangi kod yuborish",
+    "codeResent": "Yangi kod yuborildi",
     "privacy": "Karta maʼlumotlari MiniPolyaʼda saqlanmaydi.",
     "footer": "Karta maʼlumotlari MiniPolyaʼda saqlanmaydi — faqat toʻlov tokeni saqlanadi.",
-    "wrongNumber": "Karta raqami yoki amal qilish muddati notoʻgʻri",
-    "wrongCode": "Kod notoʻgʻri. Qaytadan kiriting.",
-    "codeExpired": "Kod muddati tugadi — yangi kod soʻrang",
+    "numberLength": "Karta raqami 16 ta raqamdan iborat boʻlishi kerak",
+    "numberBrand": "Faqat Uzcard (8600…) va Humo (9860…) kartalari qabul qilinadi",
+    "expiryShape": "Muddatni OO/YY koʻrinishida kiriting, masalan 08/28",
+    "expiryPast": "Kartaning amal qilish muddati tugagan",
     "noInternet": "Internet aloqasi yoʻq",
     "noInternetHint": "Ulanishni tekshiring, qayta urinib koʻring.",
     "saved": "Karta qoʻshildi",
@@ -300,10 +393,11 @@
     },
     "upcoming": "Kelgusi",
     "past": "Oʻtgan",
-    "filterSoon": "Kelgusi va oʻtgan boʻyicha ajratish tez orada",
     "listLabel": "Bronlar",
     "emptyTitle": "Hali bronlar yoʻq",
     "emptyText": "Maydon tanlab, birinchi bronni qiling.",
+    "emptyPastTitle": "Oʻtgan bronlar yoʻq",
+    "emptyPastText": "Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi.",
     "findPitch": "Maydon topish",
     "more": "Yana koʻrsatish"
   },
@@ -311,8 +405,6 @@
     "headerTitle": "Bron",
     "title": "Band qilindi!",
     "paid": "Toʻlandi: {{amount}}",
-    "remaining": "Qolgani: {{amount}}",
-    "remainderNote": "Qolgan summani ilovada yoki maydonda naqd toʻlashingiz mumkin.",
     "deadline": "Bekor qilish muddati: {{date}}, {{time}} gacha",
     "toGames": "Oʻyinlarimga oʻtish",
     "home": "Bosh sahifa"
@@ -328,14 +420,19 @@
     "remaining": "Qolgan summa",
     "unpaid": "Toʻlanmagan",
     "paidInFull": "Toʻliq toʻlangan",
-    "payRest": "Qolganini ilovada toʻlash",
-    "cashNote": "yoki maydonda naqd toʻlashingiz mumkin",
+    "remainderTitle": "Qolgan summa: {{amount}}",
+    "paidCash": "Maydonda naqd toʻlangan",
+    "cashSplit": "{{app}} ilovada · {{cash}} maydonda naqd",
+    "cashNoRefund": "Naqd toʻlovlar ilova orqali qaytarilmaydi.",
+    "payRest": "Ilovada toʻlash",
+    "cashNote": "yoki maydonda naqd toʻlang",
     "payNow": "Toʻlash",
     "pendingBanner": "Toʻlovni {{time}} gacha yakunlang",
     "pendingLeft": "Bron yana {{left}} saqlanadi",
     "rules": "Bekor qilish shartlari",
     "rulesDeadline": "{{date}}, {{time}} gacha bekor qilsangiz, toʻlov toʻliq qaytariladi. Undan keyin qaytarilmaydi.",
     "refundNow": "Hozir bekor qilsangiz: {{amount}} qaytariladi",
+    "refundNowCash": "Hozir bekor qilsangiz: {{amount}} qaytariladi, naqd qismi qaytarilmaydi",
     "noRefundNow": "Hozir bekor qilsangiz, toʻlov qaytarilmaydi",
     "cancel": "Bronni bekor qilish",
     "cancelTitle": "Bronni bekor qilasizmi?",
@@ -346,6 +443,7 @@
     "cancelledAt": "Bekor qilingan: {{date}}, {{time}}",
     "cancelReason": "Sabab: {{reason}}",
     "payRestTitle": "Qolganini toʻlash",
+    "payPendingTitle": "Bronni toʻlash",
     "payRestButton": "Toʻlash · {{amount}}",
     "restPaid": "Toʻlov qabul qilindi",
     "notFoundTitle": "Bron topilmadi",
@@ -398,7 +496,9 @@
     "cancel": "Bekor qilish",
     "challenges": "Raqib qidirayotgan jamoalar",
     "challengesEmpty": "Hozircha raqib qidirayotgan jamoa yoʻq.",
+    "leaderAccepts": "Chaqiriqlarni jamoa sardori qabul qiladi.",
     "payNow": "Jamoangiz toʻlaydi: {{amount}}",
+    "payFrom": "Jamoangiz toʻlaydi: {{amount}} dan",
     "accept": "Qabul qilish",
     "more": "Yana koʻrsatish",
     "createTitle": "Jamoa yaratish",
@@ -406,25 +506,54 @@
     "name": "Jamoa nomi",
     "nameHint": "3–24 belgi.",
     "created": "Jamoa yaratildi",
-    "notFoundTitle": "Jamoa topilmadi"
+    "notFoundTitle": "Jamoa topilmadi",
+    "inviteSheet": {
+      "title": "Taklif havolasi",
+      "text": "Havolani doʻstlaringizga yuboring — ular bosib jamoaga qoʻshiladi.",
+      "copy": "Havoladan nusxa olish",
+      "copied": "Havola nusxalandi",
+      "copyFailed": "Nusxa olib boʻlmadi. Havolani bosib turib nusxalang.",
+      "share": "Telegramda ulashish",
+      "shareText": "«{{team}}» jamoasiga qoʻshiling",
+      "renew": "Yangi havola yaratish",
+      "renewed": "Yangi havola tayyor. Eskisi endi ishlamaydi.",
+      "notConfigured": "Taklif havolasi hali sozlanmagan."
+    },
+    "join": {
+      "title": "Jamoaga qoʻshilish",
+      "invited": "Sizni jamoaga taklif qilishdi",
+      "leader": "Sardor: {{name}}",
+      "members": "{{count}} aʼzo",
+      "join": "Jamoaga qoʻshilish",
+      "later": "Keyinroq",
+      "joinedTitle": "Siz jamoaga qoʻshildingiz",
+      "joinedText": "Endi «{{team}}» oʻyinlari va chatini koʻrasiz.",
+      "memberTitle": "Siz allaqachon shu jamoadasiz",
+      "memberText": "«{{team}}» jamoasining aʼzosisiz.",
+      "toTeam": "Jamoamga oʻtish",
+      "invalidTitle": "Havola yaroqsiz",
+      "invalidText": "Taklif havolasi eskirgan yoki notoʻgʻri. Sardordan yangi havola soʻrang.",
+      "home": "Bosh sahifaga"
+    }
   },
   "game": {
     "title": "Oʻyin",
     "vs": "vs",
     "waitingOpponent": "Raqib kutilmoqda",
     "waitingText": "Raqib jamoa qabul qilishi bilan maydon band qilinadi va xabar beramiz.",
+    "joinPendingTitle": "Raqib jamoa toʻlovi tasdiqlanmoqda",
+    "joinPendingText": "Natija aniq boʻlgach, oʻyin shu yerda yangilanadi.",
     "chat": "Chat",
     "chatText": "Ikkala jamoa sardorlari bilan yozishma",
     "teams": "Jamoalar",
     "captain": "Sardor: {{name}}",
     "myPayment": "Jamoangiz toʻlovi",
-    "joinPrice": "Qoʻshilishda toʻlov",
-    "paidInApp": "Ilovada toʻlangan",
+    "paid": "Toʻlangan",
+    "refundIfNoOpponent": "Raqib topilmasa, toʻliq qaytariladi.",
     "remainder": "Qolgan summa",
-    "remainderPaid": "Toʻlangan",
-    "remainderUnpaid": "Toʻlanmagan",
-    "payRest": "Qolganini toʻlash",
-    "cashNote": "yoki maydonda naqd toʻlashingiz mumkin",
+    "paidInFull": "Toʻliq toʻlangan",
+    "cashReceived": "Naqd olindi",
+    "notPaid": "Toʻlanmadi",
     "restPaid": "Qolgan summa toʻlandi",
     "declined": "Karta rad etildi. Boshqa karta tanlang.",
     "rules": "Bekor qilish shartlari",
@@ -446,9 +575,6 @@
   },
   "accept": {
     "title": "Raqibni qabul qilish",
-    "payNow": "Jamoangiz hozir toʻlaydi",
-    "remainder": "Qolgan summa",
-    "remainderNote": "Qolgan summani keyin ilovada yoki maydonda naqd toʻlaysiz.",
     "rule": "Oʻyin boshlanishiga 3 soatdan kam qolganda qabul qilib boʻlmaydi.",
     "submit": "Toʻlash va qabul qilish · {{amount}}",
     "done": "Raqib qabul qilindi — maydon band qilindi",
@@ -456,7 +582,10 @@
     "goneText": "Boshqa jamoa qabul qilgan yoki chaqiriq bekor qilingan.",
     "slotTakenTitle": "Bu vaqt band boʻlib qoldi",
     "tooLateTitle": "Oʻyinga 3 soatdan kam qoldi",
-    "backToTeam": "Jamoamga qaytish"
+    "backToTeam": "Jamoamga qaytish",
+    "pendingTitle": "Toʻlov tasdiqlanmoqda",
+    "openGame": "Oʻyinni ochish",
+    "leaderOnlyTitle": "Faqat sardor qabul qila oladi"
   },
   "choice": {
     "title": "Qanday band qilasiz?",
@@ -470,10 +599,8 @@
   "opponent": {
     "title": "Raqib qidirish",
     "whichTeam": "Qaysi jamoa bilan?",
-    "slotPrice": "Maydon narxi",
-    "quoteSoon": "Jamoangiz toʻlaydigan summa oʻyin yaratilgach koʻrinadi (tez orada — oldindan).",
     "rules": "Raqib topilguncha kartangizda summa band qilinadi, maydon esa band qilinmaydi. Raqib topilmasa, pul toʻliq qaytariladi.",
-    "submit": "Raqib qidirishni boshlash",
+    "submit": "Raqib qidirishni boshlash · {{amount}}",
     "started": "Raqib qidirish boshlandi",
     "noLedTeam": "Raqib qidirish uchun jamoa sardori boʻlishingiz kerak."
   },
@@ -513,14 +640,19 @@
     },
     "section": {
       "info": "Maʼlumotlar",
-      "infoText": "Nomi, manzili, tumani, format, qoplama",
+      "infoText": "Nomi, telefon, joylashuv, manzil",
       "photos": "Rasmlar",
       "hours": "Ish vaqti",
       "prices": "Narxlar",
       "pricesText": "Asosiy narx: {{price}}",
       "terms": "Bron shartlari",
       "closures": "Yopiq kunlar",
-      "closuresText": "Rejalashtirilgan yopilishlar"
+      "closuresText": "Rejalashtirilgan yopilishlar",
+      "hoursText": "Ochilish va yopilish vaqti",
+      "termsText": "Platforma bilan kelishilgan",
+      "photosText": "Kamida 3 ta, koʻpi bilan 10 ta, birinchisi — muqova",
+      "facilities": "Qulayliklar",
+      "facilitiesText": "Qulayliklar va qoʻshimcha maʼlumot"
     },
     "soonDetail": "Tez orada — server bu maʼlumotni egaga hali bermaydi",
     "save": "Saqlash",
@@ -535,15 +667,12 @@
       "district": "Tuman",
       "format": "Format",
       "surface": "Qoplama",
-      "phone": "Telefon (ixtiyoriy)",
-      "description": "Tavsif (ixtiyoriy)",
+      "phone": "Telefon",
+      "description": "Qoʻshimcha maʼlumot",
       "open": "Ochilish",
       "close": "Yopilish",
       "price": "Soatlik narx (soʻm)",
       "priceHint": "Oʻyinchilar uchun narx karta toʻlovi bilan biroz yuqoriroq koʻrinadi.",
-      "minimum": "Oldindan toʻlov (soʻm, ixtiyoriy)",
-      "minimumHint": "Boʻsh qolsa — faqat toʻliq toʻlov. Kamida 500 soʻm.",
-      "cancelHours": "Bepul bekor qilish (soat)",
       "day": "Kun",
       "from": "Dan",
       "to": "Gacha",
@@ -554,7 +683,13 @@
       "clientPhone": "Mijoz telefoni",
       "time": "Vaqt",
       "cashPaid": "Naqd toʻlandi",
-      "hoursUnit": "{{count}} soat"
+      "descriptionPlaceholder": "Masalan: kirish joyi, oʻyin qoidalari, boshqa qulayliklar",
+      "landmark": "Moʻljal (ixtiyoriy)",
+      "landmarkPlaceholder": "Masalan: Novza metro bekati yonida",
+      "districtPlaceholder": "Tumanni tanlang",
+      "counter": "{{count}}/{{max}}",
+      "addressPlaceholder": "Masalan: Bunyodkor koʻchasi 12",
+      "namePlaceholder": "Masalan: Chilonzor Sport Maydoni"
     },
     "prices": {
       "title": "Narxlar",
@@ -563,9 +698,11 @@
       "player": "Oʻyinchiga: {{price}}",
       "added": "Narx qoidasi qoʻshildi",
       "removed": "Narx qoidasi oʻchirildi",
-      "minimum": "Oldindan toʻlov",
-      "minimumField": "Eng kam toʻlov (soʻm)",
-      "minimumText": "Oʻyinchi band qilishda kamida shu summani toʻlaydi, qolganini keyin. Kamida 500 soʻm. Joriy qiymat hozircha koʻrsatilmaydi — tez orada."
+      "edit": "Narx qoidasini oʻzgartirish",
+      "updated": "Narx qoidasi saqlandi",
+      "editBase": "Asosiy narxni oʻzgartirish",
+      "base": "Asosiy narx",
+      "baseText": "Narx qoidalari qamramagan barcha soatlar uchun. Oʻyinchilar narxi shundan hisoblanadi."
     },
     "closures": {
       "title": "Yopiq kunlar",
@@ -593,9 +730,10 @@
       "title": "Bron tafsilotlari",
       "player": "Oʻyinchi (ilova)",
       "walkIn": "Qoʻlda",
-      "price": "Narx",
+      "price": "Sizning narxingiz",
       "paidInApp": "Ilovada toʻlangan",
-      "remaining": "Naqd olinadi",
+      "cashDue": "Naqd olinadi",
+      "cashReceived": "Naqd olindi",
       "receives": "Sizga tushadi",
       "cash": "Naqd olindi",
       "call": "Qoʻngʻiroq",
@@ -603,7 +741,9 @@
       "cancelTitle": "Bronni bekor qilasizmi?",
       "cancelText": "Oʻyinchiga karta orqali toʻlagan hamma pul qaytariladi.",
       "cancelled": "Bron bekor qilindi",
-      "playerPays": "Oʻyinchi toʻlaydi"
+      "playerPays": "Oʻyinchi toʻlaydi",
+      "cashDone": "Naqd toʻlov qayd etildi",
+      "cashConfirmText": "Mijozdan {{amount}} naqd olinganini tasdiqlaysizmi?"
     },
     "report": {
       "today": "Bugun",
@@ -614,31 +754,376 @@
       "revenue": "Tushum",
       "rating": "Reyting",
       "occupancy": "Bandlik",
-      "unpaid": "Toʻlanmagan qoldiqlar"
+      "unpaid": "Toʻlanmagan qoldiqlar",
+      "chartTitle": "Kunlik tushum",
+      "chartWindow": "Davr",
+      "days": "{{count}} kun",
+      "chartTotal": "Davr boʻyicha jami",
+      "bookingCount": "{{count}} ta bron",
+      "date": "Sana",
+      "inApp": "Ilovada toʻlangan",
+      "inCash": "Naqd olindi",
+      "outstanding": "Naqd olinadi",
+      "unpaidEmpty": "Toʻlanmagan qoldiqlar yoʻq.",
+      "owes": "Qolgan: {{amount}}",
+      "cash": "Naqd olindi"
     },
     "profile": {
-      "playerMode": "Oʻyinchi rejimiga oʻtish",
+      "playerMode": "Oʻyinchi rejimiga qaytish",
       "playerModeText": "Maydon band qilish va jamoa oʻyinlari",
       "payouts": "Toʻlovlar",
-      "badge": "Maydon egasi · {{count}} maydon"
+      "badge": "Maydon egasi · {{count}} maydon",
+      "sectionStadium": "Maydon",
+      "myStadiums": "Maydonlarim",
+      "count": "{{count}} ta",
+      "switchStadium": "Maydonni tanlang"
     },
     "wizard": {
       "title": "Maydon qoʻshish",
-      "step": "{{n}}-qadam / {{total}} · {{name}}",
-      "basics": "Asosiy",
-      "place": "Manzil",
-      "hours": "Ish vaqti",
-      "price": "Narx va shartlar",
-      "review": "Koʻrib chiqish",
       "next": "Davom etish",
-      "back": "Ortga",
       "submit": "Tekshiruvga yuborish",
-      "photosSoon": "Rasmlarni yuklash tez orada — hozircha maydon rasmlarsiz yuboriladi.",
-      "hoursError": "Yopilish vaqti ochilishdan keyin boʻlishi kerak.",
-      "sentTitle": "Maydon tekshiruvga yuborildi",
-      "sentText": "Admin tasdiqlagach, oʻyinchilar uni koʻradi va band qila oladi.",
-      "toStadium": "Maydonimga oʻtish",
-      "onTheHour": "Vaqt butun soatda boʻlishi kerak (masalan, 08:00)."
+      "sentTitle": "Arizangiz qabul qilindi",
+      "sentText": "Barcha rasmlar yuklandi. Administrator maydoningizni tekshirib, siz bilan telefon orqali bogʻlanadi.",
+      "toStadium": "Maydonimni koʻrish",
+      "toProfile": "Profilga qaytish",
+      "progress": "{{n}}/{{total}} · {{name}}",
+      "progressLabel": "{{total}} qadamdan {{n}}-qadam",
+      "steps": {
+        "basics": "Asosiy",
+        "location": "Joylashuv",
+        "photos": "Rasmlar",
+        "facilities": "Qulayliklar",
+        "hours": "Ish vaqti va narx",
+        "review": "Koʻrib chiqish"
+      },
+      "titles": {
+        "basics": "Maydon haqida",
+        "location": "Maydon qayerda?",
+        "photos": "Maydon rasmlari",
+        "facilities": "Maydonda nimalar bor?",
+        "hours": "Qachon ochiq va necha pul?",
+        "review": "Hammasi toʻgʻrimi?"
+      },
+      "facilitiesText": "Maydoningizda bor narsalarni belgilang",
+      "edit": "Tahrirlash",
+      "editSection": "{{section}} — tahrirlash",
+      "open": "Ochilish",
+      "close": "Yopilish",
+      "earlier": "{{label}}: bir soat oldin",
+      "later": "{{label}}: bir soat keyin",
+      "everyDay": "Har kuni {{open}} – {{close}}",
+      "everyDayHours": "Har kuni {{open}} – {{close}} · {{count}} soat",
+      "hoursNote": "Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "yourPrice": "Sizning narxingiz (1 soat)",
+      "priceHint": "10 000 dan 5 000 000 soʻmgacha",
+      "playerPriceNote": "Oʻyinchilar karta toʻlovi hisobiga biroz yuqoriroq narxni koʻradi.",
+      "reviewHours": "Ish vaqti",
+      "reviewPrice": "Sizning narxingiz",
+      "perHour": "{{price}} / soat",
+      "photosCount": "Rasmlar · {{count}}",
+      "noFacilities": "Belgilanmagan",
+      "mapPreview": "Maydon joyi xaritada",
+      "termsNote": "Oldindan toʻlov va bekor qilish shartlari platforma bilan kelishiladi.",
+      "leaveTitle": "Maydon qoʻshishni toʻxtatasizmi?",
+      "leaveText": "Kiritgan maʼlumotlaringiz saqlanmaydi.",
+      "leave": "Chiqish",
+      "stay": "Davom etish",
+      "created": "Maydon yaratildi",
+      "uploadingTitle": "Rasmlar yuklanmoqda",
+      "uploadingText": "Rasmlar birma-bir yuklanmoqda. Hammasi yuklangach, ariza tekshiruvga yuboriladi.",
+      "uploadedCount": "{{done}}/{{total}} yuklandi",
+      "failedCount": "{{count}} ta xato",
+      "photoN": "Rasm {{n}}",
+      "photoCover": "Rasm {{n}} · Muqova",
+      "status": {
+        "done": "Yuklandi",
+        "failed": "Yuklanmadi",
+        "queued": "Navbatda"
+      },
+      "leaveNote": "Chiqib ketsangiz ham boʻladi — qolgan rasmlarni Maydonim → Rasmlar boʻlimida yuklaysiz.",
+      "finishLater": "Keyinroq tugatish",
+      "callNumber": "Shu raqamga qoʻngʻiroq qilamiz",
+      "wrongNumber": "Raqam notoʻgʻrimi?",
+      "updateInProfile": "Profilda yangilang",
+      "nextSteps": "Keyingi qadamlar",
+      "stepCall": "Qoʻngʻiroq",
+      "stepContract": "Shartnoma",
+      "stepLive": "Maydon ilovada chiqadi",
+      "toHome": "Bosh sahifa"
+    },
+    "discount": {
+      "title": "Narxni oʻzgartirish",
+      "open": "{{time}} narxini oʻzgartirish",
+      "percent": "Chegirma (%)",
+      "hint": "1 dan 100 gacha",
+      "playersSee": "Oʻyinchilar koʻradi",
+      "note": "Bu soat uchun narxni chegirma bilan pasaytirish mumkin. Oʻyinchilar narxi chegirmadan keyin hisoblanadi.",
+      "name": "{{time}} chegirmasi",
+      "saved": "Chegirma saqlandi",
+      "remove": "Chegirmani olib tashlash",
+      "removed": "Chegirma olib tashlandi"
+    },
+    "editItem": "{{item}} — oʻzgartirish",
+    "gameCash": {
+      "title": "Jamoalar toʻlovi",
+      "owes": "{{team}} · Naqd olinadi: {{amount}}",
+      "paid": "{{team}} · Toʻlangan",
+      "button": "Naqd olindi · {{amount}}",
+      "confirmTitle": "Naqd toʻlovni tasdiqlash",
+      "confirmText": "{{team}} jamoasidan {{amount}} naqd olinganini tasdiqlaysizmi?",
+      "confirm": "Tasdiqlash",
+      "done": "Naqd toʻlov qayd etildi"
+    },
+    "contract": {
+      "title": "Toʻlovlar va shartnoma",
+      "readOnly": "Faqat koʻrish uchun — oʻzgartirish uchun bizga yozing",
+      "legalType": "Yuridik shakl",
+      "atmos": "ATMOS shartnomasi",
+      "notSet": "Kiritilmagan",
+      "payoutNote": "Ilova orqali toʻlovlar shartnoma boʻyicha hisobingizga oʻtkaziladi.",
+      "support": "Qoʻllab-quvvatlashga yozish",
+      "status": {
+        "none": "Yoʻq",
+        "pending": "Jarayonda",
+        "signed": "Imzolangan"
+      },
+      "legal": {
+        "yatt": "YaTT",
+        "mchj": "MChJ",
+        "self_employed": "Oʻzini oʻzi band qilgan"
+      }
+    },
+    "reviews": {
+      "title": "Sharhlar",
+      "count": "{{count}} ta sharh",
+      "emptyTitle": "Hozircha sharhlar yoʻq",
+      "emptyText": "Oʻyinchilar oʻynagandan keyin maydoningizni baholaydi.",
+      "yourReply": "Sizning javobingiz",
+      "reply": "Javob berish",
+      "replyTitle": "Sharhga javob",
+      "replyLabel": "Javobingiz",
+      "send": "Yuborish",
+      "sent": "Javob yuborildi"
+    },
+    "hours": {
+      "note": "Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping.",
+      "saved": "Ish vaqti saqlandi"
+    },
+    "terms": {
+      "minimum": "Oldindan toʻlov",
+      "playerPays": "Oʻyinchilar uchun: {{amount}}",
+      "title": "Bron shartlari",
+      "agreed": "Platforma bilan kelishilgan",
+      "cancel": "Bepul bekor qilish",
+      "cancelValue": "Boshlanishiga {{count}} soat qolguncha",
+      "note": "Oldindan toʻlov va bekor qilish shartlari platforma bilan telefon orqali kelishiladi. Oʻzgartirish uchun bizga yozing.",
+      "support": "Qoʻllab-quvvatlashga yozish",
+      "platformDefault": "Platforma standarti"
+    },
+    "photos": {
+      "text": "Kamida 3 ta, koʻpi bilan 10 ta rasm. Birinchisi — muqova.",
+      "uploaded": "Rasm yuklandi",
+      "deleted": "Rasm oʻchirildi",
+      "emptyTitle": "Hozircha rasm yoʻq",
+      "emptyText": "Maydon rasmlari oʻyinchilarga tanlashda yordam beradi.",
+      "alt": "{{n}}-rasm",
+      "cover": "Muqova",
+      "makeCover": "Muqova qilish",
+      "delete": "{{n}}-rasmni oʻchirish",
+      "left": "{{n}}-rasmni chapga surish",
+      "right": "{{n}}-rasmni oʻngga surish",
+      "add": "Rasm qoʻshish",
+      "hint": "Telefondagi istalgan rasm · yuklashdan oldin siqiladi",
+      "counter": "{{count}}/{{max}}",
+      "notImage": "Bu fayl rasm emas",
+      "tooLarge": "Rasm 5 MB dan katta",
+      "tooMany": "Koʻpi bilan 10 ta rasm",
+      "preparing": "Tayyorlanmoqda",
+      "progress": "{{percent}}%",
+      "failed": "Yuklanmadi",
+      "retry": "{{n}}-rasmni qayta yuklash",
+      "makeCoverN": "{{n}}-rasmni muqova qilish"
+    },
+    "rules": {
+      "nameLength": "Nomi 3 dan 150 belgigacha boʻlsin",
+      "addressLength": "Manzil 5 dan 300 belgigacha boʻlsin",
+      "districtRequired": "Tumanni tanlang",
+      "phoneFormat": "Raqamni toʻliq kiriting, masalan: +998 90 123 45 67",
+      "locationRequired": "Maydon joyini xaritada belgilang",
+      "outsideUzbekistan": "Joy Oʻzbekiston hududida boʻlishi kerak",
+      "priceRange": "Narx 10 000 dan 5 000 000 soʻmgacha boʻlsin",
+      "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlsin. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "descriptionLength": "Koʻpi bilan 500 belgi",
+      "landmarkLength": "Koʻpi bilan 150 belgi",
+      "photosMin": "Kamida 3 ta rasm qoʻshing"
+    },
+    "location": {
+      "mapTitle": "Xaritada belgilang",
+      "mapLabel": "Xarita: maydon joyini belgilash uchun bosing",
+      "pin": "Maydon joyi",
+      "noPoint": "Joy belgilanmagan — xaritaga bosing",
+      "myLocation": "Joriy joylashuvim",
+      "denied": "Joylashuvga ruxsat berilmadi. Telegram sozlamalarida ruxsat bering yoki xaritada belgilang.",
+      "unavailable": "Joylashuvni aniqlab boʻlmadi. Xaritada belgilang.",
+      "linkLabel": "Xarita havolasi",
+      "linkPlaceholder": "Google yoki Yandex havolasi",
+      "linkShort": "Toʻliq havolani qoʻying yoki xaritada belgilang",
+      "linkInvalid": "Havoladan joyni topib boʻlmadi. Xaritada belgilang.",
+      "zoomIn": "Yaqinlashtirish",
+      "zoomOut": "Uzoqlashtirish"
+    },
+    "facilities": {
+      "saved": "Qulayliklar saqlandi"
+    },
+    "mark": {
+      "chip": {
+        "paidInFull": "Toʻliq toʻlangan",
+        "cashReceived": "Naqd olindi",
+        "notPaid": "Toʻlanmadi",
+        "remainder": "Naqd olinadi: {{amount}}"
+      },
+      "cash": "Naqd olindi",
+      "notPaid": "Toʻlanmadi",
+      "back": "Ortga",
+      "about": "{{who}} · {{time}} · {{stadium}}.",
+      "cashNote": "Tasdiqlangach bron «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin.",
+      "notPaidTitle": "Toʻlanmadi deb belgilash",
+      "notPaidText": "Mijoz qolgan {{amount}}ni toʻlamaganini belgilaysizmi?",
+      "notPaidNote": "Jarima olinmaydi, oʻyinchi qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin.",
+      "notPaidDone": "Toʻlanmadi deb belgilandi",
+      "undoDone": "Belgi bekor qilindi",
+      "cashMarked": "Naqd olindi",
+      "cashMarkedAmount": "Naqd olindi · {{amount}}",
+      "notPaidMarked": "Toʻlanmadi deb belgilangan",
+      "undoUntil": "Bugun {{time}} gacha bekor qilish mumkin",
+      "undo": "Bekor qilish",
+      "adminOnly": "Belgini endi faqat administrator oʻzgartira oladi",
+      "teamNotPaidText": "{{team}} jamoasi qolgan {{amount}}ni toʻlamaganini belgilaysizmi?",
+      "teamCashNote": "Tasdiqlangach jamoa toʻlovi «Naqd olindi» boʻladi. Bugun oxirigacha bekor qilish mumkin.",
+      "teamNotPaidNote": "Jarima olinmaydi, jamoa sardori qoldiqni keyin ilovada toʻlashi mumkin. Bugun oxirigacha bekor qilish mumkin.",
+      "paid": "Toʻlandi"
+    },
+    "walkIn": {
+      "price": "Narx, soʻm",
+      "status": "Toʻlov holati",
+      "unpaid": "Toʻlanmagan",
+      "paid": "Toʻlangan"
     }
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "unreadValue": "{{count}} ta yangi",
+    "unread": "oʻqilmagan",
+    "readAll": "Hammasini oʻqilgan deb belgilash",
+    "emptyTitle": "Bildirishnomalar yoʻq",
+    "emptyText": "Bronlar, oʻyinlar va toʻlovlar haqidagi xabarlar shu yerda chiqadi.",
+    "types": {
+      "booking_confirmed": "Bron tasdiqlandi",
+      "booking_cancelled": "Bron bekor qilindi",
+      "booking_reminder": "Bron eslatmasi",
+      "booking_expired": "Bron muddati oʻtdi",
+      "game_confirmed": "Oʻyin tasdiqlandi",
+      "game_cancelled": "Oʻyin bekor qilindi",
+      "game_player_joined": "Oʻyinga qoʻshilishdi",
+      "game_player_left": "Oʻyinchi chiqib ketdi",
+      "game_payment_received": "Oʻyin uchun toʻlov qabul qilindi",
+      "game_opponent_left": "Raqib chiqib ketdi",
+      "review_reply": "Sharhingizga javob berildi",
+      "stadium_approved": "Maydoningiz tasdiqlandi",
+      "stadium_rejected": "Maydoningiz rad etildi",
+      "owner_application_status": "Arizangiz koʻrib chiqildi",
+      "promotion_new": "Yangi aksiya",
+      "other": "Yangi xabar"
+    }
+  },
+  "phonePage": {
+    "current": "Hozirgi raqam: {{phone}}",
+    "shareTitle": "Telegram orqali ulashing",
+    "shareText": "Raqamingiz Telegram hisobingizdan olinadi — kiritish shart emas.",
+    "share": "Raqamni ulashish",
+    "or": "yoki qoʻlda kiriting",
+    "shared": "Raqam saqlandi",
+    "notReceived": "Raqam hali kelmadi. Qoʻlda kiriting yoki birozdan soʻng qayta urinib koʻring."
+  },
+  "help": {
+    "title": "Yordam",
+    "supportTitle": "Savolingiz bormi?",
+    "supportText": "Qoʻllab-quvvatlash xizmatiga Telegramʼda yozing.",
+    "supportSoon": "Qoʻllab-quvvatlash chati tez orada qoʻshiladi.",
+    "write": "@{{username}} ga yozish",
+    "faq": "Koʻp soʻraladigan savollar",
+    "q": {
+      "booking": "Qanday bron qilaman?",
+      "cancel": "Bekor qilish va pulni qaytarish",
+      "cash": "Qolganini naqd toʻlash",
+      "teams": "Jamoa jamoaga qarshi oʻyin",
+      "stadium": "Maydonimni qanday qoʻshaman?"
+    },
+    "a": {
+      "booking": "Maydonlar boʻlimida maydonni tanlang, kun va bir soatlik vaqtni belgilang, soʻng kartangiz bilan toʻlang. Bir necha soat kerak boʻlsa, har biri uchun alohida bron qiling.",
+      "cancel": "Oʻyinlarim → bron → «Bekor qilish». Qancha pul qaytishi bekor qilishdan oldin bron sahifasida koʻrsatiladi — u maydonning bekor qilish shartlariga va oʻyingacha qolgan vaqtga bogʻliq. Pul kartangizga qaytariladi.",
+      "cash": "Agar maydon oldindan toʻlovga ruxsat bersa, bron qilishda faqat bir qismini toʻlaysiz. Qolganini oʻyin kuni maydonda naqd berishingiz yoki ilovada «Qolganini toʻlash» orqali karta bilan toʻlashingiz mumkin.",
+      "teams": "Jamoam boʻlimida jamoa yarating va doʻstlaringizni taklif havolasi bilan qoʻshing. Sardor vaqt tanlab raqib qidiradi; boshqa jamoa qabul qilsa, oʻyin tasdiqlanadi va maydon narxi ikki jamoa orasida boʻlinadi.",
+      "stadium": "Profil → «Maydon qoʻshish». Maʼlumotlarni toʻldirib yuboring — maydon koʻrib chiqiladi va tasdiqlangach oʻyinchilarga koʻrinadi. Shundan soʻng Profil orqali ega rejimiga oʻtasiz."
+    }
+  },
+  "about": {
+    "title": "Ilova haqida",
+    "version": "Versiya {{version}}",
+    "terms": "Foydalanish shartlari",
+    "privacy": "Maxfiylik siyosati",
+    "copyright": "© 2026 MiniPolya · Toshkent",
+    "yandexTerms": "Yandex Xaritalar foydalanish shartlari"
+  },
+  "legal": {
+    "terms": {
+      "general": {
+        "title": "Umumiy qoidalar",
+        "text": "MiniPolya — Toshkentdagi futbol maydonlarini onlayn bron qilish xizmati. Ilovadan foydalanib, siz ushbu shartlarga rozilik bildirasiz."
+      },
+      "booking": {
+        "title": "Bron va toʻlov",
+        "text": "Bron toʻlov qabul qilingandan keyin tasdiqlanadi. Siz bron oynasida koʻrsatilgan narxni toʻlaysiz; qoʻshimcha toʻlov olinmaydi."
+      },
+      "cancel": {
+        "title": "Bekor qilish va qaytarish",
+        "text": "Har bir maydonning bekor qilish shartlari bron sahifasida koʻrsatiladi. Qaytariladigan summa bekor qilishdan oldin aniq koʻrsatiladi."
+      },
+      "owners": {
+        "title": "Maydon egalari",
+        "text": "Maydon egasi maydon haqidagi maʼlumotlar, narxlar va ish vaqti toʻgʻriligi uchun javob beradi. Maydonlar tasdiqlangandan keyingina oʻyinchilarga koʻrinadi."
+      },
+      "changes": {
+        "title": "Oʻzgarishlar",
+        "text": "Shartlar oʻzgarsa, yangi tahriri shu sahifada eʼlon qilinadi."
+      }
+    },
+    "privacy": {
+      "collect": {
+        "title": "Qanday maʼlumot yigʻamiz",
+        "text": "Telegram identifikatoringiz, siz kiritgan ism, familiya va telefon raqam, bronlar va toʻlovlar tarixi."
+      },
+      "use": {
+        "title": "Nima uchun",
+        "text": "Bron qilish, toʻlovlarni amalga oshirish, maydon egasi siz bilan bogʻlanishi va bildirishnomalar yuborish uchun."
+      },
+      "share": {
+        "title": "Kim bilan baham koʻramiz",
+        "text": "Bron qilgan maydon egasi ismingiz va telefon raqamingizni koʻradi. Karta maʼlumotlari faqat toʻlov tizimida saqlanadi — biz ularni koʻrmaymiz."
+      },
+      "keep": {
+        "title": "Saqlash",
+        "text": "Maʼlumotlar xizmat ishlashi uchun kerak boʻlgan muddat davomida saqlanadi."
+      },
+      "contact": {
+        "title": "Bogʻlanish",
+        "text": "Maʼlumotlaringiz boʻyicha savollar uchun Yordam boʻlimidagi qoʻllab-quvvatlash chatiga yozing."
+      }
+    }
+  },
+  "phoneBanner": {
+    "title": "Telefon raqamingizni ulashing",
+    "send": "Telegram orqali yuborish",
+    "type": "Raqamni kiritish"
   }
 }

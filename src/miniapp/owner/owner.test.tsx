@@ -1,8 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { OwnerStadium, OwnerStats, PricingRule, ScheduleDay } from '../api/owner'
-import { tashkentToUtc } from '../../shared/format'
-import { tashkentToday } from '../stadiums/dates'
+import { tashkentToUtc, tashkentToday } from '../../shared/format'
 import { jsonResponse, makeUser, stubApi } from '../test/api'
 import { makeBooking } from '../test/bookings'
 import { readySession, renderApp } from '../test/renderApp'
@@ -66,6 +65,15 @@ const stats: OwnerStats = {
   averageRating: 4.83,
   reviewCount: 128,
   occupancyPercent: 64.4,
+  todayPaidInApp: 100_000_000,
+  todayPaidInCash: 82_000_000,
+  todayOutstanding: 30_000_000,
+  weekPaidInApp: 500_000_000,
+  weekPaidInCash: 300_000_000,
+  weekOutstanding: 60_000_000,
+  monthPaidInApp: 2_000_000_000,
+  monthPaidInCash: 1_000_000_000,
+  monthOutstanding: 90_000_000,
 }
 
 function stub(overrides: Record<string, unknown> = {}) {
@@ -94,6 +102,116 @@ describe('Ega rejimi — Jadval', () => {
     expect(within(list).getAllByText('Boʻsh')).toHaveLength(2)
     expect(screen.getByText('Band: 1/14 · Tushum: 150 000 soʻm')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Ega rejimi boʻlimlari' })).toBeInTheDocument()
+  })
+
+  const SUGGESTED = 'GET /api/owner/stadiums/s1/bookings/suggested-price'
+
+  it('walk-in form: Uzbek labels, the owner price prefilled, unpaid by default', async () => {
+    const api = stub({
+      [SUGGESTED]: { price: 15_000_000 },
+      'POST /api/owner/stadiums/s1/bookings': makeBooking(),
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    const price = within(sheet).getByLabelText('Narx, soʻm')
+    await vi.waitFor(() => expect(price).toHaveValue('150000'))
+    expect(api.queries(SUGGESTED)[0]).toEqual({ startsAt: tashkentToUtc(TODAY, '19:00') })
+    expect(within(sheet).getByText('Toʻlov holati')).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlanmagan', pressed: true })).toBeVisible()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlangan', pressed: false })).toBeVisible()
+
+    const phone = within(sheet).getByLabelText('Mijoz telefoni')
+    fireEvent.change(phone, { target: { value: '901112233' } })
+    expect(phone).toHaveValue('+998 90 111 22 33')
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Bron qoʻshildi')).toBeInTheDocument()
+    expect(api.calls('POST /api/owner/stadiums/s1/bookings')[0]).toMatchObject({
+      clientPhone: '+998901112233',
+      price: 15_000_000,
+      paymentStatus: 'unpaid',
+    })
+  })
+
+  it('walk-in form: an edited price and "Toʻlangan" are what is sent', async () => {
+    const api = stub({
+      [SUGGESTED]: { price: 15_000_000 },
+      'POST /api/owner/stadiums/s1/bookings': makeBooking(),
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    const price = within(sheet).getByLabelText('Narx, soʻm')
+    await vi.waitFor(() => expect(price).toHaveValue('150000'))
+    fireEvent.change(price, { target: { value: '120000' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Toʻlangan' }))
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.change(within(sheet).getByLabelText('Mijoz telefoni'), {
+      target: { value: '+998901112233' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    await screen.findByText('Bron qoʻshildi')
+    expect(api.calls('POST /api/owner/stadiums/s1/bookings')[0]).toMatchObject({
+      price: 12_000_000,
+      paymentStatus: 'paid',
+    })
+  })
+
+  it('walk-in form: an incomplete phone cannot be saved', async () => {
+    stub({ [SUGGESTED]: { price: 15_000_000 } })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[0] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    await vi.waitFor(() => expect(within(sheet).getByLabelText('Narx, soʻm')).toHaveValue('150000'))
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.change(within(sheet).getByLabelText('Mijoz telefoni'), { target: { value: '9011' } })
+    expect(within(sheet).getByRole('button', { name: 'Saqlash' })).toBeDisabled()
+  })
+
+  it('a walk-in in the Jadval: "Qoʻlda" and its status, "Toʻlandi" to switch it', async () => {
+    const walkIn = makeBooking({
+      id: 'w1',
+      stadiumId: 's1',
+      startsAt: `${TODAY}T15:00:00Z`,
+      endsAt: `${TODAY}T16:00:00Z`,
+      clientName: 'Aziz',
+      isWalkin: true,
+      paymentStatus: 'unpaid',
+      paidAmount: 0,
+      remainingAmount: 15_000_000,
+    })
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [walkIn] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Aziz/ })
+    expect(within(row).getByText('Qoʻlda')).toBeInTheDocument()
+    expect(within(row).getByText('Toʻlanmagan')).toBeInTheDocument()
+    fireEvent.click(row)
+    const sheet = await screen.findByRole('dialog')
+    expect(within(sheet).getByRole('button', { name: 'Toʻlandi' })).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Toʻlanmadi' })).toBeInTheDocument()
+  })
+
+  it('a paid walk-in shows "Toʻlangan"', async () => {
+    const walkIn = makeBooking({
+      id: 'w1',
+      stadiumId: 's1',
+      startsAt: `${TODAY}T15:00:00Z`,
+      endsAt: `${TODAY}T16:00:00Z`,
+      clientName: 'Aziz',
+      isWalkin: true,
+      paymentStatus: 'paid',
+      paidInCash: 15_000_000,
+      remainingAmount: 0,
+      remainderMark: 'cash_received',
+    })
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [walkIn] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Aziz/ })
+    expect(within(row).getByText('Toʻlangan')).toBeInTheDocument()
   })
 
   it('adds a walk-in for a free hour', async () => {
@@ -135,6 +253,49 @@ describe('Ega rejimi — Jadval', () => {
     fireEvent.click(within(confirm).getByRole('button', { name: 'Bronni bekor qilish' }))
     expect(await screen.findByText('Bron bekor qilindi')).toBeInTheDocument()
     expect(api.calls('DELETE /api/owner/bookings/b1')).toHaveLength(1)
+  })
+
+  it('labels every amount, in order: own price, player price, app, cash, owner share', async () => {
+    const own = makeBooking({
+      ...day.bookings[0],
+      id: 'b1',
+      ownerPrice: 14_000_000,
+      price: 15_000_000,
+      paidInApp: 5_000_000,
+      remainingAmount: 10_000_000,
+      ownerReceives: 4_500_000,
+    })
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [own] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Sardor aka/ })
+    expect(row).toHaveTextContent('Sizning narxingiz140 000 soʻm')
+    expect(row).not.toHaveTextContent('150 000 soʻm')
+    fireEvent.click(row)
+    const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
+    const rows = Array.from(sheet.querySelectorAll('dl > div')).map((d) => d.textContent)
+    expect(rows).toEqual([
+      'Sizning narxingiz140 000 soʻm',
+      'Oʻyinchi toʻlaydi150 000 soʻm',
+      'Ilovada toʻlangan50 000 soʻm',
+      'Naqd olinadi100 000 soʻm',
+      'Sizga tushadi45 000 soʻm',
+    ])
+  })
+
+  it('never shows the player price as the owner’s when ownerPrice is missing', async () => {
+    const bare = makeBooking({ ...day.bookings[0], id: 'b1', price: 15_000_000 })
+    delete (bare as { ownerPrice?: number }).ownerPrice
+    stub({ 'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [bare] }] })
+    renderApp('/owner', { session })
+    const row = await screen.findByRole('button', { name: /Sardor aka/ })
+    expect(row).not.toHaveTextContent('150 000 soʻm')
+    fireEvent.click(row)
+    const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
+    expect(within(sheet).queryByText('Sizning narxingiz')).not.toBeInTheDocument()
+    // The player price appears only under its own label.
+    expect(within(sheet).getByText('Oʻyinchi toʻlaydi').closest('div')).toHaveTextContent(
+      '150 000 soʻm',
+    )
   })
 
   it('shows the error state and retries', async () => {
@@ -228,7 +389,7 @@ describe('Ega rejimi — Maydonim', () => {
     renderApp('/owner/stadium?stadium=s2', { session })
     expect(await screen.findByText('Rad etildi')).toBeInTheDocument()
     expect(screen.getByText('Sabab: Rasmlar yetarli emas')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Ish vaqti/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Ish vaqti/ })).toBeEnabled()
   })
 
   it('lists pricing rules in owner prices and adds one in soʻm', async () => {
@@ -261,64 +422,53 @@ describe('Ega rejimi — Maydonim', () => {
     ])
   })
 
-  it('edits the details with the save button in the bottom bar', async () => {
-    const api = stub({ 'PUT /api/owner/stadiums/s1': { id: 's1' } })
-    renderApp('/owner/stadium/s1/info', { session })
-    const name = await screen.findByLabelText('Maydon nomi')
-    fireEvent.change(name, { target: { value: 'Bunyodkor Arena 2' } })
-    fireEvent.change(screen.getByLabelText('Manzil'), { target: { value: 'Bunyodkor 1' } })
-    const save = screen.getByRole('button', { name: 'Saqlash' })
-    expect(save.closest('main')).toBeNull()
-    fireEvent.click(save)
+  it('edits the base price in soʻm and sends tiyin', async () => {
+    const api = stub({
+      'GET /api/owner/stadiums/s1/pricing': [],
+      'PUT /api/owner/stadiums/s1': { ...approved, pricePerHour: 16_000_000 },
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Asosiy narxni oʻzgartirish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Asosiy narx' })
+    const field = within(sheet).getByLabelText('Soatlik narx (soʻm)')
+    expect(field).toHaveValue('150000')
+    fireEvent.change(field, { target: { value: '' } })
+    expect(within(sheet).getByRole('button', { name: 'Saqlash' })).toBeDisabled()
+    fireEvent.change(field, { target: { value: '160 000' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
     expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
-    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([
-      {
-        name: 'Bunyodkor Arena 2',
-        address: 'Bunyodkor 1',
-        district: 'Chilonzor',
-        format: '7x7',
-        surfaceType: 'artificial',
-      },
+    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([{ pricePerHour: 16_000_000 }])
+  })
+
+  it('edits a pricing rule with PUT, prefilled from the rule', async () => {
+    const rule: PricingRule = {
+      id: 'r1',
+      stadiumId: 's1',
+      dayOfWeek: 4,
+      startTime: '18:00:00',
+      endTime: '23:00:00',
+      pricePerHour: 18_000_000,
+      isActive: true,
+    }
+    const api = stub({
+      'GET /api/owner/stadiums/s1/pricing': [rule],
+      'PUT /api/owner/stadiums/s1/pricing/r1': { ...rule, pricePerHour: 19_000_000 },
+    })
+    renderApp('/owner/stadium/s1/prices', { session })
+    fireEvent.click(await screen.findByRole('button', { name: 'Juma, 18:00–23:00 — oʻzgartirish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Narx qoidasini oʻzgartirish' })
+    expect(within(sheet).getByLabelText('Kun')).toHaveValue('4')
+    expect(within(sheet).getByLabelText('Soatlik narx (soʻm)')).toHaveValue('180000')
+    fireEvent.change(within(sheet).getByLabelText('Soatlik narx (soʻm)'), {
+      target: { value: '190000' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Narx qoidasi saqlandi')).toBeInTheDocument()
+    expect(api.calls('PUT /api/owner/stadiums/s1/pricing/r1')).toEqual([
+      { dayOfWeek: 4, startTime: '18:00:00', endTime: '23:00:00', pricePerHour: 19_000_000 },
     ])
   })
 
-  it('sets the minimum booking amount in soʻm and sends tiyin', async () => {
-    const api = stub({
-      'GET /api/owner/stadiums/s1/pricing': [],
-      'PUT /api/owner/stadiums/s1': { id: 's1' },
-    })
-    renderApp('/owner/stadium/s1/prices', { session })
-    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
-    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
-    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
-      target: { value: '50 000' },
-    })
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
-    expect(await screen.findByText('Saqlandi')).toBeInTheDocument()
-    expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([{ minBookingAmount: 5_000_000 }])
-  })
-
-  it('explains the API floor when the minimum is too low', async () => {
-    stub({
-      'GET /api/owner/stadiums/s1/pricing': [],
-      'PUT /api/owner/stadiums/s1': jsonResponse(
-        400,
-        null,
-        "minBookingAmount must be at least 50000 tiyin (500 so'm)",
-      ),
-    })
-    renderApp('/owner/stadium/s1/prices', { session })
-    fireEvent.click(await screen.findByRole('button', { name: 'Oldindan toʻlov' }))
-    const sheet = await screen.findByRole('dialog', { name: 'Oldindan toʻlov' })
-    fireEvent.change(within(sheet).getByLabelText('Eng kam toʻlov (soʻm)'), {
-      target: { value: '100' },
-    })
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
-    expect(await within(sheet).findByRole('alert')).toHaveTextContent('kamida 500 soʻm')
-  })
-})
-
-describe('Ega rejimi — Hisobot', () => {
   it('shows the totals per period from the stats', async () => {
     stub()
     renderApp('/owner/report', { session })
@@ -328,39 +478,5 @@ describe('Ega rejimi — Hisobot', () => {
     expect(screen.getByText('64%')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Hafta' }))
     expect(screen.getByText('40')).toBeInTheDocument()
-  })
-})
-
-describe('Maydon qoʻshish', () => {
-  it('walks the steps and submits the stadium in tiyin', async () => {
-    const api = stub({ 'POST /api/owner/stadiums': { id: 's9' } })
-    renderApp('/owner/new', { session })
-    fireEvent.change(await screen.findByLabelText('Maydon nomi'), {
-      target: { value: 'Yangi Arena' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.change(screen.getByLabelText('Manzil'), { target: { value: 'Navoiy 5' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.change(screen.getByLabelText('Soatlik narx (soʻm)'), { target: { value: '150 000' } })
-    fireEvent.change(screen.getByLabelText('Oldindan toʻlov (soʻm, ixtiyoriy)'), {
-      target: { value: '50000' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Davom etish' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Tekshiruvga yuborish' }))
-    expect(await screen.findByText('Maydon tekshiruvga yuborildi')).toBeInTheDocument()
-    expect(api.calls('POST /api/owner/stadiums')).toEqual([
-      {
-        name: 'Yangi Arena',
-        address: 'Navoiy 5',
-        format: '5x5',
-        surfaceType: 'artificial',
-        openTime: '08:00:00',
-        closeTime: '23:00:00',
-        pricePerHour: 15_000_000,
-        minBookingAmount: 5_000_000,
-        cancellationHours: 24,
-      },
-    ])
   })
 })

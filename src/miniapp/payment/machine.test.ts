@@ -67,6 +67,49 @@ describe('runPayment', () => {
     expect(getBooking).not.toHaveBeenCalled()
   })
 
+  it.each(['INSUFFICIENT_FUNDS', 'CARD_EXPIRED', 'CARD_DECLINED'])(
+    'declineReason %s on the booking -> declined with it, no payments lookup',
+    async (reason) => {
+      const b = makeBooking({
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        paidAmount: 0,
+        paymentState: 'declined',
+        declineReason: reason,
+      })
+      expect(await run(() => Promise.resolve(b))).toEqual({
+        kind: 'declined',
+        booking: b,
+        reason,
+      })
+      expect(getMyPayments).not.toHaveBeenCalled()
+      expect(getBooking).not.toHaveBeenCalled()
+    },
+  )
+
+  it('paymentState failed (no refusal) -> declined without a reason, no lookup', async () => {
+    const b = makeBooking({ status: 'pending', paymentStatus: 'unpaid', paymentState: 'failed' })
+    expect(await run(() => Promise.resolve(b))).toEqual({ kind: 'declined', booking: b })
+    expect(getMyPayments).not.toHaveBeenCalled()
+  })
+
+  it('paymentState processing -> polls the booking only, then its declineReason', async () => {
+    const processing = makeBooking({
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      paymentState: 'processing',
+    })
+    const refused = { ...processing, paymentState: 'declined', declineReason: 'INSUFFICIENT_FUNDS' }
+    getBooking.mockResolvedValueOnce(processing).mockResolvedValueOnce(refused)
+    expect(await run(() => Promise.resolve(processing))).toEqual({
+      kind: 'declined',
+      booking: refused,
+      reason: 'INSUFFICIENT_FUNDS',
+    })
+    expect(getBooking).toHaveBeenCalledTimes(2)
+    expect(getMyPayments).not.toHaveBeenCalled()
+  })
+
   it('another booking failed row is ignored', async () => {
     getMyPayments.mockResolvedValue(page(makePayment({ bookingId: 'other', status: 'failed' })))
     getBooking.mockResolvedValue(unpaid)
@@ -122,6 +165,47 @@ describe('runPayment', () => {
   it('409 -> slotTaken for a booking', async () => {
     const s = await run(() => Promise.reject(new ApiError('x', 409)))
     expect(s).toEqual({ kind: 'slotTaken' })
+  })
+
+  describe('R28: paying a pending booking again', () => {
+    const conflict = (code: string) => () =>
+      Promise.reject(new ApiError('conflict', 409, code)) as Promise<B>
+    const retry = (charge: () => Promise<B>, booking: B = unpaid) =>
+      runPayment(charge, { paymentType: 'booking', sleep, booking })
+
+    it('BOOKING_EXPIRED -> holdExpired, nothing looked up', async () => {
+      expect(await retry(conflict('BOOKING_EXPIRED'))).toEqual({ kind: 'holdExpired' })
+      expect(getBooking).not.toHaveBeenCalled()
+    })
+
+    it('BOOKING_NOT_PENDING and the booking was confirmed meanwhile -> success', async () => {
+      const confirmed = makeBooking({ id: unpaid.id })
+      getBooking.mockResolvedValue(confirmed)
+      expect(await retry(conflict('BOOKING_NOT_PENDING'))).toEqual({
+        kind: 'success',
+        booking: confirmed,
+      })
+    })
+
+    it('BOOKING_NOT_PENDING and the booking expired -> holdExpired', async () => {
+      getBooking.mockResolvedValue({ ...unpaid, status: 'expired' })
+      expect(await retry(conflict('BOOKING_NOT_PENDING'))).toEqual({ kind: 'holdExpired' })
+    })
+
+    it('PAYMENT_IN_PROGRESS -> waits for that payment, never charges again', async () => {
+      const processing = { ...unpaid, paymentState: 'processing' }
+      getBooking
+        .mockResolvedValueOnce(processing)
+        .mockResolvedValueOnce(makeBooking({ id: unpaid.id }))
+      const charge = vi.fn(conflict('PAYMENT_IN_PROGRESS'))
+      expect((await retry(charge)).kind).toBe('success')
+      expect(charge).toHaveBeenCalledTimes(1)
+      expect(getMyPayments).not.toHaveBeenCalled()
+    })
+
+    it('a 409 code without the booking at hand is not a taken slot', async () => {
+      expect(await run(conflict('BOOKING_NOT_PENDING'))).toEqual({ kind: 'holdExpired' })
+    })
   })
 
   it('409 on remainder -> failed(errors.conflict)', async () => {

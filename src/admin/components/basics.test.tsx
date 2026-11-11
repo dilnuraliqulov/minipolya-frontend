@@ -27,7 +27,7 @@ describe('Button', () => {
     rerender(<Button variant="secondary">x</Button>)
     expect(screen.getByRole('button')).toHaveClass('border-border', 'bg-background')
     rerender(<Button variant="danger-outline">x</Button>)
-    expect(screen.getByRole('button')).toHaveClass('border-danger', 'text-danger')
+    expect(screen.getByRole('button')).toHaveClass('border-danger-text', 'text-danger-text')
     rerender(<Button variant="text">x</Button>)
     expect(screen.getByRole('button')).toHaveClass('text-link')
   })
@@ -47,7 +47,7 @@ describe('Button', () => {
 describe('StatusBadge', () => {
   it('maps tones to status tokens', () => {
     render(<StatusBadge tone="warning">Kutilmoqda</StatusBadge>)
-    expect(screen.getByText('Kutilmoqda')).toHaveClass('bg-warning-soft', 'text-warning')
+    expect(screen.getByText('Kutilmoqda')).toHaveClass('bg-warning-soft', 'text-warning-text')
   })
 })
 
@@ -58,7 +58,7 @@ describe('KpiCard', () => {
     render(<KpiCard label="Bugungi bronlar" value="47" delta={{ trend: 'up', text: '+12%' }} />)
     expect(screen.getByText('Bugungi bronlar')).toBeInTheDocument()
     expect(screen.getByText('47')).toBeInTheDocument()
-    expect(screen.getByText('+12%').parentElement).toHaveClass('text-success')
+    expect(screen.getByText('+12%').parentElement).toHaveClass('text-success-text')
   })
 
   it('shows the unit apart from the value, smaller and secondary', () => {

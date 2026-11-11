@@ -248,6 +248,7 @@ export function StadiumsPage() {
       ) : (
         <div className="flex flex-col">
           <DataTable
+            label="Maydonlar"
             columns={columns(tab, extras)}
             rows={data?.content}
             rowKey={(row) => row.id}

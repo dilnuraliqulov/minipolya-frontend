@@ -4,12 +4,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { errorMessage } from '../api/errors'
-import { isAvailable } from '../api/missing'
 import {
   deleteTeam,
   MY_TEAMS_KEY,
   removeTeamMember,
-  TEAM_INVITE,
   teamKey,
   type Team,
   type TeamDetail,
@@ -29,6 +27,7 @@ import {
 } from '../components'
 import { TabScreen } from '../layout/TabScreen'
 import { ChallengeBoard } from './ChallengeBoard'
+import { InviteSheet } from './InviteSheet'
 import { useMyTeams, useTeam } from './queries'
 import { TeamAvatar } from './TeamAvatar'
 
@@ -123,6 +122,7 @@ function TeamContent({ team }: { team: TeamDetail }) {
   const { t } = useTranslation()
   const me = useLoginUser()
   const isLeader = team.leaderId === me.id
+  const [inviting, setInviting] = useState(false)
   const [acting, setActing] = useState<TeamMember | null>(null)
   const [removing, setRemoving] = useState<TeamMember | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -172,11 +172,10 @@ function TeamContent({ team }: { team: TeamDetail }) {
             ))}
           </ul>
         </Card>
-        <Button variant="secondary" icon={Share2} disabled={!isAvailable(TEAM_INVITE)}>
-          {t('team.invite')}
-        </Button>
-        {!isAvailable(TEAM_INVITE) && (
-          <p className="text-center text-xs text-secondary">{t('common.soon')}</p>
+        {isLeader && (
+          <Button variant="secondary" icon={Share2} onClick={() => setInviting(true)}>
+            {t('team.invite')}
+          </Button>
         )}
       </section>
 
@@ -184,6 +183,15 @@ function TeamContent({ team }: { team: TeamDetail }) {
         <Button variant="danger-outline" onClick={() => setDeleting(true)}>
           {t('team.delete')}
         </Button>
+      )}
+
+      {isLeader && (
+        <InviteSheet
+          teamId={team.id}
+          teamName={team.name}
+          open={inviting}
+          onClose={() => setInviting(false)}
+        />
       )}
 
       <BottomSheet

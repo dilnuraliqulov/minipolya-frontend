@@ -9,6 +9,7 @@ const settings = {
   casualGameServiceFee: 500_000,
   cardFeeBps: 150,
   paymentRoundingStep: 10_000,
+  defaultMinBookingAmount: 5_000_000,
   updatedAt: '2026-10-22T11:12:00Z',
 }
 
@@ -50,7 +51,35 @@ function field(name: string) {
 describe('Sozlamalar', () => {
   useAdminTestSetup()
 
-  it('shows the four settings in percent and so’m with a preview under each', async () => {
+  it('shows fees that are not whole so’m exactly, and saves them without rounding', async () => {
+    const { requests } = mockBackend({
+      ...base,
+      '/api/admin/settings': [
+        200,
+        { ...settings, teamGamePlatformFee: 12_345, paymentRoundingStep: 50 },
+      ],
+      'PUT /api/admin/settings': [200, { ...settings, updatedAt: '2026-10-23T00:00:00Z' }],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('123,45')
+    expect(field('Yaxlitlash qadami')).toHaveValue('0,5')
+    expect(screen.getByText("Har bir jamoadan: 123,45 so'm")).toBeInTheDocument()
+    // Retyping the same value is not a change.
+    fireEvent.change(field('Platforma haqi'), { target: { value: '123,450' } })
+    expect(screen.queryByRole('region', { name: 'Saqlanmagan oʻzgarishlar' })).toBeNull()
+    fireEvent.change(field('Xizmat haqi'), { target: { value: '5 000,07' } })
+    const bar = screen.getByRole('region', { name: 'Saqlanmagan oʻzgarishlar' })
+    fireEvent.click(within(bar).getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    await waitFor(() =>
+      expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+        casualGameServiceFee: 500_007,
+      }),
+    )
+  })
+
+  it('shows the five settings in percent and so’m with a preview under each', async () => {
     mockBackend({ ...base })
     signIn()
     renderAt('/sozlamalar')
@@ -61,6 +90,7 @@ describe('Sozlamalar', () => {
     expect(screen.queryByLabelText('Komissiya')).not.toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
       'Jamoa vs jamoa oʻyinlari',
+      'Standart minimal toʻlov',
       'Doʻstlar bilan oʻyinlar',
       'Karta komissiyasi',
       'Narxni yaxlitlash',
@@ -173,8 +203,50 @@ describe('Sozlamalar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
     expect(
-      await screen.findByText("Qadam 1 so'mdan 10 000 so'mgacha boʻlishi kerak"),
+      await screen.findByText("Qadam 0,01 so'mdan 10 000 so'mgacha boʻlishi kerak"),
     ).toBeInTheDocument()
+  })
+
+  it('saves the default minimum in tiyin and shows the T2 errors with the amounts in the form', async () => {
+    let reply: [number, unknown] = [200, { ...settings, defaultMinBookingAmount: 6_000_000 }]
+    const { requests } = mockBackend({ ...base, 'PUT /api/admin/settings': () => reply })
+    signIn()
+    renderAt('/sozlamalar')
+    const minimum = await screen.findByLabelText('Minimal toʻlov')
+    expect(minimum).toHaveValue('50 000')
+    expect(screen.getByText("Maydonning oʻz summasi boʻlmasa: 50 000 so'm")).toBeInTheDocument()
+    fireEvent.change(minimum, { target: { value: '60 000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(await screen.findByText('Sozlamalar saqlandi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'PUT')?.body).toEqual({
+      defaultMinBookingAmount: 6_000_000,
+    })
+
+    reply = [
+      400,
+      "defaultMinBookingAmount must be more than the team game platform fee (25 000 so'm)",
+    ]
+    fireEvent.change(field('Minimal toʻlov'), { target: { value: '20 000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText("Platforma haqidan (25 000 so'm) koʻp boʻlishi kerak"),
+    ).toBeInTheDocument()
+    expect(field('Minimal toʻlov')).toHaveAttribute('aria-invalid', 'true')
+
+    reply = [
+      400,
+      "teamGamePlatformFee must be less than the default minimum booking amount (50 000 so'm)",
+    ]
+    fireEvent.change(field('Minimal toʻlov'), { target: { value: '50 000' } })
+    fireEvent.change(field('Platforma haqi'), { target: { value: '60 000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Saqlash' }))
+    expect(
+      await screen.findByText("Standart minimal toʻlovdan (50 000 so'm) kam boʻlishi kerak"),
+    ).toBeInTheDocument()
+    expect(field('Platforma haqi')).toHaveAttribute('aria-invalid', 'true')
   })
 
   it('"Bekor qilish" puts the saved values back', async () => {

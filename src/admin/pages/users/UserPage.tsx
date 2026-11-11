@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { Ban, LockOpen, Phone } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { isApiError } from '../../../shared/api'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDate, formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { BOOKINGS_LIST, listBookings, type AdminBooking } from '../../api/bookings'
@@ -98,6 +98,7 @@ function BookingsTab({ userId }: { userId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <DataTable
+        label="Bronlar"
         columns={BOOKING_COLUMNS}
         rows={data?.content}
         rowKey={(b) => b.id}
@@ -150,6 +151,7 @@ function StadiumsTab({ ownerId }: { ownerId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <DataTable
+        label="Maydonlar"
         columns={STADIUM_COLUMNS}
         rows={data?.content}
         rowKey={(s) => s.id}
@@ -248,7 +250,7 @@ function SummaryCard({ user }: { user: AdminUser }) {
         >
           <Phone size={18} aria-hidden className="text-link" />
           <span className="flex-1 text-lg font-semibold text-primary">{user.phone}</span>
-          <span className="text-sm text-link">Qoʻngʻiroq qilish</span>
+          <span className="text-sm text-link-text">Qoʻngʻiroq qilish</span>
         </a>
       )}
       <dl className="flex flex-col gap-2.5">
@@ -263,6 +265,16 @@ function SummaryCard({ user }: { user: AdminUser }) {
       </dl>
     </section>
   )
+}
+
+/** The block/unblock request answers 400 for two different reasons; tell them apart. */
+function blockErrorText(error: unknown): string {
+  if (!isApiError(error) || error.status !== 400)
+    return 'Amalni bajarib boʻlmadi. Qayta urinib koʻring'
+  if (error.message === API_MESSAGES.cannotBlockSelf) return 'Oʻzingizni bloklay olmaysiz'
+  if (error.message === API_MESSAGES.userReasonTooLong)
+    return 'Sabab 500 ta belgidan oshmasligi kerak'
+  return 'Soʻrov notoʻgʻri. Maʼlumotlarni tekshirib qayta urinib koʻring'
 }
 
 function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
@@ -285,11 +297,7 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
     },
     onError: (error) => {
       setDialog(null)
-      toast.error(
-        isApiError(error) && error.status === 400
-          ? 'Oʻzingizni bloklay olmaysiz'
-          : 'Amalni bajarib boʻlmadi. Qayta urinib koʻring',
-      )
+      toast.error(blockErrorText(error))
     },
   })
 
@@ -300,7 +308,7 @@ function BlockPanel({ user, own }: { user: AdminUser; own: boolean }) {
     const last = block.data
     body = (
       <>
-        <p className="text-base font-semibold text-danger">Bloklangan</p>
+        <p className="text-base font-semibold text-danger-text">Bloklangan</p>
         {block.isPending ? (
           <Skeleton className="h-14 w-full rounded-md" />
         ) : last ? (

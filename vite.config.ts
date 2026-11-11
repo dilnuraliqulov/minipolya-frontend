@@ -1,10 +1,12 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 
 const root = import.meta.dirname
+const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as { version: string }
 
 /**
  * Serves admin.html for every /admin/* route, so the admin panel's router
@@ -32,10 +34,18 @@ function adminRoutes(): Plugin {
 
 export default defineConfig({
   plugins: [adminRoutes(), react(), tailwindcss()],
+  // The app version shown in Profil and Ilova haqida.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   server: {
     // In dev the apps call /api on their own origin and Vite forwards it to the
     // local backend, so no CORS is needed. Production builds use VITE_API_URL.
     proxy: { '/api': 'http://localhost:8080' },
+    // Tunnels for testing inside Telegram (Cloudflare quick tunnels, ngrok).
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app'],
+  },
+  preview: {
+    proxy: { '/api': 'http://localhost:8080' },
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app'],
   },
   build: {
     rollupOptions: {
@@ -49,5 +59,19 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     testTimeout: 15_000,
+    // Each worker runs a jsdom page app; one per core (12 here) starves an 8 GB
+    // machine until router-level waits time out. A quarter of the cores is enough.
+    maxWorkers: '25%',
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/test/**',
+        'src/admin/test-utils.tsx',
+        'src/**/*.d.ts',
+      ],
+      reporter: ['text-summary', 'json-summary', 'html'],
+    },
   },
 })

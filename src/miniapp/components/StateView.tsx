@@ -29,7 +29,7 @@ export function StateView({
       <div
         className={cx(
           'flex size-16 items-center justify-center rounded-full',
-          tone === 'danger' ? 'bg-danger-soft text-danger' : 'bg-surface text-secondary',
+          tone === 'danger' ? 'bg-danger-soft text-danger-text' : 'bg-surface text-secondary',
         )}
       >
         <Icon size={28} aria-hidden />

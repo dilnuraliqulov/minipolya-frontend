@@ -41,7 +41,7 @@ export function ErrorState({
       className={cx('flex flex-col items-center justify-center gap-2 py-18 text-center', className)}
     >
       <span className="mb-1 flex size-12 items-center justify-center rounded-full bg-danger-soft">
-        <TriangleAlert size={22} aria-hidden className="text-danger" />
+        <TriangleAlert size={22} aria-hidden className="text-danger-text" />
       </span>
       <p className="text-md font-medium text-primary">{title}</p>
       <p className="text-sm text-secondary">{description}</p>

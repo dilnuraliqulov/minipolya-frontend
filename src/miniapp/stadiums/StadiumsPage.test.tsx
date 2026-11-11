@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, stubApi } from '../test/api'
 import { renderApp } from '../test/renderApp'
 import { makeStadium, page } from '../test/stadiums'
-import { nextDate, tashkentToday } from './dates'
+import { dayTitle, nextDate } from './dates'
+import { tashkentToday } from '../../shared/format'
 
 beforeEach(() => {
   localStorage.clear()
@@ -15,7 +16,43 @@ afterEach(() => {
 })
 
 const LIST = 'GET /api/stadiums'
-const BANNER = 'Toʻlov xavfsiz · Bekor qilish shartlari aniq'
+const BANNER = 'Tasdiqlangan maydonlar'
+
+describe('Bosh sahifa — free hours for the chosen date (E)', () => {
+  it('asks for the date in the strip and shows that day on the card', async () => {
+    const api = stubApi({ [LIST]: page([makeStadium({ freeSlotsCount: 5 })]) })
+    renderApp('/')
+    const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    expect(within(card).getByText('Bugun 5 ta boʻsh vaqt')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: /Ertaga/ }))
+    await vi.waitFor(() =>
+      expect(api.queries(LIST).map((q) => q.date)).toContain(nextDate(tashkentToday())),
+    )
+    expect(await screen.findByText('Ertaga 5 ta boʻsh vaqt')).toBeInTheDocument()
+  })
+
+  it('says so when the day is full, and the card still opens', async () => {
+    stubApi({ [LIST]: page([makeStadium({ freeSlotsCount: 0 })]) })
+    const { router } = renderApp('/')
+    const card = await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    fireEvent.click(within(card).getByText('Bu kunga boʻsh vaqt yoʻq'))
+    expect(router.state.location.pathname).toBe('/stadiums/' + makeStadium().id)
+  })
+
+  it('the calendar button picks a date for the strip and the list', async () => {
+    const api = stubApi({ [LIST]: page([makeStadium()]) })
+    renderApp('/')
+    await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    fireEvent.click(screen.getByRole('button', { name: 'Sanani tanlash' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Sanani tanlang' })
+    const tomorrow = nextDate(tashkentToday())
+    fireEvent.click(within(sheet).getByRole('button', { name: dayTitle(tomorrow) }))
+    await vi.waitFor(() => expect(api.queries(LIST).map((q) => q.date)).toContain(tomorrow))
+    expect(screen.getByRole('radio', { name: /Ertaga/ })).toBeChecked()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
 
 describe('Bosh sahifa — the stadium list', () => {
   it('loads the first page and shows each card with ONE price per hour', async () => {
@@ -31,23 +68,22 @@ describe('Bosh sahifa — the stadium list', () => {
     // One price, nothing else that looks like money.
     expect(within(card).getAllByText(/\d{3} \d{3}/)).toHaveLength(1)
     expect(within(card).queryByText(/komissiya|karta toʻlovi|xizmat haqi/i)).not.toBeInTheDocument()
-    expect(api.queries(LIST)).toEqual([{ page: '0', size: '20' }])
+    expect(api.queries(LIST)).toEqual([{ page: '0', size: '20', date: tashkentToday() }])
   })
 
-  it('renders search, date strip, banner, count header and compact cards', async () => {
+  it('renders search, date strip, why-us carousel, count header and compact cards', async () => {
     stubApi({ [LIST]: page([makeStadium()], { totalElements: 12 }) })
     renderApp('/')
     await screen.findByRole('article', { name: 'Bunyodkor Arena' })
 
     expect(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Filtrlar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sanani tanlash' })).toBeInTheDocument()
     const strip = screen.getByRole('radiogroup', { name: 'Sana' })
     expect(within(strip).getByRole('radio', { name: /Bugun/ })).toBeChecked()
     expect(within(strip).getByRole('radio', { name: /Ertaga/ })).not.toBeChecked()
     expect(screen.getByText(BANNER)).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Barcha maydonlar · 12' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Maydonlar · 12' })).toBeInTheDocument()
     // The format chips live in the Filters sheet now.
     expect(screen.queryByRole('button', { name: '7×7' })).not.toBeInTheDocument()
   })
@@ -55,10 +91,10 @@ describe('Bosh sahifa — the stadium list', () => {
   it('shows no count in the header until the server answers', async () => {
     stubApi({ [LIST]: page([makeStadium()], { totalElements: 12 }) })
     renderApp('/')
-    const title = screen.getByRole('heading', { level: 2, name: 'Barcha maydonlar' })
+    const title = screen.getByRole('heading', { level: 2, name: 'Maydonlar' })
     expect(title).not.toHaveTextContent('·')
     await screen.findByRole('article', { name: 'Bunyodkor Arena' })
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Barcha maydonlar · 12')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Maydonlar · 12')
   })
 
   it('banner dismissal is remembered', async () => {
@@ -67,7 +103,7 @@ describe('Bosh sahifa — the stadium list', () => {
     await screen.findByRole('article')
     fireEvent.click(screen.getByRole('button', { name: 'Yopish' }))
     expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
-    expect(localStorage.getItem('minipolya-miniapp-banner-hidden')).toBe('1')
+    expect(localStorage.getItem('minipolya-miniapp-why-us-hidden')).toBe('1')
     first.unmount()
 
     renderApp('/')
@@ -85,7 +121,7 @@ describe('Bosh sahifa — the stadium list', () => {
     expect(router.state.location.search).toBe(`?date=${nextDate(tashkentToday())}`)
   })
 
-  it('requests nothing for nearby/free-on-date', async () => {
+  it('sends no sort or free-only filter', async () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article')
@@ -94,7 +130,6 @@ describe('Bosh sahifa — the stadium list', () => {
     expect(api.queries(LIST).length).toBeGreaterThan(0)
     for (const query of api.queries(LIST)) {
       expect(query).not.toHaveProperty('sort')
-      expect(query).not.toHaveProperty('date')
       expect(query).not.toHaveProperty('freeOnly')
     }
   })
@@ -116,7 +151,12 @@ describe('Bosh sahifa — the stadium list', () => {
       target: { value: 'Olmazor' },
     })
     await vi.waitFor(() =>
-      expect(api.queries(LIST)).toContainEqual({ q: 'Olmazor', page: '0', size: '20' }),
+      expect(api.queries(LIST)).toContainEqual({
+        q: 'Olmazor',
+        page: '0',
+        size: '20',
+        date: tashkentToday(),
+      }),
     )
   })
 
@@ -124,7 +164,7 @@ describe('Bosh sahifa — the stadium list', () => {
     stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article')
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Barcha maydonlar · 1')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Maydonlar · 1')
     fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' }), {
       target: { value: 'Olmazor' },
     })
@@ -147,7 +187,12 @@ describe('Bosh sahifa — the stadium list', () => {
     fireEvent.click(within(sheet).getByRole('button', { name: '7×7' }))
     fireEvent.click(within(sheet).getByRole('button', { name: 'Qoʻllash' }))
     await vi.waitFor(() =>
-      expect(api.queries(LIST).at(-1)).toEqual({ format: '7x7', page: '0', size: '20' }),
+      expect(api.queries(LIST).at(-1)).toEqual({
+        format: '7x7',
+        page: '0',
+        size: '20',
+        date: tashkentToday(),
+      }),
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
@@ -157,7 +202,9 @@ describe('Bosh sahifa — the stadium list', () => {
       'true',
     )
     fireEvent.click(within(sheet).getByRole('button', { name: 'Filtrlarni tozalash' }))
-    await vi.waitFor(() => expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20' }))
+    await vi.waitFor(() =>
+      expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20', date: tashkentToday() }),
+    )
   })
 
   it('sends the price limit in tiyin and the district from "Tumanni tanlang"', async () => {
@@ -188,6 +235,7 @@ describe('Bosh sahifa — the stadium list', () => {
         district: 'Mirzo Ulugʻbek',
         page: '0',
         size: '20',
+        date: tashkentToday(),
       }),
     )
   })
@@ -207,7 +255,9 @@ describe('Bosh sahifa — the stadium list', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Filtrlar' }))
     expect(screen.getByRole('button', { name: /Tuman.*Yunusobod/ })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Filtrlarni tozalash' }))
-    await vi.waitFor(() => expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20' }))
+    await vi.waitFor(() =>
+      expect(api.queries(LIST).at(-1)).toEqual({ page: '0', size: '20', date: tashkentToday() }),
+    )
   })
 
   it('shows the cover photo, and no photo block when the stadium has none', async () => {
@@ -252,7 +302,7 @@ describe('Bosh sahifa — the stadium list', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Yana koʻrsatish' }))
     expect(await screen.findByRole('article', { name: 'Paxtakor Mini Arena' })).toBeInTheDocument()
     expect(screen.getByRole('article', { name: 'Bunyodkor Arena' })).toBeInTheDocument()
-    expect(api.queries(LIST).at(-1)).toEqual({ page: '1', size: '20' })
+    expect(api.queries(LIST).at(-1)).toEqual({ page: '1', size: '20', date: tashkentToday() })
     expect(screen.queryByRole('button', { name: 'Yana koʻrsatish' })).not.toBeInTheDocument()
   })
 

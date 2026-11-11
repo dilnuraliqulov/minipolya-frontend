@@ -5,7 +5,6 @@ import { formatSom, formatSomParts } from '../../../shared/format'
 import {
   BOOKINGS_LIST,
   GAMES_LIST,
-  getStadiumOptions,
   listBookings,
   listGames,
   type AdminBooking,
@@ -25,6 +24,8 @@ import { formatSlot } from '../../format'
 import { usePageHeader } from '../../layout/pageHeader'
 import { BOOKING_STATUSES, GAME_STATUSES, gameStatus, statusOf } from '../../statuses'
 import { BookingPanel, GamePanel } from './panels'
+import { RemainderChip } from './RemainderChip'
+import { StadiumFilter } from '../stadiums/StadiumFilter'
 
 const PAGE_SIZE = 20
 
@@ -81,8 +82,11 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
     width: 170,
     // Both in the player's terms: `paidAmount` is what was paid of `price`.
     render: (b) => (
-      <span className="whitespace-nowrap" title="Toʻlangan / oʻyinchi narxi, soʻm">
-        {som(b.paidAmount)} / {som(b.price)}
+      <span className="flex flex-col items-start gap-1">
+        <span className="whitespace-nowrap" title="Toʻlangan / oʻyinchi narxi, soʻm">
+          {som(b.paidAmount)} / {som(b.price)}
+        </span>
+        <RemainderChip booking={b} />
       </span>
     ),
   },
@@ -207,12 +211,6 @@ export function BookingsPage() {
     placeholderData: keepPreviousData,
     enabled: tab === 'games' && mode !== 'soon',
   })
-  const stadiums = useQuery({
-    queryKey: ['admin', 'stadiums', 'options'],
-    queryFn: getStadiumOptions,
-    staleTime: 5 * 60_000,
-    enabled: mode !== 'soon',
-  })
   const list = tab === 'bookings' ? bookings : games
   usePageHeader({
     title: tab === 'games' ? 'Oʻyinlar' : 'Bronlar',
@@ -272,13 +270,8 @@ export function BookingsPage() {
                 tab === 'bookings' ? 'Mijoz ismi yoki telefon boʻyicha' : 'Jamoa yoki ism boʻyicha'
               }
             />
-            <FilterSelect
-              label="Maydon"
+            <StadiumFilter
               value={stadium}
-              options={[
-                { value: '', label: 'Barchasi' },
-                ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
-              ]}
               onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
             />
             <FilterSelect
@@ -296,6 +289,7 @@ export function BookingsPage() {
           <div className="flex flex-col gap-2">
             {tab === 'bookings' ? (
               <DataTable
+                label="Bronlar"
                 columns={BOOKING_COLUMNS}
                 rows={bookings.data?.content}
                 rowKey={(b) => b.id}
@@ -308,6 +302,7 @@ export function BookingsPage() {
               />
             ) : (
               <DataTable
+                label="Oʻyinlar"
                 columns={GAME_COLUMNS}
                 rows={games.data?.content}
                 rowKey={(g) => g.id}

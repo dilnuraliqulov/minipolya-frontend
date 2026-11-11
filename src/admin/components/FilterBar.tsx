@@ -77,13 +77,13 @@ export function FilterSelect({
       className={cx(
         field,
         'relative pr-2.5 pl-3',
-        selected ? 'border-accent bg-accent-soft text-accent' : 'border-border text-primary',
+        selected ? 'border-accent bg-accent-soft text-link-text' : 'border-border text-primary',
       )}
     >
       <span className="whitespace-nowrap">
         {label}: {options.find((option) => option.value === value)?.label}
       </span>
-      <ChevronDown size={16} aria-hidden className={selected ? 'text-accent' : 'text-secondary'} />
+      <ChevronDown size={16} aria-hidden className={selected ? 'text-link' : 'text-secondary'} />
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}

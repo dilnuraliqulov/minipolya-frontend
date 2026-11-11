@@ -18,9 +18,15 @@ import {
   PAYMENT_METHODS,
   PAYMENT_PROVIDERS,
   PAYMENT_STATUSES,
+  REMAINDER_MARKS,
   STADIUM_STATUSES,
   SURFACE_TYPES,
 } from '../statuses'
+import { AMENITY_LABELS, CONTRACT_LABELS, LEGAL_TYPE_LABELS } from '../pages/stadiums/labels'
+
+const PAYMENT_STATUS_LABELS = Object.fromEntries(
+  Object.entries(PAYMENT_STATUSES).map(([k, v]) => [k, v.label]),
+)
 
 export const ACTION_LABELS: Record<string, string> = {
   // Admin
@@ -36,6 +42,9 @@ export const ACTION_LABELS: Record<string, string> = {
   USER_BLOCKED: 'Foydalanuvchini blokladi',
   USER_UNBLOCKED: 'Foydalanuvchini blokdan chiqardi',
   USER_ROLE_CHANGED: 'Foydalanuvchi rolini oʻzgartirdi',
+  OWNER_LEGAL_DETAILS_CHANGED: 'Egasining yuridik maʼlumotlarini oʻzgartirdi',
+  STADIUM_NOTE_ADDED: 'Maydonga ichki izoh qoʻshdi',
+  STADIUM_BOOKING_TERMS_CHANGED: 'Bron shartlarini oʻzgartirdi',
   SETTINGS_CHANGED: 'Sozlamalarni oʻzgartirdi',
   PLATFORM_SETTINGS_UPDATED: 'Sozlamalarni oʻzgartirdi',
   // Owner
@@ -50,6 +59,8 @@ export const ACTION_LABELS: Record<string, string> = {
   PROMOTION_DEACTIVATED: 'Aksiyani toʻxtatdi',
   MANUAL_BOOKING_CREATED: 'Qoʻlda bron qoʻshdi',
   CASH_RECEIVED: 'Naqd pulni qabul qildi',
+  REMAINDER_NOT_PAID: 'Qoldiqni toʻlanmadi deb belgiladi',
+  REMAINDER_MARK_UNDONE: 'Qoldiq belgisini bekor qildi',
   BOOKING_CANCELLED_BY_OWNER: 'Bronni bekor qildi',
   // Player
   BOOKING_CREATED: 'Bron qildi',
@@ -63,6 +74,8 @@ export const ACTION_LABELS: Record<string, string> = {
   GAME_CANCELLED: 'Oʻyinni bekor qildi',
   GAME_OPPONENT_LEFT: 'Raqib sifatida chiqib ketdi',
   GAME_REMAINDER_PAID: 'Oʻyin qoldigʻini toʻladi',
+  PROFILE_UPDATED: 'Profilini yangiladi',
+  PHONE_SHARED_VIA_BOT: 'Telefon raqamini bot orqali yubordi',
   // System
   BOOKING_CONFIRMED: 'Bron tasdiqlandi',
   BOOKING_EXPIRED: 'Bron muddati oʻtdi',
@@ -138,6 +151,7 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
     ),
   },
   paidAmount: { label: 'Toʻlangan', kind: 'money' },
+  remainderMark: { label: 'Qoldiq belgisi', kind: 'enum', values: REMAINDER_MARKS },
   price: { label: 'Narx', kind: 'money' },
   totalPrice: { label: 'Umumiy narx', kind: 'money' },
   amount: { label: 'Summa', kind: 'money' },
@@ -182,12 +196,47 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   casualGameServiceFee: { label: 'Doʻstlar bilan oʻyin: xizmat haqi', kind: 'money' },
   cardFeeBps: { label: 'Karta komissiyasi', kind: 'bps' },
   paymentRoundingStep: { label: 'Narxni yaxlitlash', kind: 'money' },
+  defaultMinBookingAmount: { label: 'Standart minimal toʻlov', kind: 'money' },
+  // A team of a team game (T10), logged as `teamA.<field>` / `teamB.<field>`.
+  remainderStatus: {
+    label: 'Qoldiq holati',
+    kind: 'enum',
+    values: { unpaid: 'Toʻlanmagan', paid: 'Toʻlangan' },
+  },
+  remainingAmount: { label: 'Qolgan summa', kind: 'money' },
+  cashAmount: { label: 'Naqd summa', kind: 'money' },
+  cardAmount: { label: 'Karta orqali', kind: 'money' },
+  cashPaymentStatus: { label: 'Naqd toʻlov holati', kind: 'enum', values: PAYMENT_STATUS_LABELS },
+  statusReason: { label: 'Sabab', kind: 'text' },
+  failureReason: { label: 'Xato sababi', kind: 'text' },
+  originalStatus: { label: 'Avvalgi holat', kind: 'enum', values: PAYMENT_STATUS_LABELS },
+  refundedManually: { label: 'Qoʻlda qaytarilgan', kind: 'bool' },
+  noteId: { label: 'Izoh', kind: 'id' },
+  // PROFILE_UPDATED / PHONE_SHARED_VIA_BOT (the phone number itself is never logged).
+  firstName: { label: 'Ism', kind: 'text' },
+  lastName: { label: 'Familiya', kind: 'text' },
+  language: {
+    label: 'Til',
+    kind: 'enum',
+    values: { uz: 'Oʻzbekcha', ru: 'Ruscha', en: 'Inglizcha' },
+  },
+  phoneChanged: { label: 'Telefon oʻzgardi', kind: 'bool' },
+  // OWNER_LEGAL_DETAILS_CHANGED: the legal-details snapshot.
+  legalType: { label: 'Yuridik shakl', kind: 'enum', values: LEGAL_TYPE_LABELS },
+  tin: { label: 'STIR / JShShIR', kind: 'text' },
+  atmosContractStatus: {
+    label: 'ATMOS shartnomasi',
+    kind: 'enum',
+    values: Object.fromEntries(Object.entries(CONTRACT_LABELS).map(([k, v]) => [k, v.label])),
+  },
+  atmosRecipientId: { label: 'ATMOS qabul qiluvchi ID', kind: 'text' },
   // The stadium snapshot (owner edits).
   address: { label: 'Manzil', kind: 'text' },
   latitude: { label: 'Kenglik', kind: 'text' },
   longitude: { label: 'Uzunlik', kind: 'text' },
   phone: { label: 'Telefon', kind: 'text' },
-  description: { label: 'Tavsif', kind: 'text' },
+  description: { label: 'Qoʻshimcha maʼlumot', kind: 'text' },
+  landmark: { label: 'Moʻljal', kind: 'text' },
   format: { label: 'Format', kind: 'text' },
   surfaceType: { label: 'Qoplama', kind: 'enum', values: SURFACE_TYPES },
   openTime: { label: 'Ochilish vaqti', kind: 'time' },
@@ -195,14 +244,9 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   minBookingAmount: { label: 'Minimal toʻlov', kind: 'money' },
   cancellationHours: { label: 'Bekor qilish muddati', kind: 'hours' },
   photos: { label: 'Rasmlar', kind: 'list' },
-  'amenities.parking': AMENITY('Avtoturargoh'),
-  'amenities.lighting': AMENITY('Yoritish'),
-  'amenities.showers': AMENITY('Dush'),
-  'amenities.lockerRoom': AMENITY('Kiyinish xonasi'),
-  'amenities.wifi': AMENITY('Wi-Fi'),
-  'amenities.cafe': AMENITY('Kafe'),
-  'amenities.equipmentRental': AMENITY('Jihoz ijarasi'),
-  'amenities.tribune': AMENITY('Tribuna'),
+  ...Object.fromEntries(
+    Object.entries(AMENITY_LABELS).map(([key, label]) => [`amenities.${key}`, AMENITY(label)]),
+  ),
 }
 
 const DAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
@@ -219,7 +263,20 @@ export function actionLabel(code: string): string {
   return ACTION_LABELS[code] ?? code
 }
 
+/** `teamA.remainderMark` → side A and `remainderMark` (T10 team-game audit fields). */
+const TEAM_FIELD = /^team([AB]).(.+)$/
+
+function specOf(field: string): FieldLabel | undefined {
+  const team = TEAM_FIELD.exec(field)
+  return FIELD_LABELS[team ? team[2]! : field]
+}
+
 export function fieldLabel(field: string): string {
+  const team = TEAM_FIELD.exec(field)
+  if (team) {
+    const inner = FIELD_LABELS[team[2]!]
+    return inner ? `${team[1]} jamoa: ${inner.label}` : field
+  }
   return FIELD_LABELS[field]?.label ?? field
 }
 
@@ -230,7 +287,7 @@ export function formatAuditValue(
   entityType?: string,
 ): string {
   if (value === null || value === undefined || value === '') return '—'
-  const spec = FIELD_LABELS[field]
+  const spec = specOf(field)
   if (Array.isArray(value)) {
     if (field === 'photos') return `${formatNumber(value.length)} ta rasm`
     return value.length ? value.map((v) => formatAuditValue('', v)).join(', ') : '—'
@@ -287,6 +344,8 @@ export const TIMELINE_LABELS: Record<string, string> = {
   BOOKING_CONFIRMED: 'Tasdiqlandi',
   BOOKING_REMAINDER_PAID: 'Qoldiq toʻlandi',
   CASH_RECEIVED: 'Ega naqd pulni qabul qildi',
+  REMAINDER_NOT_PAID: 'Toʻlanmadi deb belgilandi',
+  REMAINDER_MARK_UNDONE: 'Belgi bekor qilindi',
   BOOKING_COMPLETED: 'Yakunlandi',
   BOOKING_EXPIRED: 'Muddati oʻtdi',
   BOOKING_CANCELLED_BY_USER: 'Mijoz bekor qildi',

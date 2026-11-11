@@ -119,7 +119,7 @@ describe('Foydalanuvchilar — list', () => {
     backend()
     signIn()
     renderAt('/foydalanuvchilar')
-    const table = await screen.findByRole('table')
+    const table = await screen.findByRole('grid')
     expect(await within(table).findByText('Bekzod Rahmatov')).toBeInTheDocument()
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -130,11 +130,11 @@ describe('Foydalanuvchilar — list', () => {
     expect(within(row).getByText('Maydon egasi')).toBeInTheDocument()
     expect(within(row).getByText('+998 93 210 98 76')).toBeInTheDocument()
     expect(within(row).getByText('10.10.2026')).toBeInTheDocument()
-    expect(within(row).getByText('Faol')).toHaveClass('text-success')
+    expect(within(row).getByText('Faol')).toHaveClass('text-success-text')
     const adminRow = within(table).getByText(admin.name).closest('tr')!
-    expect(within(adminRow).getByText('Admin')).toHaveClass('text-link')
+    expect(within(adminRow).getByText('Admin')).toHaveClass('text-link-text')
     const blockedRow = within(table).getByText('Umid Karimov').closest('tr')!
-    expect(within(blockedRow).getByText('Bloklangan')).toHaveClass('text-danger')
+    expect(within(blockedRow).getByText('Bloklangan')).toHaveClass('text-danger-text')
     expect(within(blockedRow).getByText('Oʻyinchi')).toBeInTheDocument()
   })
 
@@ -292,6 +292,40 @@ describe('Foydalanuvchilar — detail', () => {
       isBlocked: true,
       reason: 'Firibgarlik: soxta toʻlovlar',
     })
+  })
+
+  it('caps the reason at 500 characters and counts them', async () => {
+    backend()
+    signIn()
+    renderAt('/foydalanuvchilar/p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Foydalanuvchini bloklash' })
+    const field = within(dialog).getByRole('textbox')
+    expect(field).toHaveAttribute('maxLength', '500')
+    expect(within(dialog).getByText('0 / 500')).toBeInTheDocument()
+    fireEvent.change(field, { target: { value: 'Firibgarlik' } })
+    expect(within(dialog).getByText('11 / 500')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['You cannot block yourself', 'Oʻzingizni bloklay olmaysiz'],
+    ['reason: reason must be at most 500 characters', 'Sabab 500 ta belgidan oshmasligi kerak'],
+    [
+      'isBlocked: must not be null',
+      'Soʻrov notoʻgʻri. Maʼlumotlarni tekshirib qayta urinib koʻring',
+    ],
+  ])('maps the 400 "%s" to its own message', async (message, shown) => {
+    backend({ 'PUT /api/admin/users/p1': [400, message] })
+    signIn()
+    renderAt('/foydalanuvchilar/p1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Bloklash' }))
+    const dialog = screen.getByRole('dialog', { name: 'Foydalanuvchini bloklash' })
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Firibgarlik' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Bloklash' }))
+    expect(await screen.findByText(shown)).toBeInTheDocument()
+    if (shown !== 'Oʻzingizni bloklay olmaysiz') {
+      expect(screen.queryByText('Oʻzingizni bloklay olmaysiz')).not.toBeInTheDocument()
+    }
   })
 
   it('shows who blocked a user, when and why, and unblocks', async () => {

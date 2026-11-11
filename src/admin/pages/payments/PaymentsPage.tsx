@@ -10,8 +10,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { formatSomParts } from '../../../shared/format'
-import { getStadiumOptions } from '../../api/bookings'
+import { formatSomParts, roundToWholeSom, tashkentToday } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
   getPaymentSummary,
@@ -33,18 +32,13 @@ import { Skeleton } from '../../components/Skeleton'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Tabs } from '../../components/Tabs'
 import { useDebounced } from '../../components/useDebounced'
-import {
-  formatLocalDate,
-  formatShortDateTime,
-  lastDays,
-  monthStart,
-  tashkentToday,
-} from '../../format'
+import { formatLocalDate, formatShortDateTime, lastDays, monthStart } from '../../format'
 import { usePageHeader } from '../../layout/pageHeader'
 import { useFailedRefunds } from '../../queries'
 import { PAYMENT_METHODS, PAYMENT_STATUSES, PAYMENT_TYPES, statusOf } from '../../statuses'
 import { money, shortTxn } from './format'
 import { CopyButton, PaymentPanel } from './PaymentPanel'
+import { StadiumFilter } from '../stadiums/StadiumFilter'
 
 const PAGE_SIZE = 20
 
@@ -84,6 +78,9 @@ function periodRange(period: Period, custom: DateRange): { from: string; to: str
   return { from: monthStart(today), to: today }
 }
 
+/** Whole so'm for the table, with a real minus; the exact figures are in the side panel. */
+const wholeSom = (tiyin: number) => formatSomParts(roundToWholeSom(tiyin)).amount.replace(/^-/, '−')
+
 const COLUMNS: Column<AdminPayment>[] = [
   {
     key: 'time',
@@ -115,7 +112,7 @@ const COLUMNS: Column<AdminPayment>[] = [
     header: 'Summa',
     width: 140,
     render: (p) => (
-      <span className={cx('whitespace-nowrap', p.amount < 0 && 'text-danger')}>
+      <span className={cx('whitespace-nowrap', p.amount < 0 && 'text-danger-text')}>
         {money(p.amount)}
       </span>
     ),
@@ -123,18 +120,19 @@ const COLUMNS: Column<AdminPayment>[] = [
   {
     key: 'split',
     header: 'Taqsimot',
-    width: 160,
+    width: 310,
     render: (p) =>
       p.method === 'cash' ? (
         <span className="text-secondary" title="Naqd pul toʻgʻridan-toʻgʻri egaga">
           —
         </span>
       ) : (
-        <span className="flex flex-col text-xs whitespace-nowrap">
-          <span>Egaga: {formatSomParts(p.ownerAmount).amount.replace(/^-/, '−')}</span>
-          <span className="text-secondary">
-            Platformaga: {formatSomParts(p.platformAmount).amount.replace(/^-/, '−')}
-          </span>
+        <span className="flex flex-wrap gap-x-1 text-xs [&>span]:whitespace-nowrap">
+          <span>Egaga: {wholeSom(p.ownerNet)}</span>
+          <span aria-hidden>·</span>
+          <span>Platformaga: {wholeSom(p.platformNet)}</span>
+          <span aria-hidden>·</span>
+          <span>ATMOS: {wholeSom(p.atmosFee)}</span>
         </span>
       ),
   },
@@ -209,7 +207,7 @@ function Summary({ from, to }: { from: string; to: string }) {
                   <span className="text-sm font-medium text-secondary">{parts.unit}</span>
                 </span>
               ) : summary.isError ? (
-                <span className="text-sm text-danger">Yuklab boʻlmadi</span>
+                <span className="text-sm text-danger-text">Yuklab boʻlmadi</span>
               ) : (
                 <Skeleton className="h-6 w-28" />
               )}
@@ -301,12 +299,6 @@ export function PaymentsPage() {
     queryKey: ['admin', 'payments', 'list', filters],
     queryFn: () => listPayments(filters),
     placeholderData: keepPreviousData,
-    enabled: mode !== 'soon',
-  })
-  const stadiums = useQuery({
-    queryKey: ['admin', 'stadiums', 'options'],
-    queryFn: getStadiumOptions,
-    staleTime: 5 * 60_000,
     enabled: mode !== 'soon',
   })
   usePageHeader({ count: list.data?.totalElements })
@@ -448,13 +440,8 @@ export function PaymentsPage() {
           ]}
           onChange={(value) => update({ [PARAMS.method]: value || undefined })}
         />
-        <FilterSelect
-          label="Maydon"
+        <StadiumFilter
           value={stadium}
-          options={[
-            { value: '', label: 'Barchasi' },
-            ...(stadiums.data ?? []).map((s) => ({ value: s.id, label: s.name })),
-          ]}
           onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
         />
         <DateRangePicker
@@ -465,6 +452,7 @@ export function PaymentsPage() {
 
       <div className="flex flex-col gap-2">
         <DataTable
+          label="Toʻlovlar"
           columns={COLUMNS}
           rows={list.data?.content}
           rowKey={(p) => p.id}

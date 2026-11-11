@@ -1,4 +1,5 @@
-import { Heart, Star } from 'lucide-react'
+import { mediaUrl } from '../../shared/api'
+import { Clock, Heart, Star } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatMoney } from '../format'
@@ -9,20 +10,30 @@ import { formatLabel, ratingLabel, surfaceLabel } from './labels'
 interface StadiumCardCompactProps {
   stadium: Stadium
   onOpen: () => void
+  /** The chosen day, already worded ("Bugun"): shows `freeSlotsCount` for it. */
+  day?: string
+  /** The list is still fetching that day's counts. */
+  dayLoading?: boolean
   /** The heart — from `isFavorited` on the list, always true on Sevimlilar. */
   favorite?: { favorited: boolean; onToggle: () => void; pending?: boolean }
 }
 
 /**
  * The design's Stadium Card Compact: photo with heart and rating chip, name, district · format · surface,
- * and ONE price per hour — the player price from the API — with "Band qilish".
+ * the free hours for the chosen day, and ONE price per hour — the player price from the API — with "Band qilish".
  */
-export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCompactProps) {
+export function StadiumCardCompact({
+  stadium,
+  day,
+  dayLoading,
+  onOpen,
+  favorite,
+}: StadiumCardCompactProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState(false)
-  const photo = stadium.coverPhotoUrl
+  const photo = stadium.coverPhotoUrl ? mediaUrl(stadium.coverPhotoUrl) : undefined
   const meta = [stadium.district, formatLabel(stadium.format), surfaceLabel(stadium.surfaceType, t)]
     .filter(Boolean)
     .join(' · ')
@@ -68,7 +79,7 @@ export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCom
             <span className="flex size-9 items-center justify-center rounded-full border border-on-accent/20 bg-image-overlay text-on-accent">
               <Heart
                 size={18}
-                className={favorite.favorited ? 'fill-danger text-danger' : undefined}
+                className={favorite.favorited ? 'fill-danger-text text-danger-text' : undefined}
                 aria-hidden
               />
             </span>
@@ -88,6 +99,9 @@ export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCom
           </button>
         </h3>
         <p className="truncate text-sm text-secondary">{meta}</p>
+        {day !== undefined && stadium.freeSlotsCount !== undefined && (
+          <FreeSlots count={stadium.freeSlotsCount} day={day} loading={dayLoading} />
+        )}
       </div>
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-baseline gap-1">
@@ -101,5 +115,18 @@ export function StadiumCardCompact({ stadium, onOpen, favorite }: StadiumCardCom
         </Button>
       </div>
     </article>
+  )
+}
+
+function FreeSlots({ count, day, loading }: { count: number; day: string; loading?: boolean }) {
+  const { t } = useTranslation()
+  if (loading) return <span className="mt-1 h-3 w-36 animate-pulse rounded-sm bg-skeleton" />
+  return count > 0 ? (
+    <p className="flex items-center gap-1.5 text-sm font-medium text-success-text">
+      <Clock size={14} className="shrink-0" aria-hidden />
+      {t('stadiums.freeSlots', { day, count })}
+    </p>
+  ) : (
+    <p className="text-sm text-secondary">{t('stadiums.noFreeSlots')}</p>
   )
 }

@@ -25,7 +25,7 @@ export function Input({ label, hint, error, trailing, className, id, ...rest }: 
         className={cx(
           'flex h-12 items-center gap-2 rounded-xl border bg-background px-4',
           'focus-within:border-accent',
-          error ? 'border-danger' : 'border-border',
+          error ? 'border-danger-text' : 'border-border',
         )}
       >
         <input
@@ -38,7 +38,7 @@ export function Input({ label, hint, error, trailing, className, id, ...rest }: 
         {trailing}
       </div>
       {note && (
-        <p id={noteId} className={cx('text-xs', error ? 'text-danger' : 'text-secondary')}>
+        <p id={noteId} className={cx('text-xs', error ? 'text-danger-text' : 'text-secondary')}>
           {note}
         </p>
       )}

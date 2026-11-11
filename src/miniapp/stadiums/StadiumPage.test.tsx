@@ -4,7 +4,8 @@ import { jsonResponse, stubApi } from '../test/api'
 import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
 import { renderApp } from '../test/renderApp'
 import { makeDetail, makeReview, page } from '../test/stadiums'
-import { nextDate, tashkentToday } from './dates'
+import { nextDate } from './dates'
+import { tashkentToday } from '../../shared/format'
 
 // Leaflet needs a real layout; the map itself is checked by eye.
 vi.mock('./StadiumMap', () => ({ StadiumMap: () => <div data-testid="map" /> }))
@@ -42,7 +43,8 @@ describe('Maydon — the stadium page', () => {
       await screen.findByRole('heading', { level: 2, name: 'Bunyodkor Arena' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Maydon' })).toBeInTheDocument()
-    expect(screen.getByText('Chilonzor tumani')).toBeInTheDocument()
+    // Under the name, and again in the location card.
+    expect(screen.getAllByText('Chilonzor tumani')).toHaveLength(2)
     expect(screen.getByText('7×7')).toBeInTheDocument()
     expect(screen.getByText('Sunʼiy gazon')).toBeInTheDocument()
     expect(screen.getByText('1/2')).toBeInTheDocument()
@@ -52,8 +54,11 @@ describe('Maydon — the stadium page', () => {
       within(amenities)
         .getAllByRole('listitem')
         .map((item) => item.textContent),
-    ).toEqual(['Yoritish', 'Kiyinish xonasi', 'Avtoturargoh'])
-    expect(screen.getByTestId('map')).toBeInTheDocument()
+    ).toEqual(['Avtoturargoh', 'Kiyinish xonasi', 'Hojatxona', 'Yoritish (kechki oʻyin)'])
+    // The interactive map waits for a tap: the key has a small daily limit.
+    expect(screen.queryByTestId('map')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Xaritani koʻrsatish' }))
+    expect(await screen.findByTestId('map')).toBeInTheDocument()
     expect(screen.getByText('Bunyodkor koʻchasi 12')).toBeInTheDocument()
     expect(
       screen.getByText(
@@ -79,13 +84,48 @@ describe('Maydon — the stadium page', () => {
     expect(await screen.findByText(/boshlanishiga 6 soat qolguncha/)).toBeInTheDocument()
   })
 
-  it('opens the map link from "Xaritada ochish"', async () => {
+  it('opens the pin in Yandex Maps and Google Maps through Telegram', async () => {
     const { webApp } = installFakeTelegram()
     stub()
     renderApp(`/stadiums/${ID}`)
-    fireEvent.click(await screen.findByRole('button', { name: /Xaritada ochish/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Yandex Mapsʼda ochish' }))
+    expect(webApp.openLink).toHaveBeenCalledWith('https://yandex.uz/maps/?pt=69.2,41.28&z=17&l=map')
+    fireEvent.click(screen.getByRole('button', { name: 'Google Mapsʼda ochish' }))
     expect(webApp.openLink).toHaveBeenCalledWith(
-      'https://www.openstreetmap.org/?mlat=41.28&mlon=69.2#map=17/41.28/69.2',
+      'https://www.google.com/maps/search/?api=1&query=41.28,69.2',
+    )
+    expect(screen.queryByRole('button', { name: /Xaritada ochish/ })).toBeNull()
+  })
+
+  it('opens the maps in a new tab outside Telegram', async () => {
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+    stub()
+    renderApp(`/stadiums/${ID}`)
+    fireEvent.click(await screen.findByRole('button', { name: 'Google Mapsʼda ochish' }))
+    expect(open).toHaveBeenCalledWith(
+      'https://www.google.com/maps/search/?api=1&query=41.28,69.2',
+      '_blank',
+      'noopener',
+    )
+  })
+
+  it('shows the landmark, and searches the address when there is no pin', async () => {
+    const { webApp } = installFakeTelegram()
+    stub({
+      [DETAIL]: makeDetail({
+        latitude: undefined,
+        longitude: undefined,
+        landmark: 'Novza metro bekati yonida',
+      }),
+    })
+    renderApp(`/stadiums/${ID}`)
+    expect(await screen.findByText('Novza metro bekati yonida')).toBeInTheDocument()
+    expect(screen.getByText('Moʻljal:')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Yandex Mapsʼda ochish' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Xaritada ochish/ }))
+    expect(webApp.openLink).toHaveBeenCalledWith(
+      expect.stringContaining('https://www.openstreetmap.org/search?query='),
     )
   })
 

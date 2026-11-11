@@ -1,9 +1,19 @@
-import { CalendarOff, Clock, FileText, Image, Plus, ShieldCheck, Tag } from 'lucide-react'
+import { mediaUrl } from '../../shared/api'
+import {
+  CalendarOff,
+  Clock,
+  FileText,
+  Image,
+  MessageSquare,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Tag,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { isAvailable } from '../api/missing'
-import { OWNER_STADIUM_DETAIL, type OwnerStadium } from '../api/owner'
+import type { OwnerStadium } from '../api/owner'
 import { Badge, Button, Card, ListRow, LogoMark, type BadgeTone } from '../components'
 import { formatMoney } from '../format'
 import { formatLabel, ratingLabel, surfaceLabel } from '../stadiums/labels'
@@ -42,7 +52,6 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
   ]
     .filter(Boolean)
     .join(' · ')
-  const soon = !isAvailable(OWNER_STADIUM_DETAIL)
   const base = `/owner/stadium/${stadium.id}`
 
   return (
@@ -51,7 +60,7 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
         <span className="flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface text-secondary">
           {stadium.coverPhotoUrl && !broken ? (
             <img
-              src={stadium.coverPhotoUrl}
+              src={mediaUrl(stadium.coverPhotoUrl)}
               alt=""
               width={72}
               height={72}
@@ -83,8 +92,8 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
           role="status"
           className={
             status.key === 'pending'
-              ? 'rounded-xl bg-warning-soft p-3 text-sm text-warning'
-              : 'rounded-xl bg-danger-soft p-3 text-sm text-danger'
+              ? 'rounded-xl bg-warning-soft p-3 text-sm text-warning-text'
+              : 'rounded-xl bg-danger-soft p-3 text-sm text-danger-text'
           }
         >
           <p>{t(`owner.banner.${status.key}`)}</p>
@@ -104,6 +113,12 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
           onClick={() => navigate(`${base}/info`)}
         />
         <ListRow
+          icon={Sparkles}
+          label={t('owner.section.facilities')}
+          sub={t('owner.section.facilitiesText')}
+          onClick={() => navigate(`${base}/facilities`)}
+        />
+        <ListRow
           icon={Tag}
           label={t('owner.section.prices')}
           sub={
@@ -120,25 +135,34 @@ function StadiumOverview({ stadium }: { stadium: OwnerStadium }) {
           onClick={() => navigate(`${base}/closures`)}
         />
         <ListRow
+          icon={MessageSquare}
+          label={t('owner.reviews.title')}
+          sub={
+            stadium.reviewCount
+              ? t('owner.reviews.count', { count: stadium.reviewCount })
+              : undefined
+          }
+          onClick={() => navigate(`${base}/reviews`)}
+        />
+        <ListRow
           icon={Clock}
           label={t('owner.section.hours')}
-          sub={soon ? t('common.soon') : undefined}
-          disabled={soon}
+          sub={t('owner.section.hoursText')}
+          onClick={() => navigate(`${base}/hours`)}
         />
         <ListRow
           icon={ShieldCheck}
           label={t('owner.section.terms')}
-          sub={soon ? t('common.soon') : undefined}
-          disabled={soon}
+          sub={t('owner.section.termsText')}
+          onClick={() => navigate(`${base}/terms`)}
         />
         <ListRow
           icon={Image}
           label={t('owner.section.photos')}
-          sub={soon ? t('common.soon') : undefined}
-          disabled={soon}
+          sub={t('owner.section.photosText')}
+          onClick={() => navigate(`${base}/photos`)}
         />
       </Card>
-      {soon && <p className="px-1 text-xs text-secondary">{t('owner.soonDetail')}</p>}
 
       <Button variant="ghost" icon={Plus} onClick={() => navigate('/owner/new')}>
         {t('owner.addStadium')}

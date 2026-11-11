@@ -45,7 +45,7 @@ admin.html            → admin panel entry
 src/
 ├── miniapp/          # Mini App only (players + owner mode)
 │   ├── main.tsx      #   entry: viewport, theme, session (in-memory JWT), API client, Query, i18n
-│   ├── App.tsx, routes.tsx  # router; screens later parts build are SoonTab / SoonScreen ("Tez orada")
+│   ├── App.tsx, routes.tsx  # router
 │   ├── index.css     #   Mini App palette (p3-* tokens) over the shared Tailwind setup
 │   ├── api/          #   endpoint types + calls; errors.ts = THE error → text mapping; missing.ts
 │   ├── auth/         #   session (initData login, re-login on 401, blocked), AuthGate screens
@@ -55,8 +55,9 @@ src/
 │   ├── cards/        #   Kartalarim, AddCardSheet (number → SMS), CardRow
 │   ├── components/   #   shared Mini App UI from the design's Components frames
 │   ├── games/        #   team game detail, chat, Oʻyinlarim games section, UnclearOutcome; status.ts = THE game status → badge mapping
-│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen, SoonTab / SoonScreen
-│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, prices, closures), Hisobot, Profil, add-stadium wizard
+│   ├── layout/       #   TabBar (player tabs, or owner tabs via props), TabScreen
+│   ├── map/          #   YandexMap (the one map component) + yandexMaps.ts (loader, API wrapper)
+│   ├── owner/        #   owner mode under /owner/*: Jadval, Maydonim (+ info, facilities, photos, prices, closures, read-only terms), Hisobot, Profil; wizard/ = Maydon qoʻshish (6 steps); stadiumRules.ts mirrors the backend StadiumRules
 │   ├── payment/      #   the payment state machine (runPayment / usePayment) and the hold countdown
 │   ├── profile/      #   Profil, Shaxsiy maʼlumotlar, language/theme sheets, profile setup + useProfileGate
 │   ├── splash.ts     #   hideSplash, useSplashDone, SplashDone (the inline splash in index.html)
@@ -82,7 +83,8 @@ src/
 ├── shared/           # used by both; imports from neither
 │   ├── api/          #   client, ApiError, message strings, token stores, query client
 │   ├── brand/        #   logoMark.ts, logo-mark.svg (LogoMark, LogoSpinner, favicon)
-│   ├── format/       #   formatSom, Tashkent date/time helpers
+│   ├── format/       #   formatSom, soʻm input ⇄ tiyin, Tashkent date/time helpers, tashkentToday
+│   ├── map/          #   mapLink (OSM), yandexMapsLink / googleMapsLink, parseMapLink, isInUzbekistan
 │   └── theme/        #   tokens.css, index.css (Tailwind mapping), applyTheme
 └── test/setup.ts     # Vitest setup
 ```
@@ -114,9 +116,14 @@ plain browser; the page still renders and follows the computer's theme.
   Exact backend message strings live only in `shared/api/messages.ts`.
 - **Queries:** `createQueryClient()` — no retries on 4xx, at most 2 on
   5xx/network, mutations never retried.
-- **Money:** `formatSom(tiyin)` from `shared/format`. **Dates:** `formatDate`,
-  `formatTime`, `formatDateTime`, `formatTimeRange`, `toTashkentParts`
-  (`dayOfWeek` 0 = Monday) from `shared/format`.
+- **Money:** `formatSom(tiyin)` from `shared/format`; typed soʻm → tiyin with
+  `somToTiyin` (whole soʻm) or `somInputToTiyin` / `tiyinToSomInput` (up to two
+  decimals, no rounding). **Dates:** `formatDate`, `formatTime`,
+  `formatDateTime`, `formatTimeRange`, `toTashkentParts` (`dayOfWeek` 0 =
+  Monday), `tashkentToday` from `shared/format`. **Map links:** `mapLink`,
+  `yandexMapsLink`, `googleMapsLink` and `parseMapLink` (a pasted Google / Yandex
+  link → coordinates) from `shared/map`. **Uploads with progress:**
+  `uploadWithProgress` (XHR, same base URL and token) from `shared/api`.
 - **Endpoint types** go next to the feature that uses them, not in `shared/api`.
 - **JWT claims:** `readJwtClaims` / `isJwtExpired` from `shared/api` — for
   client decisions only (skip an expired token, notice role changes); the
@@ -169,8 +176,8 @@ restyle per page.
   parameter**, so a page either sorts what it has, or leaves columns
   unsortable.
 - Admin pages: add the item to `MENU` in `layout/menu.ts` (route, sidebar and
-  breadcrumbs follow), then add its page to `PAGES` in `routes.tsx` (until then
-  it shows `ComingSoonPage`). Detail pages go in `detailRoutes` and set their
+  breadcrumbs follow), then add its page to `PAGES` in `routes.tsx` (a menu item
+  without a page throws at startup). Detail pages go in `detailRoutes` and set their
   own title, crumbs and status badge with `usePageHeader`.
 - Filters, tabs and the open side panel live in the URL (`useSearchParams`), so
   a filtered view or one booking can be linked to.
@@ -360,7 +367,15 @@ encrypted and the content is meaningless as bytes.
   | `text-primary`, `text-secondary` | `text`, `text-secondary` | **text colours** (not brand) |
   | `bg-accent`, `bg-accent-soft`, `text-on-accent` | `accent`, `accent-soft`, white | brand |
   | `text-link` | `link` | links and accent icons (#60A5FA in dark) |
-  | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status |
+  | `success`, `warning`, `danger` (+ `-soft`), `neutral-soft` | same | status fills |
+  | `text-success-text`, `text-warning-text`, `text-danger-text` (also `border-`/`fill-`) | `success-text` … | status **text, icons, borders** — never the bright fills |
+  | `text-link-text` | `link-text` | link-coloured text on `bg-accent-soft` |
+  | `bg-success-fill`, `bg-danger-fill` | same | fills under white text |
+
+  Every pair is checked for WCAG AA (4.5:1 text, 3:1 icons/boundaries) in
+  light and dark by `src/shared/theme/contrast.test.ts`; add a pair there when
+  a new combination appears. `text-secondary` is darkened from the design's
+  #6B7280 to #5B6270 for AA on surface.
 
   Type scale `text-2xs` 11 · `xs` 12 · `sm` 13 · `base` 14 · `md` 15 · `lg` 16
   · `xl` 17 · `2xl` 20 · `3xl` 22 · `4xl` 24 · `5xl` 30 · `6xl` 32 px;
@@ -421,8 +436,8 @@ Rules for everything under `src/miniapp`. Every later part follows them.
 **Real data only.** Use only endpoints and fields that exist in the backend
 (`docs/api-reference.md`, and the DTOs in `../minipolyaBackend` when in
 doubt). Never sample data, never a stand-in record. When something is
-missing: show "Tez orada" (`SoonScreen` / a disabled control with a "Tez
-orada" note) or hide it, request nothing, and add a full contract to
+missing: show "Tez orada" (a `common.soon` note / a disabled control with a
+"Tez orada" note) or hide it, request nothing, and add a full contract to
 `docs/backend-requests.md` plus its line to `src/miniapp/api/missing.ts`
 (`MISSING_ENDPOINTS`, same pattern as the admin's). The API function is
 written against the requested contract behind `isAvailable(...)`.
@@ -531,6 +546,36 @@ lists. Only a declined card may be retried with another card.
 `AddCardSheet`'s state and reach the API through plain calls — never
 `useMutation` (its variables sit in the mutation cache), a query key, a log
 or storage. A test walks the caches and spies on console and storage.
+
+## Maps (Mini App)
+
+The Mini App's maps are the **Yandex Maps JavaScript API v3**, through the one
+component `src/miniapp/map/YandexMap.tsx` (stadium page, owner location picker,
+the wizard's review step; `map/onlyYandex.test.ts` fails on any other route to
+Leaflet). The admin panel keeps Leaflet.
+
+- **Key:** `VITE_YANDEX_MAPS_API_KEY` (public, like every `VITE_` value). In the
+  Yandex developer cabinet **restrict it by HTTP Referer to our domains** (the
+  production Mini App domain, plus `localhost` for development).
+- **Save the daily limit (100 requests/day on the free key):** the stadium page and the
+  team game / accept screens show `map/LocationCard.tsx` — a static card (address,
+  district, Moʻljal, "Yandex/Google Mapsʼda ochish" via Telegram `openLink`) — and mount
+  the Yandex map only after "Xaritani koʻrsatish". Only the owner's pickers (wizard,
+  Maʼlumotlar) and the wizard's review load it directly. Team game screens read the
+  pitch from `location` on the game detail and the challenge board.
+- **Lazy:** the script loads only when a screen with a map opens. With no key, or
+  if it fails to load, `YandexMap` falls back to Leaflet + OpenStreetMap, a lazy
+  chunk that is not downloaded otherwise. Leaflet stays in the Mini App only as
+  that fallback. In `npm run dev` the reason is logged once to the console
+  (`[YandexMap] using Leaflet: …`), never the key.
+- **Free-use rules:** never hide or cover Yandex's logo, copyright or "Open in
+  Yandex Maps" control; no map screenshots anywhere. **Never use Yandex search or
+  geocoding** to fill or save an address: save only the coordinates the owner
+  chose, and the owner types the address. "Ilova haqida" links to the Yandex Maps
+  terms of use.
+- **Language:** Yandex's v3 list has no Uzbek, so Uzbek users get `ru_RU`.
+- **Gestures:** until the map is tapped, one finger scrolls the page and two
+  fingers zoom. A tap outside locks it again.
 
 ## Secrets
 

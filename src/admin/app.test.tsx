@@ -98,7 +98,7 @@ describe('admin panel', () => {
     const payments = within(menu).getByRole('link', { name: /Toʻlovlar/ })
     expect(payments).toHaveAttribute('href', '/tolovlar')
     expect(within(payments).getByLabelText('1 ta muvaffaqiyatsiz qaytarish')).toHaveClass(
-      'bg-danger',
+      'bg-danger-fill',
     )
     // In the design's order: after Bronlar, before the divider and Jurnal.
     expect(

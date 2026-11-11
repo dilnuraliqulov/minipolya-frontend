@@ -1,4 +1,5 @@
 import { ChevronRight, Heart, Info, MapPinOff, MessageSquare, Star } from 'lucide-react'
+import { tashkentToday } from '../../shared/format'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
@@ -19,17 +20,16 @@ import {
 import { formatMoney } from '../format'
 import { useProfileGate } from '../profile/useProfileGate'
 import { useGoBack } from '../lib/useGoBack'
-import { openExternalLink } from '../telegram'
 import { BookingChoiceSheet } from '../teams/BookingChoiceSheet'
 import { useLedTeams } from '../teams/queries'
-import { bookingDates, dayTitle, isInBookingWindow, slotLabel, tashkentToday } from './dates'
+import { bookingDates, dayTitle, isInBookingWindow, slotLabel } from './dates'
 import { Gallery } from './Gallery'
-import { AMENITY_KEYS, formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
-import { mapLink } from './mapLink'
+import { presentFacilities } from './facilities'
+import { formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
 import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
 import { ReviewCard } from './ReviewCard'
+import { LocationCard } from '../map/LocationCard'
 import { DateStrip, SlotList } from './SlotPicker'
-import { StadiumMap } from './StadiumMap'
 
 /** Maydon: photos, info, amenities, map, cancellation rule, reviews, favourite. */
 export function StadiumPage() {
@@ -181,7 +181,11 @@ function FavoriteButton({ stadium }: { stadium: StadiumDetail }) {
       }
       className="flex size-11 items-center justify-center text-primary disabled:opacity-60"
     >
-      <Heart size={24} className={on ? 'fill-danger text-danger' : undefined} aria-hidden />
+      <Heart
+        size={24}
+        className={on ? 'fill-danger-text text-danger-text' : undefined}
+        aria-hidden
+      />
     </button>
   )
 }
@@ -231,20 +235,19 @@ function StadiumInfo({ stadium }: { stadium: StadiumDetail }) {
 
 function Amenities({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
-  const present = (Object.keys(AMENITY_KEYS) as Array<keyof typeof AMENITY_KEYS>).filter(
-    (key) => stadium.amenities[key],
-  )
+  const present = presentFacilities(stadium.amenities)
   if (present.length === 0) return null
   return (
     <section className="flex flex-col gap-3">
       <h3 className="text-title font-bold text-primary">{t('stadium.amenities')}</h3>
-      <ul aria-label={t('stadium.amenities')} className="flex flex-wrap gap-3">
-        {present.map((key) => (
+      <ul aria-label={t('stadium.amenities')} className="flex flex-wrap gap-2">
+        {present.map(({ key, icon: Icon, label }) => (
           <li
             key={key}
-            className="rounded-xl bg-surface px-4 py-3 text-sm font-medium text-primary"
+            className="flex items-center gap-2 rounded-xl bg-surface px-3 py-2.5 text-sm font-medium text-primary"
           >
-            {t(AMENITY_KEYS[key])}
+            <Icon size={16} className="shrink-0 text-link" aria-hidden />
+            {t(label)}
           </li>
         ))}
       </ul>
@@ -254,24 +257,7 @@ function Amenities({ stadium }: { stadium: StadiumDetail }) {
 
 function Address({ stadium }: { stadium: StadiumDetail }) {
   const { t } = useTranslation()
-  const hasCoordinates = stadium.latitude !== undefined && stadium.longitude !== undefined
-  return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-title font-bold text-primary">{t('stadium.address')}</h3>
-      {hasCoordinates && <StadiumMap latitude={stadium.latitude!} longitude={stadium.longitude!} />}
-      <div className="flex items-center gap-2">
-        <p className="min-w-0 flex-1 text-base text-primary">{stadium.address}</p>
-        <button
-          type="button"
-          onClick={() => openExternalLink(mapLink(stadium))}
-          className="flex min-h-11 shrink-0 items-center gap-1 text-base font-medium text-link"
-        >
-          {t('stadium.openMap')}
-          <ChevronRight size={14} aria-hidden />
-        </button>
-      </div>
-    </section>
-  )
+  return <LocationCard title={t('stadium.address')} location={stadium} />
 }
 
 const PREVIEW_COUNT = 2

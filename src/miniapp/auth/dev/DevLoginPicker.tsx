@@ -31,11 +31,11 @@ export default function DevLoginPicker() {
       <p className="text-sm font-semibold text-secondary">Dev sign-in</p>
       {users.isPending && <p className="text-sm text-secondary">Loading…</p>}
       {users.isError && (
-        <p className="text-sm text-danger">
+        <p className="text-sm text-danger-text">
           Could not load dev users (backend dev profile and key?)
         </p>
       )}
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm text-danger-text">{error}</p>}
       {users.data?.map((user) => (
         <button
           key={user.id}

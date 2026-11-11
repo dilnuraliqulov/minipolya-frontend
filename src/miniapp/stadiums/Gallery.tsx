@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../shared/api'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Photo } from '../api/stadiums'
@@ -33,7 +34,7 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
           ) : (
             <img
               key={photo.id}
-              src={photo.url}
+              src={mediaUrl(photo.url)}
               alt={t('stadium.photoAlt', { name, n: i + 1 })}
               className="size-full shrink-0 snap-center object-cover"
               loading={i === 0 ? 'eager' : 'lazy'}

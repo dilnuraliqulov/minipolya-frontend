@@ -1,8 +1,9 @@
 import { Calendar, ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { formatLocalDate, lastDays, monthStart, tashkentToday } from '../format'
+import { formatLocalDate, lastDays, monthStart } from '../format'
 import { Button } from './Button'
 import { cx } from './cx'
+import { tashkentToday } from '../../shared/format'
 
 /** Tashkent calendar days (`LocalDate` strings), both inclusive; either may be open. */
 export interface DateRange {
@@ -93,17 +94,13 @@ export function DateRangePicker({
           'flex h-9 items-center gap-2 rounded-md border pr-2.5 pl-3 text-base whitespace-nowrap',
           'focus-visible:outline-2 focus-visible:outline-accent',
           selected
-            ? 'border-accent bg-accent-soft text-accent'
+            ? 'border-accent bg-accent-soft text-link-text'
             : 'border-border bg-background text-primary',
         )}
       >
-        <Calendar size={16} aria-hidden className={selected ? 'text-accent' : 'text-secondary'} />
+        <Calendar size={16} aria-hidden className={selected ? 'text-link' : 'text-secondary'} />
         {rangeLabel(value) ?? `${label}: Barchasi`}
-        <ChevronDown
-          size={16}
-          aria-hidden
-          className={selected ? 'text-accent' : 'text-secondary'}
-        />
+        <ChevronDown size={16} aria-hidden className={selected ? 'text-link' : 'text-secondary'} />
       </button>
       {open && (
         <div
@@ -150,7 +147,7 @@ export function DateRangePicker({
             </label>
           </div>
           {invalid && (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-sm text-danger-text">
               Tugash sanasi boshlanishidan oldin boʻlishi mumkin emas
             </p>
           )}

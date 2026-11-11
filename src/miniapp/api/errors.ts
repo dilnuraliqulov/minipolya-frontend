@@ -22,12 +22,110 @@ export type ErrorMessageKey =
   | 'errors.tooMany'
   | 'errors.alreadyReviewed'
   | 'errors.reviewNotPlayed'
-  | 'errors.minimumTooLow'
+  | 'errors.imageType'
+  | 'errors.imageTooLarge'
+  | 'errors.nameLength'
+  | 'errors.addressLength'
+  | 'errors.districtRequired'
+  | 'errors.phoneFormat'
+  | 'errors.descriptionLength'
+  | 'errors.landmarkLength'
+  | 'errors.locationRequired'
+  | 'errors.outsideUzbekistan'
+  | 'errors.priceRange'
+  | 'errors.onTheHour'
+  | 'errors.hoursOrder'
+  | 'errors.tooManyPhotos'
+  | 'errors.fileTooLarge'
   | 'errors.cardDeclined'
+  | 'errors.insufficientFunds'
+  | 'errors.providerUnavailable'
+  | 'errors.cardNotSupported'
+  | 'errors.cardExpiryInvalid'
+  | 'errors.cardExpired'
+  | 'errors.smsCodeWrong'
+  | 'errors.smsCodeExpired'
+  | 'errors.smsResendTooEarly'
+  | 'errors.smsResendUnavailable'
+  | 'errors.bindingNotFound'
+  | 'errors.cardBindingFailed'
   | 'errors.tooLate'
   | 'errors.paymentConfirming'
+  | 'errors.alreadyPaid'
   | 'errors.paymentUnclear'
+  | 'errors.paymentPending'
+  | 'errors.hasOpponent'
+  | 'errors.onlyLeaderJoins'
+  | 'errors.notYourStadium'
+  | 'errors.nothingToMark'
+  | 'errors.markAdminOnly'
+  | 'errors.cardPaymentInFlight'
+  | 'errors.noMark'
+  | 'errors.gameCancelled'
+  | 'errors.gameNotConfirmed'
+  | 'errors.teamPaymentInFlight'
+  | 'errors.teamNoMark'
   | 'errors.unknown'
+
+/** Card-binding codes (POST /api/cards, /resend, /confirm) → their text. */
+const CARD_CODES: Record<string, ErrorMessageKey> = {
+  [API_CODES.cardNotSupported]: 'errors.cardNotSupported',
+  [API_CODES.cardExpiryInvalid]: 'errors.cardExpiryInvalid',
+  [API_CODES.cardExpired]: 'errors.cardExpired',
+  [API_CODES.smsCodeWrong]: 'errors.smsCodeWrong',
+  [API_CODES.smsCodeExpired]: 'errors.smsCodeExpired',
+  [API_CODES.smsResendTooEarly]: 'errors.smsResendTooEarly',
+  [API_CODES.smsResendUnavailable]: 'errors.smsResendUnavailable',
+  [API_CODES.bindingNotFound]: 'errors.bindingNotFound',
+  [API_CODES.cardBindingFailed]: 'errors.cardBindingFailed',
+  // R44: a refused card payment (team-game 400s). CARD_EXPIRED above reads the same.
+  [API_CODES.cardDeclined]: 'errors.cardDeclined',
+  [API_CODES.insufficientFunds]: 'errors.insufficientFunds',
+}
+
+/** The 400s of `POST` / `PUT /api/owner/stadiums` (backend `StadiumRules`) → their text. */
+const STADIUM_MESSAGES: Record<string, ErrorMessageKey> = {
+  [API_MESSAGES.stadiumNameLength]: 'errors.nameLength',
+  [API_MESSAGES.stadiumAddressLength]: 'errors.addressLength',
+  [API_MESSAGES.stadiumDistrictRequired]: 'errors.districtRequired',
+  [API_MESSAGES.invalidDistrict]: 'errors.districtRequired',
+  [API_MESSAGES.stadiumPhoneFormat]: 'errors.phoneFormat',
+  [API_MESSAGES.stadiumDescriptionLength]: 'errors.descriptionLength',
+  [API_MESSAGES.stadiumLandmarkLength]: 'errors.landmarkLength',
+  [API_MESSAGES.stadiumLocationRequired]: 'errors.locationRequired',
+  [API_MESSAGES.stadiumLocationPair]: 'errors.locationRequired',
+  [API_MESSAGES.stadiumOutsideUzbekistan]: 'errors.outsideUzbekistan',
+  [API_MESSAGES.stadiumPriceRange]: 'errors.priceRange',
+  [API_MESSAGES.stadiumHoursOnTheHour]: 'errors.onTheHour',
+  [API_MESSAGES.stadiumHoursOrder]: 'errors.hoursOrder',
+}
+
+/**
+ * R44: the text for a refused card payment, from `declineReason` (a booking or payment
+ * row) or a 400's `code`. No reason, or one this client does not know: a plain decline.
+ */
+export function declineMessageKey(reason: string | undefined): ErrorMessageKey {
+  switch (reason) {
+    case API_CODES.insufficientFunds:
+      return 'errors.insufficientFunds'
+    case API_CODES.cardExpired:
+      return 'errors.cardExpired'
+    default:
+      return 'errors.cardDeclined'
+  }
+}
+
+/**
+ * The card was refused (any reason): the player may try again with another card, and
+ * the chosen card is outlined. On a payment call CARD_EXPIRED is a refusal too.
+ */
+export function isDeclineKey(key: ErrorMessageKey | null | undefined): boolean {
+  return (
+    key === 'errors.cardDeclined' ||
+    key === 'errors.insufficientFunds' ||
+    key === 'errors.cardExpired'
+  )
+}
 
 export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (!isApiError(error)) return 'errors.unknown'
@@ -35,15 +133,32 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   if (error.code === API_CODES.tokenRevoked) return 'errors.session'
   if (error.code === API_CODES.tooManyAttempts) return 'errors.tooMany'
   if (error.code === API_CODES.phoneTaken) return 'errors.phoneTaken'
+  // 202: paid, the rest still being settled by the backend.
+  if (error.code === API_CODES.paymentPending) return 'errors.paymentPending'
+  const cardKey = error.code === undefined ? undefined : CARD_CODES[error.code]
+  if (cardKey) return cardKey
   if (error.isNetworkError) return 'errors.network'
+  // The provider could not be reached: nothing was charged or bound. Not a decline, and
+  // not unclear — the player may simply try again. Matched on the backend's own message,
+  // so a proxy's 502 (whose outcome is unknown) stays a server error.
+  if (error.status === 502 && error.message === API_MESSAGES.providerUnavailable) {
+    return 'errors.providerUnavailable'
+  }
   if (error.status >= 500) return 'errors.server'
   switch (error.status) {
     case 400:
       // POST /api/reviews: two 400s the review form tells apart.
       if (error.message === API_MESSAGES.alreadyReviewed) return 'errors.alreadyReviewed'
       if (error.message === API_MESSAGES.reviewNotPlayed) return 'errors.reviewNotPlayed'
-      // Owner stadium forms: the minimum booking amount's floor.
-      if (error.message === API_MESSAGES.minimumTooLow) return 'errors.minimumTooLow'
+      // Stadium photo upload.
+      if (error.message === API_MESSAGES.unsupportedImage) return 'errors.imageType'
+      if (error.message === API_MESSAGES.tooManyPhotos) return 'errors.tooManyPhotos'
+      if (error.message === API_MESSAGES.imageTooLarge) return 'errors.imageTooLarge'
+      {
+        // Owner stadium forms (create / update): the backend's StadiumRules.
+        const stadiumKey = STADIUM_MESSAGES[error.message]
+        if (stadiumKey) return stadiumKey
+      }
       // Team games: a declined card and the 3-hour cut-off are 400s too.
       if (
         error.message === API_MESSAGES.joinDeclined ||
@@ -52,7 +167,12 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
       )
         return 'errors.cardDeclined'
       if (error.message === API_MESSAGES.joinTooLate) return 'errors.tooLate'
+      if (error.message === API_MESSAGES.joinHasOpponent) return 'errors.hasOpponent'
+      // Team-game cash from a backend before T10 (now a 409): card or cash got there first.
+      if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
       if (error.message === API_MESSAGES.gameRemainderConfirming) return 'errors.paymentConfirming'
+      // The owner's cash mark, from a backend before design E7 (now a 409).
+      if (error.message === API_MESSAGES.noPartPayment) return 'errors.nothingToMark'
       if (
         error.message === API_MESSAGES.joinPaymentUnconfirmed ||
         error.message === API_MESSAGES.joinOtherTeamConfirming ||
@@ -63,16 +183,42 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
     case 401:
       return 'errors.session'
     case 403:
+      // A team game is joined by the joining team's leader only.
+      if (error.message === API_MESSAGES.onlyLeadersJoin) return 'errors.onlyLeaderJoins'
+      // The owner's remainder marks: not this owner's stadium.
+      if (error.message === API_MESSAGES.notStadiumOwner) return 'errors.notYourStadium'
       return 'errors.forbidden'
     case 404:
       return 'errors.notFound'
     case 409:
+      // The owner's remainder marks (design E7): settled meanwhile, nothing to mark, a card
+      // payment still being confirmed, or past the owner's undo window.
+      if (error.message === API_MESSAGES.alreadyPaid) return 'errors.alreadyPaid'
+      if (error.message === API_MESSAGES.noPartPayment) return 'errors.nothingToMark'
+      if (error.message === API_MESSAGES.bookingPaymentInFlight) return 'errors.cardPaymentInFlight'
+      if (error.message === API_MESSAGES.markAdminOnly) return 'errors.markAdminOnly'
+      if (error.message === API_MESSAGES.noRemainderMark) return 'errors.noMark'
+      // The same marks on one team of a team game (T10).
+      if (error.message === API_MESSAGES.gameCancelled) return 'errors.gameCancelled'
+      if (error.message === API_MESSAGES.gameNotConfirmed) return 'errors.gameNotConfirmed'
+      if (error.message === API_MESSAGES.teamPaymentInFlight) return 'errors.teamPaymentInFlight'
+      if (error.message === API_MESSAGES.teamNoRemainderMark) return 'errors.teamNoMark'
       return 'errors.conflict'
+    case 413:
+      return 'errors.fileTooLarge'
     case 429:
       return 'errors.tooMany'
     default:
       return 'errors.unknown'
   }
+}
+
+/**
+ * How a failure is shown: "try again later" (the payment system is down) is a warning,
+ * so it never looks like a declined card; everything else is a danger notice.
+ */
+export function errorTone(key: ErrorMessageKey): 'warning' | 'danger' {
+  return key === 'errors.providerUnavailable' ? 'warning' : 'danger'
 }
 
 /** The translated message for an error, in the current language. */
@@ -91,6 +237,7 @@ export function isUnclearPaymentError(error: unknown): boolean {
     key === 'errors.network' ||
     key === 'errors.server' ||
     key === 'errors.paymentConfirming' ||
-    key === 'errors.paymentUnclear'
+    key === 'errors.paymentUnclear' ||
+    key === 'errors.paymentPending'
   )
 }

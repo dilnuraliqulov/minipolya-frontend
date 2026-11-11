@@ -11,6 +11,17 @@ afterEach(() => {
 })
 
 describe('Button', () => {
+  it('is at least 44px tall in every size (touch target)', () => {
+    render(
+      <>
+        <Button>Katta</Button>
+        <Button size="compact">Kichik</Button>
+      </>,
+    )
+    expect(screen.getByRole('button', { name: 'Katta' })).toHaveClass('min-h-12')
+    expect(screen.getByRole('button', { name: 'Kichik' })).toHaveClass('min-h-11')
+  })
+
   it('runs onClick with light haptic feedback for main actions', () => {
     const { webApp } = installFakeTelegram()
     const onClick = vi.fn()

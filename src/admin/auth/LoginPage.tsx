@@ -1,11 +1,17 @@
 import { Eye, EyeOff, Goal, LoaderCircle } from 'lucide-react'
-import { type FormEvent, type InputHTMLAttributes, useId, useState } from 'react'
+import { type FormEvent, type InputHTMLAttributes, useEffect, useId, useState } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { loginWithPassword } from '../api/auth'
 import { Button } from '../components/Button'
 import { cx } from '../components/cx'
 import { AuthCard } from './AuthCard'
-import { LOGOUT_NOTICES, loginErrorMessage } from './messages'
+import {
+  formatCountdown,
+  LOGIN_ERRORS,
+  LOGOUT_NOTICES,
+  lockoutMinutes,
+  loginErrorMessage,
+} from './messages'
 import { startSession, useSession } from './session'
 
 /**
@@ -19,13 +25,15 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { lockedUntil, left, lockFor } = useLockout()
+  const locked = lockedUntil !== null
 
   if (session.status === 'authenticated') {
     const from = (location.state as { from?: string } | null)?.from
     return <Navigate to={from ?? '/'} replace />
   }
 
-  const canSubmit = username.trim() !== '' && password !== '' && !busy
+  const canSubmit = username.trim() !== '' && password !== '' && !busy && !locked
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -36,13 +44,17 @@ export function LoginPage() {
       const { token, user } = await loginWithPassword(username, password)
       startSession(token, user)
     } catch (cause) {
-      setError(loginErrorMessage(cause))
+      const minutes = lockoutMinutes(cause)
+      if (minutes === undefined) setError(loginErrorMessage(cause))
+      else lockFor(minutes)
       setBusy(false)
     }
   }
 
   const notice = session.status === 'anonymous' && session.reason
-  const message = error ?? (notice ? LOGOUT_NOTICES[notice] : null)
+  const message = locked
+    ? LOGIN_ERRORS.locked(formatCountdown(left))
+    : (error ?? (notice ? LOGOUT_NOTICES[notice] : null))
 
   return (
     <AuthCard>
@@ -66,12 +78,12 @@ export function LoginPage() {
           autoFocus
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          disabled={busy}
+          disabled={busy || locked}
         />
         <PasswordField
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          disabled={busy}
+          disabled={busy || locked}
         />
         <Button
           type="submit"
@@ -83,7 +95,10 @@ export function LoginPage() {
           Kirish
         </Button>
         {message && (
-          <p role="alert" className="rounded-lg bg-danger-soft px-3.5 py-2.5 text-sm text-danger">
+          <p
+            role="alert"
+            className="rounded-lg bg-danger-soft px-3.5 py-2.5 text-sm text-danger-text"
+          >
             {message}
           </p>
         )}
@@ -92,6 +107,29 @@ export function LoginPage() {
       <p className="mt-4 text-xs text-secondary">Faqat administratorlar uchun</p>
     </AuthCard>
   )
+}
+
+/** The lockout the backend reported, counted down once a second. */
+function useLockout() {
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (lockedUntil === null) return
+    const timer = setInterval(() => {
+      const current = Date.now()
+      setNow(current)
+      if (current >= lockedUntil) setLockedUntil(null)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [lockedUntil])
+
+  const lockFor = (minutes: number) => {
+    const current = Date.now()
+    setNow(current)
+    setLockedUntil(current + minutes * 60_000)
+  }
+  return { lockedUntil, left: lockedUntil === null ? 0 : lockedUntil - now, lockFor }
 }
 
 const box =

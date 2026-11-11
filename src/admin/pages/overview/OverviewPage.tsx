@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
-import { formatNumber, formatSomParts } from '../../../shared/format'
+import { formatNumber, formatSomParts, tashkentToday } from '../../../shared/format'
 import { isAvailable } from '../../api/missing'
 import { getDailyBookings, getOldestPendingStadium, KPI_COMPARISONS } from '../../api/stats'
 import { BarChart } from '../../components/BarChart'
@@ -21,7 +21,7 @@ import { KpiCard } from '../../components/KpiCard'
 import { useReducedMotion } from '../../components/motion'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
-import { formatAgo, tashkentToday } from '../../format'
+import { formatAgo } from '../../format'
 import { adminKeys, useFailedRefunds, useStats } from '../../queries'
 import { CHART_HEIGHT, dailyBookingBars } from './chartData'
 import { comparison } from './comparison'
@@ -31,8 +31,8 @@ const KPI_GRID = 'grid grid-cols-2 gap-4 xl:grid-cols-4'
 const LAST_WEEK = 'oʻtgan haftaga nisbatan'
 
 const TILE_TONES = {
-  warning: 'bg-warning-soft text-warning',
-  danger: 'bg-danger-soft text-danger',
+  warning: 'bg-warning-soft text-warning-text',
+  danger: 'bg-danger-soft text-danger-text',
 }
 
 function TodoTile({
@@ -177,7 +177,7 @@ export function OverviewPage() {
           Kutilayotgan ishlar
         </h2>
         {failedRefunds === 0 && pendingStadiums === 0 ? (
-          <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3.5 py-2.5 text-base font-medium text-success">
+          <p className="flex items-center gap-2 rounded-lg bg-success-soft px-3.5 py-2.5 text-base font-medium text-success-text">
             <CircleCheck size={16} aria-hidden />
             Hammasi bajarilgan, kutilayotgan ish yoʻq
           </p>

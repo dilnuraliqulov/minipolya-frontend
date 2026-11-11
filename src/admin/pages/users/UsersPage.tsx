@@ -187,6 +187,7 @@ export function UsersPage() {
 
       <div className="flex flex-col">
         <DataTable
+          label="Foydalanuvchilar"
           columns={COLUMNS}
           rows={data?.content}
           rowKey={(user) => user.id}

@@ -34,7 +34,8 @@
   --image-overlay: #000000a6;
 
   --text: #0b1220;
-  --text-secondary: #6b7280;
+  /* p3-text-2 is #6B7280 (4.39:1 on surface); darkened for WCAG AA, as in tokens.css. */
+  --text-secondary: #5b6270;
 
   --accent: #2563eb;
   --accent-soft: #dbeafe;
@@ -113,6 +114,29 @@
     to {
       transform: scale(1.06);
       opacity: 0.6;
+    }
+  }
+  /* Add-stadium wizard: the next step slides in from the right, the previous from the left. */
+  --animate-step-forward: step-forward 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-step-back: step-back 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  @keyframes step-forward {
+    from {
+      transform: translateX(24px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes step-back {
+    from {
+      transform: translateX(-24px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
     }
   }
 }

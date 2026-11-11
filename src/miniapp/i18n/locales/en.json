@@ -4,7 +4,35 @@
     "tagline": "Book a football pitch in Tashkent"
   },
   "home": {
-    "greeting": "Hi, {{name}}"
+    "greeting": "Hi, {{name}}",
+    "challengesTitle": "Teams looking for an opponent",
+    "challengesAll": "See all",
+    "captainAccepts": "Your captain can accept",
+    "whyUs": {
+      "label": "Why MiniPolya",
+      "roledescription": "carousel",
+      "close": "Close",
+      "verified": {
+        "title": "Verified pitches",
+        "text": "We check every pitch and sign a contract with its owner."
+      },
+      "payment": {
+        "title": "Secure payment",
+        "text": "With Uzcard and Humo. Cancel before the deadline and you get a full refund."
+      },
+      "opponent": {
+        "title": "Find an opposing team",
+        "text": "Create a game with your team and an opponent joins."
+      },
+      "quick": {
+        "title": "Book in 1 minute",
+        "text": "Pick a free time and book it right away."
+      }
+    },
+    "pickDate": "Choose a date",
+    "pickDateTitle": "Choose a date",
+    "vs": "vs",
+    "opponentWanted": "Waiting for an opponent"
   },
   "common": {
     "retry": "Try again",
@@ -77,10 +105,48 @@
     "alreadyReviewed": "You have already rated this pitch.",
     "reviewNotPlayed": "You can only rate a pitch you have played at.",
     "cardDeclined": "The card was declined. Choose another card or check this one.",
+    "insufficientFunds": "Not enough money on the card. Choose another card or top this one up.",
+    "providerUnavailable": "The payment system is temporarily unavailable. Please try again shortly.",
+    "cardNotSupported": "Only Uzcard and Humo cards are accepted.",
+    "cardExpiryInvalid": "The card number or expiry date is wrong. Check them and try again.",
+    "cardExpired": "This card has expired. Use another card.",
+    "smsCodeWrong": "Wrong SMS code. Enter it again.",
+    "smsCodeExpired": "The SMS code has expired. Send a new code.",
+    "smsResendTooEarly": "Please wait a little before asking for a new code.",
+    "smsResendUnavailable": "The code couldn't be sent again. Enter the card details once more.",
+    "bindingNotFound": "This card setup has ended. Please start again.",
+    "cardBindingFailed": "The card couldn't be added. Try another card.",
     "tooLate": "The game starts in less than 3 hours — it can no longer be joined.",
     "paymentConfirming": "The payment is still being confirmed — do not pay again; the result shows soon.",
     "paymentUnclear": "The payment was not confirmed. If money was taken, it comes back in full — check My games.",
-    "minimumTooLow": "The deposit must be at least 500 soʻm."
+    "paymentPending": "Your payment is being confirmed. You'll get the result in a notification.",
+    "hasOpponent": "This game already has an opponent.",
+    "onlyLeaderJoins": "Only the team captain can accept a challenge — they pay for the team.",
+    "notYourStadium": "This booking is not at your pitch.",
+    "nothingToMark": "This booking has no remainder to mark — it was cancelled, expired or paid in full.",
+    "markAdminOnly": "Only an admin can change this mark now.",
+    "noMark": "This booking has no mark — it was already undone.",
+    "cardPaymentInFlight": "A card payment for this booking is still being confirmed. Try again in a moment.",
+    "gameCancelled": "This game is cancelled.",
+    "gameNotConfirmed": "The game is not confirmed yet — you can mark it once an opponent joins.",
+    "teamPaymentInFlight": "A card payment for this team is still being confirmed. Try again in a moment.",
+    "teamNoMark": "This team has no mark — it was already undone.",
+    "alreadyPaid": "This payment is already recorded.",
+    "imageType": "Only JPG, PNG or WebP images can be uploaded.",
+    "tooManyPhotos": "A pitch can have at most 10 photos.",
+    "fileTooLarge": "The photo is too large — up to 5 MB.",
+    "imageTooLarge": "The image is too big. Choose a smaller one.",
+    "phoneFormat": "Enter the full number, for example: +998 90 123 45 67",
+    "outsideUzbekistan": "The location must be in Uzbekistan.",
+    "priceRange": "The price must be between 10 000 and 5 000 000 UZS.",
+    "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+    "onTheHour": "Times must be on the hour (for example, 08:00).",
+    "nameLength": "The name must be 3 to 150 characters.",
+    "addressLength": "The address must be 5 to 300 characters.",
+    "districtRequired": "Choose a district.",
+    "descriptionLength": "More details can be at most 500 characters.",
+    "landmarkLength": "The landmark can be at most 150 characters.",
+    "locationRequired": "Mark the pitch on the map."
   },
   "languages": {
     "uz": "Oʻzbekcha",
@@ -114,18 +180,27 @@
     "saved": "Saved",
     "setupTitle": "Complete your profile",
     "setupSubtitle": "So the pitch owner can contact you",
-    "continue": "Continue"
+    "continue": "Continue",
+    "sectionAccount": "Account",
+    "sectionApp": "App",
+    "phoneNotSet": "Not set",
+    "version": "MiniPolya v{{version}} · Telegram app",
+    "versionOwner": "MiniPolya v{{version}} · Owner mode",
+    "ownerCard": {
+      "noneTitle": "Do you have a pitch?",
+      "noneText": "Add it to MiniPolya and take bookings online",
+      "reviewText": "Under review. We will contact you soon.",
+      "enter": "Switch to owner mode"
+    }
   },
   "stadiums": {
     "search": "Search for a pitch or address",
     "filters": "Filters",
     "allFormats": "All",
     "format": "Format",
-    "allTitle": "All pitches",
-    "allCount": "All pitches · {{count}}",
+    "allTitle": "Pitches",
+    "allCount": "Pitches · {{count}}",
     "foundCount": "Pitches found · {{count}}",
-    "bannerText": "Secure payment · Clear cancellation terms",
-    "bannerClose": "Close",
     "perHour": "UZS/hour",
     "perHourShort": "/hour",
     "book": "Book",
@@ -141,7 +216,10 @@
     "allDistricts": "All districts",
     "chooseDistrict": "Choose a district",
     "apply": "Apply",
-    "resetFilters": "Reset filters"
+    "resetFilters": "Reset filters",
+    "freeSlots": "{{day}}: free hours — {{count}}",
+    "noFreeSlots": "No free time on this day",
+    "dayMonth": "{{month}} {{day}}"
   },
   "stadium": {
     "title": "Pitch",
@@ -154,14 +232,18 @@
       "hybrid": "Hybrid turf"
     },
     "amenity": {
-      "lighting": "Lighting",
+      "lighting": "Lighting (evening games)",
       "lockerRoom": "Changing room",
       "showers": "Showers",
       "parking": "Parking",
-      "tribune": "Stand",
+      "tribune": "Spectator seating",
       "equipmentRental": "Ball rental",
       "wifi": "Wi-Fi",
-      "cafe": "Café"
+      "cafe": "Café",
+      "toilet": "Toilet",
+      "covered": "Indoor / covered",
+      "bibs": "Bibs",
+      "drinkingWater": "Drinking water"
     },
     "amenities": "Amenities",
     "address": "Address",
@@ -178,7 +260,13 @@
     "ownerReply": "Owner’s reply",
     "photoAlt": "{{name}}, photo {{n}}",
     "notFoundTitle": "Pitch not found",
-    "notFoundText": "This pitch no longer exists or has been closed."
+    "notFoundText": "This pitch no longer exists or has been closed.",
+    "landmark": "Landmark",
+    "openYandex": "Open in Yandex Maps",
+    "openGoogle": "Open in Google Maps",
+    "mapTapHint": "Tap to move the map",
+    "showMap": "Show map",
+    "location": "Location"
   },
   "weekdays": {
     "short": {
@@ -226,18 +314,22 @@
     "total": "Total",
     "paymentType": "Payment",
     "deposit": "Deposit: {{amount}}",
+    "minimum": "Minimum payment: {{amount}}",
     "full": "Full payment: {{amount}}",
-    "remainderNote": "Pay the rest later in the app or in cash at the pitch.",
-    "fullOnly": "This pitch requires full payment.",
+    "remainderNote": "Pay the remaining {{amount}} later in the app or in cash at the pitch.",
+    "remainderNoteGeneric": "Pay the rest later in the app or in cash at the pitch.",
+    "fullOnly": "Only full payment is available for this time.",
     "card": "Card",
     "addCardFirst": "Add a card to pay",
     "cancelNote": "Cancel at least {{hours}} hours before the game and you get a full refund. After that, nothing is refunded.",
     "pay": "Pay · {{amount}}",
     "paying": "Paying…",
     "declinedTitle": "The payment did not go through",
-    "declinedText": "The card was declined. Choose another card or check this one.",
     "hold": "The booking is held for {{time}}",
     "holdExpired": "The hold has expired",
+    "holdExpiredText": "The hold on this booking ran out and the slot is free again. Choose a time again.",
+    "chooseAgain": "Choose a time again",
+    "chooseCard": "Choose another card or add a new one.",
     "retry": "Try again",
     "otherCard": "Another card",
     "slotTakenTitle": "This time was just taken",
@@ -271,12 +363,13 @@
     "confirm": "Confirm",
     "resend": "Resend the code",
     "resendIn": "Resend the code ({{time}})",
-    "newCode": "Send a new code",
+    "codeResent": "A new code has been sent",
     "privacy": "Card details are not stored in MiniPolya.",
     "footer": "Card details are not stored in MiniPolya — only a payment token is kept.",
-    "wrongNumber": "The card number or expiry date is wrong",
-    "wrongCode": "Wrong code. Enter it again.",
-    "codeExpired": "The code has expired — request a new one",
+    "numberLength": "The card number must have 16 digits",
+    "numberBrand": "Only Uzcard (8600…) and Humo (9860…) cards are accepted",
+    "expiryShape": "Enter the expiry as MM/YY, e.g. 08/28",
+    "expiryPast": "This card has expired",
     "noInternet": "No internet connection",
     "noInternetHint": "Check your connection and try again.",
     "saved": "Card added",
@@ -300,10 +393,11 @@
     },
     "upcoming": "Upcoming",
     "past": "Past",
-    "filterSoon": "Splitting into upcoming and past is coming soon",
     "listLabel": "Bookings",
     "emptyTitle": "No bookings yet",
     "emptyText": "Pick a pitch and make your first booking.",
+    "emptyPastTitle": "No past bookings",
+    "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
     "more": "Show more"
   },
@@ -311,8 +405,6 @@
     "headerTitle": "Booking",
     "title": "Booked!",
     "paid": "Paid: {{amount}}",
-    "remaining": "Left to pay: {{amount}}",
-    "remainderNote": "You can pay the rest in the app or in cash at the pitch.",
     "deadline": "Free cancellation until {{date}}, {{time}}",
     "toGames": "Go to My games",
     "home": "Home"
@@ -328,7 +420,11 @@
     "remaining": "Left to pay",
     "unpaid": "Unpaid",
     "paidInFull": "Paid in full",
-    "payRest": "Pay the rest in the app",
+    "remainderTitle": "Left to pay: {{amount}}",
+    "paidCash": "Paid in cash at the pitch",
+    "cashSplit": "{{app}} in the app · {{cash}} in cash at the pitch",
+    "cashNoRefund": "Cash payments are not refunded through the app.",
+    "payRest": "Pay in the app",
     "cashNote": "or pay in cash at the pitch",
     "payNow": "Pay",
     "pendingBanner": "Finish paying by {{time}}",
@@ -336,6 +432,7 @@
     "rules": "Cancellation terms",
     "rulesDeadline": "Cancel before {{date}}, {{time}} for a full refund. After that, nothing is refunded.",
     "refundNow": "Cancel now: {{amount}} is refunded",
+    "refundNowCash": "Cancel now: {{amount}} is refunded; the cash part is not",
     "noRefundNow": "Cancel now and nothing is refunded",
     "cancel": "Cancel the booking",
     "cancelTitle": "Cancel this booking?",
@@ -346,6 +443,7 @@
     "cancelledAt": "Cancelled: {{date}}, {{time}}",
     "cancelReason": "Reason: {{reason}}",
     "payRestTitle": "Pay the rest",
+    "payPendingTitle": "Pay for the booking",
     "payRestButton": "Pay · {{amount}}",
     "restPaid": "Payment received",
     "notFoundTitle": "Booking not found",
@@ -398,7 +496,9 @@
     "cancel": "Cancel",
     "challenges": "Teams looking for an opponent",
     "challengesEmpty": "No team is looking for an opponent right now.",
+    "leaderAccepts": "The team captain accepts challenges.",
     "payNow": "Your team pays: {{amount}}",
+    "payFrom": "Your team pays: from {{amount}}",
     "accept": "Accept",
     "more": "Show more",
     "createTitle": "Create a team",
@@ -406,25 +506,54 @@
     "name": "Team name",
     "nameHint": "3–24 characters.",
     "created": "Team created",
-    "notFoundTitle": "Team not found"
+    "notFoundTitle": "Team not found",
+    "inviteSheet": {
+      "title": "Invite link",
+      "text": "Send the link to your friends — they join the team by opening it.",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Could not copy. Press and hold the link to copy it.",
+      "share": "Share in Telegram",
+      "shareText": "Join the “{{team}}” team",
+      "renew": "Create a new link",
+      "renewed": "New link ready. The old one no longer works.",
+      "notConfigured": "The invite link is not set up yet."
+    },
+    "join": {
+      "title": "Join a team",
+      "invited": "You have been invited to a team",
+      "leader": "Captain: {{name}}",
+      "members": "{{count}} members",
+      "join": "Join the team",
+      "later": "Later",
+      "joinedTitle": "You joined the team",
+      "joinedText": "You now see “{{team}}” games and chat.",
+      "memberTitle": "You are already in this team",
+      "memberText": "You are a member of “{{team}}”.",
+      "toTeam": "Go to my team",
+      "invalidTitle": "Invalid link",
+      "invalidText": "The invite link is out of date or wrong. Ask the captain for a new one.",
+      "home": "Go to home"
+    }
   },
   "game": {
     "title": "Game",
     "vs": "vs",
     "waitingOpponent": "Waiting for an opponent",
     "waitingText": "As soon as an opponent accepts, the pitch is booked and we will let you know.",
+    "joinPendingTitle": "The opposing team's payment is being confirmed",
+    "joinPendingText": "The game updates here as soon as the outcome is known.",
     "chat": "Chat",
     "chatText": "Messages between both captains",
     "teams": "Teams",
     "captain": "Captain: {{name}}",
     "myPayment": "Your team's payment",
-    "joinPrice": "Paid on joining",
-    "paidInApp": "Paid in the app",
+    "paid": "Paid",
+    "refundIfNoOpponent": "If no opponent is found, it is refunded in full.",
     "remainder": "Left to pay",
-    "remainderPaid": "Paid",
-    "remainderUnpaid": "Unpaid",
-    "payRest": "Pay the rest",
-    "cashNote": "or pay in cash at the pitch",
+    "paidInFull": "Paid in full",
+    "cashReceived": "Paid in cash",
+    "notPaid": "Not paid",
     "restPaid": "The rest is paid",
     "declined": "The card was declined. Choose another.",
     "rules": "Cancellation terms",
@@ -446,9 +575,6 @@
   },
   "accept": {
     "title": "Accept the challenge",
-    "payNow": "Your team pays now",
-    "remainder": "Left to pay",
-    "remainderNote": "Pay the rest later in the app or in cash at the pitch.",
     "rule": "A challenge cannot be accepted less than 3 hours before the game.",
     "submit": "Pay and accept · {{amount}}",
     "done": "Challenge accepted — the pitch is booked",
@@ -456,7 +582,10 @@
     "goneText": "Another team accepted it or it was cancelled.",
     "slotTakenTitle": "This time was just taken",
     "tooLateTitle": "Less than 3 hours to the game",
-    "backToTeam": "Back to my team"
+    "backToTeam": "Back to my team",
+    "pendingTitle": "Payment being confirmed",
+    "openGame": "Open the game",
+    "leaderOnlyTitle": "Only the captain can accept"
   },
   "choice": {
     "title": "How do you want to book?",
@@ -470,10 +599,8 @@
   "opponent": {
     "title": "Find an opponent",
     "whichTeam": "With which team?",
-    "slotPrice": "Pitch price",
-    "quoteSoon": "Your team's amount shows once the game is created (coming soon — beforehand).",
     "rules": "Until an opponent is found, the amount is held on your card and the pitch is not booked. If nobody accepts, you get everything back.",
-    "submit": "Start looking for an opponent",
+    "submit": "Start looking for an opponent · {{amount}}",
     "started": "Looking for an opponent",
     "noLedTeam": "Only a team captain can look for an opponent."
   },
@@ -513,14 +640,19 @@
     },
     "section": {
       "info": "Details",
-      "infoText": "Name, address, district, format, surface",
+      "infoText": "Name, phone, location, address",
       "photos": "Photos",
       "hours": "Opening hours",
       "prices": "Prices",
       "pricesText": "Base price: {{price}}",
       "terms": "Booking terms",
       "closures": "Closed days",
-      "closuresText": "Planned closures"
+      "closuresText": "Planned closures",
+      "hoursText": "Opening and closing time",
+      "termsText": "Agreed with the platform",
+      "photosText": "3 to 10, the first is the cover",
+      "facilities": "Facilities",
+      "facilitiesText": "Facilities and more details"
     },
     "soonDetail": "Coming soon — the server does not give the owner this yet",
     "save": "Save",
@@ -535,15 +667,12 @@
       "district": "District",
       "format": "Format",
       "surface": "Surface",
-      "phone": "Phone (optional)",
-      "description": "Description (optional)",
+      "phone": "Phone",
+      "description": "More details",
       "open": "Opens",
       "close": "Closes",
       "price": "Price per hour (soʻm)",
       "priceHint": "Players see a slightly higher price that covers the card payment.",
-      "minimum": "Deposit (soʻm, optional)",
-      "minimumHint": "Empty means full payment only. At least 500 soʻm.",
-      "cancelHours": "Free cancellation (hours)",
       "day": "Day",
       "from": "From",
       "to": "To",
@@ -554,7 +683,13 @@
       "clientPhone": "Client phone",
       "time": "Time",
       "cashPaid": "Paid in cash",
-      "hoursUnit": "{{count}} h"
+      "descriptionPlaceholder": "For example: where the entrance is, house rules, other facilities",
+      "landmark": "Landmark (optional)",
+      "landmarkPlaceholder": "For example: next to Novza metro station",
+      "districtPlaceholder": "Choose a district",
+      "counter": "{{count}}/{{max}}",
+      "addressPlaceholder": "For example: 12 Bunyodkor street",
+      "namePlaceholder": "For example: Chilonzor Sport Maydoni"
     },
     "prices": {
       "title": "Prices",
@@ -563,9 +698,11 @@
       "player": "For players: {{price}}",
       "added": "Price rule added",
       "removed": "Price rule removed",
-      "minimum": "Deposit",
-      "minimumField": "Minimum payment (soʻm)",
-      "minimumText": "Players pay at least this much when booking and the rest later. At least 500 soʻm. The current value is not shown yet — coming soon."
+      "edit": "Edit price rule",
+      "updated": "Price rule saved",
+      "editBase": "Change the base price",
+      "base": "Base price",
+      "baseText": "For every hour no price rule covers. The player price is worked out from it."
     },
     "closures": {
       "title": "Closed days",
@@ -593,9 +730,10 @@
       "title": "Booking details",
       "player": "Player (app)",
       "walkIn": "Walk-in",
-      "price": "Price",
+      "price": "Your price",
       "paidInApp": "Paid in the app",
-      "remaining": "To collect in cash",
+      "cashDue": "To collect in cash",
+      "cashReceived": "Cash received",
       "receives": "You receive",
       "cash": "Cash received",
       "call": "Call",
@@ -603,7 +741,9 @@
       "cancelTitle": "Cancel this booking?",
       "cancelText": "The player gets back everything paid by card.",
       "cancelled": "Booking cancelled",
-      "playerPays": "The player pays"
+      "playerPays": "The player pays",
+      "cashDone": "Cash payment recorded",
+      "cashConfirmText": "Confirm that you received {{amount}} in cash from the client?"
     },
     "report": {
       "today": "Today",
@@ -614,31 +754,376 @@
       "revenue": "Revenue",
       "rating": "Rating",
       "occupancy": "Occupancy",
-      "unpaid": "Unpaid remainders"
+      "unpaid": "Unpaid remainders",
+      "chartTitle": "Daily revenue",
+      "chartWindow": "Period",
+      "days": "{{count}} days",
+      "chartTotal": "Total for the period",
+      "bookingCount": "{{count}} bookings",
+      "date": "Date",
+      "inApp": "Paid in the app",
+      "inCash": "Cash received",
+      "outstanding": "To collect in cash",
+      "unpaidEmpty": "Nothing is still owed.",
+      "owes": "Still owed: {{amount}}",
+      "cash": "Cash received"
     },
     "profile": {
-      "playerMode": "Switch to player mode",
+      "playerMode": "Back to player mode",
       "playerModeText": "Book pitches and play team games",
       "payouts": "Payouts",
-      "badge": "Pitch owner · {{count}} pitches"
+      "badge": "Pitch owner · {{count}} pitches",
+      "sectionStadium": "Pitch",
+      "myStadiums": "My pitches",
+      "count": "{{count}}",
+      "switchStadium": "Choose a pitch"
     },
     "wizard": {
       "title": "Add a pitch",
-      "step": "Step {{n}} of {{total}} · {{name}}",
-      "basics": "Basics",
-      "place": "Location",
-      "hours": "Opening hours",
-      "price": "Price and terms",
-      "review": "Review",
-      "next": "Next",
-      "back": "Back",
+      "next": "Continue",
       "submit": "Send for review",
-      "photosSoon": "Photo upload is coming soon — the pitch is sent without photos for now.",
-      "hoursError": "Closing time must be after opening time.",
-      "sentTitle": "The pitch was sent for review",
-      "sentText": "Once an admin approves it, players can see and book it.",
-      "toStadium": "Go to my pitch",
-      "onTheHour": "Times must be on the hour (e.g. 08:00)."
+      "sentTitle": "Application received",
+      "sentText": "All photos are uploaded. An administrator will review your pitch and call you.",
+      "toStadium": "View my pitch",
+      "toProfile": "Back to Profile",
+      "progress": "{{n}}/{{total}} · {{name}}",
+      "progressLabel": "Step {{n}} of {{total}}",
+      "steps": {
+        "basics": "Basics",
+        "location": "Location",
+        "photos": "Photos",
+        "facilities": "Facilities",
+        "hours": "Hours and price",
+        "review": "Review"
+      },
+      "titles": {
+        "basics": "About the pitch",
+        "location": "Where is the pitch?",
+        "photos": "Pitch photos",
+        "facilities": "What does the pitch have?",
+        "hours": "When is it open and what does it cost?",
+        "review": "Is everything right?"
+      },
+      "facilitiesText": "Tick what your pitch has",
+      "edit": "Edit",
+      "editSection": "{{section}} — edit",
+      "open": "Opens",
+      "close": "Closes",
+      "earlier": "{{label}}: one hour earlier",
+      "later": "{{label}}: one hour later",
+      "everyDay": "Every day {{open}} – {{close}}",
+      "everyDayHours": "Every day {{open}} – {{close}} · {{count}} h",
+      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is not supported.",
+      "yourPrice": "Your price (1 hour)",
+      "priceHint": "From 10 000 to 5 000 000 UZS",
+      "playerPriceNote": "Players see a slightly higher price because of the card payment.",
+      "reviewHours": "Opening hours",
+      "reviewPrice": "Your price",
+      "perHour": "{{price}} / hour",
+      "photosCount": "Photos · {{count}}",
+      "noFacilities": "None ticked",
+      "mapPreview": "The pitch on the map",
+      "termsNote": "The deposit and cancellation terms are agreed with the platform.",
+      "leaveTitle": "Stop adding the pitch?",
+      "leaveText": "What you entered will not be saved.",
+      "leave": "Leave",
+      "stay": "Keep going",
+      "created": "Pitch created",
+      "uploadingTitle": "Uploading photos",
+      "uploadingText": "The photos upload one by one. Once all are uploaded, the application goes for review.",
+      "uploadedCount": "{{done}} of {{total}} uploaded",
+      "failedCount": "{{count}} failed",
+      "photoN": "Photo {{n}}",
+      "photoCover": "Photo {{n}} · Cover",
+      "status": {
+        "done": "Uploaded",
+        "failed": "Not uploaded",
+        "queued": "Waiting"
+      },
+      "leaveNote": "You can leave — upload the rest in My pitch → Photos.",
+      "finishLater": "Finish later",
+      "callNumber": "We will call this number",
+      "wrongNumber": "Wrong number?",
+      "updateInProfile": "Update it in Profile",
+      "nextSteps": "Next steps",
+      "stepCall": "A call",
+      "stepContract": "Contract",
+      "stepLive": "The pitch appears in the app",
+      "toHome": "Home"
+    },
+    "discount": {
+      "title": "Change price",
+      "open": "Change the {{time}} price",
+      "percent": "Discount (%)",
+      "hint": "1 to 100",
+      "playersSee": "Players see",
+      "note": "You can lower this hour’s price with a discount. The player price is worked out after the discount.",
+      "name": "{{time}} discount",
+      "saved": "Discount saved",
+      "remove": "Remove discount",
+      "removed": "Discount removed"
+    },
+    "editItem": "{{item}} — edit",
+    "gameCash": {
+      "title": "Team payments",
+      "owes": "{{team}} · To collect in cash: {{amount}}",
+      "paid": "{{team}} · Paid",
+      "button": "Cash received · {{amount}}",
+      "confirmTitle": "Confirm cash payment",
+      "confirmText": "Confirm that you received {{amount}} in cash from {{team}}?",
+      "confirm": "Confirm",
+      "done": "Cash payment recorded"
+    },
+    "contract": {
+      "title": "Payouts and contract",
+      "readOnly": "Read only — write to us to change it",
+      "legalType": "Legal form",
+      "atmos": "ATMOS contract",
+      "notSet": "Not set",
+      "payoutNote": "Payments made in the app are transferred to your account under the contract.",
+      "support": "Write to support",
+      "status": {
+        "none": "None",
+        "pending": "In progress",
+        "signed": "Signed"
+      },
+      "legal": {
+        "yatt": "Sole proprietor",
+        "mchj": "LLC",
+        "self_employed": "Self-employed"
+      }
+    },
+    "reviews": {
+      "title": "Reviews",
+      "count": "{{count}} reviews",
+      "emptyTitle": "No reviews yet",
+      "emptyText": "Players rate your pitch after they play.",
+      "yourReply": "Your reply",
+      "reply": "Reply",
+      "replyTitle": "Reply to the review",
+      "replyLabel": "Your reply",
+      "send": "Send",
+      "sent": "Reply sent"
+    },
+    "hours": {
+      "note": "Hourly bookings open within these hours. Close single days in “Closed days”.",
+      "saved": "Opening hours saved"
+    },
+    "terms": {
+      "minimum": "Deposit",
+      "playerPays": "Players pay: {{amount}}",
+      "title": "Booking terms",
+      "agreed": "Agreed with the platform",
+      "cancel": "Free cancellation",
+      "cancelValue": "Up to {{count}} h before the start",
+      "note": "The deposit and cancellation terms are agreed with the platform by phone. To change them, write to us.",
+      "support": "Write to support",
+      "platformDefault": "Platform default"
+    },
+    "photos": {
+      "text": "3 to 10 photos. The first is the cover.",
+      "uploaded": "Photo uploaded",
+      "deleted": "Photo deleted",
+      "emptyTitle": "No photos yet",
+      "emptyText": "Photos help players choose your pitch.",
+      "alt": "Photo {{n}}",
+      "cover": "Cover",
+      "makeCover": "Make cover",
+      "delete": "Delete photo {{n}}",
+      "left": "Move photo {{n}} left",
+      "right": "Move photo {{n}} right",
+      "add": "Add a photo",
+      "hint": "Any photo from your phone · compressed before upload",
+      "counter": "{{count}}/{{max}}",
+      "notImage": "This file is not an image",
+      "tooLarge": "The photo is larger than 5 MB",
+      "tooMany": "At most 10 photos",
+      "preparing": "Preparing",
+      "progress": "{{percent}}%",
+      "failed": "Not uploaded",
+      "retry": "Upload photo {{n}} again",
+      "makeCoverN": "Make photo {{n}} the cover"
+    },
+    "rules": {
+      "nameLength": "The name must be 3 to 150 characters",
+      "addressLength": "The address must be 5 to 300 characters",
+      "districtRequired": "Choose a district",
+      "phoneFormat": "Enter the full number, for example: +998 90 123 45 67",
+      "locationRequired": "Mark the pitch on the map",
+      "outsideUzbekistan": "The location must be in Uzbekistan",
+      "priceRange": "The price must be between 10 000 and 5 000 000 UZS",
+      "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+      "descriptionLength": "At most 500 characters",
+      "landmarkLength": "At most 150 characters",
+      "photosMin": "Add at least 3 photos"
+    },
+    "location": {
+      "mapTitle": "Mark it on the map",
+      "mapLabel": "Map: tap to mark the pitch",
+      "pin": "Pitch location",
+      "noPoint": "No location yet — tap the map",
+      "myLocation": "My location",
+      "denied": "Location access was not allowed. Allow it in Telegram settings or mark the place on the map.",
+      "unavailable": "Couldn't find your location. Mark the place on the map.",
+      "linkLabel": "Map link",
+      "linkPlaceholder": "Google or Yandex Maps link",
+      "linkShort": "Paste the full link or mark the place on the map",
+      "linkInvalid": "Couldn't find a place in this link. Mark it on the map.",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
+    "facilities": {
+      "saved": "Facilities saved"
+    },
+    "mark": {
+      "chip": {
+        "paidInFull": "Paid in full",
+        "cashReceived": "Cash received",
+        "notPaid": "Not paid",
+        "remainder": "To collect in cash: {{amount}}"
+      },
+      "cash": "Cash received",
+      "notPaid": "Not paid",
+      "back": "Back",
+      "about": "{{who}} · {{time}} · {{stadium}}.",
+      "cashNote": "Once confirmed the booking shows “Cash received”. You can undo it until the end of today.",
+      "notPaidTitle": "Mark as not paid",
+      "notPaidText": "Mark that the client did not pay the remaining {{amount}}?",
+      "notPaidNote": "No penalty is charged; the player can still pay the rest in the app. You can undo it until the end of today.",
+      "notPaidDone": "Marked as not paid",
+      "undoDone": "Mark undone",
+      "cashMarked": "Cash received",
+      "cashMarkedAmount": "Cash received · {{amount}}",
+      "notPaidMarked": "Marked as not paid",
+      "undoUntil": "You can undo it until {{time}} today",
+      "undo": "Undo",
+      "adminOnly": "Only an admin can change the mark now",
+      "teamNotPaidText": "Mark that {{team}} did not pay the remaining {{amount}}?",
+      "teamCashNote": "Once confirmed the team's payment shows “Cash received”. You can undo it until the end of today.",
+      "teamNotPaidNote": "No penalty is charged; the team captain can still pay the rest in the app. You can undo it until the end of today.",
+      "paid": "Paid"
+    },
+    "walkIn": {
+      "price": "Price, soʻm",
+      "status": "Payment status",
+      "unpaid": "Unpaid",
+      "paid": "Paid"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadValue": "{{count}} new",
+    "unread": "unread",
+    "readAll": "Mark all as read",
+    "emptyTitle": "No notifications",
+    "emptyText": "News about your bookings, games and payments will appear here.",
+    "types": {
+      "booking_confirmed": "Booking confirmed",
+      "booking_cancelled": "Booking cancelled",
+      "booking_reminder": "Booking reminder",
+      "booking_expired": "Booking expired",
+      "game_confirmed": "Game confirmed",
+      "game_cancelled": "Game cancelled",
+      "game_player_joined": "Someone joined your game",
+      "game_player_left": "A player left",
+      "game_payment_received": "Game payment received",
+      "game_opponent_left": "The opponent left",
+      "review_reply": "Reply to your review",
+      "stadium_approved": "Your pitch was approved",
+      "stadium_rejected": "Your pitch was rejected",
+      "owner_application_status": "Your application was reviewed",
+      "promotion_new": "New promotion",
+      "other": "New message"
+    }
+  },
+  "phonePage": {
+    "current": "Current number: {{phone}}",
+    "shareTitle": "Share via Telegram",
+    "shareText": "Your number is taken from your Telegram account — no typing needed.",
+    "share": "Share my number",
+    "or": "or type it in",
+    "shared": "Number saved",
+    "notReceived": "The number has not arrived yet. Type it in or try again in a moment."
+  },
+  "help": {
+    "title": "Help",
+    "supportTitle": "Have a question?",
+    "supportText": "Write to support on Telegram.",
+    "supportSoon": "A support chat is coming soon.",
+    "write": "Message @{{username}}",
+    "faq": "Frequently asked questions",
+    "q": {
+      "booking": "How do I book?",
+      "cancel": "Cancelling and refunds",
+      "cash": "Paying the rest in cash",
+      "teams": "Team vs team games",
+      "stadium": "How do I add my pitch?"
+    },
+    "a": {
+      "booking": "In Pitches choose a pitch, a day and an hour, then pay by card. Need several hours? Book each one separately.",
+      "cancel": "My games → booking → “Cancel”. The refund is shown on the booking page before you cancel — it depends on the pitch's cancellation terms and how long is left before the game. The money goes back to your card.",
+      "cash": "If the pitch allows a deposit, you pay only part of the price when booking. Pay the rest in cash at the pitch on the day, or by card in the app with “Pay the rest”.",
+      "teams": "In My team create a team and invite friends with the invite link. The captain picks a time and looks for an opponent; when another team accepts, the game is confirmed and the pitch price is split between the teams.",
+      "stadium": "Profile → “Add a pitch”. Fill in the details and send — the pitch is reviewed, and once approved players can see it. Then switch to owner mode from Profile."
+    }
+  },
+  "about": {
+    "title": "About",
+    "version": "Version {{version}}",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "copyright": "© 2026 MiniPolya · Tashkent",
+    "yandexTerms": "Yandex Maps terms of use"
+  },
+  "legal": {
+    "terms": {
+      "general": {
+        "title": "General",
+        "text": "MiniPolya is an online booking service for football pitches in Tashkent. By using the app you agree to these terms."
+      },
+      "booking": {
+        "title": "Booking and payment",
+        "text": "A booking is confirmed once it is paid. You pay the price shown when booking; there are no extra charges."
+      },
+      "cancel": {
+        "title": "Cancelling and refunds",
+        "text": "Each pitch's cancellation terms are shown on the booking page. The refund is shown before you cancel."
+      },
+      "owners": {
+        "title": "Pitch owners",
+        "text": "Owners are responsible for accurate pitch details, prices and opening hours. Pitches are visible to players only after approval."
+      },
+      "changes": {
+        "title": "Changes",
+        "text": "If these terms change, the new version is published on this page."
+      }
+    },
+    "privacy": {
+      "collect": {
+        "title": "What we collect",
+        "text": "Your Telegram id, the first name, last name and phone you enter, and your booking and payment history."
+      },
+      "use": {
+        "title": "Why",
+        "text": "To make bookings and payments, so the pitch owner can reach you, and to send notifications."
+      },
+      "share": {
+        "title": "Who we share it with",
+        "text": "The owner of a pitch you book sees your name and phone. Card details are kept only by the payment provider — we never see them."
+      },
+      "keep": {
+        "title": "How long",
+        "text": "Data is kept for as long as the service needs it to work."
+      },
+      "contact": {
+        "title": "Contact",
+        "text": "For questions about your data, write to the support chat in Help."
+      }
+    }
+  },
+  "phoneBanner": {
+    "title": "Share your phone number",
+    "send": "Send via Telegram",
+    "type": "Type it in"
   }
 }

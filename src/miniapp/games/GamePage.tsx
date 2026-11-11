@@ -2,18 +2,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarDays,
   ChevronRight,
-  CircleAlert,
+  Hourglass,
   Info,
   MapPin,
   MessageCircle,
   SearchX,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { isApiError } from '../../shared/api'
 import { formatTime } from '../../shared/format'
-import { errorMessage, errorMessageKey } from '../api/errors'
+import { errorMessage, errorMessageKey, errorTone, isDeclineKey } from '../api/errors'
 import {
   cancelGame,
   CHALLENGES_KEY,
@@ -38,13 +38,17 @@ import {
   Screen,
   SkeletonList,
   useToast,
+  Notice,
+  RemainderCard,
 } from '../components'
 import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
+import { LocationCard } from '../map/LocationCard'
 import { TeamAvatar } from '../teams/TeamAvatar'
 import { useTeam } from '../teams/queries'
 import { useGame } from './queries'
 import { gameStatusBadge } from './status'
+import { teamRemaining } from './teamMoney'
 
 const CANCELLABLE = new Set(['open', 'confirmed'])
 const PAYABLE = new Set(['confirmed', 'completed'])
@@ -100,7 +104,11 @@ function GameContent({ game }: { game: GameDetail }) {
     teams.find((team) => team.leaderId === me.id) ?? teams.find((team) => team.side === mySide)
   const isLeader = myTeam?.leaderId === me.id
   // The backend lets only a leader of a team still in the game cancel it.
-  const canCancel = CANCELLABLE.has(game.status) && teams.some((x) => x.leaderId === me.id)
+  // R45: while another team's payment is being confirmed, nothing that would race it
+  // (cancelling, paying the rest) is offered; the screen refreshes until it settles.
+  const joining = game.joinPending === true
+  const canCancel =
+    !joining && CANCELLABLE.has(game.status) && teams.some((x) => x.leaderId === me.id)
   const badge = gameStatusBadge(game.status)
   const [a, b] = teams
 
@@ -123,7 +131,7 @@ function GameContent({ game }: { game: GameDetail }) {
           <CalendarDays size={18} className="shrink-0 text-link" aria-hidden />
           {bookingWhen(game)}
         </p>
-        {game.stadiumName && (
+        {game.stadiumName && !game.location && (
           <p className="flex items-center gap-3 text-base text-primary">
             <MapPin size={18} className="shrink-0 text-link" aria-hidden />
             {game.stadiumName}
@@ -131,8 +139,25 @@ function GameContent({ game }: { game: GameDetail }) {
         )}
       </Card>
 
-      {game.status === 'open' && (
-        <p className="flex gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
+      {game.location && (
+        <LocationCard title={t('stadium.location')} location={game.location} showStadium />
+      )}
+
+      {joining && (
+        <div
+          role="status"
+          className="flex gap-3 rounded-xl border border-warning-text bg-warning-soft p-3 text-warning-text"
+        >
+          <Hourglass size={18} className="mt-0.5 shrink-0" aria-hidden />
+          <div className="flex flex-col gap-1 text-sm">
+            <p className="font-semibold">{t('game.joinPendingTitle')}</p>
+            <p>{t('game.joinPendingText')}</p>
+          </div>
+        </div>
+      )}
+
+      {game.status === 'open' && !joining && (
+        <p className="flex gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
           <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
           {t('game.waitingText')}
         </p>
@@ -163,21 +188,14 @@ function GameContent({ game }: { game: GameDetail }) {
         </section>
       )}
 
-      {myTeam && (
-        <MyPayment team={myTeam}>
-          {isLeader &&
-            myTeam.remainderStatus === 'unpaid' &&
-            myTeam.remainderAmount > 0 &&
-            PAYABLE.has(game.status) && (
-              <>
-                <Button haptic onClick={() => setSheet('pay')}>
-                  {t('game.payRest')}
-                </Button>
-                <p className="text-center text-sm text-secondary">{t('game.cashNote')}</p>
-              </>
-            )}
-        </MyPayment>
+      {myTeam && !joining && teamRemaining(myTeam) > 0 && PAYABLE.has(game.status) && (
+        <RemainderCard
+          amount={teamRemaining(myTeam)}
+          onPay={isLeader ? () => setSheet('pay') : undefined}
+        />
       )}
+
+      {myTeam && <MyPayment team={myTeam} waiting={game.status === 'open'} />}
 
       {canCancel && (
         <section className="flex flex-col gap-3" aria-labelledby="game-rules">
@@ -259,9 +277,20 @@ function TeamMembers({ team }: { team: GameTeam }) {
   )
 }
 
-function MyPayment({ team, children }: { team: GameTeam; children?: ReactNode }) {
+/**
+ * "Jamoangiz toʻlovi" (T12): "Toʻlangan: X" — held on the card or arrived, card or
+ * cash (`paidAmount`) — and while waiting, that it all comes back without an
+ * opponent; then "Qolgan summa" while something is owed, or how it was settled:
+ * "Naqd olindi" (the owner's mark) or "Toʻliq toʻlangan". "Toʻlanmadi" when the
+ * owner marked the rest as not paid.
+ */
+function MyPayment({ team, waiting }: { team: GameTeam; waiting: boolean }) {
   const { t } = useTranslation()
-  const paid = team.remainderStatus === 'paid'
+  // Before T9 the backend had no paidAmount: the hold while held, then what was paid.
+  const held = team.heldAmount ?? 0
+  const paid = team.paidAmount ?? (held > 0 ? held : team.paidInApp)
+  const remaining = teamRemaining(team)
+  const mark = team.remainderMark
   return (
     <Card className="flex flex-col gap-3 p-4" role="region" aria-labelledby="game-payment">
       <h3 id="game-payment" className="text-lg font-semibold text-primary">
@@ -269,23 +298,27 @@ function MyPayment({ team, children }: { team: GameTeam; children?: ReactNode })
       </h3>
       <dl className="flex flex-col gap-2 text-base">
         <div className="flex justify-between gap-3">
-          <dt className="text-secondary">{t('game.paidInApp')}</dt>
-          <dd className="text-primary">{formatMoney(team.paidInApp)}</dd>
+          <dt className="text-secondary">{t('game.paid')}</dt>
+          <dd className="text-primary">{formatMoney(paid)}</dd>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-secondary">{t('game.remainder')}</dt>
-          <dd className="flex items-center gap-2 text-primary">
-            {formatMoney(team.remainderAmount)}
-            {/* Nothing owed (the advance covered it): no status badge. */}
-            {(paid || team.remainderAmount > 0) && (
-              <Badge tone={paid ? 'success' : 'warning'}>
-                {paid ? t('game.remainderPaid') : t('game.remainderUnpaid')}
-              </Badge>
-            )}
-          </dd>
-        </div>
+        {remaining > 0 && (
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-secondary">{t('game.remainder')}</dt>
+            <dd className="flex items-center gap-2 text-primary">
+              {mark === 'not_paid' && <Badge tone="danger">{t('game.notPaid')}</Badge>}
+              {formatMoney(remaining)}
+            </dd>
+          </div>
+        )}
       </dl>
-      {children}
+      {waiting && <p className="text-sm text-secondary">{t('game.refundIfNoOpponent')}</p>}
+      {remaining === 0 && !waiting && (
+        <div className="flex">
+          <Badge tone="success">
+            {mark === 'cash_received' ? t('game.cashReceived') : t('game.paidInFull')}
+          </Badge>
+        </div>
+      )}
     </Card>
   )
 }
@@ -294,12 +327,12 @@ function GameRefundLine({ team }: { team: GameTeam }) {
   const { t } = useTranslation()
   const refund = team.refundIfCancelledNow ?? 0
   return refund > 0 ? (
-    <p className="flex items-start gap-2 rounded-xl bg-success-soft p-3 text-sm text-success">
+    <p className="flex items-start gap-2 rounded-xl bg-success-soft p-3 text-sm text-success-text">
       <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
       {t('game.refundNow', { amount: formatMoney(refund) })}
     </p>
   ) : (
-    <p className="flex items-start gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning">
+    <p className="flex items-start gap-2 rounded-xl bg-warning-soft p-3 text-sm text-warning-text">
       <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
       {t('game.noRefundNow')}
     </p>
@@ -333,7 +366,9 @@ function PayTeamRemainderSheet({
       // Only a decline is safe to try again with another card. Anything else
       // (still confirming, already paid, no answer) may have moved money: close,
       // say so, and reload the game instead of leaving the pay button live.
-      if (errorMessageKey(error) === 'errors.cardDeclined') return
+      // The payment system being down is safe too: nothing was charged.
+      const key = errorMessageKey(error)
+      if (isDeclineKey(key) || key === 'errors.providerUnavailable') return
       toast.show(errorMessage(error), 'danger')
       void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
       onClose()
@@ -353,7 +388,7 @@ function PayTeamRemainderSheet({
           loading={pay.isPending}
           onClick={() => card && pay.mutate(card.id)}
         >
-          {t('game.payButton', { amount: formatMoney(team.remainderAmount) })}
+          {t('game.payButton', { amount: formatMoney(teamRemaining(team)) })}
         </Button>
       }
     >
@@ -370,21 +405,14 @@ function PayTeamRemainderSheet({
               key={c.id}
               card={c}
               selected={c.id === card?.id}
-              invalid={
-                pay.isError &&
-                c.id === card?.id &&
-                errorMessageKey(pay.error) === 'errors.cardDeclined'
-              }
+              invalid={pay.isError && c.id === card?.id && isDeclineKey(errorMessageKey(pay.error))}
               onSelect={() => setCardId(c.id)}
             />
           ))}
         </div>
       )}
       {pay.isError && (
-        <p role="alert" className="flex gap-2 rounded-xl bg-danger-soft p-3 text-sm text-danger">
-          <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
-          {errorMessage(pay.error)}
-        </p>
+        <Notice tone={errorTone(errorMessageKey(pay.error))}>{errorMessage(pay.error)}</Notice>
       )}
     </BottomSheet>
   )

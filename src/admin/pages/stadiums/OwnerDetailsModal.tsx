@@ -25,7 +25,7 @@ function RadioGroup<V extends string>({
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 text-sm font-medium text-primary">
-        {label} <span className="text-danger">*</span>
+        {label} <span className="text-danger-text">*</span>
       </legend>
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         {options.map((option) => (
@@ -65,7 +65,7 @@ function TextField({
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-primary">
-        {label} <span className="text-danger">*</span>
+        {label} <span className="text-danger-text">*</span>
       </label>
       <input
         id={id}
@@ -78,10 +78,10 @@ function TextField({
         aria-describedby={`${id}-help`}
         className={cx(
           'h-10 rounded-md border bg-background px-3 text-base text-primary outline-none',
-          error ? 'border-danger' : 'border-border focus:border-accent',
+          error ? 'border-danger-text' : 'border-border focus:border-accent',
         )}
       />
-      <p id={`${id}-help`} className={cx('text-xs', error ? 'text-danger' : 'text-secondary')}>
+      <p id={`${id}-help`} className={cx('text-xs', error ? 'text-danger-text' : 'text-secondary')}>
         {error ?? helper}
       </p>
     </div>
@@ -192,7 +192,7 @@ export function OwnerDetailsModal({
         />
       )}
       {submitted && !complete && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-danger-text">
           Huquqiy shakl va shartnoma holatini tanlang
         </p>
       )}

@@ -15,7 +15,7 @@ export function StatusTimeline({
   error: boolean
 }) {
   if (loading) return <Skeleton className="h-24 w-full rounded-md" />
-  if (error) return <p className="text-sm text-danger">Tarixni yuklab boʻlmadi</p>
+  if (error) return <p className="text-sm text-danger-text">Tarixni yuklab boʻlmadi</p>
   if (!entries?.length) return <p className="text-sm text-secondary">Tarix yoʻq</p>
   return (
     <ol className="flex flex-col">

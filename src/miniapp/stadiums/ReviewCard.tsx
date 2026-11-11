@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Review } from '../api/stadiums'
 import { Card, cx } from '../components'
@@ -14,15 +15,26 @@ export function Stars({ rating, label }: { rating: number; label: string }) {
           key={n}
           size={14}
           aria-hidden
-          className={cx(n <= rating ? 'fill-warning text-warning' : 'fill-border text-border')}
+          className={cx(
+            n <= rating ? 'fill-warning-text text-warning-text' : 'fill-border text-border',
+          )}
         />
       ))}
     </span>
   )
 }
 
-/** A review: initials, name, date, stars, the comment and the owner's reply. */
-export function ReviewCard({ review }: { review: Review }) {
+/** A review: initials, name, date, stars, the comment and the owner's reply; `children` below (owner actions). */
+export function ReviewCard({
+  review,
+  replyLabel,
+  children,
+}: {
+  review: Review
+  /** The reply's heading; the owner sees "Sizning javobingiz". */
+  replyLabel?: string
+  children?: ReactNode
+}) {
   const { t } = useTranslation()
   const name = review.userName ?? t('stadium.anonymous')
   return (
@@ -43,10 +55,13 @@ export function ReviewCard({ review }: { review: Review }) {
       {review.comment && <p className="text-sm text-primary">{review.comment}</p>}
       {review.ownerReply && (
         <div className="flex flex-col gap-1 rounded-lg bg-surface p-3">
-          <span className="text-xs font-semibold text-secondary">{t('stadium.ownerReply')}</span>
+          <span className="text-xs font-semibold text-secondary">
+            {replyLabel ?? t('stadium.ownerReply')}
+          </span>
           <p className="text-sm text-primary">{review.ownerReply}</p>
         </div>
       )}
+      {children}
     </Card>
   )
 }

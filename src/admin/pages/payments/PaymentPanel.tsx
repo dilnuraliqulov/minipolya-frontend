@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Copy, HandCoins, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { isApiError } from '../../../shared/api'
-import { formatDateTime } from '../../../shared/format'
+import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { formatDateTime, roundToWholeSom } from '../../../shared/format'
 import { availability } from '../../api/missing'
 import {
   getPayment,
@@ -19,7 +19,7 @@ import { entityPath } from '../../audit/links'
 import { StatusTimeline } from '../../audit/StatusTimeline'
 import { DisabledHint, SOON } from '../../components/Availability'
 import { Button } from '../../components/Button'
-import { ReasonModal } from '../../components/Modal'
+import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { PanelRow, PanelSection, SidePanel } from '../../components/SidePanel'
 import { Skeleton } from '../../components/Skeleton'
 import { ErrorState } from '../../components/States'
@@ -89,10 +89,23 @@ function Linked({
   )
 }
 
+const NOT_FAILED_ANYMORE = 'Bu qaytarish endi “amalga oshmadi” holatida emas. Sahifa yangilandi'
+
+/** The refund was settled meanwhile (another admin, the reconciler): the 400 says so. */
+function isNoLongerFailed(error: unknown): boolean {
+  return (
+    isApiError(error) &&
+    error.status === 400 &&
+    (error.message === API_MESSAGES.refundNotFailedRetry ||
+      error.message === API_MESSAGES.refundNotFailedMark)
+  )
+}
+
 function FailedRefund({ payment }: { payment: AdminPayment }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [marking, setMarking] = useState(false)
+  const [confirmingRetry, setConfirmingRetry] = useState(false)
   const retryMode = availability(REFUND_RETRY)
   const manualMode = availability(REFUND_MANUAL)
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['admin'] })
@@ -100,6 +113,7 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   const retry = useMutation({
     mutationFn: () => retryRefund(payment.id),
     onSuccess: (result) => {
+      setConfirmingRetry(false)
       refresh()
       if (result.status === 'failed') {
         toast.error(`Yana amalga oshmadi: ${result.failureReason ?? 'ATMOS xatosi'}`)
@@ -107,12 +121,19 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
         toast.success('Pul qaytarildi')
       }
     },
-    onError: (error) =>
+    onError: (error) => {
+      setConfirmingRetry(false)
+      if (isNoLongerFailed(error)) {
+        refresh()
+        toast.error(NOT_FAILED_ANYMORE)
+        return
+      }
       toast.error(
         isApiError(error) && error.status === 502
           ? 'ATMOS bilan bogʻlanib boʻlmadi. Keyinroq urinib koʻring'
           : 'Qayta urinib boʻlmadi. Keyinroq urinib koʻring',
-      ),
+      )
+    },
   })
   const manual = useMutation({
     mutationFn: (reason: string) => markRefunded(payment.id, reason),
@@ -121,8 +142,13 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
       refresh()
       toast.success('Qoʻlda qaytarildi deb belgilandi')
     },
-    onError: () => {
+    onError: (error) => {
       setMarking(false)
+      if (isNoLongerFailed(error)) {
+        refresh()
+        toast.error(NOT_FAILED_ANYMORE)
+        return
+      }
       toast.error('Belgilab boʻlmadi. Qayta urinib koʻring')
     },
   })
@@ -131,7 +157,7 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
     <Button
       icon={RefreshCw}
       disabled={retryMode === 'soon' || retry.isPending}
-      onClick={() => retry.mutate()}
+      onClick={() => setConfirmingRetry(true)}
     >
       {retry.isPending ? 'Urinilmoqda…' : 'Qayta urinish'}
     </Button>
@@ -148,8 +174,8 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   )
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-danger bg-danger-soft p-4">
-      <p className="flex items-center gap-2 text-base font-semibold text-danger">
+    <div className="flex flex-col gap-3 rounded-lg border border-danger-text bg-danger-soft p-4">
+      <p className="flex items-center gap-2 text-base font-semibold text-danger-text">
         <TriangleAlert size={18} aria-hidden />
         Qaytarish amalga oshmadi
       </p>
@@ -168,6 +194,15 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
           manualButton
         )}
       </div>
+      <ConfirmModal
+        open={confirmingRetry}
+        title="Qaytarishni qayta urinish"
+        message={`Pul toʻlovchining kartasiga qaytadan yuboriladi: ${payment.userName ?? 'Toʻlovchi'} · ${money(payment.amount)}. Davom etasizmi?`}
+        confirmLabel="Qayta urinish"
+        busy={retry.isPending}
+        onClose={() => setConfirmingRetry(false)}
+        onConfirm={() => retry.mutate()}
+      />
       <ReasonModal
         open={marking}
         title="Qoʻlda qaytarildi deb belgilash"
@@ -248,7 +283,7 @@ export function PaymentPanel({
               )}
               <PanelRow label="Turi">{refund ? 'Qaytarish (toʻliq)' : type}</PanelRow>
               <PanelRow label="Summa">
-                <span className={refund ? 'text-danger' : undefined}>{money(p.amount)}</span>
+                <span className={refund ? 'text-danger-text' : undefined}>{money(p.amount)}</span>
               </PanelRow>
               <PanelRow label="Usul">
                 {PAYMENT_METHODS[p.method] ?? p.method}
@@ -288,13 +323,23 @@ export function PaymentPanel({
 
           <PanelSection title="Taqsimot">
             <dl className="flex flex-col gap-2.5">
-              <PanelRow label={refund ? 'Egadan' : 'Egaga'}>{money(p.ownerAmount)}</PanelRow>
-              <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
-                {money(p.platformAmount)}
+              <PanelRow label={refund ? 'Egadan' : 'Egaga'}>
+                {money(roundToWholeSom(p.ownerNet))}
               </PanelRow>
-              {p.atmosFee !== undefined && (
-                <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
-              )}
+              <PanelRow label={refund ? 'Platformadan' : 'Platformaga'}>
+                {money(roundToWholeSom(p.platformNet))}
+              </PanelRow>
+              <PanelRow label="ATMOS">{money(roundToWholeSom(p.atmosFee))}</PanelRow>
+            </dl>
+          </PanelSection>
+
+          <PanelSection title="Aniq qiymatlar">
+            <dl className="flex flex-col gap-2.5">
+              <PanelRow label="Egasining ulushi">{money(p.ownerAmount)}</PanelRow>
+              <PanelRow label="Platforma ulushi">{money(p.platformAmount)}</PanelRow>
+              <PanelRow label="Egasiga sof">{money(p.ownerNet)}</PanelRow>
+              <PanelRow label="Platformaga sof">{money(p.platformNet)}</PanelRow>
+              <PanelRow label="ATMOS komissiyasi">{money(p.atmosFee)}</PanelRow>
               {p.providerCommission !== undefined && (
                 <PanelRow label="ATMOS ushlab qoldi">{money(p.providerCommission)}</PanelRow>
               )}
