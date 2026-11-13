@@ -611,7 +611,9 @@ Local values go in **`.env.local`**, which git ignores (`*.local` in
 ```bash
 npm run dev           # Vite dev server — both apps (URLs under "Structure")
 npm run build         # tsc -b && vite build → dist/
-npm run preview       # serve the production build
+npm run preview       # serve the production build on localhost
+npm start             # serve the production build on $PORT and 0.0.0.0 (what a host runs;
+                      # works on Windows too — scripts/start-preview.mjs)
 npm run test          # Vitest, single run
 npm run test:watch    # Vitest, watch mode
 npm run lint          # eslint .
@@ -621,3 +623,14 @@ npm run typecheck     # tsc -b (project references, no emit)
 ```
 
 Before committing: `typecheck`, `lint`, `test` and `build` must pass.
+
+## Deploying
+
+`DEPLOYMENT.md` — the Railway **test** deployment, step by step: both services, every
+environment variable, the first admin user, @BotFather, and what production would need
+instead. The same file is in the backend repository; keep them identical.
+
+The build is served by `vite preview` there (`npm start`), which also forwards `/api` —
+uploaded photos included — to the backend's private address, so one domain serves the Mini
+App at `/`, the admin panel at `/admin`, and the API at `/api`. That is why `VITE_API_URL`
+is empty in that build.
