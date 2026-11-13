@@ -36,15 +36,22 @@ export interface RequestOptions {
 }
 
 /**
- * Dev: same origin — the Vite dev server proxies /api to the local backend.
- * Production builds: VITE_API_URL.
+ * The origin every request goes to.
+ *
+ * - **Dev (`npm run dev`):** this page's own origin — the Vite dev server proxies
+ *   `/api` to the local backend.
+ * - **A production build with `VITE_API_URL` empty or unset:** this page's own
+ *   origin too, for hosting that forwards `/api` to the backend itself (the
+ *   `vite preview` server does, see `vite.config.ts`). The backend then needs no
+ *   CORS and need not be reachable from the internet at all.
+ * - **A production build with `VITE_API_URL` set:** that host, e.g.
+ *   `https://api.example.uz` — a backend on another origin, which then has to allow
+ *   this one in `CORS_ALLOWED_ORIGINS`.
  */
 function baseUrl(): string {
   if (import.meta.env.DEV) return window.location.origin
-  const url = import.meta.env.VITE_API_URL
-  if (!url) {
-    throw new Error('VITE_API_URL is not set for this production build')
-  }
+  const url = import.meta.env.VITE_API_URL?.trim()
+  if (!url) return window.location.origin
   return url.replace(/\/+$/, '')
 }
 
