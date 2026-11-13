@@ -40,6 +40,14 @@ describe('vite preview config', () => {
     expect(config.server?.allowedHosts).toContain('.up.railway.app')
   })
 
+  it('allows the host the platform healthchecks from', async () => {
+    // Vite answers 403 to an unlisted Host. Railway's healthcheck comes from
+    // healthcheck.railway.app, and a 403 there means the deployment never goes live.
+    const config = await loadConfig()
+
+    expect(config.preview?.allowedHosts).toContain('healthcheck.railway.app')
+  })
+
   it('sends the security headers', async () => {
     const headers = (await loadConfig()).preview?.headers as Record<string, string>
 

@@ -9,12 +9,22 @@ const root = import.meta.dirname
 const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as { version: string }
 
 /**
- * Hosts allowed to reach the dev and preview servers by name. Vite refuses any other
- * Host header, which is what stops a stranger's domain pointing at this process.
- * `.up.railway.app` covers the generated domain of a Railway deployment; the tunnels are
- * for testing inside Telegram from a laptop.
+ * Hosts allowed to reach the dev and preview servers by name. Vite refuses any other Host
+ * header with a 403, which is what stops a stranger's domain pointing at this process.
+ *
+ * - `.up.railway.app` — the generated domain of a Railway deployment.
+ * - `healthcheck.railway.app` — where Railway's own healthcheck requests come from. Its
+ *   docs say to add it "for applications that restrict incoming traffic based on the
+ *   hostname", which is what this list does; without it the healthcheck gets the 403 and
+ *   the deployment never goes live.
+ * - the tunnels — testing inside Telegram from a laptop.
  */
-const ALLOWED_HOSTS = ['.up.railway.app', '.trycloudflare.com', '.ngrok-free.app']
+const ALLOWED_HOSTS = [
+  '.up.railway.app',
+  'healthcheck.railway.app',
+  '.trycloudflare.com',
+  '.ngrok-free.app',
+]
 
 /**
  * Where the preview server forwards `/api` — including `/api/uploads/**`, the uploaded
