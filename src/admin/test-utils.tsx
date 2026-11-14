@@ -146,14 +146,26 @@ export function signIn(user: User = admin) {
  * jsdom has no `matchMedia`, so a test that never calls this gets `false` for
  * every query, which is the desktop layout — that is why the responsive work
  * left the existing tests alone. `useAdminTestSetup` clears the stub.
+ *
+ * Returns a function that changes which queries match and tells the listening
+ * components, for testing what happens when the viewport crosses a
+ * breakpoint: `act(() => resize(RAIL_NAV))`.
  */
 export function stubMedia(...queries: string[]) {
+  const listeners = new Set<() => void>()
+  let matching = queries
   vi.stubGlobal('matchMedia', (media: string) => ({
     media,
-    matches: queries.includes(media),
-    addEventListener: () => {},
-    removeEventListener: () => {},
+    get matches() {
+      return matching.includes(media)
+    },
+    addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+    removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
   }))
+  return (...next: string[]) => {
+    matching = next
+    listeners.forEach((listener) => listener())
+  }
 }
 
 /**
