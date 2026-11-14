@@ -70,9 +70,30 @@ describe('api client', () => {
     expect(url).toBe(`${window.location.origin}/api/users/me`)
   })
 
-  it('fails loudly when a production build has no VITE_API_URL', async () => {
-    vi.stubEnv('VITE_API_URL', '')
-    await expect(api.get('/x')).rejects.toThrow('VITE_API_URL is not set')
+  it('calls its own origin when a production build has no VITE_API_URL', async () => {
+    // Same-origin hosting: the server in front of the app forwards /api to the
+    // backend, so the backend needs no CORS and no public address.
+    for (const value of ['', '   ']) {
+      vi.stubEnv('VITE_API_URL', value)
+      const fetchMock = respond(200, { success: true, data: null, message: null })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await api.get('/api/users/me')
+
+      const [url] = fetchMock.mock.calls[0] as [string]
+      expect(url).toBe(`${window.location.origin}/api/users/me`)
+    }
+  })
+
+  it('calls VITE_API_URL when a production build sets one', async () => {
+    vi.stubEnv('VITE_API_URL', 'https://api.example.uz/')
+    const fetchMock = respond(200, { success: true, data: null, message: null })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await api.get('/api/users/me')
+
+    const [url] = fetchMock.mock.calls[0] as [string]
+    expect(url).toBe('https://api.example.uz/api/users/me')
   })
 
   it('sends a JSON body', async () => {

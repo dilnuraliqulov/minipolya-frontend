@@ -1,7 +1,11 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string
+  /**
+   * The API's origin for a production build. Empty or unset → the page's own origin,
+   * for hosting that forwards /api to the backend (what `vite preview` does here).
+   */
+  readonly VITE_API_URL?: string
   /** Mini App: the bot's public username, without @ (invite links). */
   /** Yandex Maps JS API v3 (public, restricted by domain). Empty → the Leaflet fallback. */
   readonly VITE_YANDEX_MAPS_API_KEY?: string

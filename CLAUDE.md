@@ -217,10 +217,19 @@ Rules that follow from that:
     backend at `http://localhost:8080` (`server.proxy` in `vite.config.ts`).
     Same origin, so **no CORS is needed locally**. Start the backend yourself;
     with it down, `/api` calls answer 502.
-  - **Production builds:** `VITE_API_URL` (e.g. `https://api.example.uz`).
-    It is ignored in dev. A build without it fails on the first request.
-    Whether production needs CORS depends on hosting — see R1 in
+  - **Production builds, same origin (the default):** leave `VITE_API_URL`
+    **empty**. The apps then call `/api/...` on their own origin and the server
+    in front of the build forwards it to the backend — which is what
+    `npm run preview` / `npm start` do (`preview.proxy` in `vite.config.ts`
+    sends `/api` to `BACKEND_INTERNAL_URL`). No CORS is involved, and the
+    backend needs no public address.
+  - **Production builds, another origin:** `VITE_API_URL`
+    (e.g. `https://api.example.uz`). It is ignored in dev. That backend then has
+    to list this origin in `CORS_ALLOWED_ORIGINS` — see R1 in
     `docs/backend-requests.md`.
+  - Uploaded photos arrive as relative URLs (`/api/uploads/...`); `mediaUrl`
+    makes them absolute against the same base, so they follow whichever of the
+    two the build uses.
 - **Every response uses the same envelope:** `{ success, data, message }`.
   Unwrap it in one place in the API client; feature code should see `data`.
   Errors may add a `code` — see below.
@@ -602,7 +611,9 @@ Local values go in **`.env.local`**, which git ignores (`*.local` in
 ```bash
 npm run dev           # Vite dev server — both apps (URLs under "Structure")
 npm run build         # tsc -b && vite build → dist/
-npm run preview       # serve the production build
+npm run preview       # serve the production build on localhost
+npm start             # serve the production build on $PORT and 0.0.0.0 (what a host runs;
+                      # works on Windows too — scripts/start-preview.mjs)
 npm run test          # Vitest, single run
 npm run test:watch    # Vitest, watch mode
 npm run lint          # eslint .
@@ -612,3 +623,14 @@ npm run typecheck     # tsc -b (project references, no emit)
 ```
 
 Before committing: `typecheck`, `lint`, `test` and `build` must pass.
+
+## Deploying
+
+`DEPLOYMENT.md` — the Railway **test** deployment, step by step: both services, every
+environment variable, the first admin user, @BotFather, and what production would need
+instead. The same file is in the backend repository; keep them identical.
+
+The build is served by `vite preview` there (`npm start`), which also forwards `/api` —
+uploaded photos included — to the backend's private address, so one domain serves the Mini
+App at `/`, the admin panel at `/admin`, and the API at `/api`. That is why `VITE_API_URL`
+is empty in that build.
