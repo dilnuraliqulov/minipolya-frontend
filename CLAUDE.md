@@ -626,11 +626,26 @@ Before committing: `typecheck`, `lint`, `test` and `build` must pass.
 
 ## Deploying
 
-`DEPLOYMENT.md` — the Railway **test** deployment, step by step: both services, every
-environment variable, the first admin user, @BotFather, and what production would need
-instead. The same file is in the backend repository; keep them identical.
+**`Dockerfile`** in this repository builds the deployed frontend: `npm ci`, `npm run build`,
+then `dist/` copied into a Caddy image. Every `VITE_*` value is a **build argument**,
+because Vite inlines them at build time — so changing one means rebuilding the image, not
+restarting a container. `VITE_DEV_LOGIN_KEY` is deliberately not among them.
 
-The build is served by `vite preview` there (`npm start`), which also forwards `/api` —
-uploaded photos included — to the backend's private address, so one domain serves the Mini
-App at `/`, the admin panel at `/admin`, and the API at `/api`. That is why `VITE_API_URL`
-is empty in that build.
+**`minipolyaBackend/deploy/DEPLOYMENT-AWS.md`** is the step-by-step guide for the **test**
+deployment: one AWS EC2 server, Docker Compose, three containers (postgres, backend, caddy),
+automatic HTTPS, the first admin user, @BotFather, Yandex, backups and costs. It is the
+single copy — this repository does not keep a duplicate, because the old pair of identical
+`DEPLOYMENT.md` files drifted apart. `minipolyaBackend/deploy/` also holds the
+`docker-compose.yml` that builds **this** repository's image (as `../../minipolyaFrontend`,
+so the two checkouts sit side by side on the server) and the `Caddyfile` that serves it.
+
+In that deployment **Caddy** serves the build and forwards `/api` — uploaded photos
+included — to the backend container's private address, so one origin serves the Mini App at
+`/`, the admin panel at `/admin`, and the API at `/api`. That is why `VITE_API_URL` is empty
+there: the apps call `/api` on their own origin, so the backend needs no public address and
+no CORS.
+
+`npm run preview` / `npm start` still serve the build locally with the same routing and the
+same security headers (`preview` in `vite.config.ts`), which is the quickest way to check a
+production build without Docker. Caddy is what runs it on the server; the Caddyfile carries
+the same CSP and headers, so the two agree.
