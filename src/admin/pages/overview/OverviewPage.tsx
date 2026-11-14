@@ -27,7 +27,10 @@ import { CHART_HEIGHT, dailyBookingBars } from './chartData'
 import { comparison } from './comparison'
 
 const card = CARD
-const KPI_GRID = 'grid grid-cols-2 gap-4 xl:grid-cols-4'
+// One card per row on a phone, two from 480px, the design's four from 1280px.
+const KPI_GRID = 'grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4'
+/** The to-do tiles: full width until there is room for two side by side. */
+const TILE_ROW = 'flex flex-col gap-4 lg:flex-row'
 const LAST_WEEK = 'oʻtgan haftaga nisbatan'
 
 const TILE_TONES = {
@@ -76,7 +79,7 @@ function TodoTile({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-base font-medium text-secondary">{title}</p>
-        <p className="text-6xl font-semibold tracking-display text-primary">
+        <p className="text-5xl font-semibold tracking-display text-primary min-[480px]:text-6xl">
           {formatNumber(count)}
         </p>
         {oldest.loading ? (
@@ -88,7 +91,9 @@ function TodoTile({
         )}
       </div>
       <span className="flex shrink-0 items-center gap-1.5 text-base font-medium text-link">
-        Koʻrib chiqish
+        {/* No room beside the count on a phone: the arrow carries it, and the
+            words stay in the link's name for anyone listening. */}
+        <span className="max-sm:sr-only">Koʻrib chiqish</span>
         <ArrowRight
           size={16}
           aria-hidden
@@ -106,7 +111,7 @@ function OverviewSkeleton() {
     <div aria-busy className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-3.5 w-38" />
-        <div className="flex gap-4">
+        <div className={TILE_ROW}>
           {[0, 1].map((i) => (
             <div key={i} className={`${card} flex flex-1 items-center gap-4 p-5`}>
               <Skeleton className="size-12 rounded-xl" />
@@ -182,7 +187,7 @@ export function OverviewPage() {
             Hammasi bajarilgan, kutilayotgan ish yoʻq
           </p>
         ) : (
-          <div className="flex gap-4">
+          <div className={TILE_ROW}>
             {failedRefunds > 0 && (
               <TodoTile
                 icon={ReceiptText}
@@ -264,13 +269,14 @@ export function OverviewPage() {
       </section>
 
       <section className={`${card} flex flex-col`} aria-labelledby="chart-title">
-        <div className="flex items-center gap-2.5 px-5 pt-3.5 pb-2.5">
+        <div className="flex flex-wrap items-center gap-x-2.5 px-4 pt-3.5 pb-2.5 md:px-5">
           <h2 id="chart-title" className="flex-1 text-lg font-semibold text-primary">
             Bronlar soni, oxirgi 30 kun
           </h2>
           <span className="text-sm text-secondary">jami {formatNumber(total)}</span>
         </div>
-        <div className="px-5 pt-2 pb-4">
+        {/* A narrower gutter on a phone: 30 bars need every pixel. */}
+        <div className="px-3 pt-2 pb-4 md:px-5">
           <BarChart
             data={bars}
             height={CHART_HEIGHT}

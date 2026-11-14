@@ -68,7 +68,7 @@ export function BarChart({ data, formatValue, label, height = 300, highlight }: 
       <div className="flex gap-2.5">
         <div
           aria-hidden
-          className="flex w-6 shrink-0 flex-col items-end justify-between text-2xs text-secondary"
+          className="flex w-5 shrink-0 flex-col items-end justify-between text-2xs text-secondary md:w-6"
           style={{ height }}
         >
           {ticks.map((tick) => (
@@ -161,7 +161,8 @@ export function BarChart({ data, formatValue, label, height = 300, highlight }: 
           )}
         </div>
       </div>
-      <div aria-hidden className="relative ml-8.5 h-3.5 text-2xs text-secondary">
+      {/* Clears the y-axis column plus its gap, at either of its two widths. */}
+      <div aria-hidden className="relative ml-7.5 h-3.5 text-2xs text-secondary md:ml-8.5">
         {labelledIndexes(data.length).map((i) => (
           <span
             key={i}
