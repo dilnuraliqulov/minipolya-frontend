@@ -139,6 +139,24 @@ export function signIn(user: User = admin) {
 }
 
 /**
+ * Stubs `window.matchMedia` so exactly the listed queries match — pass the
+ * constants from `components/useMediaQuery` (`CARD_ROWS`, `COMPACT_NAV`,
+ * `RAIL_NAV`).
+ *
+ * jsdom has no `matchMedia`, so a test that never calls this gets `false` for
+ * every query, which is the desktop layout — that is why the responsive work
+ * left the existing tests alone. `useAdminTestSetup` clears the stub.
+ */
+export function stubMedia(...queries: string[]) {
+  vi.stubGlobal('matchMedia', (media: string) => ({
+    media,
+    matches: queries.includes(media),
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
+}
+
+/**
  * Puts endpoints on the missing list for one test, as if the backend had not
  * shipped them (`useAdminTestSetup` empties the list after each test).
  */
