@@ -4,10 +4,12 @@ import { Link } from 'react-router'
 import { formatDateTime } from '../../shared/format'
 import type { AuditEntry } from '../api/audit'
 import { Avatar } from '../components/Avatar'
+import { CARD } from '../components/card'
 import { cx } from '../components/cx'
 import { Skeleton } from '../components/Skeleton'
 import { EmptyState, ErrorState } from '../components/States'
 import { StatusBadge } from '../components/StatusBadge'
+import { CARD_ROWS, useMediaQuery } from '../components/useMediaQuery'
 import {
   ACTOR_TYPE_LABELS,
   actionLabel,
@@ -32,7 +34,9 @@ function Who({ actor }: { actor: AuditEntry['actor'] }) {
     <span className="flex min-w-0 items-center gap-2.5">
       <Avatar name={actor.name} />
       <span className="flex min-w-0 flex-col items-start gap-0.5">
-        <span className="truncate font-medium">{actor.name}</span>
+        {/* `items-start` sizes this to its content, so it needs an explicit
+            ceiling before `truncate` can clip a long name. */}
+        <span className="max-w-full truncate font-medium">{actor.name}</span>
         {actor.type && <StatusBadge tone="neutral">{ACTOR_TYPE_LABELS[actor.type]}</StatusBadge>}
       </span>
     </span>
@@ -121,6 +125,77 @@ export function AuditLogTable({
       return next
     })
   const span = compact ? 4 : 5
+  const narrow = useMediaQuery(CARD_ROWS)
+
+  if (narrow) {
+    let list: ReactNode
+    if (loading) {
+      list = Array.from({ length: 6 }, (_, i) => (
+        <li key={i} className="flex flex-col gap-2 p-4">
+          <Skeleton className="h-3 w-2/5" />
+          <Skeleton className="h-3 w-4/5" />
+        </li>
+      ))
+    } else if (error) {
+      list = (
+        <li>
+          <ErrorState onRetry={onRetry} />
+        </li>
+      )
+    } else if (!entries?.length) {
+      list = (
+        <li>
+          <EmptyState title={empty.title} description={empty.description} />
+        </li>
+      )
+    } else {
+      list = entries.map((entry) => {
+        const open = expanded.has(entry.id)
+        const detailsId = `audit-${entry.id}`
+        return (
+          <li key={entry.id} className="flex flex-col border-b border-border last:border-b-0">
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={detailsId}
+              onClick={() => toggle(entry.id)}
+              className={cx(
+                'flex min-h-11 w-full items-start gap-3 p-4 text-left',
+                'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
+                open && 'bg-hover',
+              )}
+            >
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="text-sm text-secondary">{formatDateTime(entry.time)}</span>
+                <span className="text-base font-medium text-primary">
+                  {actionLabel(entry.action)}
+                </span>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <Who actor={entry.actor} />
+                  {!compact && <ObjectCell entry={entry} />}
+                </span>
+              </span>
+              {open ? (
+                <ChevronUp size={18} aria-hidden className="mt-0.5 shrink-0 text-secondary" />
+              ) : (
+                <ChevronDown size={18} aria-hidden className="mt-0.5 shrink-0 text-secondary" />
+              )}
+            </button>
+            {open && (
+              <div id={detailsId} className="bg-surface px-4 pt-1 pb-4">
+                <AuditDetails entry={entry} />
+              </div>
+            )}
+          </li>
+        )
+      })
+    }
+    return (
+      <ul aria-busy={loading || undefined} className={cx(CARD, 'flex flex-col')}>
+        {list}
+      </ul>
+    )
+  }
 
   let body: ReactNode
   if (loading) {

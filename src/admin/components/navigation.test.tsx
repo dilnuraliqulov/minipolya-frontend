@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { stubMedia } from '../test-utils'
 import { FilterBar, FilterSelect, SearchField } from './FilterBar'
+import { CARD_ROWS } from './useMediaQuery'
 import { pageItems } from './pageItems'
 import { Pagination } from './Pagination'
 import { Tabs } from './Tabs'
@@ -96,6 +98,92 @@ describe('FilterBar', () => {
       />,
     )
     expect(screen.getByText('Tuman: Chilonzor').parentElement).toHaveClass('border-accent')
+  })
+})
+
+describe('FilterBar below 768px', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  const search = <SearchField value="" onChange={vi.fn()} placeholder="Ism boʻyicha qidirish" />
+  const holat = (
+    <FilterSelect
+      label="Holat"
+      value=""
+      onChange={vi.fn()}
+      options={[
+        { value: '', label: 'Barchasi' },
+        { value: 'pending', label: 'Kutilmoqda' },
+      ]}
+    />
+  )
+
+  it('keeps the search visible and moves the filters into a sheet', () => {
+    stubMedia(CARD_ROWS)
+    render(
+      <FilterBar search={search} activeCount={2} onClear={vi.fn()}>
+        {holat}
+      </FilterBar>,
+    )
+    expect(screen.getByRole('searchbox', { name: 'Ism boʻyicha qidirish' })).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Holat' })).not.toBeInTheDocument()
+
+    const button = screen.getByRole('button', { name: /Filtrlar/ })
+    expect(button).toHaveTextContent('2')
+    fireEvent.click(button)
+
+    const sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
+    expect(within(sheet).getByRole('combobox', { name: 'Holat' })).toBeInTheDocument()
+  })
+
+  it('closes the sheet on Esc, on the backdrop and on "Tayyor"', () => {
+    stubMedia(CARD_ROWS)
+    render(
+      <FilterBar search={search} onClear={vi.fn()}>
+        {holat}
+      </FilterBar>,
+    )
+    const open = () => fireEvent.click(screen.getByRole('button', { name: /Filtrlar/ }))
+    const sheet = () => screen.queryByRole('dialog', { name: 'Filtrlar' })
+
+    open()
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Filtrlar' }), { key: 'Escape' })
+    expect(sheet()).not.toBeInTheDocument()
+
+    open()
+    fireEvent.mouseDown(screen.getByTestId('sheet-backdrop'))
+    expect(sheet()).not.toBeInTheDocument()
+
+    open()
+    fireEvent.click(screen.getByRole('button', { name: 'Tayyor' }))
+    expect(sheet()).not.toBeInTheDocument()
+  })
+
+  it('clears from inside the sheet and closes it', () => {
+    stubMedia(CARD_ROWS)
+    const onClear = vi.fn()
+    render(
+      <FilterBar search={search} activeCount={1} onClear={onClear}>
+        {holat}
+      </FilterBar>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Filtrlar/ }))
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Filtrlar' })).getByRole('button', {
+        name: 'Tozalash',
+      }),
+    )
+    expect(onClear).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('dialog', { name: 'Filtrlar' })).not.toBeInTheDocument()
+  })
+
+  it('is one row again at 768px and above', () => {
+    render(
+      <FilterBar search={search} onClear={vi.fn()}>
+        {holat}
+      </FilterBar>,
+    )
+    expect(screen.getByRole('combobox', { name: 'Holat' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Filtrlar/ })).not.toBeInTheDocument()
   })
 })
 

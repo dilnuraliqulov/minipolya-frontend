@@ -36,7 +36,13 @@ export function Tabs<V extends string>({
   }
 
   return (
-    <div role="tablist" aria-label={label} className="flex gap-1 border-b border-border">
+    // Five tabs do not fit a 360px screen: the strip scrolls sideways on its
+    // own rather than making the whole page scroll.
+    <div
+      role="tablist"
+      aria-label={label}
+      className="flex gap-1 overflow-x-auto border-b border-border"
+    >
       {tabs.map((tab, index) => {
         const active = tab.value === value
         return (
@@ -52,7 +58,7 @@ export function Tabs<V extends string>({
             onClick={() => onChange(tab.value)}
             onKeyDown={(event) => onKeyDown(event, index)}
             className={cx(
-              '-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-base font-medium',
+              '-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-base font-medium whitespace-nowrap',
               'focus-visible:outline-2 focus-visible:outline-accent',
               active
                 ? 'border-accent text-link'

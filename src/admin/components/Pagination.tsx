@@ -12,8 +12,9 @@ export interface PaginationProps {
   onPageChange: (page: number) => void
 }
 
+// 44px on a phone, the design's 32px from 768px up.
 const square =
-  'flex size-8 items-center justify-center rounded-md text-sm font-medium focus-visible:outline-2 focus-visible:outline-accent'
+  'flex size-11 shrink-0 items-center justify-center rounded-md text-sm font-medium focus-visible:outline-2 focus-visible:outline-accent md:size-8'
 
 export function Pagination({
   page,
@@ -26,11 +27,16 @@ export function Pagination({
   const to = Math.min((page + 1) * size, totalElements)
 
   return (
-    <nav aria-label="Sahifalar" className="flex items-center gap-2 px-4 py-3">
-      <p className="text-sm text-secondary">
+    <nav aria-label="Sahifalar" className="flex flex-wrap items-center gap-2 px-4 py-3">
+      <p className="text-sm text-secondary max-md:w-full">
         {formatNumber(from)}–{formatNumber(to)} / {formatNumber(totalElements)}
       </p>
       <span className="flex-1" />
+      {/* Eight numbered buttons do not fit 360px: there, the page count stands
+          in for them and the arrows do the moving. */}
+      <p className="text-sm text-secondary md:hidden">
+        {formatNumber(page + 1)} / {formatNumber(totalPages)}
+      </p>
       <button
         type="button"
         aria-label="Oldingi sahifa"
@@ -45,7 +51,7 @@ export function Pagination({
       </button>
       {pageItems(page, totalPages).map((item, i) =>
         item === null ? (
-          <span key={`gap-${i}`} className="w-3 text-center text-sm text-secondary">
+          <span key={`gap-${i}`} className="w-3 text-center text-sm text-secondary max-md:hidden">
             …
           </span>
         ) : (
@@ -56,6 +62,7 @@ export function Pagination({
             onClick={() => onPageChange(item - 1)}
             className={cx(
               square,
+              'max-md:hidden',
               item === page + 1
                 ? 'bg-accent text-on-accent'
                 : 'border border-border bg-background text-primary hover:bg-hover',
