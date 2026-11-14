@@ -12,26 +12,19 @@ const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {
  * Hosts allowed to reach the dev and preview servers by name. Vite refuses any other Host
  * header with a 403, which is what stops a stranger's domain pointing at this process.
  *
- * - `.up.railway.app` — the generated domain of a Railway deployment.
- * - `healthcheck.railway.app` — where Railway's own healthcheck requests come from. Its
- *   docs say to add it "for applications that restrict incoming traffic based on the
- *   hostname", which is what this list does; without it the healthcheck gets the 403 and
- *   the deployment never goes live.
- * - the tunnels — testing inside Telegram from a laptop.
+ * Only the tunnels, for testing inside Telegram from a laptop — a Mini App needs an https
+ * URL Telegram can open. The deployed site is served by Caddy, not by this process
+ * (`minipolyaBackend/deploy/Caddyfile`), so its host does not belong here; `SITE_HOST` in
+ * the Caddyfile is the equivalent there.
  */
-const ALLOWED_HOSTS = [
-  '.up.railway.app',
-  'healthcheck.railway.app',
-  '.trycloudflare.com',
-  '.ngrok-free.app',
-]
+const ALLOWED_HOSTS = ['.trycloudflare.com', '.ngrok-free.app']
 
 /**
  * Where the preview server forwards `/api` — including `/api/uploads/**`, the uploaded
- * stadium photos, which is why no second proxy rule is needed. On a platform's private
- * network this is the backend's internal address, e.g.
- * `http://backend.railway.internal:8080`: the backend then needs no public domain and no
- * CORS, because every call the browser makes is same-origin.
+ * stadium photos, which is why no second proxy rule is needed. It is what makes one origin
+ * enough locally: the backend needs no CORS, because every call the browser makes is
+ * same-origin. Caddy does the same job on the server, forwarding `/api/*` to the backend
+ * container.
  */
 const backendUrl = process.env.BACKEND_INTERNAL_URL?.trim() || 'http://localhost:8080'
 

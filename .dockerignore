@@ -1,0 +1,32 @@
+# What must never be sent to the Docker daemon as build context.
+#
+# node_modules and dist are the big ones: `npm ci` installs the tree inside the image and
+# `npm run build` writes dist there, so copying either from the host would be slow and, with
+# node_modules built for Windows, wrong. .env.local is a secrets file and the build gets its
+# VITE_* values as build arguments instead.
+
+# Local environment files. .env.example is a committed template and is harmless.
+.env
+.env.*
+!.env.example
+
+# Installed and built output: the image produces both itself.
+node_modules
+dist
+dist-ssr
+coverage
+
+# Git history and local tooling.
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+
+# Documentation and design sources: not part of the bundle.
+*.md
+docs/
+design/
+
+# Logs.
+*.log
