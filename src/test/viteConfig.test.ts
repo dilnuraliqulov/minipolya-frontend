@@ -19,12 +19,12 @@ describe('vite preview config', () => {
   })
 
   it('forwards /api to BACKEND_INTERNAL_URL, uploaded photos included', async () => {
-    process.env.BACKEND_INTERNAL_URL = 'http://backend.railway.internal:8080'
+    process.env.BACKEND_INTERNAL_URL = 'http://backend:8080'
 
     const config = await loadConfig()
 
     // /api/uploads/** is under /api, so this one rule carries the photos too.
-    expect(config.preview?.proxy).toEqual({ '/api': 'http://backend.railway.internal:8080' })
+    expect(config.preview?.proxy).toEqual({ '/api': 'http://backend:8080' })
   })
 
   it('falls back to the local backend when no internal URL is set', async () => {
@@ -33,19 +33,26 @@ describe('vite preview config', () => {
     expect(config.preview?.proxy).toEqual({ '/api': 'http://localhost:8080' })
   })
 
-  it('allows the generated platform domain by name', async () => {
+  it('allows the tunnels, for testing inside Telegram from a laptop', async () => {
+    // A Mini App needs an https URL Telegram can open, which is what a tunnel gives a
+    // local machine. Vite answers 403 to any Host not on this list.
     const config = await loadConfig()
 
-    expect(config.preview?.allowedHosts).toContain('.up.railway.app')
-    expect(config.server?.allowedHosts).toContain('.up.railway.app')
+    for (const hosts of [config.preview?.allowedHosts, config.server?.allowedHosts]) {
+      expect(hosts).toContain('.trycloudflare.com')
+      expect(hosts).toContain('.ngrok-free.app')
+    }
   })
 
-  it('allows the host the platform healthchecks from', async () => {
-    // Vite answers 403 to an unlisted Host. Railway's healthcheck comes from
-    // healthcheck.railway.app, and a 403 there means the deployment never goes live.
+  it('does not allow arbitrary hosts', async () => {
+    // The deployed site is served by Caddy, not by this process, so no deployment host
+    // belongs here — and `true` (allow anything) would let a stranger's domain point at
+    // a preview server and be answered.
     const config = await loadConfig()
 
-    expect(config.preview?.allowedHosts).toContain('healthcheck.railway.app')
+    expect(config.preview?.allowedHosts).not.toBe(true)
+    expect(config.server?.allowedHosts).not.toBe(true)
+    expect(config.preview?.allowedHosts).toHaveLength(2)
   })
 
   it('sends the security headers', async () => {
