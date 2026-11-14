@@ -88,6 +88,11 @@
   --text-5xl--line-height: 1.2;
   --text-6xl: 32px; /* to-do tile count */
   --text-6xl--line-height: 1.2;
+  /* Not from the design's scale: the smallest size that stops iOS Safari
+     zooming the page when a field is focused. Only for what you type into,
+     and only on a phone (`max-md:text-field`). */
+  --text-field: 16px;
+  --text-field--line-height: 1.5;
 
   /* Section titles (12px/600, uppercase) and KPI values. */
   --tracking-caps: 0.6px;

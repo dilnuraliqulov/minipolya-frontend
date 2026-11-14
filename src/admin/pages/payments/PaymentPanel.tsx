@@ -101,7 +101,15 @@ function isNoLongerFailed(error: unknown): boolean {
   )
 }
 
-function FailedRefund({ payment }: { payment: AdminPayment }) {
+/**
+ * What an admin can do about a refund the provider declined, in three pieces:
+ * the red notice for the panel body, the two decisions for the panel's action
+ * bar, and the dialogs they open. One hook, because all three share the same
+ * mutations and dialog state.
+ *
+ * `payment` is undefined while the panel loads, and every piece is null then.
+ */
+function useFailedRefund(payment: AdminPayment | undefined) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [marking, setMarking] = useState(false)
@@ -109,9 +117,10 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
   const retryMode = availability(REFUND_RETRY)
   const manualMode = availability(REFUND_MANUAL)
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['admin'] })
+  const id = payment?.id ?? ''
 
   const retry = useMutation({
-    mutationFn: () => retryRefund(payment.id),
+    mutationFn: () => retryRefund(id),
     onSuccess: (result) => {
       setConfirmingRetry(false)
       refresh()
@@ -136,7 +145,7 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
     },
   })
   const manual = useMutation({
-    mutationFn: (reason: string) => markRefunded(payment.id, reason),
+    mutationFn: (reason: string) => markRefunded(id, reason),
     onSuccess: () => {
       setMarking(false)
       refresh()
@@ -173,7 +182,12 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
     </Button>
   )
 
-  return (
+  // Only a refund the provider declined offers these.
+  if (!payment || payment.paymentType !== 'refund' || payment.status !== 'failed') {
+    return { notice: null, actions: null, dialogs: null }
+  }
+
+  const notice = (
     <div className="flex flex-col gap-3 rounded-lg border border-danger-text bg-danger-soft p-4">
       <p className="flex items-center gap-2 text-base font-semibold text-danger-text">
         <TriangleAlert size={18} aria-hidden />
@@ -182,18 +196,22 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
       {payment.failureReason && (
         <p className="text-sm text-primary">ATMOS xatosi: «{payment.failureReason}»</p>
       )}
-      <div className="flex flex-wrap gap-2.5">
-        {retryMode === 'soon' ? (
-          <DisabledHint hint={SOON}>{retryButton}</DisabledHint>
-        ) : (
-          retryButton
-        )}
-        {manualMode === 'soon' ? (
-          <DisabledHint hint={SOON}>{manualButton}</DisabledHint>
-        ) : (
-          manualButton
-        )}
-      </div>
+    </div>
+  )
+
+  const actions = (
+    <>
+      {retryMode === 'soon' ? <DisabledHint hint={SOON}>{retryButton}</DisabledHint> : retryButton}
+      {manualMode === 'soon' ? (
+        <DisabledHint hint={SOON}>{manualButton}</DisabledHint>
+      ) : (
+        manualButton
+      )}
+    </>
+  )
+
+  const dialogs = (
+    <>
       <ConfirmModal
         open={confirmingRetry}
         title="Qaytarishni qayta urinish"
@@ -214,8 +232,10 @@ function FailedRefund({ payment }: { payment: AdminPayment }) {
         onClose={() => setMarking(false)}
         onConfirm={(reason) => manual.mutate(reason)}
       />
-    </div>
+    </>
   )
+
+  return { notice, actions, dialogs }
 }
 
 export function PaymentPanel({
@@ -237,6 +257,7 @@ export function PaymentPanel({
     queryFn: () => getPaymentTimeline(id),
   })
   const p = payment.data
+  const failedRefund = useFailedRefund(p)
   const refund = p?.paymentType === 'refund'
   const type = p ? (PAYMENT_TYPES[p.paymentType] ?? p.paymentType) : ''
   const status = p && statusOf(PAYMENT_STATUSES, p.status)
@@ -250,6 +271,7 @@ export function PaymentPanel({
       onClose={onClose}
       title={p ? `${type} · ${money(p.amount)}` : 'Toʻlov'}
       subtitle={p ? `${formatDateTime(p.createdAt)} · ${p.userName ?? '—'}` : undefined}
+      actions={failedRefund.actions}
     >
       {payment.isError ? (
         <ErrorState onRetry={() => void payment.refetch()} className="py-10" />
@@ -260,7 +282,8 @@ export function PaymentPanel({
         </div>
       ) : (
         <>
-          {refund && p.status === 'failed' && <FailedRefund payment={p} />}
+          {failedRefund.notice}
+          {failedRefund.dialogs}
 
           <PanelSection title="Toʻlov maʼlumotlari">
             <dl className="flex flex-col gap-2.5">

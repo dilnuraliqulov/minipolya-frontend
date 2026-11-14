@@ -99,7 +99,7 @@ export function SearchField({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         aria-label={label ?? placeholder}
-        className="min-w-0 flex-1 bg-transparent text-primary outline-none placeholder:text-secondary"
+        className="min-w-0 flex-1 bg-transparent text-primary outline-none placeholder:text-secondary max-md:text-field"
       />
     </label>
   )

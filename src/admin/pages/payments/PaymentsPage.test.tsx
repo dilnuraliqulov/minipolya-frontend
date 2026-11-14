@@ -249,7 +249,12 @@ describe('Toʻlovlar', () => {
       'href',
       '/bronlar?bron=b1',
     )
-    fireEvent.click(within(panel).getByRole('button', { name: 'Qayta urinish' }))
+    // The two decisions sit in the panel's own bar, not buried in the body:
+    // on a phone the panel is full screen and the bar stays put.
+    const bar = within(panel).getByTestId('panel-actions')
+    expect(within(bar).getByRole('button', { name: 'Qoʻlda qaytarildi' })).toBeInTheDocument()
+
+    fireEvent.click(within(bar).getByRole('button', { name: 'Qayta urinish' }))
     const confirm = screen.getByRole('dialog', { name: 'Qaytarishni qayta urinish' })
     expect(confirm).toHaveTextContent('Pul toʻlovchining kartasiga qaytadan yuboriladi')
     expect(requests.some((r) => r.method === 'POST')).toBe(false)

@@ -510,7 +510,9 @@ describe('Bronlar — remainder marks (E8, E6)', () => {
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
     const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
     expect(within(section).getByText('Naqd olindi')).toBeInTheDocument()
-    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    // Undoing is a decision, so it lives in the panel's action bar.
+    const bar = within(panel).getByTestId('panel-actions')
+    fireEvent.click(within(bar).getByRole('button', { name: 'Belgini bekor qilish' }))
     const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
     expect(modal).toHaveTextContent(/pul qaytarilmaydi/)
     expect(requests.some((r) => r.method === 'DELETE')).toBe(false)
@@ -532,7 +534,8 @@ describe('Bronlar — remainder marks (E8, E6)', () => {
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
     const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
     expect(within(section).getByText('Toʻlanmadi')).toBeInTheDocument()
-    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    const bar = within(panel).getByTestId('panel-actions')
+    fireEvent.click(within(bar).getByRole('button', { name: 'Belgini bekor qilish' }))
     const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
     fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
     expect(
