@@ -63,7 +63,8 @@ describe('KpiCard', () => {
 
   it('shows the unit apart from the value, smaller and secondary', () => {
     render(<KpiCard label="Toʻlovlar" value="48 650 000" unit="so'm" sublabel="Shu oy" />)
-    expect(screen.getByText('48 650 000')).toHaveClass('text-5xl')
+    // 30px from 640px up (the design's size), a step down on a narrow screen.
+    expect(screen.getByText('48 650 000')).toHaveClass('text-4xl', 'sm:text-5xl')
     expect(screen.getByText("so'm")).toHaveClass('text-lg', 'text-secondary')
     expect(screen.getByText('Shu oy')).toHaveClass('text-xs')
   })

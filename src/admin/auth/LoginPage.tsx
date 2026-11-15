@@ -135,7 +135,7 @@ function useLockout() {
 const box =
   'flex h-11 items-center rounded-md border border-border bg-background text-base focus-within:border-accent has-disabled:opacity-60'
 const input =
-  'h-full min-w-0 flex-1 bg-transparent px-3 text-primary outline-none placeholder:text-secondary'
+  'h-full min-w-0 flex-1 bg-transparent px-3 text-primary outline-none placeholder:text-secondary max-md:text-field'
 
 function Label({ htmlFor, children }: { htmlFor: string; children: string }) {
   return (

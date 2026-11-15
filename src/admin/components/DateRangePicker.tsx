@@ -29,7 +29,7 @@ function presets(today: string): Array<{ label: string; range: DateRange }> {
 }
 
 const dateInput =
-  'h-9 rounded-md border border-border bg-background px-2.5 text-base text-primary outline-none focus:border-accent [color-scheme:inherit]'
+  'h-11 rounded-md border border-border bg-background px-2.5 text-base text-primary outline-none focus:border-accent max-md:text-field md:h-9 [color-scheme:inherit]'
 
 /**
  * The design's date-range chip ("01.10.2026 – 23.10.2026"). Opens a small

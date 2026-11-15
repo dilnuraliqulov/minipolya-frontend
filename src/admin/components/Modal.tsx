@@ -43,7 +43,7 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
   if (!open) return null
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-overlay max-md:p-0 md:items-center md:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -53,10 +53,15 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex w-110 max-w-full flex-col rounded-2xl border border-border bg-background shadow-xl"
+        className={cx(
+          'flex w-110 max-w-full flex-col rounded-2xl border border-border bg-background shadow-xl',
+          // A sheet from the bottom edge on a phone, where a centred 440px box
+          // leaves the keyboard nowhere to go.
+          'max-md:max-h-[90dvh] max-md:w-full max-md:rounded-b-none',
+        )}
       >
-        <div className="flex items-start gap-3 pt-5 pr-5 pl-6">
-          <h2 id={titleId} className="flex-1 text-xl font-semibold text-primary">
+        <div className="flex items-start gap-3 pt-4 pr-3 pl-4 md:pt-5 md:pr-5 md:pl-6">
+          <h2 id={titleId} className="flex-1 text-xl font-semibold text-primary md:pt-1">
             {title}
           </h2>
           <button
@@ -64,13 +69,18 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
             data-modal-close
             aria-label="Yopish"
             onClick={onClose}
-            className="rounded-xs text-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-accent"
+            className="flex size-11 shrink-0 items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-primary focus-visible:outline-2 focus-visible:outline-accent md:size-auto md:hover:bg-transparent"
           >
             <X size={18} aria-hidden />
           </button>
         </div>
-        <div className="flex flex-col gap-3.5 px-6 pt-2.5 pb-5">{children}</div>
-        <div className="flex justify-end gap-2.5 border-t border-border px-6 pt-3.5 pb-5">
+        <div className="flex flex-col gap-3.5 overflow-y-auto px-4 pt-2.5 pb-5 md:px-6">
+          {children}
+        </div>
+        <div
+          data-testid="modal-footer"
+          className="flex flex-col-reverse gap-2.5 border-t border-border px-4 pt-3.5 pb-5 md:flex-row md:justify-end md:px-6 [&>button]:max-md:w-full"
+        >
           {footer}
         </div>
       </div>
@@ -225,7 +235,7 @@ export function ReasonModal({
           maxLength={maxLength}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          className="h-24 resize-none rounded-md border border-border bg-background px-3 py-2.5 text-base text-primary outline-none focus:border-accent"
+          className="h-24 resize-none rounded-md border border-border bg-background px-3 py-2.5 text-base text-primary outline-none focus:border-accent max-md:text-field"
         />
         <div className="flex justify-between gap-3 text-xs text-secondary">
           <p>{hint}</p>

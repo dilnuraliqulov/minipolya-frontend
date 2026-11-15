@@ -1,8 +1,10 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from 'lucide-react'
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
+import { CARD } from './card'
 import { cx } from './cx'
 import { Skeleton } from './Skeleton'
 import { EmptyState, ErrorState } from './States'
+import { CARD_ROWS, useMediaQuery } from './useMediaQuery'
 
 export interface Column<T> {
   key: string
@@ -39,6 +41,46 @@ export interface DataTableProps<T> {
   loadingRows?: number
   /** Accessible name of the table. */
   label?: string
+  /**
+   * The same row as a card, for screens under 768px, where a wide table
+   * cannot be read. Show the three or four fields that matter and the status;
+   * tapping the card does what clicking the row does.
+   *
+   * Without it the table stays a table and scrolls sideways with its first
+   * column pinned — right for a narrow secondary table, wrong for a page's
+   * main list.
+   */
+  card?: (row: T) => ReactNode
+}
+
+/**
+ * The shell of a row card: the title line with its status on the right, then
+ * the caller's `<dl>` rows. Every page's cards look the same.
+ */
+export function RowCard({
+  title,
+  status,
+  children,
+}: {
+  title: ReactNode
+  status?: ReactNode
+  children?: ReactNode
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div className="flex min-w-0 items-start gap-2">
+        {/* A block, so a `truncate` title inside it actually clips — overflow
+            has no effect on an inline span. */}
+        <div className="min-w-0 flex-1 text-base font-medium text-primary">{title}</div>
+        {status}
+      </div>
+      {children && (
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm [&>dd]:min-w-0 [&>dd]:text-primary [&>dt]:text-secondary">
+          {children}
+        </dl>
+      )}
+    </div>
+  )
 }
 
 function nextSort(current: SortState | null | undefined, key: string): SortState {
@@ -60,8 +102,14 @@ export function DataTable<T>({
   empty = { title: 'Hech narsa topilmadi' },
   loadingRows = 5,
   label,
+  card,
 }: DataTableProps<T>) {
+  const narrow = useMediaQuery(CARD_ROWS)
   const span = columns.length + (onRowClick ? 1 : 0)
+  // A table with no card view scrolls sideways on a phone; pinning the first
+  // column keeps every row identifiable. `bg-inherit` picks up the row's own
+  // background, so a selected row stays highlighted under the pinned cell.
+  const sticky = 'max-md:sticky max-md:left-0 max-md:bg-inherit'
   // Clickable rows make the table a grid: one tab stop (the selected row, else
   // the first), arrows / Home / End move between rows, Enter or Space opens.
   const interactive = Boolean(onRowClick)
@@ -78,6 +126,73 @@ export function DataTable<T>({
     if (!(target instanceof HTMLTableRowElement) || !target.dataset.rowKey) return
     setActive(target.dataset.rowKey)
     target.focus()
+  }
+
+  if (narrow && card) {
+    if (loading) {
+      return (
+        <div aria-busy className="flex flex-col gap-2">
+          {Array.from({ length: loadingRows }, (_, i) => (
+            <div key={i} className={cx(CARD, 'flex flex-col gap-2 p-4')}>
+              <Skeleton className="h-3.5 w-2/5" />
+              <Skeleton className="h-3 w-4/5" />
+              <Skeleton className="h-3 w-3/5" />
+            </div>
+          ))}
+        </div>
+      )
+    }
+    if (error) {
+      return (
+        <div className={CARD}>
+          <ErrorState onRetry={onRetry} />
+        </div>
+      )
+    }
+    if (!rows || rows.length === 0) {
+      return (
+        <div className={CARD}>
+          <EmptyState title={empty.title} description={empty.description} />
+        </div>
+      )
+    }
+    return (
+      <ul aria-label={label} className="flex flex-col gap-2">
+        {rows.map((row) => {
+          const key = rowKey(row)
+          const selected = selectedKey === key
+          const content = (
+            <>
+              {card(row)}
+              {onRowClick && (
+                <ChevronRight size={18} aria-hidden className="mt-0.5 shrink-0 text-secondary" />
+              )}
+            </>
+          )
+          return (
+            <li key={key}>
+              {onRowClick ? (
+                <button
+                  type="button"
+                  onClick={() => onRowClick(row)}
+                  aria-current={selected || undefined}
+                  className={cx(
+                    CARD,
+                    'flex w-full min-w-0 items-start gap-3 p-4 text-left',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                    selected ? 'border-accent bg-accent-soft' : 'hover:bg-hover',
+                  )}
+                >
+                  {content}
+                </button>
+              ) : (
+                <div className={cx(CARD, 'flex min-w-0 items-start gap-3 p-4')}>{content}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    )
   }
 
   let body: ReactNode
@@ -141,13 +256,14 @@ export function DataTable<T>({
           tabIndex={open ? (key === tabStop ? 0 : -1) : undefined}
           aria-selected={open ? selectedKey === key : undefined}
           className={cx(
-            'group h-14 border-b border-border text-base text-primary last:border-b-0',
+            // An explicit background so a pinned first cell can inherit it.
+            'group h-14 border-b border-border bg-background text-base text-primary last:border-b-0',
             open && 'cursor-pointer outline-none hover:bg-hover focus-visible:bg-hover',
             selectedKey === key && 'bg-accent-soft hover:bg-accent-soft',
           )}
         >
-          {columns.map((column) => (
-            <td key={column.key} className="px-3 first:pl-5">
+          {columns.map((column, index) => (
+            <td key={column.key} className={cx('px-3 first:pl-5', index === 0 && sticky)}>
               {column.render(row)}
             </td>
           ))}
@@ -175,7 +291,7 @@ export function DataTable<T>({
       >
         <thead>
           <tr className="h-11 border-b border-border bg-surface text-left">
-            {columns.map((column) => {
+            {columns.map((column, index) => {
               const active = sort?.key === column.key
               const SortIcon = !active
                 ? ArrowUpDown
@@ -190,7 +306,10 @@ export function DataTable<T>({
                   aria-sort={
                     active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined
                   }
-                  className="px-3 text-xs font-semibold text-secondary first:pl-5"
+                  className={cx(
+                    'px-3 text-xs font-semibold text-secondary first:pl-5',
+                    index === 0 && sticky,
+                  )}
                 >
                   {column.sortable && onSortChange ? (
                     <button

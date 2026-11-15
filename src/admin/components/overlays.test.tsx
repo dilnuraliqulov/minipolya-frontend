@@ -1,7 +1,11 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ConfirmModal, ReasonModal } from './Modal'
+import { stubMedia } from '../test-utils'
+import { Button } from './Button'
+import { ConfirmModal, Modal, ReasonModal } from './Modal'
+import { SidePanel } from './SidePanel'
 import { TOAST_DURATION_MS, ToastProvider, useToast } from './Toast'
+import { CARD_ROWS } from './useMediaQuery'
 
 describe('ConfirmModal', () => {
   it('renders nothing when closed', () => {
@@ -124,5 +128,76 @@ describe('Toast', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(() => render(<ToastButtons />)).toThrow('ToastProvider')
     vi.restoreAllMocks()
+  })
+})
+
+describe('SidePanel', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('keeps its decision buttons in a bar of their own', () => {
+    render(
+      <SidePanel open title="Bron #12" onClose={vi.fn()} actions={<Button>Qaytarish</Button>}>
+        <p>Tafsilotlar</p>
+      </SidePanel>,
+    )
+    const panel = screen.getByRole('dialog', { name: 'Bron #12' })
+    const bar = within(panel).getByTestId('panel-actions')
+    expect(within(bar).getByRole('button', { name: 'Qaytarish' })).toBeInTheDocument()
+  })
+
+  it('has no actions bar when there are no actions', () => {
+    render(
+      <SidePanel open title="Bron #12" onClose={vi.fn()}>
+        <p>Tafsilotlar</p>
+      </SidePanel>,
+    )
+    expect(screen.queryByTestId('panel-actions')).not.toBeInTheDocument()
+  })
+
+  it('fills the screen on a phone', () => {
+    stubMedia(CARD_ROWS)
+    render(
+      <SidePanel open title="Bron #12" onClose={vi.fn()}>
+        <p>Tafsilotlar</p>
+      </SidePanel>,
+    )
+    expect(screen.getByRole('dialog', { name: 'Bron #12' })).toHaveClass('max-md:w-full')
+  })
+
+  it('locks the page behind it', () => {
+    const { unmount } = render(
+      <SidePanel open title="Bron #12" onClose={vi.fn()}>
+        <p>Tafsilotlar</p>
+      </SidePanel>,
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+    unmount()
+    expect(document.body.style.overflow).toBe('')
+  })
+})
+
+describe('Modal on a phone', () => {
+  it('is a full-width sheet whose buttons fill the row', () => {
+    render(
+      <Modal open title="Tasdiqlash" onClose={vi.fn()} footer={<Button>Ha</Button>}>
+        <p>Matn</p>
+      </Modal>,
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Tasdiqlash' })
+    expect(dialog).toHaveClass('max-md:w-full')
+    expect(screen.getByTestId('modal-footer')).toHaveClass('flex-col-reverse')
+  })
+
+  it('gives its reason field a 16px font, so iOS does not zoom it', () => {
+    render(
+      <ReasonModal
+        open
+        title="Rad etish"
+        confirmLabel="Rad etish"
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('textbox')).toHaveClass('max-md:text-field')
   })
 })

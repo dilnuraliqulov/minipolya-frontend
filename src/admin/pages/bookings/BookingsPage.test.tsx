@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { AuditEntry } from '../../api/audit'
+import { CARD_ROWS } from '../../components/useMediaQuery'
 import {
   BOOKINGS_LIST,
   GAMES_LIST,
@@ -16,6 +17,7 @@ import {
   type Request,
   signIn,
   stats,
+  stubMedia,
   useAdminTestSetup,
 } from '../../test-utils'
 
@@ -264,6 +266,25 @@ describe('Bronlar', () => {
     await waitFor(() => expect(router.state.location.search).toBe(''))
   })
 
+  // Review Focus 5: two overlays stacked. The side panel listens for Esc on
+  // the document, so the sheet must stop its own Esc from reaching it.
+  it('Esc closes only the filter sheet when a booking panel is open behind it', async () => {
+    stubMedia(CARD_ROWS)
+    backend()
+    signIn()
+    const router = renderAt('/bronlar?bron=b1')
+    const panel = await screen.findByRole('dialog', { name: /Bron #/ })
+    expect(panel).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Filtrlar/ }))
+    const sheet = screen.getByRole('dialog', { name: 'Filtrlar' })
+    fireEvent.keyDown(sheet, { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog', { name: 'Filtrlar' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /Bron #/ })).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?bron=b1')
+  })
+
   it('shows a walk-in cancellation with its reason', async () => {
     backend()
     signIn()
@@ -489,7 +510,9 @@ describe('Bronlar — remainder marks (E8, E6)', () => {
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
     const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
     expect(within(section).getByText('Naqd olindi')).toBeInTheDocument()
-    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    // Undoing is a decision, so it lives in the panel's action bar.
+    const bar = within(panel).getByTestId('panel-actions')
+    fireEvent.click(within(bar).getByRole('button', { name: 'Belgini bekor qilish' }))
     const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
     expect(modal).toHaveTextContent(/pul qaytarilmaydi/)
     expect(requests.some((r) => r.method === 'DELETE')).toBe(false)
@@ -511,7 +534,8 @@ describe('Bronlar — remainder marks (E8, E6)', () => {
     const panel = await screen.findByRole('dialog', { name: /Bron #/ })
     const section = await within(panel).findByRole('region', { name: 'Qoldiq belgisi' })
     expect(within(section).getByText('Toʻlanmadi')).toBeInTheDocument()
-    fireEvent.click(within(section).getByRole('button', { name: 'Belgini bekor qilish' }))
+    const bar = within(panel).getByTestId('panel-actions')
+    fireEvent.click(within(bar).getByRole('button', { name: 'Belgini bekor qilish' }))
     const modal = await screen.findByRole('dialog', { name: 'Belgini bekor qilish' })
     fireEvent.click(within(modal).getByRole('button', { name: 'Belgini bekor qilish' }))
     expect(

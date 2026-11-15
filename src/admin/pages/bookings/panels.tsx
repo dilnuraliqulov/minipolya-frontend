@@ -120,6 +120,13 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
       onClose={onClose}
       title={`Bron #${shortId(id)}`}
       subtitle={b ? `${slotLong(b.startsAt, b.endsAt)} · ${b.stadiumName}` : undefined}
+      actions={
+        mark && (
+          <Button variant="secondary" icon={Undo2} onClick={() => setUndoing(true)}>
+            Belgini bekor qilish
+          </Button>
+        )
+      }
     >
       {booking.isError ? (
         <ErrorState onRetry={() => void booking.refetch()} className="py-10" />
@@ -179,21 +186,18 @@ export function BookingPanel({ id, onClose }: { id: string; onClose: () => void 
 
           {mark && (
             <PanelSection title="Qoldiq belgisi">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-base font-medium text-primary">
-                    {REMAINDER_MARKS[mark] ?? mark}
-                  </span>
-                  {b.remainderMarkedAt && (
-                    <span className="text-sm text-secondary">
-                      Ega belgiladi: {formatDateTime(b.remainderMarkedAt)}
-                    </span>
-                  )}
+              {/* Undoing it is a decision, so the button is in the panel's
+                  action bar; this says what there is to undo. */}
+              <span className="flex flex-col gap-0.5">
+                <span className="text-base font-medium text-primary">
+                  {REMAINDER_MARKS[mark] ?? mark}
                 </span>
-                <Button variant="secondary" icon={Undo2} onClick={() => setUndoing(true)}>
-                  Belgini bekor qilish
-                </Button>
-              </div>
+                {b.remainderMarkedAt && (
+                  <span className="text-sm text-secondary">
+                    Ega belgiladi: {formatDateTime(b.remainderMarkedAt)}
+                  </span>
+                )}
+              </span>
             </PanelSection>
           )}
 

@@ -119,7 +119,7 @@ export function StadiumFilter({
                 setActive(0)
               }}
               onKeyDown={onKeyDown}
-              className="min-w-0 flex-1 bg-transparent text-base text-primary outline-none placeholder:text-secondary"
+              className="min-w-0 flex-1 bg-transparent text-base text-primary outline-none placeholder:text-secondary max-md:text-field"
             />
           </label>
           <ul id={listId} role="listbox" aria-label="Maydon" className="max-h-64 overflow-y-auto">

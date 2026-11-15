@@ -34,7 +34,8 @@ export function Button({
     <button
       type={type}
       className={cx(
-        'inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md px-3.5 text-base font-medium whitespace-nowrap transition',
+        // 44px on a phone, the design's 36px from 768px up.
+        'inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3.5 text-base font-medium whitespace-nowrap transition md:h-9',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
         'disabled:cursor-not-allowed disabled:opacity-50',
         VARIANTS[variant],

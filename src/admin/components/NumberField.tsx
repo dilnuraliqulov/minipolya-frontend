@@ -61,7 +61,7 @@ export function NumberField({
       </label>
       <div
         className={cx(
-          'flex h-10 w-55 items-center gap-2 rounded-md border bg-background px-3',
+          'flex h-11 w-full items-center gap-2 rounded-md border bg-background px-3 md:h-10 md:w-55',
           error ? 'border-danger-text' : 'border-border focus-within:border-accent',
         )}
       >
@@ -79,7 +79,7 @@ export function NumberField({
           }
           aria-invalid={error ? true : undefined}
           aria-describedby={helper || error ? described : undefined}
-          className="min-w-0 flex-1 bg-transparent text-md font-medium text-primary outline-none"
+          className="min-w-0 flex-1 bg-transparent text-md font-medium text-primary outline-none max-md:text-field"
         />
         <span className="text-base text-secondary">{suffix}</span>
       </div>

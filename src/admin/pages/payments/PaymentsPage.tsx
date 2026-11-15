@@ -24,7 +24,7 @@ import {
 import { SoonSection } from '../../components/Availability'
 import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
-import { DataTable, type Column } from '../../components/DataTable'
+import { DataTable, RowCard, type Column } from '../../components/DataTable'
 import { DateRangePicker, type DateRange } from '../../components/DateRangePicker'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
@@ -166,6 +166,29 @@ const COLUMNS: Column<AdminPayment>[] = [
       ),
   },
 ]
+
+/** The same payment under 768px: who paid, when, what for and how much. */
+function paymentCard(p: AdminPayment) {
+  const s = statusOf(PAYMENT_STATUSES, p.status)
+  return (
+    <RowCard
+      title={<span className="block truncate">{p.userName ?? '—'}</span>}
+      status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
+    >
+      <dt>Vaqt</dt>
+      <dd className="whitespace-nowrap">{formatShortDateTime(p.createdAt)}</dd>
+      <dt>Turi</dt>
+      <dd>
+        {PAYMENT_TYPES[p.paymentType] ?? p.paymentType}
+        <span className="text-secondary"> · {PAYMENT_METHODS[p.method] ?? p.method}</span>
+      </dd>
+      <dt>Summa</dt>
+      <dd className={cx('font-medium whitespace-nowrap', p.amount < 0 && 'text-danger-text')}>
+        {money(p.amount)}
+      </dd>
+    </RowCard>
+  )
+}
 
 const SUMMARY: Array<{
   key: keyof Awaited<ReturnType<typeof getPaymentSummary>>
@@ -385,6 +408,14 @@ export function PaymentsPage() {
       />
 
       <FilterBar
+        activeCount={[type, status, method, stadium, from ?? to].filter(Boolean).length}
+        search={
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Ism, telefon yoki tranzaksiya ID"
+          />
+        }
         onClear={
           filtered
             ? () => {
@@ -402,11 +433,6 @@ export function PaymentsPage() {
             : undefined
         }
       >
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder="Ism, telefon yoki tranzaksiya ID"
-        />
         {tab === 'all' && (
           <FilterSelect
             label="Turi"
@@ -456,6 +482,7 @@ export function PaymentsPage() {
           columns={COLUMNS}
           rows={list.data?.content}
           rowKey={(p) => p.id}
+          card={paymentCard}
           selectedKey={open ?? undefined}
           onRowClick={(p) => update({ [PARAMS.payment]: p.id }, true)}
           loading={list.isPending}
