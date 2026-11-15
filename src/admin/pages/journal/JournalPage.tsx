@@ -102,6 +102,15 @@ export function JournalPage() {
   return (
     <div className="flex flex-col gap-4">
       <FilterBar
+        activeCount={[actorType, action, from ?? to].filter(Boolean).length}
+        search={
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Kim: ism yoki telefon"
+            label="Kim"
+          />
+        }
         onClear={
           filtered
             ? () => {
@@ -111,12 +120,6 @@ export function JournalPage() {
             : undefined
         }
       >
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder="Kim: ism yoki telefon"
-          label="Kim"
-        />
         <FilterSelect
           label="Turi"
           value={actorType}

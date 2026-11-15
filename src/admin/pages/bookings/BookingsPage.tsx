@@ -13,7 +13,7 @@ import {
 } from '../../api/bookings'
 import { availability } from '../../api/missing'
 import { SoonSection } from '../../components/Availability'
-import { DataTable, type Column } from '../../components/DataTable'
+import { DataTable, RowCard, type Column } from '../../components/DataTable'
 import { DateRangePicker } from '../../components/DateRangePicker'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
@@ -144,6 +144,50 @@ const GAME_COLUMNS: Column<AdminGame>[] = [
   },
 ]
 
+/** The same booking under 768px: when, where, who, and what is paid. */
+function bookingCard(b: AdminBooking) {
+  const s = statusOf(BOOKING_STATUSES, b.status)
+  return (
+    <RowCard
+      title={<span className="whitespace-nowrap">{formatSlot(b.startsAt, b.endsAt)}</span>}
+      status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
+    >
+      <dt>Maydon</dt>
+      <dd className="truncate">{b.stadiumName}</dd>
+      <dt>Mijoz</dt>
+      <dd className="truncate">
+        {b.userName ?? b.clientName ?? '—'}
+        {b.isWalkin && <span className="text-secondary"> · qoʻlda</span>}
+      </dd>
+      <dt>Toʻlangan</dt>
+      <dd className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="whitespace-nowrap">
+          {som(b.paidAmount)} / {som(b.price)}
+        </span>
+        <RemainderChip booking={b} />
+      </dd>
+    </RowCard>
+  )
+}
+
+/** The same game under 768px. */
+function gameCard(g: AdminGame) {
+  const s = gameStatus(g.type, g.status)
+  return (
+    <RowCard
+      title={<span className="whitespace-nowrap">{formatSlot(g.startsAt, g.endsAt)}</span>}
+      status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
+    >
+      <dt>Maydon</dt>
+      <dd className="truncate">{g.stadiumName}</dd>
+      <dt>Jamoalar</dt>
+      <dd>
+        <Teams game={g} />
+      </dd>
+    </RowCard>
+  )
+}
+
 export function BookingsPage() {
   const [params, setParams] = useSearchParams()
   const [search, setSearch] = useState(params.get(PARAMS.search) ?? '')
@@ -248,6 +292,18 @@ export function BookingsPage() {
       ) : (
         <>
           <FilterBar
+            activeCount={[stadium, status, from ?? to].filter(Boolean).length}
+            search={
+              <SearchField
+                value={search}
+                onChange={setSearch}
+                placeholder={
+                  tab === 'bookings'
+                    ? 'Mijoz ismi yoki telefon boʻyicha'
+                    : 'Jamoa yoki ism boʻyicha'
+                }
+              />
+            }
             onClear={
               filtered
                 ? () => {
@@ -263,13 +319,6 @@ export function BookingsPage() {
                 : undefined
             }
           >
-            <SearchField
-              value={search}
-              onChange={setSearch}
-              placeholder={
-                tab === 'bookings' ? 'Mijoz ismi yoki telefon boʻyicha' : 'Jamoa yoki ism boʻyicha'
-              }
-            />
             <StadiumFilter
               value={stadium}
               onChange={(value) => update({ [PARAMS.stadium]: value || undefined })}
@@ -293,6 +342,7 @@ export function BookingsPage() {
                 columns={BOOKING_COLUMNS}
                 rows={bookings.data?.content}
                 rowKey={(b) => b.id}
+                card={bookingCard}
                 selectedKey={openBooking ?? undefined}
                 onRowClick={(b) => update({ [PARAMS.booking]: b.id }, true)}
                 loading={bookings.isPending}
@@ -306,6 +356,7 @@ export function BookingsPage() {
                 columns={GAME_COLUMNS}
                 rows={games.data?.content}
                 rowKey={(g) => g.id}
+                card={gameCard}
                 selectedKey={openGame ?? undefined}
                 onRowClick={(g) => update({ [PARAMS.game]: g.id }, true)}
                 loading={games.isPending}

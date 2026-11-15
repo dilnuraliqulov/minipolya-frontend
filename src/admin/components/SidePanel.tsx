@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useScrollLock } from './overlay'
 
 /**
  * The design's drawer: a 480 px panel on the right over a dimmed page. Esc,
@@ -12,12 +13,19 @@ export function SidePanel({
   title,
   subtitle,
   onClose,
+  actions,
   children,
 }: {
   open: boolean
   title: ReactNode
   subtitle?: ReactNode
   onClose: () => void
+  /**
+   * Decisions about what the panel shows. They sit in a bar at the bottom,
+   * which stays put while the body scrolls, so they are reachable on a phone
+   * without scrolling to the end.
+   */
+  actions?: ReactNode
   children: ReactNode
 }) {
   const titleId = useId()
@@ -26,6 +34,8 @@ export function SidePanel({
   useEffect(() => {
     onCloseRef.current = onClose
   })
+
+  useScrollLock(open)
 
   useEffect(() => {
     if (!open) return
@@ -55,9 +65,9 @@ export function SidePanel({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="flex h-full w-120 max-w-full flex-col border-l border-border bg-background shadow-xl outline-none"
+        className="flex h-full w-120 max-w-full flex-col border-l border-border bg-background shadow-xl outline-none max-md:w-full max-md:border-l-0"
       >
-        <div className="flex items-start gap-3 border-b border-border px-6 pt-5 pb-4">
+        <div className="flex items-start gap-3 border-b border-border px-4 pt-4 pb-3 md:px-6 md:pt-5 md:pb-4">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <h2 id={titleId} className="text-xl font-semibold text-primary">
               {title}
@@ -68,12 +78,22 @@ export function SidePanel({
             type="button"
             aria-label="Yopish"
             onClick={onClose}
-            className="rounded-xs text-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-accent"
+            className="flex size-11 shrink-0 items-center justify-center rounded-md text-secondary hover:bg-hover hover:text-primary focus-visible:outline-2 focus-visible:outline-accent md:size-auto md:hover:bg-transparent"
           >
             <X size={18} aria-hidden />
           </button>
         </div>
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-5">{children}</div>
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5 md:px-6">
+          {children}
+        </div>
+        {actions && (
+          <div
+            data-testid="panel-actions"
+            className="flex flex-wrap gap-2.5 border-t border-border px-4 pt-3 pb-4 md:px-6"
+          >
+            {actions}
+          </div>
+        )}
       </div>
     </div>,
     document.body,

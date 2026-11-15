@@ -91,7 +91,9 @@ export function KpiCard({
         {sublabel && <p className="text-xs text-secondary">{sublabel}</p>}
       </div>
       <p className="flex flex-wrap items-baseline gap-x-1.5 font-semibold tracking-display text-primary">
-        <span className="text-5xl">{value}</span>
+        {/* 30px from 640px up, where a two-column card is wide enough for a
+            nine-figure sum; a step down below that keeps it on one line. */}
+        <span className="text-4xl sm:text-5xl">{value}</span>
         {unit && <span className="text-lg font-medium tracking-normal text-secondary">{unit}</span>}
       </p>
       {delta && trend && (

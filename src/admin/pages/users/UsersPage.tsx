@@ -12,7 +12,7 @@ import {
 } from '../../api/users'
 import { DisabledHint, SOON } from '../../components/Availability'
 import { Avatar } from '../../components/Avatar'
-import { DataTable, type Column } from '../../components/DataTable'
+import { DataTable, RowCard, type Column } from '../../components/DataTable'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
 import { useDebounced } from '../../components/useDebounced'
@@ -69,6 +69,30 @@ const COLUMNS: Column<AdminUser>[] = [
     render: (user) => <UserStatusBadge blocked={user.isBlocked} />,
   },
 ]
+
+/** The same row under 768px: who, how to reach them, their part and status. */
+function userCard(user: AdminUser) {
+  return (
+    <RowCard
+      title={
+        <span className="flex min-w-0 items-center gap-2.5">
+          <Avatar name={user.name} />
+          <span className="min-w-0 truncate">{user.name}</span>
+        </span>
+      }
+      status={<UserStatusBadge blocked={user.isBlocked} />}
+    >
+      <dt>Telefon</dt>
+      <dd>{user.phone ?? '—'}</dd>
+      <dt>Rol</dt>
+      <dd>
+        <RoleBadges user={user} />
+      </dd>
+      <dt>Roʻyxatdan oʻtgan</dt>
+      <dd>{formatDate(user.createdAt)}</dd>
+    </RowCard>
+  )
+}
 
 function DisabledFilter({ label }: { label: string }) {
   return (
@@ -142,6 +166,16 @@ export function UsersPage() {
   return (
     <div className="flex flex-col gap-4">
       <FilterBar
+        activeCount={[role, status].filter(Boolean).length}
+        search={
+          <div className="w-90 max-w-full [&>label]:w-full">
+            <SearchField
+              value={search}
+              onChange={setSearch}
+              placeholder="Ism yoki telefon boʻyicha qidirish"
+            />
+          </div>
+        }
         onClear={
           filtered
             ? () => {
@@ -155,13 +189,6 @@ export function UsersPage() {
             : undefined
         }
       >
-        <div className="w-90 [&>label]:w-full">
-          <SearchField
-            value={search}
-            onChange={setSearch}
-            placeholder="Ism yoki telefon boʻyicha qidirish"
-          />
-        </div>
         {!filters ? (
           <>
             <DisabledFilter label="Rol" />
@@ -191,6 +218,7 @@ export function UsersPage() {
           columns={COLUMNS}
           rows={data?.content}
           rowKey={(user) => user.id}
+          card={userCard}
           onRowClick={(user) => void navigate(`/foydalanuvchilar/${user.id}`)}
           loading={list.isPending}
           error={list.isError}

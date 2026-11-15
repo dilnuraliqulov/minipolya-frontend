@@ -12,7 +12,7 @@ import {
   type StadiumTab,
 } from '../../api/stadiums'
 import { DisabledHint, SOON, SoonSection } from '../../components/Availability'
-import { DataTable, type Column } from '../../components/DataTable'
+import { DataTable, RowCard, type Column } from '../../components/DataTable'
 import { FilterBar, FilterSelect, SearchField } from '../../components/FilterBar'
 import { Pagination } from '../../components/Pagination'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -110,6 +110,46 @@ function columns(tab: StadiumTab, show: boolean): Column<StadiumRow>[] {
   return list.filter((column): column is Column<StadiumRow> => Boolean(column))
 }
 
+/**
+ * The same row under 768px. On the pending tab the ATMOS contract decides
+ * whether the stadium can be approved at all, so it takes the badge there.
+ */
+function stadiumCard(tab: StadiumTab, show: boolean) {
+  return (row: StadiumRow) => {
+    const status = statusOf(STADIUM_STATUSES, row.status)
+    const contract = CONTRACT_LABELS[row.ownerContractStatus ?? 'none']
+    const atmos = tab === 'pending' && show
+    return (
+      <RowCard
+        title={<span className="line-clamp-2">{row.name}</span>}
+        status={
+          atmos ? (
+            <StatusBadge tone={contract.tone}>{contract.label}</StatusBadge>
+          ) : (
+            <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+          )
+        }
+      >
+        <dt>Egasi</dt>
+        <dd className="truncate">{row.ownerName}</dd>
+        <dt>Format</dt>
+        <dd>
+          {formatPitch(row.format)}
+          {show && row.district ? ` · ${row.district}` : ''}
+        </dd>
+        {show && row.playerPrice !== undefined && (
+          <>
+            <dt>Oʻyinchilar uchun</dt>
+            <dd className="whitespace-nowrap">{formatSom(row.playerPrice)}</dd>
+          </>
+        )}
+        <dt>Qoʻshilgan</dt>
+        <dd>{formatAgo(row.createdAt)}</dd>
+      </RowCard>
+    )
+  }
+}
+
 export function StadiumsPage() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -188,6 +228,14 @@ export function StadiumsPage() {
         onChange={(value) => update({ [PARAMS.tab]: value === 'pending' ? undefined : value })}
       />
       <FilterBar
+        activeCount={[district, format].filter(Boolean).length}
+        search={
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Maydon yoki egasi boʻyicha qidirish"
+          />
+        }
         onClear={
           filtered
             ? () => {
@@ -201,11 +249,6 @@ export function StadiumsPage() {
             : undefined
         }
       >
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder="Maydon yoki egasi boʻyicha qidirish"
-        />
         {!extras ? (
           <>
             <DisabledHint hint={SOON}>
@@ -252,6 +295,7 @@ export function StadiumsPage() {
             columns={columns(tab, extras)}
             rows={data?.content}
             rowKey={(row) => row.id}
+            card={stadiumCard(tab, extras)}
             onRowClick={(row) => void navigate(`/maydonlar/${row.id}`)}
             loading={list.isPending}
             error={list.isError}
