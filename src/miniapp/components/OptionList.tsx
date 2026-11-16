@@ -1,9 +1,12 @@
 import { CircleCheck } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { haptic } from '../telegram'
 
 interface Option<T extends string> {
   value: T
   label: string
+  /** A decorative element before the label (a flag) — already `aria-hidden`. */
+  leading?: ReactNode
 }
 
 /** The design's sheet options: 52px rows, a check on the chosen one, an empty circle on the rest. */
@@ -37,6 +40,7 @@ export function OptionList<T extends string>({
             }}
             className="flex min-h-13 items-center gap-3 text-left disabled:opacity-60"
           >
+            {option.leading}
             <span className="flex-1 text-md font-medium text-primary">{option.label}</span>
             {checked ? (
               <CircleCheck size={22} className="text-link" aria-hidden />

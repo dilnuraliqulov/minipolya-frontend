@@ -3,6 +3,7 @@ import { Ban, LockOpen, Phone } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { LanguageFlag } from '../../../shared/flags'
 import { formatDate, formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { BOOKINGS_LIST, listBookings, type AdminBooking } from '../../api/bookings'
@@ -255,7 +256,12 @@ function SummaryCard({ user }: { user: AdminUser }) {
       )}
       <dl className="flex flex-col gap-2.5">
         {user.telegramId !== undefined && <Row label="Telegram ID">{user.telegramId}</Row>}
-        <Row label="Til">{LANGUAGES[user.language] ?? user.language}</Row>
+        <Row label="Til">
+          <span className="inline-flex items-center gap-2">
+            <LanguageFlag language={user.language} />
+            {LANGUAGES[user.language] ?? user.language}
+          </span>
+        </Row>
         <Row label="Roʻyxatdan oʻtgan">{formatDate(user.createdAt)}</Row>
         {user.lastActiveAt && <Row label="Oxirgi faollik">{formatDateTime(user.lastActiveAt)}</Row>}
         <Row label="Rollar">
