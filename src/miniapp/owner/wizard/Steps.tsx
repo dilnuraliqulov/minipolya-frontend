@@ -17,12 +17,13 @@ import {
   DistrictField,
   FacilityChips,
   FormatField,
-  HourStepper,
   PhoneField,
   SomField,
   SurfaceField,
 } from '../StadiumFields'
-import { hourLabel, STADIUM_LIMITS } from '../stadiumRules'
+import { WeeklyHoursEditor } from '../WeeklyHoursEditor'
+import { hoursSummary, type DayHours } from '../hours'
+import { STADIUM_LIMITS } from '../stadiumRules'
 import { STEPS, type Draft, type DraftAction, type DraftField, type Step } from './draft'
 
 /** Translated messages for the fields of the current step. */
@@ -168,38 +169,13 @@ export function FacilitiesStep({ draft, dispatch, errors }: StepProps) {
 
 export function HoursStep({ draft, dispatch, errors }: StepProps) {
   const { t } = useTranslation()
-  const hours = draft.close - draft.open
   return (
     <>
-      <div className="flex gap-3">
-        <HourStepper
-          label={t('owner.wizard.open')}
-          value={draft.open}
-          max={22}
-          onChange={(open) => set(dispatch, { open })}
-        />
-        <HourStepper
-          label={t('owner.wizard.close')}
-          value={draft.close}
-          min={1}
-          onChange={(close) => set(dispatch, { close })}
-        />
-      </div>
-      {errors.hours ? (
-        <p role="alert" className="text-sm text-danger-text">
-          {errors.hours}
-        </p>
-      ) : (
-        hours > 0 && (
-          <p className="text-sm font-medium text-primary">
-            {t('owner.wizard.everyDayHours', {
-              open: hourLabel(draft.open),
-              close: hourLabel(draft.close),
-              count: hours,
-            })}
-          </p>
-        )
-      )}
+      <WeeklyHoursEditor
+        days={draft.hours}
+        onChange={(hours: DayHours[]) => set(dispatch, { hours })}
+        error={errors.hours}
+      />
       <p className="text-xs text-secondary">{t('owner.wizard.hoursNote')}</p>
       <SomField
         label={t('owner.wizard.yourPrice')}
@@ -336,13 +312,7 @@ export function ReviewStep({ draft, onEdit }: { draft: Draft; onEdit: (step: Ste
       <ReviewSection title={t('owner.wizard.steps.hours')} onEdit={() => onEdit('hours')}>
         <Rows
           rows={[
-            [
-              t('owner.wizard.reviewHours'),
-              t('owner.wizard.everyDay', {
-                open: hourLabel(draft.open),
-                close: hourLabel(draft.close),
-              }),
-            ],
+            [t('owner.wizard.reviewHours'), hoursSummary(draft.hours)],
             [
               t('owner.wizard.reviewPrice'),
               t('owner.wizard.perHour', {

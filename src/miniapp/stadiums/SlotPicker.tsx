@@ -86,6 +86,13 @@ function SlotRow({
   const { t } = useTranslation()
   const label = slotLabel(slot)
   const price = slot.available ? slot.pricePerHour : undefined
+  // An hour after midnight belongs to this working day but happens the next morning.
+  const night = slot.afterMidnight === true ? t('slots.night') : undefined
+  const nightPill = night === undefined ? null : (
+    <span className="rounded-sm bg-neutral-soft px-2 py-0.5 text-2xs font-semibold text-secondary">
+      {night}
+    </span>
+  )
 
   if (price === undefined) {
     const state =
@@ -97,11 +104,12 @@ function SlotRow({
         type="button"
         role="radio"
         aria-checked={false}
-        aria-label={`${label}, ${state}`}
+        aria-label={night === undefined ? `${label}, ${state}` : `${label}, ${night}, ${state}`}
         disabled
         className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-surface px-4"
       >
         <span className="text-md font-semibold text-secondary">{label}</span>
+        {nightPill}
         <span className="flex-1" />
         <span className="rounded-sm bg-border px-3 py-1 text-xs font-semibold text-secondary">
           {state}
@@ -115,7 +123,9 @@ function SlotRow({
       type="button"
       role="radio"
       aria-checked={checked}
-      aria-label={`${label}, ${formatMoney(price)}`}
+      aria-label={
+        night === undefined ? `${label}, ${formatMoney(price)}` : `${label}, ${night}, ${formatMoney(price)}`
+      }
       onClick={() => {
         haptic.selection()
         onSelect()
@@ -126,7 +136,10 @@ function SlotRow({
       )}
     >
       <span className="flex flex-col gap-2">
-        <span className="text-md font-semibold whitespace-nowrap">{label}</span>
+        <span className="flex items-center gap-2">
+          <span className="text-md font-semibold whitespace-nowrap">{label}</span>
+          {nightPill}
+        </span>
         {slot.hasWaitingGame && (
           <span className="self-start rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-warning-text">
             {t('slots.waitingGame')}
@@ -228,6 +241,12 @@ export function SlotList({
               />
             ))}
           </div>
+          {slots.some((slot) => slot.afterMidnight === true) && (
+            <p className="flex gap-2 px-1 pt-2 text-xs text-secondary">
+              <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+              {t('slots.nightHint')}
+            </p>
+          )}
           {slots.some((slot) => slot.hasWaitingGame) && (
             <p className="flex gap-2 px-1 pt-2 text-xs text-secondary">
               <Info size={14} className="mt-0.5 shrink-0" aria-hidden />

@@ -34,7 +34,7 @@ import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { usePayment } from '../payment/usePayment'
-import { dayTitle, slotLabel } from '../stadiums/dates'
+import { dayTitle, slotLabel, weekdayOf } from '../stadiums/dates'
 import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { parseCheckoutParams, type CheckoutParams } from './checkoutParams'
@@ -226,7 +226,7 @@ function CheckoutForm({
       () =>
         createBooking({
           stadiumId: stadium.id,
-          startsAt: tashkentToUtc(params.date, params.start),
+          startsAt: slotStartsAt(slot, params.date, params.start),
           cardId: card.id,
           paymentOption: option,
         }),
@@ -431,6 +431,16 @@ function CheckoutForm({
   )
 }
 
+/**
+ * The real UTC instant the chosen hour starts. The availability slot carries it, because
+ * an hour after midnight belongs to this working day but happens on the next calendar
+ * date. A backend that does not send it yet has no such hours, so the working date and the
+ * clock time still agree.
+ */
+function slotStartsAt(slot: TimeSlot, date: string, start: string): string {
+  return slot.startsAt ?? tashkentToUtc(date, start)
+}
+
 function Summary({
   stadium,
   date,
@@ -450,8 +460,16 @@ function Summary({
   ]
     .filter(Boolean)
     .join(' · ')
+  // The real date, so a 01:00 slot of Friday's working day reads as Saturday; the night
+  // it belongs to is named next to it.
+  const realDate =
+    slot.startsAt === undefined ? date : tashkentToday(new Date(slot.startsAt))
+  const night =
+    slot.afterMidnight === true
+      ? ' ' + t('bookings.workingNight', { weekday: weekdayOf(date).toLocaleLowerCase() })
+      : ''
   const rows: Array<[string, string]> = [
-    [t('checkout.date'), dayTitle(date)],
+    [t('checkout.date'), dayTitle(realDate) + night],
     [t('checkout.time'), slotLabel(slot)],
     [t('checkout.duration'), t('checkout.oneHour')],
   ]

@@ -957,3 +957,29 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.mapTapHint` | Surish uchun xaritaga bosing | Нажмите, чтобы двигать карту | Tap to move the map |
 | `stadium.showMap` | Xaritani koʻrsatish | Показать карту | Show map |
 | `stadium.location` | Joylashuv | Местоположение | Location |
+| `owner.hours.day.mon` | Du | Пн | Mon |
+| `owner.hours.day.tue` | Se | Вт | Tue |
+| `owner.hours.day.wed` | Ch | Ср | Wed |
+| `owner.hours.day.thu` | Pa | Чт | Thu |
+| `owner.hours.day.fri` | Ju | Пт | Fri |
+| `owner.hours.day.sat` | Sh | Сб | Sat |
+| `owner.hours.day.sun` | Ya | Вс | Sun |
+| `owner.hours.nextDay` | {{time}} (ertasi kuni) | {{time}} (на следующий день) | {{time}} (next day) |
+| `owner.hours.closedShort` | yopiq | закрыто | closed |
+| `owner.hours.everyDay` | Har kuni {{hours}} | Ежедневно {{hours}} | Every day {{hours}} |
+| `owner.hours.otherDays` | boshqa kunlar {{hours}} | в остальные дни {{hours}} | other days {{hours}} |
+| `owner.hours.modeSame` | Har kuni bir xil | Одинаково каждый день | Same every day |
+| `owner.hours.modePerDay` | Har kun alohida | По дням недели | Per day of the week |
+| `owner.hours.mode` | Ish vaqti rejimi | Режим работы | Opening hours mode |
+| `owner.hours.closedSwitch` | Yopiq | Закрыто | Closed |
+| `owner.hours.dayHours` | {{day}} ish vaqti | Часы работы: {{day}} | {{day}} opening hours |
+| `owner.hours.note` | Soatlik bronlar shu oraliqda ochiladi. Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping. | Почасовые брони открываются в этом диапазоне. Часы после полуночи относятся к ночи этого дня. Отдельные дни закрывайте в разделе «Закрытые дни». | Hourly bookings open in this range. The hours after midnight belong to that day’s night. Close individual days under “Closed days”. |
+| `owner.rules.closeTooLate` | Yarim tundan keyin yopilish eng kechi 06:00 boʻlishi mumkin. | Закрытие после полуночи возможно не позже 06:00. | Closing after midnight must be 06:00 at the latest. |
+| `owner.rules.hoursGap` | Bir kun yopilishi bilan keyingi kun ochilishi orasida kamida 1 soat boʻlsin. | Между закрытием одного дня и открытием следующего должен быть минимум 1 час. | There must be at least 1 hour between one day closing and the next opening. |
+| `owner.rules.hoursAllClosed` | Kamida bitta kun ochiq boʻlishi kerak. | Хотя бы один день должен быть рабочим. | At least one day must be open. |
+| `owner.rules.hoursWeek` | Haftaning yettala kuni toʻldirilishi kerak. | Нужно заполнить все семь дней недели. | All seven days of the week are needed. |
+| `owner.rules.hoursOrder` | Yopilish vaqti ochilishdan keyin boʻlsin. | Время закрытия должно быть после открытия. | Closing must be after opening. |
+| `owner.wizard.hoursNote` | Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish ham mumkin (eng kechi 06:00). | Только целые часы, 24-часовой формат. Закрытие после полуночи возможно (не позже 06:00). | Whole hours only, 24-hour format. Closing after midnight is allowed (06:00 at the latest). |
+| `slots.night` | tun | ночь | night |
+| `slots.nightHint` | Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. | Часы после полуночи относятся к ночи этого дня. | Hours after midnight belong to this day’s night. |
+| `bookings.workingNight` | ({{weekday}} kechasi) | (ночь, {{weekday}}) | ({{weekday}} night) |

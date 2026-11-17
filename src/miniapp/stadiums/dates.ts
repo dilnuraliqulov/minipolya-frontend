@@ -80,6 +80,12 @@ export function slotLabel(slot: { startTime: string; endTime: string }): string 
   return `${slot.startTime.slice(0, 5)}–${slot.endTime.slice(0, 5)}`
 }
 
+/** `"2026-11-14"` → `"Shanba"` — the weekday of a plain date, in the current language. */
+export function weekdayOf(iso: string): string {
+  const { dayOfWeek } = addDays(iso, 0)
+  return i18n.t(WEEKDAY_LONG_KEYS[dayOfWeek] ?? WEEKDAY_LONG_KEYS[0])
+}
+
 export function nextDate(iso: string): string {
   return addDays(iso, 1).iso
 }

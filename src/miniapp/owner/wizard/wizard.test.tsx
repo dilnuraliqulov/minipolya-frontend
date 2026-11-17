@@ -142,7 +142,7 @@ describe('Maydon qoʻshish — the wizard', () => {
     expect(await screen.findByTestId('preview')).toBeInTheDocument()
     expect(screen.getByText('Novza metro bekati yonida')).toBeInTheDocument()
     expect(screen.getByText('Rasmlar · 3')).toBeInTheDocument()
-    expect(screen.getByText('Har kuni 08:00 – 23:00')).toBeInTheDocument()
+    expect(screen.getByText('Har kuni 08:00–23:00')).toBeInTheDocument()
     expect(screen.getByText('150 000 soʻm / soat')).toBeInTheDocument()
     expect(
       screen.getByText('Oldindan toʻlov va bekor qilish shartlari platforma bilan kelishiladi.'),
@@ -189,8 +189,14 @@ describe('Maydon qoʻshish — the wizard', () => {
         address: 'Bunyodkor koʻchasi 12',
         landmark: 'Novza metro bekati yonida',
         amenities: { ...NO_AMENITIES, parking: true },
-        openTime: '08:00:00',
-        closeTime: '23:00:00',
+        hours: {
+          days: [0, 1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
+            dayOfWeek,
+            closed: false,
+            openTime: '08:00:00',
+            closeTime: '23:00:00',
+          })),
+        },
         pricePerHour: 15_000_000,
       },
     ])

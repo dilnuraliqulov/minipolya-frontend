@@ -38,6 +38,14 @@ function stub(overrides: Record<string, unknown> = {}) {
 
 const slot = (time: string) => screen.getByRole('radio', { name: new RegExp(`^${time}`) })
 
+/** A working day that runs past midnight ends with its night hours, flagged by the API. */
+const NIGHT_SLOTS = [
+  makeSlot('22:00', { pricePerHour: 15_500_000 }),
+  makeSlot('23:00', { pricePerHour: 15_500_000 }),
+  makeSlot('00:00', { pricePerHour: 12_000_000, afterMidnight: true }),
+  makeSlot('01:00', { pricePerHour: 12_000_000, afterMidnight: true }),
+]
+
 beforeEach(() => {
   // 10:00 in Tashkent on Sunday 1 November 2026.
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -187,5 +195,41 @@ describe('Choosing a slot', () => {
       await screen.findByRole('dialog', { name: 'Profilingizni toʻldiring' }),
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(`/stadiums/${ID}`)
+  })
+})
+
+describe('a working day that runs past midnight', () => {
+  it('labels the hours after midnight "tun", last in the day', async () => {
+    stub({
+      [AVAILABILITY]: () => ({ stadiumId: ID, stadiumName: 'x', date: 'x', slots: NIGHT_SLOTS }),
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    const midnight = await screen.findByRole('radio', { name: /^00:00/ })
+    expect(midnight).toHaveTextContent('tun')
+    expect(screen.getByRole('radio', { name: /^01:00/ })).toHaveTextContent('tun')
+    // The evening hours of the same working day carry no label.
+    expect(screen.getByRole('radio', { name: /^22:00/ })).not.toHaveTextContent('tun')
+  })
+
+  it('says the night belongs to this day', async () => {
+    stub({
+      [AVAILABILITY]: () => ({ stadiumId: ID, stadiumName: 'x', date: 'x', slots: NIGHT_SLOTS }),
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    expect(
+      await screen.findByText('Yarim tundan keyingi soatlar shu kunning kechasiga tegishli.'),
+    ).toBeInTheDocument()
+  })
+
+  it('can be chosen like any other hour', async () => {
+    stub({
+      [AVAILABILITY]: () => ({ stadiumId: ID, stadiumName: 'x', date: 'x', slots: NIGHT_SLOTS }),
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    fireEvent.click(await screen.findByRole('radio', { name: /^01:00/ }))
+    expect(screen.getByRole('radio', { name: /^01:00/ })).toHaveAttribute('aria-checked', 'true')
   })
 })
