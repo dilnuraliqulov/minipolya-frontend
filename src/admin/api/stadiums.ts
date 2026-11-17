@@ -59,6 +59,15 @@ export interface Amenities {
   drinkingWater: boolean
 }
 
+/** One day of a stadium's weekly opening schedule, 0 = Monday. A closed day has no times. */
+export interface DayHours {
+  dayOfWeek: number
+  closed: boolean
+  /** `"08:00:00"`; absent on a closed day. */
+  openTime?: string
+  closeTime?: string
+}
+
 /** `GET /api/admin/stadiums/{id}` — the public detail's fields, for any status, in the owner's prices. */
 export interface StadiumDetailFields extends StadiumListFields {
   photos?: { id: string; url: string; position: number }[]
@@ -69,9 +78,15 @@ export interface StadiumDetailFields extends StadiumListFields {
   /** "Moʻljal": a landmark near the pitch. */
   landmark?: string
   ownerPhone?: string
-  /** `LocalTime`. */
+  /** `LocalTime` — the first open day's hours, for clients that read one pair. */
   openTime?: string
   closeTime?: string
+  /**
+   * The weekly opening schedule, always seven days. A `closeTime` at or before the day's
+   * `openTime` means the next morning (06:00 at the latest); `"00:00:00"` means midnight,
+   * and the hours after midnight belong to the day that opened them.
+   */
+  hours?: DayHours[]
   amenities?: Amenities
   /** Tiyin — the owner's own minimum; absent ⇒ the platform default (T1). */
   minBookingAmount?: number
@@ -161,6 +176,14 @@ export interface BookingTerms {
  */
 export function setBookingTerms(id: string, terms: BookingTerms): Promise<StadiumDetail> {
   return api.put<StadiumDetail>(`/api/admin/stadiums/${id}/booking-terms`, terms)
+}
+
+/**
+ * `PUT /api/admin/stadiums/{id}/hours`: the whole week each time, any status. Answers the
+ * admin detail; audited as STADIUM_HOURS_CHANGED.
+ */
+export function setStadiumHours(id: string, hours: { days: DayHours[] }): Promise<StadiumDetail> {
+  return api.put<StadiumDetail>(`/api/admin/stadiums/${id}/hours`, { hours })
 }
 
 /** The audit actions that change a stadium's status. */

@@ -61,6 +61,7 @@ import {
   REJECT_REASONS,
 } from './labels'
 import { BookingTermsCard } from './BookingTermsCard'
+import { HoursCard } from './HoursCard'
 import { OwnerDetailsModal } from './OwnerDetailsModal'
 import { mapLink } from '../../../shared/map'
 
@@ -219,11 +220,6 @@ function InfoSection({
           {extras && stadium.phone && <Row label="Telefon">{stadium.phone}</Row>}
           <Row label="Format">{formatPitch(stadium.format)}</Row>
           <Row label="Qoplama">{SURFACE_TYPES[stadium.surfaceType] ?? stadium.surfaceType}</Row>
-          {extras && stadium.openTime && stadium.closeTime && (
-            <Row label="Ish vaqti">
-              {hhmm(stadium.openTime)}–{hhmm(stadium.closeTime)}
-            </Row>
-          )}
           {extras && amenities.length > 0 && (
             <Row label="Qulayliklar">
               <span className="flex flex-wrap gap-1.5">
@@ -313,6 +309,7 @@ function TermsSection({ stadium, extras }: { stadium: StadiumDetail; extras: boo
           </table>
         )}
       </Card>
+      {extras && <HoursCard stadium={stadium} row={Row} />}
       <BookingTermsCard stadium={stadium} row={Row} />
     </div>
   )

@@ -355,7 +355,9 @@ describe('Maydonlar — detail', () => {
     const info = within(screen.getByRole('region', { name: 'Maʼlumotlar' }))
     expect(info.getByText('Chilonzor')).toBeInTheDocument()
     expect(info.getByText('+998 71 200 00 00')).toBeInTheDocument()
-    expect(info.getByText('08:00–23:00')).toBeInTheDocument()
+    // The opening hours have their own card now, a day of the week at a time.
+    const hours = within(screen.getByRole('region', { name: 'Ish vaqti' }))
+    expect(hours.getByText('08:00–23:00')).toBeInTheDocument()
     expect(info.getByText('Avtoturargoh')).toBeInTheDocument()
     expect(info.queryByText('Dush')).not.toBeInTheDocument()
 
