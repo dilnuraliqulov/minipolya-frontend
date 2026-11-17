@@ -7,7 +7,7 @@ describe('RemainderCard', () => {
   it('leads with the amount, then the pay button and the cash note', () => {
     const onPay = vi.fn()
     render(<RemainderCard amount={15_000_000} onPay={onPay} />)
-    const card = screen.getByRole('region', { name: 'Qolgan summa: 150 000 soʻm' })
+    const card = screen.getByRole('region', { name: 'Qolgan summa: 150\u00A0000 soʻm' })
     expect(within(card).getByText('Qolgan summa')).toBeInTheDocument()
     expect(within(card).getByText('150 000 soʻm')).toBeInTheDocument()
     expect(within(card).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()

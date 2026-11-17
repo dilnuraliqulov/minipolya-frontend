@@ -92,7 +92,9 @@ describe('Booking detail', () => {
     renderApp('/bookings/b1')
     fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
-    fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 100 000 soʻm' }))
+    fireEvent.click(
+      await within(sheet).findByRole('button', { name: 'Toʻlash · 100\u00A0000 soʻm' }),
+    )
     expect(await screen.findByText('Toʻlov qabul qilindi')).toBeInTheDocument()
     expect(api.calls('POST /api/bookings/b1/pay-remainder')).toEqual([{ cardId: 'c1' }])
     expect(await screen.findByText('Toʻliq toʻlangan')).toBeInTheDocument()
@@ -238,9 +240,11 @@ describe('Booking detail', () => {
       renderApp('/bookings/b1')
       expect(await screen.findByText('Kutilmoqda')).toBeInTheDocument()
       expect(screen.getByText(/Bron yana 0[45]:[0-9]{2} saqlanadi/)).toBeInTheDocument()
-      fireEvent.click(await screen.findByRole('button', { name: 'Toʻlash · 55 000 soʻm' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Toʻlash · 55\u00A0000 soʻm' }))
       const sheet = await screen.findByRole('dialog', { name: 'Bronni toʻlash' })
-      fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 55 000 soʻm' }))
+      fireEvent.click(
+        await within(sheet).findByRole('button', { name: 'Toʻlash · 55\u00A0000 soʻm' }),
+      )
       await vi.waitFor(() =>
         expect(api.calls('POST /api/bookings/b1/pay')).toEqual([{ cardId: 'c1' }]),
       )
@@ -339,7 +343,7 @@ describe('Booking detail — what is left to pay (E10)', () => {
   it('shows the remainder up top with "Ilovada toʻlash" and the cash note', async () => {
     stub()
     renderApp('/bookings/b1')
-    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })
+    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100\u00A0000 soʻm' })
     expect(await within(box).findByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
     expect(within(box).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
   })
@@ -347,7 +351,7 @@ describe('Booking detail — what is left to pay (E10)', () => {
   it('keeps the remainder (and paying it) when the owner marked it not paid', async () => {
     stub({ ...partial, remainderMark: 'not_paid' })
     renderApp('/bookings/b1')
-    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })
+    const box = await screen.findByRole('region', { name: 'Qolgan summa: 100\u00A0000 soʻm' })
     expect(await within(box).findByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
   })
 

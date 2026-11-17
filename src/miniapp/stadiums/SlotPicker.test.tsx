@@ -76,7 +76,7 @@ describe('Choosing a slot', () => {
     stub()
     renderApp(`/stadiums/${ID}`)
     expect(await screen.findByRole('radio', { name: /^20:00–21:00/ })).toHaveAccessibleName(
-      '20:00–21:00, 155 000 soʻm',
+      '20:00–21:00, 155\u00A0000 soʻm',
     )
     expect(slot('19:00')).toBeDisabled()
     expect(slot('19:00')).toHaveAccessibleName('19:00–20:00, Band')

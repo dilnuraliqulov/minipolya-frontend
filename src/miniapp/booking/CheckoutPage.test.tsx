@@ -76,14 +76,14 @@ describe('Checkout', () => {
     expect(screen.getByText('20:00–21:00')).toBeInTheDocument()
     expect(screen.getByText('1 soat')).toBeInTheDocument()
     expect(screen.getByText('155 000 soʻm')).toBeInTheDocument()
-    const deposit = screen.getByRole('radio', { name: 'Oldindan toʻlov: 55 000 soʻm' })
-    const full = screen.getByRole('radio', { name: 'Toʻliq toʻlov: 155 000 soʻm' })
+    const deposit = screen.getByRole('radio', { name: 'Oldindan toʻlov: 55\u00A0000 soʻm' })
+    const full = screen.getByRole('radio', { name: 'Toʻliq toʻlov: 155\u00A0000 soʻm' })
     expect(deposit).toBeChecked()
     expect(full).not.toBeChecked()
     expect(
       screen.getByText('Qolgan 100 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.'),
     ).toBeInTheDocument()
-    expect(deposit).toHaveAccessibleDescription(/Qolgan 100 000 soʻmni/)
+    expect(deposit).toHaveAccessibleDescription(/Qolgan 100\u00A0000 soʻmni/)
     expect(screen.getByText(/24 soat oldingacha bekor qilsangiz/)).toBeInTheDocument()
     expect(await payButton()).toHaveTextContent('Toʻlash · 55 000 soʻm')
 
@@ -128,7 +128,9 @@ describe('Checkout', () => {
       },
     })
     renderApp(URL)
-    expect(await screen.findByRole('radio', { name: 'Oldindan toʻlov: 55 000 soʻm' })).toBeChecked()
+    expect(
+      await screen.findByRole('radio', { name: 'Oldindan toʻlov: 55\u00A0000 soʻm' }),
+    ).toBeChecked()
     expect(screen.queryByText(/30 000 soʻm/)).not.toBeInTheDocument()
   })
 

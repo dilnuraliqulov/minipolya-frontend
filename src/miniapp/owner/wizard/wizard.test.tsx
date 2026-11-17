@@ -110,7 +110,7 @@ describe('Maydon qoʻshish — the wizard', () => {
     fireEvent.change(screen.getByLabelText('Sizning narxingiz (1 soat)'), {
       target: { value: '5000001' },
     })
-    expect(screen.getByLabelText('Sizning narxingiz (1 soat)')).toHaveValue('5 000 001')
+    expect(screen.getByLabelText('Sizning narxingiz (1 soat)')).toHaveValue('5\u00A0000\u00A0001')
     expect(screen.getByText('Narx 10 000 dan 5 000 000 soʻmgacha boʻlsin')).toBeInTheDocument()
   })
 

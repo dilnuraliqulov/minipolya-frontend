@@ -99,7 +99,7 @@ describe('Oʻyin — a team game', () => {
     const pay = screen.getByRole('region', { name: 'Jamoangiz toʻlovi' })
     expect(row(pay, 'Toʻlangan')).toHaveTextContent('88 000 soʻm')
     expect(row(pay, 'Qolgan summa')).toHaveTextContent('80 000 soʻm')
-    const rest = screen.getByRole('region', { name: 'Qolgan summa: 80 000 soʻm' })
+    const rest = screen.getByRole('region', { name: 'Qolgan summa: 80\u00A0000 soʻm' })
     expect(within(rest).getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
     expect(within(rest).getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
     expect(within(pay).queryByText('Toʻliq toʻlangan')).toBeNull()
@@ -119,7 +119,9 @@ describe('Oʻyin — a team game', () => {
     renderApp('/games/g1')
     fireEvent.click(await screen.findByRole('button', { name: 'Ilovada toʻlash' }))
     const sheet = await screen.findByRole('dialog', { name: 'Qolganini toʻlash' })
-    fireEvent.click(await within(sheet).findByRole('button', { name: 'Toʻlash · 80 000 soʻm' }))
+    fireEvent.click(
+      await within(sheet).findByRole('button', { name: 'Toʻlash · 80\u00A0000 soʻm' }),
+    )
     expect(await screen.findByText('Qolgan summa toʻlandi')).toBeInTheDocument()
     expect(api.calls('POST /api/games/g1/pay-remainder')).toEqual([{ cardId: 'c1' }])
   })

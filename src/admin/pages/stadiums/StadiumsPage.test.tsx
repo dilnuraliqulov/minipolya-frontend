@@ -644,7 +644,7 @@ describe('Maydonlar — detail', () => {
     fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
     const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
     const amount = dialog.getByLabelText('Minimal toʻlov (egasining narxida)')
-    expect(amount).toHaveValue('50 000')
+    expect(amount).toHaveValue('50\u00A0000')
     // Above the owner's hourly price (150 000 so'm): refused before asking.
     fireEvent.change(amount, { target: { value: '200000' } })
     fireEvent.change(dialog.getByLabelText('Bepul bekor qilish'), { target: { value: '200' } })

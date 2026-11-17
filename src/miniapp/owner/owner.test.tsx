@@ -274,11 +274,11 @@ describe('Ega rejimi — Jadval', () => {
     const sheet = await screen.findByRole('dialog', { name: 'Bron tafsilotlari' })
     const rows = Array.from(sheet.querySelectorAll('dl > div')).map((d) => d.textContent)
     expect(rows).toEqual([
-      'Sizning narxingiz140 000 soʻm',
-      'Oʻyinchi toʻlaydi150 000 soʻm',
-      'Ilovada toʻlangan50 000 soʻm',
-      'Naqd olinadi100 000 soʻm',
-      'Sizga tushadi45 000 soʻm',
+      'Sizning narxingiz140\u00A0000 soʻm',
+      'Oʻyinchi toʻlaydi150\u00A0000 soʻm',
+      'Ilovada toʻlangan50\u00A0000 soʻm',
+      'Naqd olinadi100\u00A0000 soʻm',
+      'Sizga tushadi45\u00A0000 soʻm',
     ])
   })
 

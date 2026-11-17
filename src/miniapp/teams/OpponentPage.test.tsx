@@ -69,17 +69,21 @@ describe('Raqib qidirish', () => {
     expect(screen.queryByText('155 000 soʻm')).toBeNull()
     expect(screen.queryByText(/tez orada/)).toBeNull()
     expect(api.queries(QUOTE)).toEqual([{ startsAt: tashkentToUtc(DATE, '20:00') }])
-    const minimum = screen.getByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' })
+    const minimum = screen.getByRole('radio', { name: 'Minimal toʻlov: 55\u00A0000 soʻm' })
     expect(minimum).toBeChecked()
     expect(minimum).toHaveAccessibleDescription(
-      'Qolgan 75 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.',
+      'Qolgan 75\u00A0000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.',
     )
-    expect(screen.getByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' })).not.toBeChecked()
+    expect(
+      screen.getByRole('radio', { name: 'Toʻliq toʻlov: 130\u00A0000 soʻm' }),
+    ).not.toBeChecked()
     expect(
       screen.getByText(/gacha bekor qilsangiz, jamoangiz toʻlagani toʻliq qaytariladi/),
     ).toBeInTheDocument()
     await screen.findByRole('radio', { name: /•••• 1234/ })
-    fireEvent.click(screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 55 000 soʻm' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 55\u00A0000 soʻm' }),
+    )
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/games/g7'))
     expect(api.calls('POST /api/games')).toEqual([
       {
@@ -100,10 +104,10 @@ describe('Raqib qidirish', () => {
       'GET /api/games/g7': jsonResponse(404, null, 'x'),
     })
     renderApp(URL)
-    fireEvent.click(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' }))
+    fireEvent.click(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 130\u00A0000 soʻm' }))
     await screen.findByRole('radio', { name: /•••• 1234/ })
     fireEvent.click(
-      screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 130 000 soʻm' }),
+      screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 130\u00A0000 soʻm' }),
     )
     await vi.waitFor(() => expect(api.calls('POST /api/games')).toHaveLength(1))
     expect(api.calls('POST /api/games')[0]).toMatchObject({ paymentOption: 'FULL' })
@@ -121,7 +125,7 @@ describe('Raqib qidirish', () => {
     expect(screen.queryByText(/Minimal toʻlov/)).toBeNull()
     await screen.findByRole('radio', { name: /•••• 1234/ })
     fireEvent.click(
-      screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 130 000 soʻm' }),
+      screen.getByRole('button', { name: 'Raqib qidirishni boshlash · 130\u00A0000 soʻm' }),
     )
     await vi.waitFor(() => expect(api.calls('POST /api/games')).toHaveLength(1))
     expect(api.calls('POST /api/games')[0]).toMatchObject({ paymentOption: 'FULL' })
@@ -142,7 +146,7 @@ describe('Raqib qidirish', () => {
     fail = false
     fireEvent.click(retry)
     expect(
-      await screen.findByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' }),
+      await screen.findByRole('radio', { name: 'Minimal toʻlov: 55\u00A0000 soʻm' }),
     ).toBeInTheDocument()
   })
 

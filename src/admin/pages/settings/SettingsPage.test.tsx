@@ -83,8 +83,8 @@ describe('Sozlamalar', () => {
     mockBackend({ ...base })
     signIn()
     renderAt('/sozlamalar')
-    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25 000')
-    expect(field('Xizmat haqi')).toHaveValue('5 000')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25\u00A0000')
+    expect(field('Xizmat haqi')).toHaveValue('5\u00A0000')
     // The platform takes nothing from ordinary bookings: no commission row.
     expect(screen.queryByText('Oddiy bronlar')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Komissiya')).not.toBeInTheDocument()
@@ -145,7 +145,7 @@ describe('Sozlamalar', () => {
     fireEvent.change(await screen.findByLabelText('Platforma haqi'), {
       target: { value: '30 000' },
     })
-    expect(field('Platforma haqi')).toHaveValue('30 000')
+    expect(field('Platforma haqi')).toHaveValue('30\u00A0000')
     expect(screen.getByText("Har bir jamoadan: 30 000 so'm")).toBeInTheDocument()
     const bar = screen.getByRole('region', { name: 'Saqlanmagan oʻzgarishlar' })
     expect(bar).toHaveTextContent('Saqlanmagan oʻzgarishlar bor')
@@ -163,7 +163,7 @@ describe('Sozlamalar', () => {
     await waitFor(() =>
       expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument(),
     )
-    expect(field('Platforma haqi')).toHaveValue('30 000')
+    expect(field('Platforma haqi')).toHaveValue('30\u00A0000')
   })
 
   it('saves the card fee in basis points and the rounding step in tiyin', async () => {
@@ -213,7 +213,7 @@ describe('Sozlamalar', () => {
     signIn()
     renderAt('/sozlamalar')
     const minimum = await screen.findByLabelText('Minimal toʻlov')
-    expect(minimum).toHaveValue('50 000')
+    expect(minimum).toHaveValue('50\u00A0000')
     expect(screen.getByText("Maydonning oʻz summasi boʻlmasa: 50 000 so'm")).toBeInTheDocument()
     fireEvent.change(minimum, { target: { value: '60 000' } })
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
@@ -257,7 +257,7 @@ describe('Sozlamalar', () => {
       target: { value: '15 000' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Bekor qilish' }))
-    expect(field('Platforma haqi')).toHaveValue('25 000')
+    expect(field('Platforma haqi')).toHaveValue('25\u00A0000')
     expect(screen.queryByText('Saqlanmagan oʻzgarishlar bor')).not.toBeInTheDocument()
   })
 
@@ -301,6 +301,6 @@ describe('Sozlamalar', () => {
     const alert = await screen.findByRole('alert', {}, { timeout: 4000 })
     fail = false
     fireEvent.click(within(alert).getByRole('button', { name: 'Qayta urinish' }))
-    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25 000')
+    expect(await screen.findByLabelText('Platforma haqi')).toHaveValue('25\u00A0000')
   })
 })
