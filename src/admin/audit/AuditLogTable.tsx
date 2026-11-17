@@ -276,7 +276,10 @@ export function AuditLogTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-background">
+    // `min-w-0` + `contain-paint` for the same reasons as DataTable's wrapper:
+    // a flex item will not shrink below its content, and a wide `<table>`
+    // leaks its overflow to the root unless the box has paint containment.
+    <div className="min-w-0 contain-paint overflow-x-auto rounded-xl border border-border bg-background">
       <table className="w-full border-collapse" aria-busy={loading || undefined}>
         <thead>
           <tr className="h-11 border-b border-border bg-surface text-left text-xs font-semibold text-secondary">

@@ -68,7 +68,10 @@ export function BarChart({ data, formatValue, label, height = 300, highlight }: 
       <div className="flex gap-2.5">
         <div
           aria-hidden
-          className="flex w-5 shrink-0 flex-col items-end justify-between text-2xs text-secondary md:w-6"
+          // A MINIMUM, not a fixed width: today's 20/24px is kept for ordinary
+          // tick labels, but a five-character one ("1 400") gets the room it
+          // needs instead of spilling over the plot.
+          className="flex min-w-5 shrink-0 flex-col items-end justify-between text-2xs text-secondary md:min-w-6"
           style={{ height }}
         >
           {ticks.map((tick) => (

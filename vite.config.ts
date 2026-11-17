@@ -155,6 +155,9 @@ export default defineConfig({
     },
   },
   test: {
+    // Only the unit tests under src. Without this, Vitest's default glob also
+    // matches `e2e/*.spec.ts` and tries to run the Playwright suite in jsdom.
+    include: ['src/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     testTimeout: 15_000,
