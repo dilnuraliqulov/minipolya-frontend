@@ -42,6 +42,7 @@ import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
+import { DetailLayout } from '../../components/DetailLayout'
 import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { Pagination } from '../../components/Pagination'
 import { Skeleton } from '../../components/Skeleton'
@@ -822,12 +823,12 @@ function StadiumHistory({ stadiumId }: { stadiumId: string }) {
 
 function DetailSkeleton() {
   return (
-    <div aria-busy className="flex gap-6">
+    <div aria-busy className="flex flex-col gap-4 lg:flex-row lg:gap-6">
       <div className="flex flex-1 flex-col gap-4">
         <Skeleton className="h-64 w-full rounded-xl" />
         <Skeleton className="h-40 w-full rounded-xl" />
       </div>
-      <div className="flex w-94 flex-col gap-4">
+      <div className="flex w-full flex-col gap-4 lg:w-94 lg:shrink-0">
         <Skeleton className="h-56 w-full rounded-xl" />
         <Skeleton className="h-40 w-full rounded-xl" />
       </div>
@@ -865,21 +866,22 @@ export function StadiumPage() {
   if (!data) return <DetailSkeleton />
 
   const extras = isAvailable(STADIUM_DETAIL_FIELDS)
+  // Array order is the phone order — Maʼlumotlar, Qaror, Egasi, Ichki izohlar,
+  // Bron shartlari, Tarix last. `column` keeps today's desktop columns:
+  // main = Maʼlumotlar, Bron shartlari, Tarix; aside = Qaror, Egasi, izohlar.
   return (
-    <div className="flex items-start gap-6">
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <InfoSection stadium={data} extras={extras} />
-        <TermsSection stadium={data} extras={extras} />
-        <StadiumHistory stadiumId={data.id} />
-      </div>
-      <aside
-        aria-label="Qaror va egasi"
-        className="sticky top-6 flex max-h-[calc(100dvh-3rem)] w-94 shrink-0 flex-col gap-4 overflow-y-auto"
-      >
-        <DecisionPanel stadium={data} />
-        <OwnerCard stadium={data} />
-        <NotesCard stadiumId={data.id} />
-      </aside>
-    </div>
+    <DetailLayout
+      asideLabel="Qaror va egasi"
+      mainGap={4}
+      asideMaxHeight
+      blocks={[
+        { key: 'info', column: 'main', node: <InfoSection stadium={data} extras={extras} /> },
+        { key: 'decision', column: 'aside', node: <DecisionPanel stadium={data} /> },
+        { key: 'owner', column: 'aside', node: <OwnerCard stadium={data} /> },
+        { key: 'notes', column: 'aside', node: <NotesCard stadiumId={data.id} /> },
+        { key: 'terms', column: 'main', node: <TermsSection stadium={data} extras={extras} /> },
+        { key: 'history', column: 'main', node: <StadiumHistory stadiumId={data.id} /> },
+      ]}
+    />
   )
 }
