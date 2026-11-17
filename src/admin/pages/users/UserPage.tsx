@@ -24,6 +24,7 @@ import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
+import { DetailLayout } from '../../components/DetailLayout'
 import { DataTable, type Column } from '../../components/DataTable'
 import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { Pagination } from '../../components/Pagination'
@@ -458,24 +459,26 @@ export function UserPage() {
   }
   if (!data) {
     return (
-      <div aria-busy className="flex gap-6">
+      <div aria-busy className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         <Skeleton className="h-80 flex-1 rounded-xl" />
-        <Skeleton className="h-80 w-94 rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl lg:w-94 lg:shrink-0" />
       </div>
     )
   }
 
   const own = session.status === 'authenticated' && session.user.id === data.id
+  // Array order is the phone order (Maʼlumotlar, Qaror, the tabs, Tarix last);
+  // `column` keeps today's desktop columns.
   return (
-    <div className="flex items-start gap-6">
-      <div className="flex min-w-0 flex-1 flex-col gap-6">
-        <UserTabs user={data} />
-        <UserHistory userId={data.id} />
-      </div>
-      <aside aria-label="Foydalanuvchi" className="sticky top-6 flex w-94 shrink-0 flex-col gap-4">
-        <SummaryCard user={data} />
-        <BlockPanel user={data} own={own} />
-      </aside>
-    </div>
+    <DetailLayout
+      asideLabel="Foydalanuvchi"
+      mainGap={6}
+      blocks={[
+        { key: 'summary', column: 'aside', node: <SummaryCard user={data} /> },
+        { key: 'decision', column: 'aside', node: <BlockPanel user={data} own={own} /> },
+        { key: 'tabs', column: 'main', node: <UserTabs user={data} /> },
+        { key: 'history', column: 'main', node: <UserHistory userId={data.id} /> },
+      ]}
+    />
   )
 }
