@@ -62,8 +62,8 @@ function ObjectCell({ entry }: { entry: AuditEntry }) {
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex gap-2 text-sm">
-      <dt className="w-44 shrink-0 text-secondary">{label}</dt>
+    <div className="flex flex-col gap-0.5 text-sm md:flex-row md:gap-2">
+      <dt className="text-secondary md:w-44 md:shrink-0">{label}</dt>
       <dd className="min-w-0 font-medium break-words text-primary">{children}</dd>
     </div>
   )

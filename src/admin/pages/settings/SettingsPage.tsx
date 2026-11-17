@@ -404,22 +404,27 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
         <div
           role="region"
           aria-label="Saqlanmagan oʻzgarishlar"
-          className="sticky bottom-4 z-10 flex items-center gap-3 rounded-xl border border-border bg-background px-6 py-4 shadow-lg"
+          className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 shadow-lg md:px-6"
         >
-          <TriangleAlert size={18} aria-hidden className="text-warning-text" />
-          <p className="flex-1 text-base font-medium text-primary">Saqlanmagan oʻzgarishlar bor</p>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setDraft(saved)
-              setErrors({})
-            }}
-          >
-            Bekor qilish
-          </Button>
-          <Button onClick={requestSave} disabled={save.isPending}>
-            Saqlash
-          </Button>
+          <TriangleAlert size={18} aria-hidden className="shrink-0 text-warning-text" />
+          <p className="min-w-0 flex-1 basis-[calc(100%-2rem)] text-base font-medium text-primary md:basis-auto">
+            Saqlanmagan oʻzgarishlar bor
+          </p>
+          <div className="flex flex-1 gap-3 md:flex-none">
+            <Button
+              variant="secondary"
+              className="flex-1 md:flex-none"
+              onClick={() => {
+                setDraft(saved)
+                setErrors({})
+              }}
+            >
+              Bekor qilish
+            </Button>
+            <Button onClick={requestSave} disabled={save.isPending} className="flex-1 md:flex-none">
+              Saqlash
+            </Button>
+          </div>
         </div>
       )}
 

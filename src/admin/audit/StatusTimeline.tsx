@@ -31,7 +31,7 @@ export function StatusTimeline({
               />
               {!last && <span aria-hidden className="w-px flex-1 bg-border" />}
             </span>
-            <span className={cx('flex flex-col gap-0.5', !last && 'pb-3.5')}>
+            <span className={cx('flex min-w-0 flex-col gap-0.5', !last && 'pb-3.5')}>
               <span className="text-base font-medium text-primary">
                 {timelineLabel(entry.action)}
               </span>
@@ -39,7 +39,9 @@ export function StatusTimeline({
                 {formatDateTime(entry.time)}
                 {who && ` · ${who}`}
               </span>
-              {entry.reason && <span className="text-sm text-primary">{entry.reason}</span>}
+              {entry.reason && (
+                <span className="text-sm break-words text-primary">{entry.reason}</span>
+              )}
             </span>
           </li>
         )
