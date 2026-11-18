@@ -1,3 +1,4 @@
+import { tashkentToUtc } from '../../shared/format'
 import { MONTH_KEYS } from '../format'
 import i18n from '../i18n'
 
@@ -29,9 +30,21 @@ function addDays(iso: string, days: number): StripDate {
   }
 }
 
-/** Today and the next 28 days. */
-export function bookingDates(today: string): StripDate[] {
-  return Array.from({ length: BOOKING_WINDOW_DAYS + 1 }, (_, i) => addDays(today, i))
+/**
+ * Today and the next 28 days — the backend's booking window.
+ *
+ * With {@code includeYesterday}, yesterday leads the list: a working day that runs past
+ * midnight is still open after 00:00, and the backend still serves and accepts its
+ * remaining hours. Whether that is so is the backend's answer, never worked out here.
+ */
+export function bookingDates(today: string, includeYesterday = false): StripDate[] {
+  const days = Array.from({ length: BOOKING_WINDOW_DAYS + 1 }, (_, i) => addDays(today, i))
+  return includeYesterday ? [addDays(today, -1), ...days] : days
+}
+
+/** The day before `iso`. */
+export function previousDate(iso: string): string {
+  return addDays(iso, -1).iso
 }
 
 /**
@@ -39,9 +52,13 @@ export function bookingDates(today: string): StripDate[] {
  * date that arrives from outside, such as `?date=` on the stadium page.
  * Anything else (malformed, past, too far ahead, null) is false.
  */
-export function isInBookingWindow(iso: string | null, today: string): boolean {
+export function isInBookingWindow(
+  iso: string | null,
+  today: string,
+  includeYesterday = false,
+): boolean {
   if (iso === null || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false
-  return bookingDates(today).some((date) => date.iso === iso)
+  return bookingDates(today, includeYesterday).some((date) => date.iso === iso)
 }
 
 export const WEEKDAY_SHORT_KEYS = [
@@ -84,6 +101,23 @@ export function slotLabel(slot: { startTime: string; endTime: string }): string 
 export function weekdayOf(iso: string): string {
   const { dayOfWeek } = addDays(iso, 0)
   return i18n.t(WEEKDAY_LONG_KEYS[dayOfWeek] ?? WEEKDAY_LONG_KEYS[0])
+}
+
+/**
+ * The real UTC instant an availability slot starts. The slot carries it, because an hour
+ * after midnight belongs to its working day but happens on the NEXT calendar date — so
+ * the working date plus the clock time is a day early for those hours.
+ *
+ * Never rebuild it from a date and a time: use the slot the availability answered with.
+ * The fallback is only for a backend old enough not to send `startsAt`, which therefore
+ * has no hours after midnight and for which the two agree.
+ */
+export function slotStartsAt(
+  slot: { startsAt?: string } | undefined,
+  date: string,
+  start: string,
+): string {
+  return slot?.startsAt ?? tashkentToUtc(date, start)
 }
 
 export function nextDate(iso: string): string {

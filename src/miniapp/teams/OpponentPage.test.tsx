@@ -55,6 +55,50 @@ function stub(overrides: Record<string, unknown> = {}) {
   } as Parameters<typeof stubApi>[0])
 }
 
+describe('Raqib qidirish — an hour after midnight', () => {
+  const NIGHT_URL = `/opponent?stadium=${SID}&date=${DATE}&start=01:00`
+  /** The API's own instant: 01:00 on the day AFTER the working date. */
+  const NIGHT_STARTS_AT = tashkentToUtc(nextDate(DATE), '01:00')
+
+  function nightStub(overrides: Record<string, unknown> = {}) {
+    return stub({
+      [`GET /api/stadiums/${SID}/availability`]: {
+        stadiumId: SID,
+        stadiumName: 'Bunyodkor Arena',
+        date: DATE,
+        slots: [
+          makeSlot('01:00', {
+            pricePerHour: 12_000_000,
+            afterMidnight: true,
+            startsAt: NIGHT_STARTS_AT,
+          }),
+        ],
+      },
+      ...overrides,
+    })
+  }
+
+  it('asks for the quote of the real instant, not the working date', async () => {
+    const api = nightStub()
+    renderApp(NIGHT_URL, { session: undefined })
+    await screen.findByRole('button', { name: START })
+    // The quote is a GET: its instant travels in the query string.
+    const asked = api.queries(QUOTE)
+    expect(asked.length).toBeGreaterThan(0)
+    for (const query of asked) {
+      expect(query.startsAt).toBe(NIGHT_STARTS_AT)
+    }
+  })
+
+  it('creates the game at the real instant', async () => {
+    const api = nightStub({ 'POST /api/games': { id: 'g1' } })
+    renderApp(NIGHT_URL, { session: undefined })
+    fireEvent.click(await screen.findByRole('button', { name: START }))
+    await vi.waitFor(() => expect(api.calls('POST /api/games')).toHaveLength(1))
+    expect(api.calls('POST /api/games')[0]).toMatchObject({ startsAt: NIGHT_STARTS_AT })
+  })
+})
+
 describe('Raqib qidirish', () => {
   it('offers only the teams the player captains and starts the game with the minimum', async () => {
     const api = stub({

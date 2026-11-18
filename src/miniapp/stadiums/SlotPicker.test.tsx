@@ -68,7 +68,10 @@ describe('Choosing a slot', () => {
     expect(days[0]).toHaveAttribute('aria-checked', 'true')
     expect(days[1]).toHaveAccessibleName(/Ertaga/)
     expect(days[2]).toHaveAccessibleName(/Sesh/)
-    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toEqual([{ date: '2026-11-01' }]))
+    // (the page also probes yesterday, to learn whether its working day is still running)
+    await vi.waitFor(() =>
+      expect(api.queries(AVAILABILITY)).toContainEqual({ date: '2026-11-01' }),
+    )
     expect(screen.getByRole('heading', { name: 'Yakshanba, 1-noyabr' })).toBeInTheDocument()
   })
 
@@ -195,6 +198,85 @@ describe('Choosing a slot', () => {
       await screen.findByRole('dialog', { name: 'Profilingizni toʻldiring' }),
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(`/stadiums/${ID}`)
+  })
+})
+
+describe('a working day that is still running after midnight', () => {
+  /** 00:30 Tashkent on Monday 2 November 2026: Sunday's working day may still be open. */
+  const JUST_AFTER_MIDNIGHT = new Date('2026-11-01T19:30:00Z')
+
+  it('offers yesterday while its working day still has an hour to come', async () => {
+    vi.setSystemTime(JUST_AFTER_MIDNIGHT)
+    const api = stub({
+      [AVAILABILITY]: (_body: unknown, query: URLSearchParams) =>
+        query.get('date') === '2026-11-01'
+          ? {
+              stadiumId: ID,
+              stadiumName: 'x',
+              date: '2026-11-01',
+              slots: [
+                makeSlot('01:00', {
+                  pricePerHour: 12_000_000,
+                  afterMidnight: true,
+                  startsAt: '2026-11-01T20:00:00Z',
+                }),
+              ],
+            }
+          : { stadiumId: ID, stadiumName: 'x', date: '2026-11-02', slots: [] },
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    const strip = await screen.findByRole('radiogroup', { name: 'Sana' })
+    await vi.waitFor(() =>
+      expect(within(strip).getAllByRole('radio')[0]).toHaveAccessibleName(/1$/),
+    )
+    // Today is still the chosen day; yesterday is merely reachable.
+    expect(within(strip).getAllByRole('radio')[1]).toHaveAccessibleName(/Bugun/)
+    expect(api.queries(AVAILABILITY).some((q) => q.date === '2026-11-01')).toBe(true)
+  })
+
+  it('does not offer yesterday once its last hour has started', async () => {
+    vi.setSystemTime(JUST_AFTER_MIDNIGHT)
+    stub({
+      [AVAILABILITY]: (_body: unknown, query: URLSearchParams) =>
+        query.get('date') === '2026-11-01'
+          ? {
+              stadiumId: ID,
+              stadiumName: 'x',
+              date: '2026-11-01',
+              // Its night hours have all begun.
+              slots: [
+                makeSlot('00:00', {
+                  available: false,
+                  status: 'past',
+                  pricePerHour: undefined,
+                  afterMidnight: true,
+                  startsAt: '2026-11-01T19:00:00Z',
+                }),
+              ],
+            }
+          : { stadiumId: ID, stadiumName: 'x', date: '2026-11-02', slots: [] },
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    const strip = await screen.findByRole('radiogroup', { name: 'Sana' })
+    await screen.findByRole('heading', { name: /2-noyabr/ })
+    expect(within(strip).getAllByRole('radio')[0]).toHaveAccessibleName(/Bugun/)
+  })
+
+  it('does not offer yesterday when the backend refuses it as past', async () => {
+    vi.setSystemTime(new Date('2026-11-02T05:00:00Z'))
+    stub({
+      [AVAILABILITY]: (_body: unknown, query: URLSearchParams) =>
+        query.get('date') === '2026-11-01'
+          ? jsonResponse(400, null, 'date cannot be in the past')
+          : { stadiumId: ID, stadiumName: 'x', date: '2026-11-02', slots: [] },
+    })
+    renderApp(`/stadiums/${ID}`)
+
+    const strip = await screen.findByRole('radiogroup', { name: 'Sana' })
+    await screen.findByRole('heading', { name: /2-noyabr/ })
+    expect(within(strip).getAllByRole('radio')[0]).toHaveAccessibleName(/Bugun/)
   })
 })
 

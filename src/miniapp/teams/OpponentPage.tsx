@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { isApiError } from '../../shared/api'
-import { tashkentToUtc, tashkentToday } from '../../shared/format'
+import { tashkentToday } from '../../shared/format'
 import { errorMessageKey, errorTone, isDeclineKey, isUnclearPaymentError } from '../api/errors'
 import type { PaymentOption } from '../api/bookings'
 import { createTeamGame, getTeamGameQuote, MY_GAMES_KEY, teamQuoteKey } from '../api/games'
@@ -28,7 +28,7 @@ import {
 } from '../components'
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
-import { dayTitle, slotLabel } from '../stadiums/dates'
+import { dayTitle, slotLabel, slotStartsAt } from '../stadiums/dates'
 import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { useLedTeams } from './queries'
@@ -98,10 +98,16 @@ function Opponent({ params }: { params: CheckoutParams }) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
-  const startsAt = tashkentToUtc(params.date, params.start)
+  // The slot's own instant: an hour after midnight happens on the next calendar date.
+  const chosen = availability.data?.slots.find(
+    (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
+  )
+  const startsAt = slotStartsAt(chosen, params.date, params.start)
   const quote = useQuery({
     queryKey: teamQuoteKey(params.stadiumId, startsAt),
     queryFn: () => getTeamGameQuote(params.stadiumId, startsAt),
+    // Asked only once the slot is known, so a night hour is never quoted a day early.
+    enabled: availability.data !== undefined,
     refetchOnWindowFocus: false,
   })
   const led = useLedTeams()
@@ -157,9 +163,7 @@ function Opponent({ params }: { params: CheckoutParams }) {
       </Screen>
     )
   }
-  const slot = availability.data.slots.find(
-    (s) => s.startTime.slice(0, 5) === params.start && s.status === 'free',
-  )
+  const slot = chosen
   const slotTaken = create.isError && isApiError(create.error) && create.error.status === 409
   const options = quote.data ? quoteChoice(quote.data) : null
   if (!slot || !quote.data || !options || slotTaken) {

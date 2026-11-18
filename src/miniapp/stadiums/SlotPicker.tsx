@@ -15,10 +15,13 @@ export function DateStrip({
   today,
   value,
   onChange,
+  includeYesterday = false,
 }: {
   today: string
   value: string
   onChange: (iso: string) => void
+  /** Lead with yesterday — its working day is still running (see `dates.bookingDates`). */
+  includeYesterday?: boolean
 }) {
   const { t } = useTranslation()
   const selected = useRef<HTMLButtonElement>(null)
@@ -32,12 +35,13 @@ export function DateStrip({
       aria-label={t('slots.date')}
       className="-mx-4 flex gap-3 overflow-x-auto px-4 [scrollbar-width:none]"
     >
-      {bookingDates(today).map((date, i) => {
+      {bookingDates(today, includeYesterday).map((date) => {
         const checked = date.iso === value
+        // By date, not by position: yesterday may lead the strip.
         const label =
-          i === 0
+          date.iso === today
             ? t('slots.today')
-            : i === 1
+            : date.iso === nextDate(today)
               ? t('slots.tomorrow')
               : t(WEEKDAY_SHORT_KEYS[date.dayOfWeek] ?? WEEKDAY_SHORT_KEYS[0])
         return (

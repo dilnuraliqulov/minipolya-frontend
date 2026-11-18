@@ -4,7 +4,7 @@ import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-r
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { tashkentToUtc, tashkentToday } from '../../shared/format'
+import { tashkentToday } from '../../shared/format'
 import {
   BOOKINGS_KEY,
   createBooking,
@@ -34,7 +34,7 @@ import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { usePayment } from '../payment/usePayment'
-import { dayTitle, slotLabel, weekdayOf } from '../stadiums/dates'
+import { dayTitle, slotLabel, slotStartsAt, weekdayOf } from '../stadiums/dates'
 import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { parseCheckoutParams, type CheckoutParams } from './checkoutParams'
@@ -429,16 +429,6 @@ function CheckoutForm({
       />
     </Screen>
   )
-}
-
-/**
- * The real UTC instant the chosen hour starts. The availability slot carries it, because
- * an hour after midnight belongs to this working day but happens on the next calendar
- * date. A backend that does not send it yet has no such hours, so the working date and the
- * clock time still agree.
- */
-function slotStartsAt(slot: TimeSlot, date: string, start: string): string {
-  return slot.startsAt ?? tashkentToUtc(date, start)
 }
 
 function Summary({

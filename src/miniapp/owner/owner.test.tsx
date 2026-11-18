@@ -2,6 +2,7 @@ import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { OwnerStadium, OwnerStats, PricingRule, ScheduleDay } from '../api/owner'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
+import { nextDate } from '../stadiums/dates'
 import { jsonResponse, makeUser, stubApi } from '../test/api'
 import { makeBooking } from '../test/bookings'
 import { readySession, renderApp } from '../test/renderApp'
@@ -104,6 +105,38 @@ describe('Ega rejimi — Jadval', () => {
     expect(screen.getByRole('navigation', { name: 'Ega rejimi boʻlimlari' })).toBeInTheDocument()
   })
 
+  it('shows a night booking on the day that opened it', async () => {
+    // The backend buckets the schedule by WORKING day, so Friday's 01:00 booking — which
+    // really happens on Saturday — arrives in Friday's day and lines up with its slot.
+    const nightStartsAt = tashkentToUtc(nextDate(TODAY), '01:00')
+    const night = makeBooking({
+      id: 'b-night',
+      startsAt: nightStartsAt,
+      endsAt: tashkentToUtc(nextDate(TODAY), '02:00'),
+      status: 'confirmed',
+      clientName: 'Tungi mijoz',
+      isWalkin: true,
+    })
+    stub({
+      'GET /api/owner/dashboard/stadiums/s1/schedule': [{ ...day, bookings: [night] }],
+      'GET /api/stadiums/s1/availability': {
+        stadiumId: 's1',
+        stadiumName: 'Bunyodkor Arena',
+        date: TODAY,
+        slots: [
+          makeSlot('23:00'),
+          makeSlot('01:00', { afterMidnight: true, startsAt: nightStartsAt }),
+        ],
+      },
+    })
+    renderApp('/owner', { session })
+
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    // The night hour shows its booking, not an empty slot.
+    expect(within(list).getByText('Tungi mijoz')).toBeInTheDocument()
+    expect(within(list).getAllByText('Boʻsh')).toHaveLength(1)
+  })
+
   const SUGGESTED = 'GET /api/owner/stadiums/s1/bookings/suggested-price'
 
   it('walk-in form: Uzbek labels, the owner price prefilled, unpaid by default', async () => {
@@ -132,6 +165,40 @@ describe('Ega rejimi — Jadval', () => {
       clientPhone: '+998901112233',
       price: 15_000_000,
       paymentStatus: 'unpaid',
+    })
+  })
+
+  it('walk-in form: a night hour is booked at its real instant, not a day early', async () => {
+    // The working day runs past midnight: its 00:00 hour happens on the NEXT date.
+    const nightStartsAt = tashkentToUtc(nextDate(TODAY), '00:00')
+    const api = stub({
+      'GET /api/stadiums/s1/availability': {
+        stadiumId: 's1',
+        stadiumName: 'Bunyodkor Arena',
+        date: TODAY,
+        slots: [
+          makeSlot('23:00'),
+          makeSlot('00:00', { afterMidnight: true, startsAt: nightStartsAt }),
+        ],
+      },
+      [SUGGESTED]: { price: 15_000_000 },
+      'POST /api/owner/stadiums/s1/bookings': makeBooking(),
+    })
+    renderApp('/owner', { session })
+    const list = await screen.findByRole('list', { name: 'Jadval' })
+    fireEvent.click(within(list).getAllByText('Boʻsh')[1] as HTMLElement)
+    const sheet = await screen.findByRole('dialog', { name: 'Qoʻlda band qilish' })
+    await vi.waitFor(() => expect(api.queries(SUGGESTED).length).toBeGreaterThan(0))
+    expect(api.queries(SUGGESTED).at(-1)).toEqual({ startsAt: nightStartsAt })
+
+    fireEvent.change(within(sheet).getByLabelText('Mijoz ismi'), { target: { value: 'Aziz' } })
+    fireEvent.change(within(sheet).getByLabelText('Mijoz telefoni'), {
+      target: { value: '+998901112233' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+    await screen.findByText('Bron qoʻshildi')
+    expect(api.calls('POST /api/owner/stadiums/s1/bookings')[0]).toMatchObject({
+      startsAt: nightStartsAt,
     })
   })
 

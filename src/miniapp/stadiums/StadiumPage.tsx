@@ -26,7 +26,12 @@ import { bookingDates, dayTitle, isInBookingWindow, slotLabel } from './dates'
 import { Gallery } from './Gallery'
 import { presentFacilities } from './facilities'
 import { formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
-import { useReviewPreview, useStadium, useToggleFavorite } from './queries'
+import {
+  useReviewPreview,
+  useStadium,
+  useToggleFavorite,
+  useYesterdayStillOpen,
+} from './queries'
 import { ReviewCard } from './ReviewCard'
 import { LocationCard } from '../map/LocationCard'
 import { DateStrip, SlotList } from './SlotPicker'
@@ -81,8 +86,12 @@ function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: R
   const [searchParams] = useSearchParams()
   const [today] = useState(() => tashkentToday())
   // The day chosen on Bosh sahifa, when it is one of the strip's days.
+  // Yesterday is reachable only while its working day is still running (the backend says).
+  const yesterdayOpen = useYesterdayStillOpen(stadium.id, today)
   const [date, setDate] = useState(() => {
     const param = searchParams.get('date')
+    // Strictly today onwards: a link cannot know whether yesterday is still running, and
+    // the strip offers it once the backend has said so.
     return param !== null && isInBookingWindow(param, today) ? param : today
   })
   const [selected, setSelected] = useState<TimeSlot | null>(null)
@@ -128,7 +137,12 @@ function StadiumContent({ stadium, header }: { stadium: StadiumDetail; header: R
       <Gallery photos={stadium.photos} name={stadium.name} />
       <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
         <StadiumInfo stadium={stadium} />
-        <DateStrip today={today} value={date} onChange={changeDate} />
+        <DateStrip
+          today={today}
+          value={date}
+          onChange={changeDate}
+          includeYesterday={yesterdayOpen}
+        />
         <SlotList
           stadiumId={stadium.id}
           date={date}
