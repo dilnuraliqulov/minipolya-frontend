@@ -124,8 +124,8 @@ export function PanelSection({
 /** A label/value row inside a panel section. */
 export function PanelRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-start gap-3">
-      <dt className="w-40 shrink-0 text-sm text-secondary">{label}</dt>
+    <div className="flex flex-col gap-0.5 md:flex-row md:items-start md:gap-3">
+      <dt className="text-sm text-secondary md:w-40 md:shrink-0">{label}</dt>
       <dd className="min-w-0 flex-1 text-base text-primary">{children}</dd>
     </div>
   )

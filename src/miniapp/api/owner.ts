@@ -146,11 +146,33 @@ export interface UpdateStadiumBody extends StadiumBasics {
   longitude?: number
   /** Tiyin, the owner's own base hourly price: 1 000 000–500 000 000. */
   pricePerHour?: number
-  /** `"09:00:00"` — whole hours, close after open. */
+  /**
+   * `"09:00:00"` — whole hours, the same every day. Send both or neither, and never
+   * together with `hours`.
+   */
   openTime?: string
   closeTime?: string
+  /** The whole weekly schedule, replacing the old one. Not together with `openTime`. */
+  hours?: WeeklyHoursBody
   /** The whole block replaces the old one: send all twelve flags. */
   amenities?: Amenities
+}
+
+/** One day of the weekly opening schedule, 0 = Monday. A closed day carries no times. */
+export interface DayHoursBody {
+  dayOfWeek: number
+  closed: boolean
+  /** `"08:00:00"`; absent on a closed day. */
+  openTime?: string
+  closeTime?: string
+}
+
+/**
+ * The whole week, all seven days. A `closeTime` at or before the day's `openTime` means
+ * the next morning (06:00 at the latest); `"00:00:00"` means midnight.
+ */
+export interface WeeklyHoursBody {
+  days: DayHoursBody[]
 }
 
 /** `POST /api/owner/stadiums` (design D1, D8–D15). */
@@ -167,9 +189,11 @@ export interface CreateStadiumBody {
   description?: string
   format: string
   surfaceType: string
-  /** `"09:00:00"` */
-  openTime: string
-  closeTime: string
+  /** `"09:00:00"` — the same every day; send these or `hours`, never both. */
+  openTime?: string
+  closeTime?: string
+  /** The weekly opening schedule; send this or `openTime`/`closeTime`, never both. */
+  hours?: WeeklyHoursBody
   /** Tiyin, the owner's own price. */
   pricePerHour: number
   amenities: Amenities
@@ -340,9 +364,14 @@ export interface StadiumPhoto {
 export interface OwnerStadiumDetail extends OwnerStadium {
   phone?: string
   description?: string
-  /** `"08:00:00"` */
+  /** `"08:00:00"` — the first open day's hours, for clients that read one pair. */
   openTime: string
   closeTime: string
+  /**
+   * The weekly opening schedule, Monday first, always seven days. A `closeTime` at or
+   * before the day's `openTime` means the next morning; `"00:00:00"` means midnight.
+   */
+  hours?: DayHoursBody[]
   /** Tiyin, the owner's own minimum; absent = the platform default (T1). */
   minBookingAmount?: number
   /** Tiyin, what a player pays as the effective minimum (own or default); always sent since T1. */

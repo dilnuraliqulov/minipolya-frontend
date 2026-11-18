@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { LanguageFlag } from '../../shared/flags'
 import { errorMessage } from '../api/errors'
 import { BottomSheet, OptionList, useToast } from '../components'
 import { LANGUAGES, type Language } from '../i18n'
@@ -31,7 +32,11 @@ export function LanguageSheet({
     <BottomSheet open={open} title={t('profile.languageTitle')} onClose={onClose}>
       <OptionList
         label={t('profile.languageTitle')}
-        options={LANGUAGES.map((value) => ({ value, label: t(LANGUAGE_LABEL_KEYS[value]) }))}
+        options={LANGUAGES.map((value) => ({
+          value,
+          label: t(LANGUAGE_LABEL_KEYS[value]),
+          leading: <LanguageFlag language={value} />,
+        }))}
         value={current}
         onChange={choose}
         disabled={update.isPending}

@@ -4,7 +4,7 @@ import { CalendarX, CircleAlert, Clock, Info, Plus, SearchCheck } from 'lucide-r
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { tashkentToUtc, tashkentToday } from '../../shared/format'
+import { tashkentToday } from '../../shared/format'
 import {
   BOOKINGS_KEY,
   createBooking,
@@ -34,7 +34,7 @@ import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { useCountdown } from '../payment/useCountdown'
 import { usePayment } from '../payment/usePayment'
-import { dayTitle, slotLabel } from '../stadiums/dates'
+import { dayTitle, slotLabel, slotStartsAt, weekdayOf } from '../stadiums/dates'
 import { formatLabel } from '../stadiums/labels'
 import { availabilityKey, useStadium } from '../stadiums/queries'
 import { parseCheckoutParams, type CheckoutParams } from './checkoutParams'
@@ -226,7 +226,7 @@ function CheckoutForm({
       () =>
         createBooking({
           stadiumId: stadium.id,
-          startsAt: tashkentToUtc(params.date, params.start),
+          startsAt: slotStartsAt(slot, params.date, params.start),
           cardId: card.id,
           paymentOption: option,
         }),
@@ -450,8 +450,16 @@ function Summary({
   ]
     .filter(Boolean)
     .join(' · ')
+  // The real date, so a 01:00 slot of Friday's working day reads as Saturday; the night
+  // it belongs to is named next to it.
+  const realDate =
+    slot.startsAt === undefined ? date : tashkentToday(new Date(slot.startsAt))
+  const night =
+    slot.afterMidnight === true
+      ? ' ' + t('bookings.workingNight', { weekday: weekdayOf(date).toLocaleLowerCase() })
+      : ''
   const rows: Array<[string, string]> = [
-    [t('checkout.date'), dayTitle(date)],
+    [t('checkout.date'), dayTitle(realDate) + night],
     [t('checkout.time'), slotLabel(slot)],
     [t('checkout.duration'), t('checkout.oneHour')],
   ]

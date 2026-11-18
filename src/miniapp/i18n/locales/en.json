@@ -303,7 +303,9 @@
     "emptyText": "Every hour is taken. Choose another day.",
     "seeDay": "See {{day}}",
     "choose": "Choose a time",
-    "book": "Book · {{time}} · {{price}}"
+    "book": "Book · {{time}} · {{price}}",
+    "night": "night",
+    "nightHint": "Hours after midnight belong to this day’s night."
   },
   "checkout": {
     "title": "Booking",
@@ -399,7 +401,8 @@
     "emptyPastTitle": "No past bookings",
     "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
-    "more": "Show more"
+    "more": "Show more",
+    "workingNight": "({{weekday}} night)"
   },
   "booked": {
     "headerTitle": "Booking",
@@ -813,7 +816,7 @@
       "later": "{{label}}: one hour later",
       "everyDay": "Every day {{open}} – {{close}}",
       "everyDayHours": "Every day {{open}} – {{close}} · {{count}} h",
-      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is not supported.",
+      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is allowed (06:00 at the latest).",
       "yourPrice": "Your price (1 hour)",
       "priceHint": "From 10 000 to 5 000 000 UZS",
       "playerPriceNote": "Players see a slightly higher price because of the card payment.",
@@ -906,8 +909,26 @@
       "sent": "Reply sent"
     },
     "hours": {
-      "note": "Hourly bookings open within these hours. Close single days in “Closed days”.",
-      "saved": "Opening hours saved"
+      "note": "Hourly bookings open in this range. The hours after midnight belong to that day’s night. Close individual days under “Closed days”.",
+      "saved": "Opening hours saved",
+      "day": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
+      "nextDay": "{{time}} (next day)",
+      "closedShort": "closed",
+      "everyDay": "Every day {{hours}}",
+      "otherDays": "other days {{hours}}",
+      "modeSame": "Same every day",
+      "modePerDay": "Per day of the week",
+      "mode": "Opening hours mode",
+      "closedSwitch": "Closed",
+      "dayHours": "{{day}} opening hours"
     },
     "terms": {
       "minimum": "Deposit",
@@ -952,10 +973,14 @@
       "locationRequired": "Mark the pitch on the map",
       "outsideUzbekistan": "The location must be in Uzbekistan",
       "priceRange": "The price must be between 10 000 and 5 000 000 UZS",
-      "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+      "hoursOrder": "Closing must be after opening.",
       "descriptionLength": "At most 500 characters",
       "landmarkLength": "At most 150 characters",
-      "photosMin": "Add at least 3 photos"
+      "photosMin": "Add at least 3 photos",
+      "closeTooLate": "Closing after midnight must be 06:00 at the latest.",
+      "hoursGap": "There must be at least 1 hour between one day closing and the next opening.",
+      "hoursAllClosed": "At least one day must be open.",
+      "hoursWeek": "All seven days of the week are needed."
     },
     "location": {
       "mapTitle": "Mark it on the map",

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { tashkentToUtc } from '../../shared/format'
 import { errorMessage } from '../api/errors'
 import {
   createPromotion,
@@ -13,7 +12,7 @@ import {
 import type { TimeSlot } from '../api/stadiums'
 import { Badge, BottomSheet, Button, Input, useToast } from '../components'
 import { formatLongDate, formatMoney } from '../format'
-import { slotLabel } from '../stadiums/dates'
+import { slotLabel, slotStartsAt } from '../stadiums/dates'
 import { availabilityKey } from '../stadiums/queries'
 
 const HOUR_MS = 3_600_000
@@ -23,7 +22,9 @@ const HOUR_MS = 3_600_000
  * it stops one second before the next hour starts.
  */
 function hourWindow(date: string, slot: TimeSlot): { startsAt: string; endsAt: string } {
-  const startsAt = tashkentToUtc(date, slot.startTime.slice(0, 5))
+  // The slot's own instant: a 00:00 hour belongs to this working day but happens on the
+  // next date, so the promotion must cover that hour, not the one a day earlier.
+  const startsAt = slotStartsAt(slot, date, slot.startTime.slice(0, 5))
   const endsAt = new Date(Date.parse(startsAt) + HOUR_MS - 1000).toISOString()
   return { startsAt, endsAt }
 }

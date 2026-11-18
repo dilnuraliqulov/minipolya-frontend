@@ -84,7 +84,9 @@ describe('Band qilindi', () => {
       }),
     )
     expect(await screen.findByText('Toʻlandi: 55 000 soʻm')).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Qolgan summa: 100 000 soʻm' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', { name: 'Qolgan summa: 100\u00A0000 soʻm' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ilovada toʻlash' })).toBeInTheDocument()
     expect(screen.getByText('yoki maydonda naqd toʻlang')).toBeInTheDocument()
   })

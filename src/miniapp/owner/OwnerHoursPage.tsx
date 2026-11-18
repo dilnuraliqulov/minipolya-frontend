@@ -11,10 +11,14 @@ import {
 import { BottomBar, Button, Screen, useToast } from '../components'
 import { useGoBack } from '../lib/useGoBack'
 import { OwnerDetailPage } from './OwnerDetailPage'
-import { HourStepper } from './StadiumFields'
-import { checkHours, hourLabel, hourToTime, timeToHour } from './stadiumRules'
+import { WeeklyHoursEditor } from './WeeklyHoursEditor'
+import { checkWeeklyHours, fromApi, toApi, type DayHours } from './hours'
 
-/** Maydonim → Ish vaqti: opening and closing hour, whole hours (D14, D15). */
+/**
+ * Maydonim → Ish vaqti: the weekly opening schedule — the same hours every day, or a day
+ * at a time. A day may close after midnight (06:00 at the latest), and those hours belong
+ * to the day that opened them.
+ */
 export function OwnerHoursPage() {
   const { t } = useTranslation()
   return (
@@ -30,12 +34,12 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
   const toast = useToast()
   const goBack = useGoBack('/owner/stadium')
   const queryClient = useQueryClient()
-  const [open, setOpen] = useState(timeToHour(stadium.openTime))
-  const [close, setClose] = useState(timeToHour(stadium.closeTime))
-  const rule = checkHours(open, close)
+  const [days, setDays] = useState<DayHours[]>(() =>
+    fromApi(stadium.hours, stadium.openTime, stadium.closeTime),
+  )
+  const rule = checkWeeklyHours(days)
   const save = useMutation({
-    mutationFn: () =>
-      updateStadium(stadium.id, { openTime: hourToTime(open), closeTime: hourToTime(close) }),
+    mutationFn: () => updateStadium(stadium.id, { hours: toApi(days) }),
     onSuccess: () => {
       toast.show(t('owner.hours.saved'), 'success')
       void queryClient.invalidateQueries({ queryKey: ownerStadiumKey(stadium.id) })
@@ -60,23 +64,11 @@ function HoursForm({ stadium, header }: { stadium: OwnerStadiumDetail; header: R
         </BottomBar>
       }
     >
-      <div className="flex gap-3">
-        <HourStepper label={t('owner.wizard.open')} value={open} max={22} onChange={setOpen} />
-        <HourStepper label={t('owner.wizard.close')} value={close} min={1} onChange={setClose} />
-      </div>
-      {rule ? (
-        <p role="alert" className="text-sm text-danger-text">
-          {t(rule)}
-        </p>
-      ) : (
-        <p className="text-sm font-medium text-primary">
-          {t('owner.wizard.everyDayHours', {
-            open: hourLabel(open),
-            close: hourLabel(close),
-            count: close - open,
-          })}
-        </p>
-      )}
+      <WeeklyHoursEditor
+        days={days}
+        onChange={setDays}
+        error={rule === null ? undefined : t(rule)}
+      />
       <p className="text-xs text-secondary">{t('owner.wizard.hoursNote')}</p>
       <p className="text-sm text-secondary">{t('owner.hours.note')}</p>
     </Screen>

@@ -49,6 +49,13 @@ export interface Booking {
   status: BookingStatus
   startsAt: string
   endsAt: string
+  /**
+   * The working day this hour belongs to (`"2026-11-14"`): the day whose opening started
+   * it. The same as `startsAt`'s own Tashkent date except for an hour after midnight.
+   */
+  workingDate?: string
+  /** True when the hour falls after midnight, so it belongs to the evening before. */
+  afterMidnight?: boolean
   durationHours: number
   /** Tiyin: the one price the player pays. */
   price: number

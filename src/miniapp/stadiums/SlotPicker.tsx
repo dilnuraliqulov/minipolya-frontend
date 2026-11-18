@@ -15,10 +15,13 @@ export function DateStrip({
   today,
   value,
   onChange,
+  includeYesterday = false,
 }: {
   today: string
   value: string
   onChange: (iso: string) => void
+  /** Lead with yesterday — its working day is still running (see `dates.bookingDates`). */
+  includeYesterday?: boolean
 }) {
   const { t } = useTranslation()
   const selected = useRef<HTMLButtonElement>(null)
@@ -32,12 +35,13 @@ export function DateStrip({
       aria-label={t('slots.date')}
       className="-mx-4 flex gap-3 overflow-x-auto px-4 [scrollbar-width:none]"
     >
-      {bookingDates(today).map((date, i) => {
+      {bookingDates(today, includeYesterday).map((date) => {
         const checked = date.iso === value
+        // By date, not by position: yesterday may lead the strip.
         const label =
-          i === 0
+          date.iso === today
             ? t('slots.today')
-            : i === 1
+            : date.iso === nextDate(today)
               ? t('slots.tomorrow')
               : t(WEEKDAY_SHORT_KEYS[date.dayOfWeek] ?? WEEKDAY_SHORT_KEYS[0])
         return (
@@ -86,6 +90,13 @@ function SlotRow({
   const { t } = useTranslation()
   const label = slotLabel(slot)
   const price = slot.available ? slot.pricePerHour : undefined
+  // An hour after midnight belongs to this working day but happens the next morning.
+  const night = slot.afterMidnight === true ? t('slots.night') : undefined
+  const nightPill = night === undefined ? null : (
+    <span className="rounded-sm bg-neutral-soft px-2 py-0.5 text-2xs font-semibold text-secondary">
+      {night}
+    </span>
+  )
 
   if (price === undefined) {
     const state =
@@ -97,11 +108,12 @@ function SlotRow({
         type="button"
         role="radio"
         aria-checked={false}
-        aria-label={`${label}, ${state}`}
+        aria-label={night === undefined ? `${label}, ${state}` : `${label}, ${night}, ${state}`}
         disabled
         className="flex min-h-13 items-center gap-2 rounded-xl border border-border bg-surface px-4"
       >
         <span className="text-md font-semibold text-secondary">{label}</span>
+        {nightPill}
         <span className="flex-1" />
         <span className="rounded-sm bg-border px-3 py-1 text-xs font-semibold text-secondary">
           {state}
@@ -115,7 +127,9 @@ function SlotRow({
       type="button"
       role="radio"
       aria-checked={checked}
-      aria-label={`${label}, ${formatMoney(price)}`}
+      aria-label={
+        night === undefined ? `${label}, ${formatMoney(price)}` : `${label}, ${night}, ${formatMoney(price)}`
+      }
       onClick={() => {
         haptic.selection()
         onSelect()
@@ -126,7 +140,10 @@ function SlotRow({
       )}
     >
       <span className="flex flex-col gap-2">
-        <span className="text-md font-semibold whitespace-nowrap">{label}</span>
+        <span className="flex items-center gap-2">
+          <span className="text-md font-semibold whitespace-nowrap">{label}</span>
+          {nightPill}
+        </span>
         {slot.hasWaitingGame && (
           <span className="self-start rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-warning-text">
             {t('slots.waitingGame')}
@@ -228,6 +245,12 @@ export function SlotList({
               />
             ))}
           </div>
+          {slots.some((slot) => slot.afterMidnight === true) && (
+            <p className="flex gap-2 px-1 pt-2 text-xs text-secondary">
+              <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+              {t('slots.nightHint')}
+            </p>
+          )}
           {slots.some((slot) => slot.hasWaitingGame) && (
             <p className="flex gap-2 px-1 pt-2 text-xs text-secondary">
               <Info size={14} className="mt-0.5 shrink-0" aria-hidden />

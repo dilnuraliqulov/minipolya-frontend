@@ -95,9 +95,16 @@ export interface StadiumDetail extends Omit<Stadium, 'coverPhotoUrl'> {
 
 /** `TimeSlot` — one hour, Tashkent local time. */
 export interface TimeSlot {
-  /** `"20:00:00"` */
+  /** `"20:00:00"` — Tashkent wall clock, as it is shown. */
   startTime: string
   endTime: string
+  /** The real instant the hour starts, UTC; on the next calendar day when `afterMidnight`. */
+  startsAt?: string
+  /**
+   * True when the hour falls after midnight, so it belongs to this working day's night
+   * and really happens on the next calendar date. Absent otherwise.
+   */
+  afterMidnight?: boolean
   /** True exactly when `status` is `free`. */
   available: boolean
   /** Why an hour can or cannot be booked; `past` = today, already started. */

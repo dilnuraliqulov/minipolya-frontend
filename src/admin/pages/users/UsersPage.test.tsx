@@ -236,6 +236,15 @@ describe('Foydalanuvchilar — detail', () => {
     expect(screen.getByText('Sardor')).toBeInTheDocument()
   })
 
+  it('shows the flag of the user language beside its name', async () => {
+    backend()
+    signIn()
+    renderAt('/foydalanuvchilar/p1')
+    const summary = await screen.findByRole('region', { name: 'Maʼlumotlar' })
+    const language = within(summary).getByText('Oʻzbekcha')
+    expect(language.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
+  })
+
   it('has no Jamoalar tab for a user in no team', async () => {
     backend()
     signIn()

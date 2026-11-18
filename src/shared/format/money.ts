@@ -67,8 +67,12 @@ export function tiyinToSomInput(tiyin: number): string {
  * → exact tiyin, by string maths (no floats): `"123.45"` → `12345`.
  */
 export function somInputToTiyin(text: string): number {
-  const match = /^(\d*)(?:\.(\d{0,2}))?$/.exec(text)
-  if (!match || text === '' || text === '.') {
+  // A figure copied off a page arrives grouped with U+00A0 (GROUP_SEPARATOR);
+  // `\s` matches it, so this accepts a pasted "12 345 000" as well as a typed
+  // one. The error still quotes what was actually given.
+  const digits = text.replace(/\s/g, '')
+  const match = /^(\d*)(?:\.(\d{0,2}))?$/.exec(digits)
+  if (!match || digits === '' || digits === '.') {
     throw new TypeError(
       `somInputToTiyin expects a so'm amount with at most two decimals, got "${text}"`,
     )

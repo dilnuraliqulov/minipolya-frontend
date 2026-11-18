@@ -8,12 +8,12 @@ afterEach(async () => {
 
 describe('formatMoney', () => {
   it('formats tiyin from the API as so‘m with the Uzbek ʻ', () => {
-    expect(formatMoney(15_500_000)).toBe('155 000 soʻm')
+    expect(formatMoney(15_500_000)).toBe('155\u00A0000 soʻm')
   })
 
   it('uses the unit of the current language', async () => {
     await i18n.changeLanguage('ru')
-    expect(formatMoney(15_500_000)).toBe('155 000 сум')
+    expect(formatMoney(15_500_000)).toBe('155\u00A0000 сум')
   })
 })
 

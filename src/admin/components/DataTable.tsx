@@ -282,7 +282,13 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-background">
+    // `min-w-0`: as a flex item this wrapper defaults to `min-width: auto`, so
+    // without it the box grows to the table's width instead of scrolling.
+    // `contain-paint`: in Chromium a `<table>` wider than its `overflow-x`
+    // ancestor still adds to the ROOT's scrollable overflow — the page scrolls
+    // sideways even though the table scrolls correctly inside this box. Paint
+    // containment stops that propagating. A block box would not need it.
+    <div className="min-w-0 contain-paint overflow-x-auto rounded-xl border border-border bg-background">
       <table
         className="w-full border-collapse"
         role={interactive ? 'grid' : undefined}
