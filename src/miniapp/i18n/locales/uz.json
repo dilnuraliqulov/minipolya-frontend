@@ -51,7 +51,8 @@
   },
   "format": {
     "longDate": "{{day}}-{{month}}, {{year}}",
-    "dayTitle": "{{weekday}}, {{day}}-{{month}}"
+    "dayTitle": "{{weekday}}, {{day}}-{{month}}",
+    "dayMonth": "{{day}}-{{month}}"
   },
   "months": {
     "jan": "yanvar",
