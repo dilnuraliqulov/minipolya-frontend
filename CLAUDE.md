@@ -651,20 +651,31 @@ npm run format        # prettier --write .
 npm run format:check  # prettier --check .
 npm run typecheck     # tsc -b (project references, no emit)
 npm run e2e           # Playwright: every admin route at 360×800, 390×844 and
-                      # 1024×800, light and dark — fails if the page is wider
-                      # than the viewport or a card spills out of its parent
+                      # 1024×800, light and dark, plus the Mini App home page at
+                      # the two phone sizes, windowed and in Telegram fullscreen
+                      # — fails if the page is wider than the viewport or a card
+                      # spills out of its parent
 npm run e2e:ui        # the same, in Playwright's inspector
 ```
 
 Before committing: `typecheck`, `lint`, `test` and `build` must pass.
 
-**`npm run e2e` is the admin layout check** (`e2e/`, Chromium only). It stubs
-every `/api` call with fixtures, so it needs **no backend and no test admin** —
-it starts the dev server itself. It is deliberately **not** part of the
-pre-commit gate, because it needs a browser and takes a few minutes: run it
-after any change to the admin layout, to a shared admin component, or to
-`formatSom`/`formatNumber`. First run on a new checkout needs
-`npx playwright install chromium`.
+**`npm run e2e` is the layout check** (`e2e/`, Chromium only). It stubs every
+`/api` call with fixtures, so it needs **no backend and no test admin** — it
+starts the dev server itself, and warms it once (`e2e/warm.ts`) so a cold
+transform is never mistaken for a broken layout. It is deliberately **not**
+part of the pre-commit gate, because it needs a browser and takes a few
+minutes: run it after any change to the admin layout, to a shared admin
+component, to `formatSom`/`formatNumber`, or to the Mini App home header.
+First run on a new checkout needs `npx playwright install chromium`.
+
+`e2e/miniapp-home.spec.ts` covers **Bosh sahifa**: it signs the Mini App in
+with a stand-in `window.Telegram.WebApp` (`e2e/fixtures/miniapp.ts`) and holds
+the home header to one row — the search field filling it with the filter button
+inside it, the bell ending it with its unread badge, 44px targets, the
+placeholder never cut off at 360px, and the date strip ending in "Boshqa sana".
+It runs at the phone viewports only, windowed and in Telegram's fullscreen
+layout.
 
 ## Deploying
 

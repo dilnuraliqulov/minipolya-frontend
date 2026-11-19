@@ -29,7 +29,7 @@
         "text": "Boʻsh vaqtni tanlang va darhol band qiling."
       }
     },
-    "pickDate": "Sanani tanlash",
+    "otherDate": "Boshqa sana",
     "pickDateTitle": "Sanani tanlang",
     "vs": "vs",
     "opponentWanted": "Raqib kutilmoqda"
@@ -194,7 +194,7 @@
     }
   },
   "stadiums": {
-    "search": "Maydon yoki manzilni qidiring",
+    "search": "Maydon yoki manzil",
     "filters": "Filtrlar",
     "allFormats": "Hammasi",
     "format": "Format",

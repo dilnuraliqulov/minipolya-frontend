@@ -1,5 +1,5 @@
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
-import { CalendarDays, Inbox, SearchX, SlidersHorizontal } from 'lucide-react'
+import { Inbox, SearchX, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -23,9 +23,13 @@ import { DateStrip } from './SlotPicker'
 import { StadiumCardCompact } from './StadiumCardCompact'
 import { tashkentToday } from '../../shared/format'
 
-/** Bosh sahifa (the Maydonlar tab): search with filters and a calendar, why-us, teams
- * looking for an opponent, the date strip, the stadium list. The chosen day drives
- * `freeSlotsCount` on the list and travels on to the stadium page (`?date=`). */
+/** A week of days on the strip; anything further is picked from "Boshqa sana". */
+const STRIP_DAYS = 7
+
+/** Bosh sahifa (the Maydonlar tab): one search row (field, filter, bell), why-us, teams
+ * looking for an opponent, the date strip ending in "Boshqa sana", the stadium list.
+ * The chosen day drives `freeSlotsCount` on the list and travels on to the stadium
+ * page (`?date=`). */
 export function StadiumsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -65,33 +69,30 @@ export function StadiumsPage() {
   }
 
   return (
-    <TabScreen
-      title={firstName ? t('home.greeting', { name: firstName }) : t('app.name')}
-      action={<NotificationBell />}
-    >
+    <TabScreen title={firstName ? t('home.greeting', { name: firstName }) : t('app.name')}>
       <PhoneBanner />
 
+      {/* One row: the field fills it, the filter sits inside it, the bell ends it. */}
       <div className="flex gap-2">
-        <SearchField value={search} onChange={setSearch} placeholder={t('stadiums.search')} />
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          aria-label={t('stadiums.filters')}
-          className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-background text-link"
-        >
-          <SlidersHorizontal size={20} aria-hidden />
-          {sheetFiltered && (
-            <span className="absolute top-2 right-2 size-2 rounded-full bg-accent" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setDateOpen(true)}
-          aria-label={t('home.pickDate')}
-          className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background text-link"
-        >
-          <CalendarDays size={20} aria-hidden />
-        </button>
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t('stadiums.search')}
+          action={
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              aria-label={t('stadiums.filters')}
+              className="relative flex size-11 items-center justify-center text-link"
+            >
+              <SlidersHorizontal size={20} aria-hidden />
+              {sheetFiltered && (
+                <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-accent" />
+              )}
+            </button>
+          }
+        />
+        <NotificationBell />
       </div>
 
       {!whyUsHidden && (
@@ -105,7 +106,13 @@ export function StadiumsPage() {
 
       <ChallengeCarousel />
 
-      <DateStrip today={today} value={date} onChange={setDate} />
+      <DateStrip
+        today={today}
+        value={date}
+        onChange={setDate}
+        days={STRIP_DAYS}
+        onPickOther={() => setDateOpen(true)}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-title font-bold text-primary">

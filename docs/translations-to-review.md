@@ -149,7 +149,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `profile.ownerCard.noneText` | Uni MiniPolyaʼga qoʻshing va bronlarni onlayn qabul qiling | Добавьте его в MiniPolya и принимайте брони онлайн | Add it to MiniPolya and take bookings online |
 | `profile.ownerCard.reviewText` | Koʻrib chiqilmoqda. Tez orada siz bilan bogʻlanamiz. | На проверке. Скоро мы с вами свяжемся. | Under review. We will contact you soon. |
 | `profile.ownerCard.enter` | Ega rejimiga oʻtish | Перейти в режим владельца | Switch to owner mode |
-| `stadiums.search` | Maydon yoki manzilni qidiring | Поиск поля или адреса | Search for a pitch or address |
+| `stadiums.search` | Maydon yoki manzil | Поле или адрес | Pitch or address |
 | `stadiums.filters` | Filtrlar | Фильтры | Filters |
 | `stadiums.allFormats` | Hammasi | Все | All |
 | `stadiums.format` | Format | Формат | Format |
@@ -935,7 +935,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `home.whyUs.opponent.text` | Jamoangiz bilan oʻyin yarating, raqib jamoa qoʻshiladi. | Создайте игру своей командой, соперник присоединится. | Create a game with your team and an opponent joins. |
 | `home.whyUs.quick.title` | 1 daqiqada bron | Бронь за 1 минуту | Book in 1 minute |
 | `home.whyUs.quick.text` | Boʻsh vaqtni tanlang va darhol band qiling. | Выберите свободное время и сразу забронируйте. | Pick a free time and book it right away. |
-| `home.pickDate` | Sanani tanlash | Выбрать дату | Choose a date |
+| `home.otherDate` | Boshqa sana | Другая дата | Other date |
 | `home.pickDateTitle` | Sanani tanlang | Выберите дату | Choose a date |
 | `home.vs` | vs | vs | vs |
 | `home.opponentWanted` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CalendarX, CircleCheck, Info } from 'lucide-react'
+import { CalendarDays, CalendarX, CircleCheck, Info } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatSomParts } from '../../shared/format'
@@ -10,18 +10,31 @@ import { haptic } from '../telegram'
 import { bookingDates, dayTitle, nextDate, slotLabel, WEEKDAY_SHORT_KEYS } from './dates'
 import { availabilityKey } from './queries'
 
-/** The date strip: today to 4 weeks ahead, one day chosen. */
+/**
+ * The date strip: the booking window (today to 4 weeks ahead), one day chosen.
+ *
+ * With `days` it shows only the first few — the home page shows a week and ends
+ * the strip with a "Boshqa sana" chip (`onPickOther`) for the calendar sheet. A
+ * day picked there that the strip does not show gets its own chip at the end,
+ * so the chosen date is always on the strip, and scrolled into view.
+ */
 export function DateStrip({
   today,
   value,
   onChange,
   includeYesterday = false,
+  days,
+  onPickOther,
 }: {
   today: string
   value: string
   onChange: (iso: string) => void
   /** Lead with yesterday — its working day is still running (see `dates.bookingDates`). */
   includeYesterday?: boolean
+  /** Show only the first `days` days of the window instead of all of them. */
+  days?: number
+  /** Adds the trailing "Boshqa sana" chip, which opens the calendar sheet. */
+  onPickOther?: () => void
 }) {
   const { t } = useTranslation()
   const selected = useRef<HTMLButtonElement>(null)
@@ -29,13 +42,20 @@ export function DateStrip({
     selected.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
   }, [value])
 
+  const all = bookingDates(today, includeYesterday)
+  const shown = days === undefined ? all : all.slice(0, days)
+  const chosen = shown.some((date) => date.iso === value)
+    ? null
+    : (all.find((date) => date.iso === value) ?? null)
+  const dates = chosen ? [...shown, chosen] : shown
+
   return (
     <div
       role="radiogroup"
       aria-label={t('slots.date')}
       className="-mx-4 flex gap-3 overflow-x-auto px-4 [scrollbar-width:none]"
     >
-      {bookingDates(today, includeYesterday).map((date) => {
+      {dates.map((date) => {
         const checked = date.iso === value
         // By date, not by position: yesterday may lead the strip.
         const label =
@@ -67,6 +87,19 @@ export function DateStrip({
           </button>
         )
       })}
+      {onPickOther && (
+        <button
+          type="button"
+          onClick={() => {
+            haptic.selection()
+            onPickOther()
+          }}
+          className="flex h-14.5 shrink-0 items-center gap-2 rounded-xl bg-surface px-4 text-primary"
+        >
+          <CalendarDays size={20} aria-hidden />
+          <span className="text-sm font-medium whitespace-nowrap">{t('home.otherDate')}</span>
+        </button>
+      )}
     </div>
   )
 }
@@ -92,11 +125,12 @@ function SlotRow({
   const price = slot.available ? slot.pricePerHour : undefined
   // An hour after midnight belongs to this working day but happens the next morning.
   const night = slot.afterMidnight === true ? t('slots.night') : undefined
-  const nightPill = night === undefined ? null : (
-    <span className="rounded-sm bg-neutral-soft px-2 py-0.5 text-2xs font-semibold text-secondary">
-      {night}
-    </span>
-  )
+  const nightPill =
+    night === undefined ? null : (
+      <span className="rounded-sm bg-neutral-soft px-2 py-0.5 text-2xs font-semibold text-secondary">
+        {night}
+      </span>
+    )
 
   if (price === undefined) {
     const state =
@@ -128,7 +162,9 @@ function SlotRow({
       role="radio"
       aria-checked={checked}
       aria-label={
-        night === undefined ? `${label}, ${formatMoney(price)}` : `${label}, ${night}, ${formatMoney(price)}`
+        night === undefined
+          ? `${label}, ${formatMoney(price)}`
+          : `${label}, ${night}, ${formatMoney(price)}`
       }
       onClick={() => {
         haptic.selection()

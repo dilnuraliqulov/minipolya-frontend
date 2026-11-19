@@ -29,7 +29,7 @@
         "text": "Pick a free time and book it right away."
       }
     },
-    "pickDate": "Choose a date",
+    "otherDate": "Other date",
     "pickDateTitle": "Choose a date",
     "vs": "vs",
     "opponentWanted": "Waiting for an opponent"
@@ -194,7 +194,7 @@
     }
   },
   "stadiums": {
-    "search": "Search for a pitch or address",
+    "search": "Pitch or address",
     "filters": "Filters",
     "allFormats": "All",
     "format": "Format",
