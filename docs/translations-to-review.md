@@ -983,3 +983,57 @@ Placeholders such as `{{count}}` must stay as they are.
 | `slots.night` | tun | ночь | night |
 | `slots.nightHint` | Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. | Часы после полуночи относятся к ночи этого дня. | Hours after midnight belong to this day’s night. |
 | `bookings.workingNight` | ({{weekday}} kechasi) | (ночь, {{weekday}}) | ({{weekday}} night) |
+
+## Team level, Teams section and chat (2026-11-19)
+
+| Key | uz | ru (to review) | en (to review) |
+|---|---|---|---|
+| `format.dayMonth` | {{day}}-{{month}} | {{day}}-{{month}} | {{day}}-{{month}} |
+| `team.level.title` | Jamoa darajasi | Уровень команды | Team level |
+| `team.level.unset` | Daraja belgilanmagan | Уровень не указан | Level not set |
+| `team.level.havaskor.name` | Havaskor | Любители | Amateur |
+| `team.level.havaskor.text` | Doʻstlar bilan dam olish uchun oʻynaymiz | Играем с друзьями для удовольствия | We play with friends, for fun |
+| `team.level.orta.name` | Oʻrta | Средний | Intermediate |
+| `team.level.orta.text` | Muntazam oʻynaymiz, yaxshi tayyorgarlik | Играем регулярно, готовимся к матчам | We play regularly and prepare well |
+| `team.level.professional.name` | Professional | Профессионалы | Professional |
+| `team.level.professional.text` | Turnir darajasi, kuchli jamoa | Турнирный уровень, сильная команда | Tournament level, a strong side |
+| `team.levelBanner.title` | Jamoangiz darajasini belgilang | Укажите уровень команды | Set your team level |
+| `team.levelBanner.text` | Shunda raqiblar sizga mos jamoani tezroq topadi. | Так соперники быстрее найдут подходящую команду. | Opponents will find a team that matches you faster. |
+| `team.levelBanner.action` | Belgilash | Указать | Set it |
+| `team.levelSheet.title` | Jamoa darajasi | Уровень команды | Team level |
+| `team.levelSheet.save` | Saqlash | Сохранить | Save |
+| `team.levelSaved` | Daraja saqlandi | Уровень сохранён | Level saved |
+| `team.levelFilter.label` | Daraja boʻyicha | По уровню | By level |
+| `team.levelFilter.all` | Hammasi | Все | All |
+| `team.levelConfirm.title` | Bu jamoa {{level}} darajada. Davom etasizmi? | У этой команды уровень «{{level}}». Продолжить? | This team plays at {{level}} level. Continue? |
+| `team.levelConfirm.text` | Darajalar har xil, lekin oʻyin baribir oʻtkaziladi. | Уровни разные, но игра всё равно состоится. | The levels differ, but the game goes ahead all the same. |
+| `team.levelConfirm.continue` | Davom etish | Продолжить | Continue |
+| `team.nextGame.title` | Keyingi oʻyin | Следующая игра | Next game |
+| `team.nextGame.opponent` | Raqib: {{name}} | Соперник: {{name}} | Opponent: {{name}} |
+| `team.nextGame.waiting` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
+| `team.nextGame.open` | Oʻyinga oʻtish | Перейти к игре | Open the game |
+| `team.inviteCard.title` | Aʼzo taklif qilish | Пригласить участника | Invite a member |
+| `team.inviteCard.text` | Havolani yuboring — doʻstlaringiz bir bosishda qoʻshiladi. | Отправьте ссылку — друзья присоединятся в одно касание. | Send the link — your friends join in one tap. |
+| `team.findOpponent` | Raqib qidirish | Найти соперника | Find an opponent |
+| `team.leaderCreatesGames` | Oʻyinlarni faqat sardor yaratadi | Игры создаёт только капитан | Only the captain creates games |
+| `team.captain` | Sardor: {{name}} | Капитан: {{name}} | Captain: {{name}} |
+| `team.membersCount` | Aʼzolar ({{count}}) | Участники ({{count}}) | Members ({{count}}) |
+| `team.stats.played` | Oʻynalgan oʻyinlar | Сыграно игр | Games played |
+| `team.stats.upcoming` | Kutilayotgan | Предстоящие | Upcoming |
+| `team.leave` | Jamoadan chiqish | Выйти из команды | Leave the team |
+| `team.leaveTitle` | Jamoadan chiqasizmi? | Выйти из команды? | Leave the team? |
+| `team.leaveText` | «{{name}}» jamoasidan chiqasiz. Qaytish uchun sardordan havola soʻrang. | Вы выйдете из команды «{{name}}». Чтобы вернуться, попросите ссылку у капитана. | You will leave {{name}}. To come back, ask the captain for a link. |
+| `team.leaveConfirm` | Chiqish | Выйти | Leave |
+| `team.left` | Jamoadan chiqdingiz | Вы вышли из команды | You left the team |
+| `team.emptyHow` | Jamoa tuzasiz, raqib qidirasiz va maydon haqini ikki jamoa boʻlib boʻlasiz. | Создайте команду, найдите соперника и разделите стоимость поля на две команды. | Create a team, find an opponent, and split the pitch between the two sides. |
+| `chat.today` | Bugun | Сегодня | Today |
+| `chat.yesterday` | Kecha | Вчера | Yesterday |
+| `chat.newMessages` | Yangi xabarlar | Новые сообщения | New messages |
+| `chat.sending` | Yuborilmoqda | Отправляется | Sending |
+| `chat.failed` | Yuborilmadi. Qayta urinish uchun bosing | Не отправлено. Нажмите, чтобы повторить | Not sent. Tap to try again |
+| `chat.older` | Eski xabarlar yuklanmoqda | Загружаем старые сообщения | Loading earlier messages |
+| `chat.openGame` | Oʻyinni ochish | Открыть игру | Open the game |
+| `chat.emptyTitle` | Hali xabar yoʻq | Сообщений пока нет | No messages yet |
+| `chat.emptyText` | Raqib jamoa bilan kelishib oling! | Договоритесь с командой соперника! | Agree the details with the other team! |
+| `chat.system.gameConfirmed` | Oʻyin tasdiqlandi | Игра подтверждена | The game is confirmed |
+| `chat.system.teamJoined` | {{team}} qoʻshildi | {{team}} присоединилась | {{team}} joined |
