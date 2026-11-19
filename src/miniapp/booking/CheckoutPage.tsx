@@ -452,8 +452,7 @@ function Summary({
     .join(' · ')
   // The real date, so a 01:00 slot of Friday's working day reads as Saturday; the night
   // it belongs to is named next to it.
-  const realDate =
-    slot.startsAt === undefined ? date : tashkentToday(new Date(slot.startsAt))
+  const realDate = slot.startsAt === undefined ? date : tashkentToday(new Date(slot.startsAt))
   const night =
     slot.afterMidnight === true
       ? ' ' + t('bookings.workingNight', { weekday: weekdayOf(date).toLocaleLowerCase() })

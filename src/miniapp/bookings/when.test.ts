@@ -12,9 +12,9 @@ const WJ = '⁠'
 describe('bookingWhen', () => {
   it('shows the real date and time in Tashkent', () => {
     // 15:00Z on Friday 2026-11-06 is 20:00 Tashkent the same day.
-    expect(
-      bookingWhen({ startsAt: '2026-11-06T15:00:00Z', endsAt: '2026-11-06T16:00:00Z' }),
-    ).toBe(`Juma, 6-noyabr · 20:00${WJ}–${WJ}21:00`)
+    expect(bookingWhen({ startsAt: '2026-11-06T15:00:00Z', endsAt: '2026-11-06T16:00:00Z' })).toBe(
+      `Juma, 6-noyabr · 20:00${WJ}–${WJ}21:00`,
+    )
   })
 
   it('names the working night of an after-midnight booking', () => {

@@ -26,12 +26,7 @@ import { bookingDates, dayTitle, isInBookingWindow, slotLabel } from './dates'
 import { Gallery } from './Gallery'
 import { presentFacilities } from './facilities'
 import { formatLabel, isKnownSurface, ratingLabel, SURFACE_KEYS } from './labels'
-import {
-  useReviewPreview,
-  useStadium,
-  useToggleFavorite,
-  useYesterdayStillOpen,
-} from './queries'
+import { useReviewPreview, useStadium, useToggleFavorite, useYesterdayStillOpen } from './queries'
 import { ReviewCard } from './ReviewCard'
 import { LocationCard } from '../map/LocationCard'
 import { DateStrip, SlotList } from './SlotPicker'

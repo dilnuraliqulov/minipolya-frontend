@@ -5,6 +5,7 @@ import type { Challenge } from '../api/games'
 import { bookingWhen } from '../bookings/when'
 import { challengePrice } from './challengePrice'
 import { TeamAvatar } from './TeamAvatar'
+import { TeamLevelBadge } from './TeamLevelBadge'
 
 /**
  * Bosh sahifa → a team looking for an opponent: "TeamA vs ?", deliberately not
@@ -29,7 +30,7 @@ export function ChallengeCardWide({
     >
       <span className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 flex-1 items-center gap-2">
-          <TeamAvatar name={team} size="sm" />
+          <TeamAvatar name={team} id={challenge.waitingTeamId} size="sm" />
           <span className="truncate text-md font-semibold text-primary">{team}</span>
         </span>
         <span className="shrink-0 text-xs font-bold text-secondary">{t('home.vs')}</span>
@@ -43,6 +44,11 @@ export function ChallengeCardWide({
           </span>
         </span>
       </span>
+      {challenge.waitingTeamLevel && (
+        <span className="flex">
+          <TeamLevelBadge level={challenge.waitingTeamLevel} />
+        </span>
+      )}
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-base font-semibold text-primary">
           {challenge.stadiumName}

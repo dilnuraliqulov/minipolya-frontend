@@ -537,7 +537,66 @@
       "invalidTitle": "Havola yaroqsiz",
       "invalidText": "Taklif havolasi eskirgan yoki notoʻgʻri. Sardordan yangi havola soʻrang.",
       "home": "Bosh sahifaga"
-    }
+    },
+    "level": {
+      "title": "Jamoa darajasi",
+      "unset": "Daraja belgilanmagan",
+      "havaskor": {
+        "name": "Havaskor",
+        "text": "Doʻstlar bilan dam olish uchun oʻynaymiz"
+      },
+      "orta": {
+        "name": "Oʻrta",
+        "text": "Muntazam oʻynaymiz, yaxshi tayyorgarlik"
+      },
+      "professional": {
+        "name": "Professional",
+        "text": "Turnir darajasi, kuchli jamoa"
+      }
+    },
+    "levelBanner": {
+      "title": "Jamoangiz darajasini belgilang",
+      "text": "Shunda raqiblar sizga mos jamoani tezroq topadi.",
+      "action": "Belgilash"
+    },
+    "levelSheet": {
+      "title": "Jamoa darajasi",
+      "save": "Saqlash"
+    },
+    "levelSaved": "Daraja saqlandi",
+    "levelFilter": {
+      "label": "Daraja boʻyicha",
+      "all": "Hammasi"
+    },
+    "levelConfirm": {
+      "title": "Bu jamoa {{level}} darajada. Davom etasizmi?",
+      "text": "Darajalar har xil, lekin oʻyin baribir oʻtkaziladi.",
+      "continue": "Davom etish"
+    },
+    "nextGame": {
+      "title": "Keyingi oʻyin",
+      "opponent": "Raqib: {{name}}",
+      "waiting": "Raqib kutilmoqda",
+      "open": "Oʻyinga oʻtish"
+    },
+    "inviteCard": {
+      "title": "Aʼzo taklif qilish",
+      "text": "Havolani yuboring — doʻstlaringiz bir bosishda qoʻshiladi."
+    },
+    "findOpponent": "Raqib qidirish",
+    "leaderCreatesGames": "Oʻyinlarni faqat sardor yaratadi",
+    "captain": "Sardor: {{name}}",
+    "membersCount": "Aʼzolar ({{count}})",
+    "stats": {
+      "played": "Oʻynalgan oʻyinlar",
+      "upcoming": "Kutilayotgan"
+    },
+    "leave": "Jamoadan chiqish",
+    "leaveTitle": "Jamoadan chiqasizmi?",
+    "leaveText": "«{{name}}» jamoasidan chiqasiz. Qaytish uchun sardordan havola soʻrang.",
+    "leaveConfirm": "Chiqish",
+    "left": "Jamoadan chiqdingiz",
+    "emptyHow": "Jamoa tuzasiz, raqib qidirasiz va maydon haqini ikki jamoa boʻlib boʻlasiz."
   },
   "game": {
     "title": "Oʻyin",
@@ -612,10 +671,21 @@
     "placeholder": "Xabar yozing…",
     "input": "Xabar",
     "send": "Yuborish",
-    "emptyTitle": "Hali xabarlar yoʻq",
-    "emptyText": "Raqib jamoa sardori bilan oʻyinni kelishib oling.",
+    "emptyTitle": "Hali xabar yoʻq",
+    "emptyText": "Raqib jamoa bilan kelishib oling!",
     "closed": "Chat faqat tasdiqlangan oʻyinda ochiq.",
-    "you": "Siz"
+    "you": "Siz",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "newMessages": "Yangi xabarlar",
+    "sending": "Yuborilmoqda",
+    "failed": "Yuborilmadi. Qayta urinish uchun bosing",
+    "older": "Eski xabarlar yuklanmoqda",
+    "openGame": "Oʻyinni ochish",
+    "system": {
+      "gameConfirmed": "Oʻyin tasdiqlandi",
+      "teamJoined": "{{team}} qoʻshildi"
+    }
   },
   "owner": {
     "tabs": {

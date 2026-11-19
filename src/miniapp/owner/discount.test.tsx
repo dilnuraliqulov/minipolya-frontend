@@ -122,9 +122,7 @@ describe('Ega rejimi — Jadval — Narxni oʻzgartirish', () => {
     fireEvent.change(within(sheet).getByLabelText('Chegirma (%)'), { target: { value: '20' } })
     fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
 
-    await waitFor(() =>
-      expect(api.calls('POST /api/owner/stadiums/s1/promotions')).toHaveLength(1),
-    )
+    await waitFor(() => expect(api.calls('POST /api/owner/stadiums/s1/promotions')).toHaveLength(1))
     expect(api.calls('POST /api/owner/stadiums/s1/promotions')[0]).toMatchObject({
       startsAt: nightStartsAt,
     })

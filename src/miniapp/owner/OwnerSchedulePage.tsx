@@ -2,12 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  formatTime,
-  somInputToTiyin,
-  tashkentToday,
-  tiyinToSomInput,
-} from '../../shared/format'
+import { formatTime, somInputToTiyin, tashkentToday, tiyinToSomInput } from '../../shared/format'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
 import type { GameDetail, GameTeam } from '../api/games'

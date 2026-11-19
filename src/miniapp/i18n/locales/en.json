@@ -537,7 +537,66 @@
       "invalidTitle": "Invalid link",
       "invalidText": "The invite link is out of date or wrong. Ask the captain for a new one.",
       "home": "Go to home"
-    }
+    },
+    "level": {
+      "title": "Team level",
+      "unset": "Level not set",
+      "havaskor": {
+        "name": "Amateur",
+        "text": "We play with friends, for fun"
+      },
+      "orta": {
+        "name": "Intermediate",
+        "text": "We play regularly and prepare well"
+      },
+      "professional": {
+        "name": "Professional",
+        "text": "Tournament level, a strong side"
+      }
+    },
+    "levelBanner": {
+      "title": "Set your team level",
+      "text": "Opponents will find a team that matches you faster.",
+      "action": "Set it"
+    },
+    "levelSheet": {
+      "title": "Team level",
+      "save": "Save"
+    },
+    "levelSaved": "Level saved",
+    "levelFilter": {
+      "label": "By level",
+      "all": "All"
+    },
+    "levelConfirm": {
+      "title": "This team plays at {{level}} level. Continue?",
+      "text": "The levels differ, but the game goes ahead all the same.",
+      "continue": "Continue"
+    },
+    "nextGame": {
+      "title": "Next game",
+      "opponent": "Opponent: {{name}}",
+      "waiting": "Waiting for an opponent",
+      "open": "Open the game"
+    },
+    "inviteCard": {
+      "title": "Invite a member",
+      "text": "Send the link — your friends join in one tap."
+    },
+    "findOpponent": "Find an opponent",
+    "leaderCreatesGames": "Only the captain creates games",
+    "captain": "Captain: {{name}}",
+    "membersCount": "Members ({{count}})",
+    "stats": {
+      "played": "Games played",
+      "upcoming": "Upcoming"
+    },
+    "leave": "Leave the team",
+    "leaveTitle": "Leave the team?",
+    "leaveText": "You will leave {{name}}. To come back, ask the captain for a link.",
+    "leaveConfirm": "Leave",
+    "left": "You left the team",
+    "emptyHow": "Create a team, find an opponent, and split the pitch between the two sides."
   },
   "game": {
     "title": "Game",
@@ -613,9 +672,20 @@
     "input": "Message",
     "send": "Send",
     "emptyTitle": "No messages yet",
-    "emptyText": "Agree on the game with the other captain.",
+    "emptyText": "Agree the details with the other team!",
     "closed": "Chat is open only for a confirmed game.",
-    "you": "You"
+    "you": "You",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages": "New messages",
+    "sending": "Sending",
+    "failed": "Not sent. Tap to try again",
+    "older": "Loading earlier messages",
+    "openGame": "Open the game",
+    "system": {
+      "gameConfirmed": "The game is confirmed",
+      "teamJoined": "{{team}} joined"
+    }
   },
   "owner": {
     "tabs": {

@@ -130,7 +130,9 @@ export function WeeklyHoursEditor({
                   <select
                     aria-label={`${dayName(day.dayOfWeek)} ${t('owner.wizard.open')}`}
                     value={String(day.open ?? open)}
-                    onChange={(event) => setDay(day.dayOfWeek, { open: Number(event.target.value) })}
+                    onChange={(event) =>
+                      setDay(day.dayOfWeek, { open: Number(event.target.value) })
+                    }
                     className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-surface px-2 text-sm text-primary"
                   >
                     {Array.from({ length: 24 }, (_, hour) => (

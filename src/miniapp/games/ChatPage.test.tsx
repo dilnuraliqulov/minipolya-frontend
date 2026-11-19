@@ -67,7 +67,7 @@ describe('Chat', () => {
       },
     })
     renderApp('/games/g1/chat')
-    expect(await screen.findByText('Hali xabarlar yoʻq')).toBeInTheDocument()
+    expect(await screen.findByText('Hali xabar yoʻq')).toBeInTheDocument()
     const input = screen.getByLabelText('Xabar')
     await vi.waitFor(() => expect(input).toBeEnabled())
     fireEvent.change(input, { target: { value: '  Kelamiz ' } })
@@ -100,6 +100,6 @@ describe('Chat', () => {
     const retry = await screen.findByRole('button', { name: 'Qayta urinish' })
     fail = false
     fireEvent.click(retry)
-    expect(await screen.findByText('Hali xabarlar yoʻq')).toBeInTheDocument()
+    expect(await screen.findByText('Hali xabar yoʻq')).toBeInTheDocument()
   })
 })
