@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Ellipsis, Plus, Share2, Users } from 'lucide-react'
+import { Ellipsis, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { errorMessage } from '../api/errors'
 import {
   deleteTeam,
+  leaveTeam,
   MY_TEAMS_KEY,
   removeTeamMember,
   teamKey,
@@ -18,6 +19,7 @@ import {
   Badge,
   BottomSheet,
   Button,
+  ButtonLink,
   Card,
   cx,
   EmptyState,
@@ -30,8 +32,12 @@ import { ChallengeBoard } from './ChallengeBoard'
 import { InviteSheet } from './InviteSheet'
 import { useMyTeams, useTeam } from './queries'
 import { TeamAvatar } from './TeamAvatar'
+import { TeamInviteCard } from './TeamInviteCard'
+import { TeamLevelBadge } from './TeamLevelBadge'
+import { TeamLevelSheet } from './TeamLevelSheet'
+import { TeamNextGameCard } from './TeamNextGameCard'
 
-/** Jamoam: the player's teams, their members and the challenge board. */
+/** Jamoam: the player's teams, their next game, their members and the challenge board. */
 export function TeamPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -68,7 +74,7 @@ export function TeamPage() {
         <EmptyState
           icon={Users}
           title={t('team.emptyTitle')}
-          description={t('team.emptyText')}
+          description={`${t('team.emptyText')} ${t('team.emptyHow')}`}
           actionLabel={t('team.create')}
           onAction={() => navigate('/team/new')}
         />
@@ -123,34 +129,67 @@ function TeamContent({ team }: { team: TeamDetail }) {
   const me = useLoginUser()
   const isLeader = team.leaderId === me.id
   const [inviting, setInviting] = useState(false)
+  const [levelling, setLevelling] = useState(false)
   const [acting, setActing] = useState<TeamMember | null>(null)
   const [removing, setRemoving] = useState<TeamMember | null>(null)
+  const [leaving, setLeaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const nameOf = (member: TeamMember) => member.userName ?? t('team.anonymous')
 
   return (
     <>
       <Card className="flex items-center gap-3 p-4">
-        <TeamAvatar name={team.name} />
+        <TeamAvatar name={team.name} id={team.id} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <h2 className="truncate text-xl font-bold text-primary">{team.name}</h2>
-          <p className="text-sm text-secondary">
-            {t('team.memberCount', { count: team.members.length })}
+          <p className="truncate text-sm text-secondary">
+            {`${t('team.memberCount', { count: team.members.length })} · ${t('team.captain', {
+              name: team.leaderName ?? t('team.anonymous'),
+            })}`}
           </p>
         </div>
-        <Badge tone={isLeader ? 'accent' : 'neutral'}>
-          {isLeader ? t('team.leader') : t('team.member')}
-        </Badge>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <TeamLevelBadge level={team.level} />
+          <Badge tone={isLeader ? 'accent' : 'neutral'}>
+            {isLeader ? t('team.leader') : t('team.member')}
+          </Badge>
+        </div>
       </Card>
 
-      <ChallengeBoard acceptAs={isLeader ? team.id : undefined} />
+      {isLeader && !team.level && (
+        <button
+          type="button"
+          onClick={() => setLevelling(true)}
+          className="flex min-h-11 flex-col gap-1 rounded-xl border border-warning-text bg-warning-soft p-4 text-left"
+        >
+          <span className="text-base font-semibold text-warning-text">
+            {t('team.levelBanner.title')}
+          </span>
+          <span className="text-sm text-warning-text">{t('team.levelBanner.text')}</span>
+          <span className="pt-1 text-sm font-semibold text-warning-text underline">
+            {t('team.levelBanner.action')}
+          </span>
+        </button>
+      )}
+
+      {team.upcomingGame && <TeamNextGameCard game={team.upcomingGame} />}
+
+      {isLeader && <TeamInviteCard onOpen={() => setInviting(true)} />}
+
+      {isLeader ? (
+        <ButtonLink to="/opponent">{t('team.findOpponent')}</ButtonLink>
+      ) : (
+        <p className="text-sm text-secondary">{t('team.leaderCreatesGames')}</p>
+      )}
+
+      <TeamStats team={team} />
 
       <section className="flex flex-col gap-3" aria-labelledby="members-title">
         <h3 id="members-title" className="text-lg font-semibold text-primary">
-          {t('team.members')}
+          {t('team.membersCount', { count: team.members.length })}
         </h3>
         <Card className="p-0">
-          <ul aria-labelledby="members-title" className="divide-y divide-border">
+          <ul aria-label={t('team.members')} className="divide-y divide-border">
             {team.members.map((member) => (
               <li key={member.userId} className="flex min-h-14 items-center gap-3 px-4 py-2">
                 <TeamAvatar name={nameOf(member)} size="sm" />
@@ -172,16 +211,22 @@ function TeamContent({ team }: { team: TeamDetail }) {
             ))}
           </ul>
         </Card>
-        {isLeader && (
-          <Button variant="secondary" icon={Share2} onClick={() => setInviting(true)}>
-            {t('team.invite')}
-          </Button>
-        )}
       </section>
 
-      {isLeader && (
-        <Button variant="danger-outline" onClick={() => setDeleting(true)}>
-          {t('team.delete')}
+      <ChallengeBoard acceptAs={isLeader ? team.id : undefined} myLevel={team.level} />
+
+      {isLeader ? (
+        <>
+          <Button variant="secondary" onClick={() => setLevelling(true)}>
+            {t('team.levelSheet.title')}
+          </Button>
+          <Button variant="danger-outline" onClick={() => setDeleting(true)}>
+            {t('team.delete')}
+          </Button>
+        </>
+      ) : (
+        <Button variant="danger-outline" onClick={() => setLeaving(true)}>
+          {t('team.leave')}
         </Button>
       )}
 
@@ -192,6 +237,9 @@ function TeamContent({ team }: { team: TeamDetail }) {
           open={inviting}
           onClose={() => setInviting(false)}
         />
+      )}
+      {isLeader && levelling && (
+        <TeamLevelSheet team={team} open onClose={() => setLevelling(false)} />
       )}
 
       <BottomSheet
@@ -212,8 +260,33 @@ function TeamContent({ team }: { team: TeamDetail }) {
       {removing && (
         <RemoveMemberSheet team={team} member={removing} onClose={() => setRemoving(null)} />
       )}
+      {leaving && <LeaveTeamSheet team={team} onClose={() => setLeaving(false)} />}
       {deleting && <DeleteTeamSheet team={team} onClose={() => setDeleting(false)} />}
     </>
+  )
+}
+
+/**
+ * What the team has done, from the API and nowhere else: a figure the backend
+ * did not send is simply not shown. Nothing here is counted or estimated.
+ */
+function TeamStats({ team }: { team: TeamDetail }) {
+  const { t } = useTranslation()
+  const stats: Array<{ label: string; value: number }> = []
+  if (team.gamesPlayed !== undefined) {
+    stats.push({ label: t('team.stats.played'), value: team.gamesPlayed })
+  }
+  stats.push({ label: t('team.stats.upcoming'), value: team.upcomingGame ? 1 : 0 })
+  if (team.gamesPlayed === undefined) return null
+  return (
+    <Card className="flex divide-x divide-border">
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex flex-1 flex-col items-center gap-1 px-2 py-3">
+          <span className="text-2xl font-bold text-primary">{stat.value}</span>
+          <span className="text-center text-xs text-secondary">{stat.label}</span>
+        </div>
+      ))}
+    </Card>
   )
 }
 
@@ -253,6 +326,47 @@ function RemoveMemberSheet({
             {t('team.removeConfirm')}
           </Button>
           <Button variant="secondary" disabled={remove.isPending} onClick={onClose}>
+            {t('team.cancel')}
+          </Button>
+        </>
+      }
+    />
+  )
+}
+
+/** A member walking out of a team — their own decision, confirmed once. */
+function LeaveTeamSheet({ team, onClose }: { team: TeamDetail; onClose: () => void }) {
+  const { t } = useTranslation()
+  const me = useLoginUser()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [, setSearch] = useSearchParams()
+  const leave = useMutation({
+    mutationFn: () => leaveTeam(team.id, me.id),
+    onSuccess: () => {
+      toast.show(t('team.left'), 'success')
+      // Drop it from the list first, so the page moves on before anything refetches it.
+      queryClient.setQueryData<Team[]>(MY_TEAMS_KEY, (old) => old?.filter((x) => x.id !== team.id))
+      void queryClient.invalidateQueries({ queryKey: MY_TEAMS_KEY })
+      setSearch({}, { replace: true })
+      onClose()
+    },
+    onError: (error) => toast.show(errorMessage(error), 'danger'),
+  })
+  return (
+    <BottomSheet
+      open
+      title={t('team.leaveTitle')}
+      subtitle={t('team.leaveText', { name: team.name })}
+      onClose={() => {
+        if (!leave.isPending) onClose()
+      }}
+      actions={
+        <>
+          <Button variant="danger" loading={leave.isPending} onClick={() => leave.mutate()}>
+            {t('team.leaveConfirm')}
+          </Button>
+          <Button variant="secondary" disabled={leave.isPending} onClick={onClose}>
             {t('team.cancel')}
           </Button>
         </>

@@ -3,5 +3,10 @@
     "deny": [
       "Edit(../minipolyaBackend/**)"
     ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
   }
 }

@@ -44,7 +44,7 @@ describe('Bosh sahifa — free hours for the chosen date (E)', () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article', { name: 'Bunyodkor Arena' })
-    fireEvent.click(screen.getByRole('button', { name: 'Sanani tanlash' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Boshqa sana' }))
     const sheet = await screen.findByRole('dialog', { name: 'Sanani tanlang' })
     const tomorrow = nextDate(tashkentToday())
     fireEvent.click(within(sheet).getByRole('button', { name: dayTitle(tomorrow) }))
@@ -76,9 +76,9 @@ describe('Bosh sahifa — the stadium list', () => {
     renderApp('/')
     await screen.findByRole('article', { name: 'Bunyodkor Arena' })
 
-    expect(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' })).toBeVisible()
+    expect(screen.getByRole('searchbox', { name: 'Maydon yoki manzil' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Filtrlar' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Sanani tanlash' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Boshqa sana' })).toBeInTheDocument()
     const strip = screen.getByRole('radiogroup', { name: 'Sana' })
     expect(within(strip).getByRole('radio', { name: /Bugun/ })).toBeChecked()
     expect(within(strip).getByRole('radio', { name: /Ertaga/ })).not.toBeChecked()
@@ -147,7 +147,7 @@ describe('Bosh sahifa — the stadium list', () => {
     const api = stubApi({ [LIST]: page([makeStadium()]) })
     renderApp('/')
     await screen.findByRole('article')
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' }), {
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzil' }), {
       target: { value: 'Olmazor' },
     })
     await vi.waitFor(() =>
@@ -165,7 +165,7 @@ describe('Bosh sahifa — the stadium list', () => {
     renderApp('/')
     await screen.findByRole('article')
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Maydonlar · 1')
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzilni qidiring' }), {
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Maydon yoki manzil' }), {
       target: { value: 'Olmazor' },
     })
     await vi.waitFor(() =>
@@ -366,5 +366,82 @@ describe('Bosh sahifa — the splash', () => {
     document.body.appendChild(splash)
     renderApp('/')
     await vi.waitFor(() => expect(document.getElementById('splash')).toBeNull())
+  })
+})
+
+describe('Bosh sahifa — one search row', () => {
+  const BELL = /Bildirishnomalar/
+  const plusDays = (iso: string, days: number) => {
+    const [y, m, d] = iso.split('-').map(Number) as [number, number, number]
+    return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
+  }
+
+  async function home() {
+    stubApi({ [LIST]: page([makeStadium()]) })
+    renderApp('/')
+    await screen.findByRole('article', { name: 'Bunyodkor Arena' })
+    return {
+      field: screen.getByRole('searchbox', { name: 'Maydon yoki manzil' }).closest('div')!,
+      strip: screen.getByRole('radiogroup', { name: 'Sana' }),
+    }
+  }
+
+  it('holds the filter button inside the field and the bell at the end of the row', async () => {
+    const { field } = await home()
+    expect(field).toContainElement(screen.getByRole('button', { name: 'Filtrlar' }))
+    const bell = screen.getByRole('button', { name: BELL })
+    expect(field).not.toContainElement(bell)
+    expect(field.parentElement).toContainElement(bell)
+    expect(field.parentElement!.children).toHaveLength(2)
+  })
+
+  it('leaves the bell out of the page header, so it has no row of its own', async () => {
+    await home()
+    expect(within(screen.getByRole('banner')).queryByRole('button', { name: BELL })).toBeNull()
+  })
+
+  it('has no calendar button beside the search field', async () => {
+    const { field } = await home()
+    expect(screen.queryByRole('button', { name: 'Sanani tanlash' })).toBeNull()
+    expect(field.parentElement).not.toContainElement(
+      screen.getByRole('button', { name: 'Boshqa sana' }),
+    )
+  })
+
+  it('shows a week of days and ends the strip with "Boshqa sana"', async () => {
+    const { strip } = await home()
+    expect(within(strip).getAllByRole('radio')).toHaveLength(7)
+    expect(strip.lastElementChild).toHaveAccessibleName('Boshqa sana')
+  })
+
+  it('shows a date beyond the week as the selected chip before "Boshqa sana"', async () => {
+    const { strip } = await home()
+    const far = plusDays(tashkentToday(), 10)
+    fireEvent.click(within(strip).getByRole('button', { name: 'Boshqa sana' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Sanani tanlang' })
+    fireEvent.click(within(sheet).getByRole('button', { name: dayTitle(far) }))
+
+    const chips = within(strip).getAllByRole('radio')
+    expect(chips).toHaveLength(8)
+    expect(chips.at(-1)).toBeChecked()
+    expect(chips.at(-1)).toHaveTextContent(String(Number(far.slice(8, 10))))
+    expect(strip.lastElementChild).toHaveAccessibleName('Boshqa sana')
+  })
+
+  it('scrolls the chosen far date into view', async () => {
+    const { strip } = await home()
+    const scrollIntoView = vi.fn()
+    const original = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = scrollIntoView
+    try {
+      fireEvent.click(within(strip).getByRole('button', { name: 'Boshqa sana' }))
+      const sheet = await screen.findByRole('dialog', { name: 'Sanani tanlang' })
+      fireEvent.click(
+        within(sheet).getByRole('button', { name: dayTitle(plusDays(tashkentToday(), 12)) }),
+      )
+      await vi.waitFor(() => expect(scrollIntoView).toHaveBeenCalled())
+    } finally {
+      Element.prototype.scrollIntoView = original
+    }
   })
 })

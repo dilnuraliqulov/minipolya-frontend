@@ -135,3 +135,35 @@ export function dayLabel(today: string, iso: string): string {
     month: i18n.t(MONTH_KEYS[month - 1] ?? MONTH_KEYS[0]),
   })
 }
+
+export interface MonthGrid {
+  /** 1 = January … 12 = December. */
+  month: number
+  year: number
+  /** Every day of the month, in order — the ones outside the window included. */
+  days: StripDate[]
+}
+
+/**
+ * Every month the booking window touches, each with all of its days.
+ *
+ * The calendar sheet draws whole months and disables the days outside the
+ * window (`isInBookingWindow`), so a player can see where the window ends
+ * instead of wondering why the month stops.
+ */
+export function bookingMonths(today: string): MonthGrid[] {
+  const dates = bookingDates(today)
+  const last = dates[dates.length - 1]?.iso ?? today
+  const months: MonthGrid[] = []
+  let cursor = `${today.slice(0, 7)}-01`
+  while (cursor <= last) {
+    const year = Number(cursor.slice(0, 4))
+    const month = Number(cursor.slice(5, 7))
+    // Day 0 of the next month is the last day of this one.
+    const length = new Date(Date.UTC(year, month, 0)).getUTCDate()
+    const start = cursor
+    months.push({ year, month, days: Array.from({ length }, (_, i) => addDays(start, i)) })
+    cursor = addDays(start, length).iso
+  }
+  return months
+}

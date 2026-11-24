@@ -129,9 +129,9 @@ describe('Maydon — Ish vaqti', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Tasdiqlash' }))
 
     await waitFor(() =>
-      expect(requests.filter((r) => r.url.pathname === '/api/admin/stadiums/s1/hours')).toHaveLength(
-        1,
-      ),
+      expect(
+        requests.filter((r) => r.url.pathname === '/api/admin/stadiums/s1/hours'),
+      ).toHaveLength(1),
     )
     const sent = requests.find((r) => r.url.pathname === '/api/admin/stadiums/s1/hours')?.body as {
       hours: { days: DayHours[] }

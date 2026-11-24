@@ -26,7 +26,8 @@ const MIN_GAP_HOURS = 1
 
 const hhmm = (time: string) => time.slice(0, 5)
 const toTime = (hour: number) => `${String(hour).padStart(2, '0')}:00:00`
-const toHour = (time: string | undefined) => (time === undefined ? 0 : Number(time.slice(0, 2)) || 0)
+const toHour = (time: string | undefined) =>
+  time === undefined ? 0 : Number(time.slice(0, 2)) || 0
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
 
@@ -215,8 +216,8 @@ function HoursModal({
         }
       >
         <p className="text-sm text-secondary">
-          {stadium.name} uchun haftalik ish vaqti. Yarim tundan keyin yopilish mumkin — eng
-          kechi 06:00.
+          {stadium.name} uchun haftalik ish vaqti. Yarim tundan keyin yopilish mumkin — eng kechi
+          06:00.
         </p>
         <ul className="flex flex-col gap-2">
           {days.map((day) => (

@@ -1,28 +1,39 @@
 import { CalendarDays, MapPin } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Challenge } from '../api/games'
-import { Button, ButtonLink, Card, ErrorState, SkeletonList } from '../components'
+import { Button, ButtonLink, Card, Chip, ErrorState, SkeletonList } from '../components'
 import { bookingWhen } from '../bookings/when'
 import { formatLabel } from '../stadiums/labels'
 import { challengePrice } from './challengePrice'
+import { levelLabel, TEAM_LEVELS, type TeamLevel } from './level'
 import { useChallenges } from './queries'
 import { TeamAvatar } from './TeamAvatar'
+import { TeamLevelBadge } from './TeamLevelBadge'
 
 /**
  * "Raqib qidirayotgan jamoalar": the challenge board in the server's order.
  * Only a captain (`acceptAs` = the team they lead) gets "Qabul qilish"; a member
  * is told only the captain accepts (the join endpoint refuses members, 403).
+ *
+ * The level chips start on the viewer's own level, because that is the game
+ * they are most likely looking for — and the server does the filtering, so a
+ * page is never sliced here.
  */
 export function ChallengeBoard({
   acceptAs,
+  myLevel,
   showTitle = true,
 }: {
   acceptAs?: string
+  /** The viewer's team level: the chip it starts on. */
+  myLevel?: TeamLevel
   /** False where the screen's header already names the board (/challenges). */
   showTitle?: boolean
 }) {
   const { t } = useTranslation()
-  const board = useChallenges()
+  const [level, setLevel] = useState<TeamLevel | undefined>(myLevel)
+  const board = useChallenges(level)
   const challenges = board.data?.pages.flatMap((page) => page.content) ?? []
   return (
     <section className="flex flex-col gap-3" aria-labelledby="challenges-title">
@@ -32,6 +43,25 @@ export function ChallengeBoard({
       >
         {t('team.challenges')}
       </h3>
+      {/*
+        The chips scroll inside the section rather than bleeding to the screen
+        edges: this row is nested, and a negative margin here would put it
+        outside its own section at 360px.
+      */}
+      <div
+        role="group"
+        aria-label={t('team.levelFilter.label')}
+        className="flex gap-2 overflow-x-auto [scrollbar-width:none]"
+      >
+        <Chip selected={level === undefined} onClick={() => setLevel(undefined)}>
+          {t('team.levelFilter.all')}
+        </Chip>
+        {TEAM_LEVELS.map((value) => (
+          <Chip key={value} selected={level === value} onClick={() => setLevel(value)}>
+            {levelLabel(t, value)}
+          </Chip>
+        ))}
+      </div>
       {!acceptAs && <p className="text-sm text-secondary">{t('team.leaderAccepts')}</p>}
       {board.isPending ? (
         <SkeletonList count={2} variant="item" />
@@ -66,8 +96,9 @@ function ChallengeCard({ challenge, acceptAs }: { challenge: Challenge; acceptAs
   return (
     <Card className="flex flex-col gap-3 p-4">
       <div className="flex items-center gap-3">
-        <TeamAvatar name={name} size="sm" />
+        <TeamAvatar name={name} id={challenge.waitingTeamId} size="sm" />
         <p className="min-w-0 flex-1 truncate text-md font-semibold text-primary">{name}</p>
+        <TeamLevelBadge level={challenge.waitingTeamLevel} />
       </div>
       <p className="flex items-center gap-2 text-sm text-secondary">
         <MapPin size={16} className="shrink-0 text-link" aria-hidden />

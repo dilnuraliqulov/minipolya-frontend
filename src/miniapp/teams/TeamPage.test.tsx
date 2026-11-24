@@ -78,7 +78,7 @@ describe('Jamoam', () => {
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Chilonzor Lions' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('2 aʼzo')).toBeInTheDocument()
+    expect(screen.getByText('2 aʼzo · Sardor: Test User')).toBeInTheDocument()
     const members = await screen.findByRole('list', { name: 'Aʼzolar' })
     expect(within(members).getByText('Bobur')).toBeInTheDocument()
     expect(within(members).getAllByText('Sardor')).toHaveLength(1)
@@ -117,7 +117,7 @@ describe('Jamoam', () => {
       'POST /api/teams/t1/invite': { code: 'new456' },
     })
     renderApp('/team')
-    fireEvent.click(await screen.findByRole('button', { name: 'Taklif havolasini ulashish' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Aʼzo taklif qilish/ }))
     const sheet = await screen.findByRole('dialog', { name: 'Taklif havolasi' })
     const link = 'https://t.me/minipolya_bot/app?startapp=team_abc123'
     expect(await within(sheet).findByText(link)).toBeInTheDocument()
@@ -142,9 +142,7 @@ describe('Jamoam', () => {
     stub({ 'GET /api/teams/me': [{ id: 't2', name: 'Sergeli Atlas' }], 'GET /api/teams/t2': atlas })
     renderApp('/team')
     await screen.findByRole('heading', { level: 2, name: 'Sergeli Atlas' })
-    expect(
-      screen.queryByRole('button', { name: 'Taklif havolasini ulashish' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Aʼzo taklif qilish/ })).not.toBeInTheDocument()
   })
 
   it('removes a member after confirming', async () => {
@@ -174,6 +172,150 @@ describe('Jamoam', () => {
     expect(await screen.findByText('Sizda hali jamoa yoʻq')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Jamoa yaratish' }))
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/team/new'))
+  })
+
+  // ---- The level, the next game and the stats ----
+
+  it('shows the level next to the team and names the captain', async () => {
+    stub({ 'GET /api/teams/t1': { ...lions, level: 'orta' } })
+    renderApp('/team')
+
+    await screen.findByRole('heading', { level: 2, name: 'Chilonzor Lions' })
+    // The badge, not the board's filter chip of the same name.
+    expect(screen.getByText('Oʻrta', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('2 aʼzo · Sardor: Test User')).toBeInTheDocument()
+  })
+
+  it('asks the captain of a team with no level to set one', async () => {
+    stub()
+    renderApp('/team')
+
+    expect(await screen.findByText('Jamoangiz darajasini belgilang')).toBeInTheDocument()
+  })
+
+  it('does not ask a member to set the level', async () => {
+    stub({ 'GET /api/teams/me': [{ id: 't2', name: 'Sergeli Atlas' }] })
+    renderApp('/team')
+
+    await screen.findByRole('heading', { level: 2, name: 'Sergeli Atlas' })
+    expect(screen.queryByText('Jamoangiz darajasini belgilang')).not.toBeInTheDocument()
+  })
+
+  it('saves a new level from the banner', async () => {
+    const api = stub({ 'PATCH /api/teams/t1': { ...lions, level: 'professional' } })
+    renderApp('/team')
+
+    fireEvent.click(await screen.findByText('Jamoangiz darajasini belgilang'))
+    const sheet = await screen.findByRole('dialog', { name: 'Jamoa darajasi' })
+    fireEvent.click(within(sheet).getByRole('radio', { name: /Professional/ }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+
+    expect(await screen.findByText('Daraja saqlandi')).toBeInTheDocument()
+    expect(api.calls('PATCH /api/teams/t1')).toEqual([{ level: 'professional' }])
+  })
+
+  it('shows the next game and links to it', async () => {
+    stub({
+      'GET /api/teams/t1': {
+        ...lions,
+        upcomingGame: {
+          gameId: 'g7',
+          startsAt: '2026-11-21T15:00:00Z',
+          status: 'confirmed',
+          stadiumName: 'Bunyodkor Arena',
+          opponentName: 'Delta FC',
+        },
+      },
+    })
+    renderApp('/team')
+
+    const card = await screen.findByRole('link', { name: 'Oʻyinga oʻtish' })
+    expect(card).toHaveAttribute('href', '/games/g7')
+    expect(within(card).getByText('Raqib: Delta FC')).toBeInTheDocument()
+    expect(within(card).getByText('Bunyodkor Arena')).toBeInTheDocument()
+  })
+
+  it('says the opponent is still awaited rather than inventing one', async () => {
+    stub({
+      'GET /api/teams/t1': {
+        ...lions,
+        upcomingGame: { gameId: 'g7', startsAt: '2026-11-21T15:00:00Z', status: 'open' },
+      },
+    })
+    renderApp('/team')
+
+    expect(await screen.findByText('Raqib kutilmoqda')).toBeInTheDocument()
+  })
+
+  it('shows no next-game card when the API sends none', async () => {
+    stub()
+    renderApp('/team')
+
+    await screen.findByRole('heading', { level: 2, name: 'Chilonzor Lions' })
+    expect(screen.queryByRole('link', { name: 'Oʻyinga oʻtish' })).not.toBeInTheDocument()
+  })
+
+  it('shows only the figures the API sent', async () => {
+    stub({ 'GET /api/teams/t1': { ...lions, gamesPlayed: 4 } })
+    renderApp('/team')
+
+    expect(await screen.findByText('Oʻynalgan oʻyinlar')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+  })
+
+  it('shows no stats at all when the API counted nothing', async () => {
+    stub()
+    renderApp('/team')
+
+    await screen.findByRole('heading', { level: 2, name: 'Chilonzor Lions' })
+    expect(screen.queryByText('Oʻynalgan oʻyinlar')).not.toBeInTheDocument()
+  })
+
+  // ---- The captain's actions, and a member's ----
+
+  it('gives the captain "Raqib qidirish" and a member the reason they have none', async () => {
+    stub()
+    renderApp('/team')
+
+    expect(await screen.findByRole('link', { name: 'Raqib qidirish' })).toHaveAttribute(
+      'href',
+      '/opponent',
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Sergeli Atlas' }))
+    expect(await screen.findByText('Oʻyinlarni faqat sardor yaratadi')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Raqib qidirish' })).not.toBeInTheDocument()
+  })
+
+  it('lets a member leave the team after confirming', async () => {
+    const api = stub({
+      'GET /api/teams/me': [{ id: 't2', name: 'Sergeli Atlas' }],
+      [`DELETE /api/teams/t2/members/${ME}`]: null,
+    })
+    renderApp('/team')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Jamoadan chiqish' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Jamoadan chiqasizmi?' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Chiqish' }))
+
+    expect(await screen.findByText('Jamoadan chiqdingiz')).toBeInTheDocument()
+    expect(api.calls(`DELETE /api/teams/t2/members/${ME}`)).toHaveLength(1)
+  })
+
+  it('never offers the captain a way to walk out of their own team', async () => {
+    stub()
+    renderApp('/team')
+
+    await screen.findByRole('heading', { level: 2, name: 'Chilonzor Lions' })
+    expect(screen.queryByRole('button', { name: 'Jamoadan chiqish' })).not.toBeInTheDocument()
+  })
+
+  it('explains what teams are for when the player has none', async () => {
+    stub({ 'GET /api/teams/me': [] })
+    renderApp('/team')
+
+    expect(await screen.findByText('Sizda hali jamoa yoʻq')).toBeInTheDocument()
+    expect(screen.getByText(/maydon haqini ikki jamoa boʻlib boʻlasiz/)).toBeInTheDocument()
   })
 
   it('shows a skeleton while loading', () => {
@@ -215,10 +357,12 @@ describe('Jamoa yaratish', () => {
     fireEvent.change(name, { target: { value: 'Ya' } })
     expect(submit).toBeDisabled()
     fireEvent.change(name, { target: { value: '  Yangi Arslonlar ' } })
+    expect(submit).toBeDisabled() // the level is still unchosen
+    fireEvent.click(screen.getByRole('radio', { name: /Oʻrta/ }))
     fireEvent.click(submit)
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/team'))
     expect(router.state.location.search).toBe('?team=t7')
-    expect(api.calls('POST /api/teams')).toEqual([{ name: 'Yangi Arslonlar' }])
+    expect(api.calls('POST /api/teams')).toEqual([{ name: 'Yangi Arslonlar', level: 'orta' }])
     expect(await screen.findByText('Jamoa yaratildi')).toBeInTheDocument()
   })
 })

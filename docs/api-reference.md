@@ -7,9 +7,9 @@ when the backend changes.
 | | |
 |---|---|
 | Backend repository | `../minipolyaBackend` |
-| Branch | `fix/one-player-price` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
-| Commit | `817a2b8` (_Team games: return where the game is played (location) on the board and the detail_, 2026-11-10; was `cf654ad`) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`); updated 2026-11-06 for `08687d6..ba6db84` (`GameTeamResponse.heldAmount`; no endpoint changed); updated 2026-11-06 for `ba6db84..d0ad9d7` (add-stadium rework, backend `docs/frontend-field-changes-2026-11-06.md`: create/update rules in `StadiumRules` — name 3–150, address 5–300, district/phone/location required on create, Uzbekistan box, price 10 000–5 000 000 so'm, whole hours, no closing after midnight, description ≤ 500; `landmark` and four amenities (changeset 048); booking terms and photo URLs leave the owner's requests; new `PUT /api/admin/stadiums/{id}/booking-terms` and audit `STADIUM_BOOKING_TERMS_CHANGED`; photos ≤ 5 MB re-encoded to JPEG without EXIF and open to any signed-in user for their own stadium; approval needs ≥ 3 photos); updated 2026-11-06 for `d0ad9d7..f4527f1` (deposit/remainder, backend `docs/frontend-field-changes-2026-11-06-payments.md`: rounding step 500 000 tiyin by default (changeset 049); `TimeSlot.depositAmount` / `remainderAmount` (R27 superseded); `BookingResponse.paidInCash` (R30), `remainderMark`, owner/admin `remainderMarkedAt`, owner `remainderMarkUndoableUntil` (changeset 050); `/cash` 400s now 409 and it sets the mark; new `POST /api/owner/bookings/{id}/not-paid`, `DELETE /api/owner/bookings/{id}/remainder-mark`, `DELETE /api/admin/bookings/{id}/remainder-mark`; payment status `cancelled` for a voided cash row; audit `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE`; `GameChallengeResponse.stadiumPhotoUrl` / `stadiumDistrict`); updated 2026-11-07 for `f4527f1..cc3bcb6` (team vs team minimum / full payment, backend `docs/frontend-field-changes-2026-11-06-team-payments.md`: platform setting `defaultMinBookingAmount` (changeset 051) — every stadium has a minimum, `minBookingAmount: null` in booking terms = the platform default, `MINIMUM` bookings never refused; quotes `GET /api/stadiums/{id}/team-game-quote` and `GET /api/games/{id}/join-quote` (R33); `paymentOption` on `POST /api/games` and join; `GameChallengeResponse.fullAmount`, `amountToPayNow` = the minimum; `GameTeamResponse.paymentOption` / `paidAmount` / `remainingAmount` / `remainderMark` / `remainderMarkedAt`, owner `remainderMarkUndoableUntil`, admin `ownerPart` (changeset 052); team marks `POST /api/games/{id}/not-paid`, `DELETE /api/games/{id}/remainder-mark`, `DELETE /api/admin/games/{id}/remainder-mark`, `/cash` sets the mark and its 400 "Already paid" is now 409; new 400s for a minimum not above the team fee); updated 2026-11-09 for `cc3bcb6..b17ad47` (`GET /api/stadiums?date=` and `freeSlotsCount`; walk-ins: `price`, `paymentStatus`, `clientPhone` must be `+998XXXXXXXXX`, `paymentMethod` removed, `GET /api/owner/stadiums/{id}/bookings/suggested-price`; bot `/start` in two messages); updated 2026-11-10 for `cf654ad..817a2b8` (`location` — `StadiumLocationResponse`: id, name, address, district, landmark, latitude, longitude, coverPhotoUrl, format — on every `GameDetailResponse` and each `GameChallengeResponse`); updated 2026-11-18 for `817a2b8..2b0b58a` (opening hours past midnight, per day of the week: `hours` (`DayHours[]`) on the owner's create/update and on every stadium detail next to the legacy `openTime` / `closeTime`; new `PUT /api/admin/stadiums/{id}/hours` and audit `STADIUM_HOURS_CHANGED`; `TimeSlot.startsAt` / `afterMidnight`; `BookingResponse.workingDate` / `afterMidnight`; the three old open/close booking messages replaced by `"The stadium is not open at that hour"`; changeset 053 `stadium_hours`) |
+| Branch | `fix/home-header` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
+| Commit | `bca6de8` (_docs: the team level, the richer team detail and the chat's new fields_, 2026-11-19; was `2b0b58a`) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`); updated 2026-11-06 for `08687d6..ba6db84` (`GameTeamResponse.heldAmount`; no endpoint changed); updated 2026-11-06 for `ba6db84..d0ad9d7` (add-stadium rework, backend `docs/frontend-field-changes-2026-11-06.md`: create/update rules in `StadiumRules` — name 3–150, address 5–300, district/phone/location required on create, Uzbekistan box, price 10 000–5 000 000 so'm, whole hours, no closing after midnight, description ≤ 500; `landmark` and four amenities (changeset 048); booking terms and photo URLs leave the owner's requests; new `PUT /api/admin/stadiums/{id}/booking-terms` and audit `STADIUM_BOOKING_TERMS_CHANGED`; photos ≤ 5 MB re-encoded to JPEG without EXIF and open to any signed-in user for their own stadium; approval needs ≥ 3 photos); updated 2026-11-06 for `d0ad9d7..f4527f1` (deposit/remainder, backend `docs/frontend-field-changes-2026-11-06-payments.md`: rounding step 500 000 tiyin by default (changeset 049); `TimeSlot.depositAmount` / `remainderAmount` (R27 superseded); `BookingResponse.paidInCash` (R30), `remainderMark`, owner/admin `remainderMarkedAt`, owner `remainderMarkUndoableUntil` (changeset 050); `/cash` 400s now 409 and it sets the mark; new `POST /api/owner/bookings/{id}/not-paid`, `DELETE /api/owner/bookings/{id}/remainder-mark`, `DELETE /api/admin/bookings/{id}/remainder-mark`; payment status `cancelled` for a voided cash row; audit `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE`; `GameChallengeResponse.stadiumPhotoUrl` / `stadiumDistrict`); updated 2026-11-07 for `f4527f1..cc3bcb6` (team vs team minimum / full payment, backend `docs/frontend-field-changes-2026-11-06-team-payments.md`: platform setting `defaultMinBookingAmount` (changeset 051) — every stadium has a minimum, `minBookingAmount: null` in booking terms = the platform default, `MINIMUM` bookings never refused; quotes `GET /api/stadiums/{id}/team-game-quote` and `GET /api/games/{id}/join-quote` (R33); `paymentOption` on `POST /api/games` and join; `GameChallengeResponse.fullAmount`, `amountToPayNow` = the minimum; `GameTeamResponse.paymentOption` / `paidAmount` / `remainingAmount` / `remainderMark` / `remainderMarkedAt`, owner `remainderMarkUndoableUntil`, admin `ownerPart` (changeset 052); team marks `POST /api/games/{id}/not-paid`, `DELETE /api/games/{id}/remainder-mark`, `DELETE /api/admin/games/{id}/remainder-mark`, `/cash` sets the mark and its 400 "Already paid" is now 409; new 400s for a minimum not above the team fee); updated 2026-11-09 for `cc3bcb6..b17ad47` (`GET /api/stadiums?date=` and `freeSlotsCount`; walk-ins: `price`, `paymentStatus`, `clientPhone` must be `+998XXXXXXXXX`, `paymentMethod` removed, `GET /api/owner/stadiums/{id}/bookings/suggested-price`; bot `/start` in two messages); updated 2026-11-10 for `cf654ad..817a2b8` (`location` — `StadiumLocationResponse`: id, name, address, district, landmark, latitude, longitude, coverPhotoUrl, format — on every `GameDetailResponse` and each `GameChallengeResponse`); updated 2026-11-18 for `817a2b8..2b0b58a` (opening hours past midnight, per day of the week: `hours` (`DayHours[]`) on the owner's create/update and on every stadium detail next to the legacy `openTime` / `closeTime`; new `PUT /api/admin/stadiums/{id}/hours` and audit `STADIUM_HOURS_CHANGED`; `TimeSlot.startsAt` / `afterMidnight`; `BookingResponse.workingDate` / `afterMidnight`; the three old open/close booking messages replaced by `"The stadium is not open at that hour"`; changeset 053 `stadium_hours`); updated 2026-11-19 for `2b0b58a..bca6de8` (team level, team page and chat, backend `docs/frontend-field-changes-2026-11-19.md`: `teams.level` `havaskor` / `orta` / `professional` (changeset 054) — required on `POST /api/teams`, changed only by the leader with the new `PATCH /api/teams/{id}`, audited as `TEAM_LEVEL_CHANGED`, nullable so older teams have none; `level` on `TeamResponse` and `TeamDetailResponse`, `teamLevel` on `GameTeamResponse` and each chat message, `waitingTeamLevel` on `GameChallengeResponse`; `GET /api/games/challenges?level=`; `TeamDetailResponse.gamesPlayed` and `upcomingGame`; `DELETE /api/teams/{id}/members/{userId}` also accepts the member themselves; chat system lines `kind` / `event` / `eventTeamName` and the sender's `side` / `teamId` / `teamName` / `teamLevel` (changeset 055), `GET /api/games/{id}/messages?before=`, `GameDetailResponse.chatMessageMaxLength`) |
 | Endpoints documented | **130** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
 
 ---
@@ -1298,8 +1298,9 @@ Newest first (`createdAt` desc). **Response** — paged `PaymentResponse`.
 
 | DTO | Fields |
 |---|---|
-| `TeamResponse` | `id` UUID, `name` string, `leaderName` string?, `memberCount` number? |
-| `TeamDetailResponse` | `id` UUID, `name` string, `leaderId` UUID, `leaderName` string?, `members` `TeamMemberResponse[]` |
+| `TeamResponse` | `id` UUID, `name` string, `leaderName` string?, `memberCount` number?, `level` string? (`havaskor` | `orta` | `professional`) |
+| `TeamDetailResponse` | `id` UUID, `name` string, `leaderId` UUID, `leaderName` string?, `members` `TeamMemberResponse[]`, `level` string?, `gamesPlayed` number?, `upcomingGame` `TeamUpcomingGameResponse`? |
+| `TeamUpcomingGameResponse` | `gameId` UUID, `startsAt` UTC, `status` string (`open` | `confirmed`), `stadiumName` string?, `opponentName` string? — **absent while an opponent is still awaited** |
 | `TeamMemberResponse` | `userId` UUID, `userName` string?, `role` string (`leader` \| `member`) |
 | `TeamInviteResponse` | `code` string — the invite code (R32) |
 | `TeamInvitePreviewResponse` | `team` `TeamResponse`, `isMember` boolean |
@@ -1307,13 +1308,34 @@ Newest first (`createdAt` desc). **Response** — paged `PaymentResponse`.
 The invite code (changeset 043, `teams.invite_code`, unique, null until the
 leader first asks for it) is 128 random bits, base64url without padding — **22
 characters**, safe in a link. It never appears in a team response; only the
-leader gets it from the invite endpoints. Team changes are not audited.
+leader gets it from the invite endpoints.
+
+**The level (changeset 054).** `teams.level` is `havaskor` (friends), `orta`
+(regular) or `professional` (tournament) — how seriously a team plays, shown
+wherever the team appears. It is **required on create** and changed afterwards
+only by the leader (`PATCH /api/teams/{id}`), which writes the one audited team
+action, `TEAM_LEVEL_CHANGED`. The column is **nullable**: a team created before
+the changeset has no level, the field is simply absent, and that means "not
+set" — not an error and not a default. The level never decides who may play
+whom. Nothing else about a team is audited or editable.
 
 ### `POST /api/teams` — user
 
-**Body** — `{ "name": string }` — `@NotBlank @Size(max=100)` (`"name must be at most 100 characters"`). The creator becomes the leader.
+**Body** — `{ "name": string, "level": string }` — `name` `@NotBlank @Size(max=100)` (`"name must be at most 100 characters"`); `level` `@NotBlank`, one of `havaskor` / `orta` / `professional`. The creator becomes the leader.
 
 **Response** — `TeamDetailResponse`, `message: "Team created"`.
+
+**Errors** — 400 `"level is required"`, `"Unknown team level: <value>"`.
+
+### `PATCH /api/teams/{id}` — user (leader only)
+
+The team's level. Nothing else about a team is editable.
+
+**Body** — `{ "level": string }` (`@NotBlank`, one of the three).
+
+**Response** — `TeamDetailResponse`, `message: "Team updated"`.
+
+**Errors** — 400 `"level is required"`, `"Unknown team level: <value>"`; 403 `"Only the team leader can perform this action"`; 404 `"Team not found"`.
 
 ### `GET /api/teams/me` — user
 
@@ -1321,8 +1343,10 @@ leader gets it from the invite endpoints. Team changes are not audited.
 
 ### `GET /api/teams/{id}` — user
 
-**Response** — `TeamDetailResponse`. Any logged-in user may read any team (no
-membership check).
+**Response** — `TeamDetailResponse`, including `level`, `gamesPlayed` (confirmed
+team games of this team whose hour has started) and `upcomingGame` (the soonest
+waiting or confirmed team game ahead of it, absent when there is none). Any
+logged-in user may read any team (no membership check).
 
 **Errors** — 404 `"Team not found"`.
 
@@ -1370,11 +1394,14 @@ add-member gives.
 
 **Errors** — 400 `"code: must not be blank"`; 404 `"Invite not found"`; **409** `"User is already a member of this team"` (add-member keeps its 400 for the same case; only the join answers 409).
 
-### `DELETE /api/teams/{id}/members/{userId}` — user (leader only)
+### `DELETE /api/teams/{id}/members/{userId}` — user (the leader, **or the member themselves**)
+
+The leader removing a member, or a member leaving of their own accord — the same
+row disappears either way, so it is the same call.
 
 **Response** — `data: null`, `message: "Member removed"`.
 
-**Errors** — 400 `"The leader cannot be removed; delete the team instead"`; 403 `"Only the team leader can perform this action"`; 404.
+**Errors** — 400 `"The leader cannot be removed; delete the team instead"` (whoever asks); 403 `"Only the team leader can perform this action"` (anyone removing somebody other than themselves); 404 `"User is not a member of this team"`.
 
 ### `DELETE /api/teams/{id}` — user (leader only)
 
@@ -1413,6 +1440,9 @@ player pays for their share (§1.10). No `serviceFeePerPerson` and no
 §10.9) — plus `joinPending` boolean? — **`team_vs_team` only**, since `b896a07`
 (R45): `true` while a team is half-way through joining (its status `joining`,
 e.g. after 202 `PAYMENT_PENDING`), until the backend confirms or undoes the join —
+plus `chatMessageMaxLength` number? — **`team_vs_team` only**, changeset 055: the
+longest chat message the server takes (currently 1000). Use it for the
+composer's limit and its counter rather than a number copied into the client —
 plus:
 
 `teams` — **`team_vs_team` only**, `GameTeamResponse[]`:
@@ -1422,6 +1452,7 @@ plus:
 | `side` | `"a"` \| `"b"` | |
 | `teamId`, `leaderId` | UUID | |
 | `teamName`, `leaderName` | string? | |
+| `teamLevel` | string? | changeset 054: `havaskor` / `orta` / `professional`; absent when the team has none |
 | `price` | number **(tiyin)** | what this team pays in the app on joining (§1.10) |
 | `remainderAmount` | number **(tiyin)** | what this team owes after joining (or owed, once `remainderStatus` is `paid`) — the **same amount** in the app or in cash |
 | `remainderStatus` | `"unpaid"` \| `"paid"` | |
@@ -1527,7 +1558,13 @@ Soonest first.
 | `date` | `LocalDate` | no |
 | `format` | string | no |
 | `stadiumId` | UUID | no |
+| `level` | string | no |
 | `page`, `size` | number | no |
+
+`level` (changeset 054) narrows the board to the games whose **waiting team** is
+of that level — `havaskor` / `orta` / `professional`, filtered in the query on
+the server. Leaving it out lists every level, teams without one included.
+Anything else is **400** `"Unknown team level: <value>"`.
 
 **Response** — paged `GameChallengeResponse` (`NON_NULL`)
 
@@ -1536,6 +1573,7 @@ Soonest first.
 | `gameId` | UUID | |
 | `title` | string? | |
 | `waitingTeamId` | UUID, `waitingTeamName` string? | |
+| `waitingTeamLevel` | string? | changeset 054: the waiting team's level; absent when it has none |
 | `stadiumId` UUID, `stadiumName`, `stadiumAddress`, `format` | string | |
 | `stadiumPhotoUrl` | string? | since `cd71d5b` (E9): the stadium's cover photo (`/api/uploads/...`); absent when none |
 | `stadiumDistrict` | string? | since `cd71d5b` (E9): one of the 12 districts; absent for older stadiums |
@@ -1695,10 +1733,26 @@ entry; do not compute the bands in the client.
 ### `POST /api/games/{gameId}/messages` — user
 
 **Body** — `{ "message": string }` — `@NotBlank @Size(max=1000)`
-(`"message must be at most 1000 characters"`).
+(`"message must be at most 1000 characters"`). The limit itself arrives as
+`chatMessageMaxLength` on the game detail — read it from there rather than
+copying the number.
 
-**Response** — `GameMessageResponse`: `id`, `gameId`, `userId` UUID,
-`userName` string?, `message` string, `createdAt` (UTC). `message: "Message sent"`.
+**Response** — `GameMessageResponse` (`NON_NULL`)
+
+| Field | Type | Notes |
+|---|---|---|
+| `id`, `gameId` | UUID | |
+| `userId` | UUID? | **absent on a system line**, which nobody sent |
+| `userName` | string? | |
+| `message` | string | plain text; render it as text, never as markup |
+| `createdAt` | timestamp (UTC) | |
+| `kind` | string? | changeset 055: `user` or `system`; every message sent before it is a user's |
+| `event` | string? | system lines only: `game_confirmed` or `team_joined` |
+| `eventTeamName` | string? | the team a system line is about |
+| `side` | string? | `a` / `b` — the sender's side; absent for a system line or a sender in neither team |
+| `teamId`, `teamName`, `teamLevel` | UUID?, string?, string? | the sender's team in this game |
+
+`message: "Message sent"`.
 
 **Errors** — 400 `"Chat is only available for team games"`, `"Chat is closed for this game"`; 403 `"You are no longer a participant of this game"`; 404 `"Game not found"`.
 
@@ -1706,11 +1760,26 @@ entry; do not compute the bands in the client.
 
 Newest first (`createdAt` desc).
 
+| Query | Type | Required |
+|---|---|---|
+| `before` | timestamp (ISO, UTC) | no |
+| `page`, `size` | number | no |
+
+`before` (changeset 055) asks for the page of messages **strictly older** than
+that instant — what "load the earlier messages" means. Pass the oldest loaded
+message's `createdAt` as the next `before`; a deeper page number would shift
+under the reader when a message arrives meanwhile. Without it the endpoint
+behaves exactly as before.
+
 **Response** — paged `GameMessageResponse`.
 
 **Notes** — chat is open exactly while the game is `confirmed`. A leader who
-joined partway through sees only messages sent after they joined; a team that
-left loses the chat entirely.
+joined partway through sees only messages sent after they joined (and the cutoff
+still applies on top of `before`); a team that left loses the chat entirely.
+System lines (`kind: "system"`) are written when a game is confirmed:
+`game_confirmed`, then `team_joined` naming the team that took the free side.
+They have no sender — word them in the reader's language from `event` and
+`eventTeamName`; the stored `message` is the event code and is not for showing.
 
 ---
 

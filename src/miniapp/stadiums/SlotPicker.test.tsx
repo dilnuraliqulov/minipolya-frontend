@@ -69,9 +69,7 @@ describe('Choosing a slot', () => {
     expect(days[1]).toHaveAccessibleName(/Ertaga/)
     expect(days[2]).toHaveAccessibleName(/Sesh/)
     // (the page also probes yesterday, to learn whether its working day is still running)
-    await vi.waitFor(() =>
-      expect(api.queries(AVAILABILITY)).toContainEqual({ date: '2026-11-01' }),
-    )
+    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toContainEqual({ date: '2026-11-01' }))
     expect(screen.getByRole('heading', { name: 'Yakshanba, 1-noyabr' })).toBeInTheDocument()
   })
 

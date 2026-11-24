@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Header, Screen, SkeletonList } from '../components'
 import { useGoBack } from '../lib/useGoBack'
 import { ChallengeBoard } from './ChallengeBoard'
-import { useLedTeams } from './queries'
+import { useLedTeams, useMyLevel } from './queries'
 
 /**
  * The full challenge board outside Jamoam (design E11, the home carousel's
@@ -12,12 +12,14 @@ export function ChallengesPage() {
   const { t } = useTranslation()
   const goBack = useGoBack('/')
   const led = useLedTeams()
+  // The board starts on the viewer's own level, so both have to be known first.
+  const mine = useMyLevel()
   return (
     <Screen header={<Header title={t('home.challengesTitle')} onBack={goBack} />}>
-      {led.isPending ? (
+      {led.isPending || mine.isPending ? (
         <SkeletonList count={3} variant="item" />
       ) : (
-        <ChallengeBoard acceptAs={led.teams[0]?.id} showTitle={false} />
+        <ChallengeBoard acceptAs={led.teams[0]?.id} myLevel={mine.level} showTitle={false} />
       )}
     </Screen>
   )

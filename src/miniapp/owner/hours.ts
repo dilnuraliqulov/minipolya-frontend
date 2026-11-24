@@ -173,7 +173,9 @@ export function hoursSummary(days: DayHours[]): string {
   if (days.length !== DAYS_IN_WEEK) return ''
   if (isSameEveryDay(days)) {
     const first = days[0]
-    return first === undefined ? '' : i18n.t('owner.hours.everyDay', { hours: dayHoursLabel(first) })
+    return first === undefined
+      ? ''
+      : i18n.t('owner.hours.everyDay', { hours: dayHoursLabel(first) })
   }
 
   // Consecutive days sharing a shape become one group: Monday first, no wrapping, so the
@@ -238,7 +240,8 @@ export function toApi(days: DayHours[]): { days: ApiDayHours[] } {
 }
 
 /** `"08:00:00"` → `8`; a time off the hour (an older stadium) rounds down. */
-const toHour = (time: string | undefined) => (time === undefined ? 0 : Number(time.slice(0, 2)) || 0)
+const toHour = (time: string | undefined) =>
+  time === undefined ? 0 : Number(time.slice(0, 2)) || 0
 
 /**
  * The API's rows, Monday first. Falls back to one pair of hours as "the same every day"

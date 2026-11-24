@@ -368,4 +368,76 @@ describe('Raqibni qabul qilish — Joylashuv', () => {
       within(section).getByRole('button', { name: 'Google Mapsʼda ochish' }),
     ).toBeInTheDocument()
   })
+  // ---- Two teams at different levels ----
+
+  const crossLevel = (overrides = {}) =>
+    stub({
+      [JOIN]: { id: 'p1' },
+      'GET /api/games/g1': jsonResponse(404, null, 'x'),
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'professional' }]),
+      'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions', level: 'havaskor' }],
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: '018f3a2c-0000-7000-8000-000000000001',
+        level: 'havaskor',
+        members: [],
+      },
+      ...overrides,
+    } as Parameters<typeof stubApi>[0])
+
+  it('asks once before taking on a team of another level, and joins when told to', async () => {
+    const api = crossLevel()
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+    const sheet = await screen.findByRole('dialog', {
+      name: 'Bu jamoa Professional darajada. Davom etasizmi?',
+    })
+    expect(api.calls(JOIN)).toHaveLength(0)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Davom etish' }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+  })
+
+  it('a refused confirmation joins nothing', async () => {
+    const api = crossLevel()
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+    const sheet = await screen.findByRole('dialog', { name: /Davom etasizmi/ })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Bekor qilish' }))
+
+    expect(api.calls(JOIN)).toHaveLength(0)
+  })
+
+  it('never asks when the two teams play at the same level', async () => {
+    const api = crossLevel({
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'havaskor' }]),
+    })
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+  })
+
+  it('never asks when either team has no level set', async () => {
+    const api = crossLevel({
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'professional' }]),
+      'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions' }],
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: '018f3a2c-0000-7000-8000-000000000001',
+        members: [],
+      },
+    })
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+  })
 })

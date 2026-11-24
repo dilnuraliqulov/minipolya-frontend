@@ -1,12 +1,14 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * The admin panel's viewport-overflow check.
+ * The viewport-overflow check: every admin route, and the Mini App's home page
+ * (`miniapp-home.spec.ts`, phone viewports only, windowed and in Telegram's
+ * fullscreen layout).
  *
  * It stubs every `/api` call with fixtures (see `e2e/fixtures/`), so it needs
  * no backend and no database admin — only the Vite dev server, which it starts
  * itself. Deliberately NOT part of the pre-commit gate: run `npm run e2e`
- * after any change to the admin layout.
+ * after any change to the admin layout or the Mini App home header.
  */
 
 export interface ViewportMeta {
@@ -25,6 +27,9 @@ const THEMES = ['light', 'dark'] as const
 
 export default defineConfig({
   testDir: 'e2e',
+  // A cold Vite server would otherwise transform both entries' module graphs
+  // under every worker at once, and a layout check would time out waiting.
+  globalSetup: './e2e/warm.ts',
   // A layout assertion must never depend on another test's leftovers.
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),

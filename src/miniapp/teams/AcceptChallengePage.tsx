@@ -30,6 +30,7 @@ import { UnclearOutcome } from '../games/UnclearOutcome'
 import { useCardChoice } from '../cards/useCardChoice'
 import {
   BottomBar,
+  BottomSheet,
   Button,
   Card,
   ErrorState,
@@ -43,10 +44,12 @@ import {
 import { formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { formatLabel } from '../stadiums/labels'
+import { levelLabel, type TeamLevel } from './level'
 import { markJoinPending, usePendingJoins } from './pendingJoins'
 import { useChallenges, useLedTeams } from './queries'
 import { LocationCard } from '../map/LocationCard'
 import { TeamAvatar } from './TeamAvatar'
+import { TeamLevelBadge } from './TeamLevelBadge'
 import { chosenAmount, chosenOption, quoteChoice } from './teamQuote'
 import { TeamPaymentChoice } from './TeamPaymentChoice'
 
@@ -111,7 +114,14 @@ export function AcceptChallengePage() {
       </Screen>
     )
   }
-  return <AcceptForm challenge={challenge} teamId={team.id} teamName={team.name} />
+  return (
+    <AcceptForm
+      challenge={challenge}
+      teamId={team.id}
+      teamName={team.name}
+      teamLevel={team.level}
+    />
+  )
 }
 
 /** 202 PAYMENT_PENDING: paid; the backend settles the rest and notifies. */
@@ -167,10 +177,13 @@ function AcceptForm({
   challenge,
   teamId,
   teamName,
+  teamLevel,
 }: {
   challenge: Challenge
   teamId: string
   teamName: string
+  /** The accepting team's level, for the cross-level confirmation. */
+  teamLevel?: TeamLevel
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -184,6 +197,16 @@ function AcceptForm({
     refetchOnWindowFocus: false,
   })
   const [picked, setPicked] = useState<PaymentOption | null>(null)
+  const [confirming, setConfirming] = useState(false)
+  /**
+   * The two teams play at different levels. It is worth saying once — never a
+   * block: the game goes ahead if the captain still wants it. Nothing is asked
+   * when the levels match, or when either team has not set one.
+   */
+  const mismatch =
+    teamLevel !== undefined &&
+    challenge.waitingTeamLevel !== undefined &&
+    teamLevel !== challenge.waitingTeamLevel
   const accept = useMutation({
     mutationFn: (vars: { cardId: string; paymentOption: PaymentOption }) =>
       acceptChallenge(challenge.gameId, teamId, vars.cardId, vars.paymentOption),
@@ -289,15 +312,17 @@ function AcceptForm({
   const option = chosenOption(options, picked)
 
   const waiting = challenge.waitingTeamName ?? t('team.anonymous')
+  const submit = () => {
+    if (!choice.card) return
+    accept.mutate({ cardId: choice.card.id, paymentOption: option })
+  }
   const footer = (
     <BottomBar>
       <Button
         haptic
         disabled={!choice.card}
         loading={accept.isPending}
-        onClick={() =>
-          choice.card && accept.mutate({ cardId: choice.card.id, paymentOption: option })
-        }
+        onClick={() => (mismatch ? setConfirming(true) : submit())}
       >
         {t('accept.submit', { amount: formatMoney(chosenAmount(options, option)) })}
       </Button>
@@ -307,15 +332,51 @@ function AcceptForm({
     <Screen header={header} footer={footer}>
       <div className="flex items-center justify-center gap-4 py-2">
         <div className="flex w-28 flex-col items-center gap-2 text-center">
-          <TeamAvatar name={teamName} />
+          <TeamAvatar name={teamName} id={teamId} />
           <span className="text-sm font-semibold text-primary">{teamName}</span>
+          <TeamLevelBadge level={teamLevel} />
         </div>
         <span className="text-md font-semibold text-secondary">{t('game.vs')}</span>
         <div className="flex w-28 flex-col items-center gap-2 text-center">
-          <TeamAvatar name={waiting} />
+          <TeamAvatar name={waiting} id={challenge.waitingTeamId} />
           <span className="text-sm font-semibold text-primary">{waiting}</span>
+          <TeamLevelBadge level={challenge.waitingTeamLevel} />
         </div>
       </div>
+
+      {mismatch && challenge.waitingTeamLevel && (
+        <BottomSheet
+          open={confirming}
+          title={t('team.levelConfirm.title', {
+            level: levelLabel(t, challenge.waitingTeamLevel),
+          })}
+          subtitle={t('team.levelConfirm.text')}
+          onClose={() => {
+            if (!accept.isPending) setConfirming(false)
+          }}
+          actions={
+            <>
+              <Button
+                haptic
+                loading={accept.isPending}
+                onClick={() => {
+                  setConfirming(false)
+                  submit()
+                }}
+              >
+                {t('team.levelConfirm.continue')}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={accept.isPending}
+                onClick={() => setConfirming(false)}
+              >
+                {t('team.cancel')}
+              </Button>
+            </>
+          }
+        />
+      )}
 
       <Card className="flex flex-col gap-3 p-4">
         <p className="flex items-center gap-3 text-base text-primary">
