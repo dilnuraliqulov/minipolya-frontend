@@ -43,10 +43,15 @@ export function ChallengeBoard({
       >
         {t('team.challenges')}
       </h3>
+      {/*
+        The chips scroll inside the section rather than bleeding to the screen
+        edges: this row is nested, and a negative margin here would put it
+        outside its own section at 360px.
+      */}
       <div
         role="group"
         aria-label={t('team.levelFilter.label')}
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]"
+        className="flex gap-2 overflow-x-auto [scrollbar-width:none]"
       >
         <Chip selected={level === undefined} onClick={() => setLevel(undefined)}>
           {t('team.levelFilter.all')}

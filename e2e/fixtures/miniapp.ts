@@ -60,6 +60,183 @@ const stadiums = [
   },
 ]
 
+/** The team the signed-in player captains, with a level and a game ahead of it. */
+export const MY_TEAM = {
+  id: '018f3a2c-0000-7000-8000-0000000000b1',
+  name: 'Chilonzor Lions',
+  leaderId: USER_ID,
+  leaderName: `${LONG_FIRST_NAME} Abdurahmonov`,
+  level: 'orta',
+  gamesPlayed: 7,
+  members: [
+    { userId: USER_ID, userName: `${LONG_FIRST_NAME} Abdurahmonov`, role: 'leader' },
+    { userId: '018f3a2c-0000-7000-8000-0000000000c2', userName: 'Bobur Rahimov', role: 'member' },
+    {
+      userId: '018f3a2c-0000-7000-8000-0000000000c3',
+      userName: 'Sardor Toshmatov',
+      role: 'member',
+    },
+  ],
+  upcomingGame: {
+    gameId: '018f3a2c-0000-7000-8000-0000000000e1',
+    startsAt: '2099-11-21T15:00:00Z',
+    status: 'confirmed',
+    stadiumName: LONG_STADIUM_NAME,
+    opponentName: 'Yunusobod United',
+  },
+}
+
+/** A second team, so the switcher is in; this one has no level set. */
+export const OTHER_TEAM = {
+  id: '018f3a2c-0000-7000-8000-0000000000b2',
+  name: 'Sergeli Atlas',
+  leaderId: '018f3a2c-0000-7000-8000-0000000000c2',
+  leaderName: 'Bobur Rahimov',
+  gamesPlayed: 0,
+  members: [
+    { userId: '018f3a2c-0000-7000-8000-0000000000c2', userName: 'Bobur Rahimov', role: 'leader' },
+    { userId: USER_ID, userName: `${LONG_FIRST_NAME} Abdurahmonov`, role: 'member' },
+  ],
+}
+
+const teams = [
+  {
+    id: MY_TEAM.id,
+    name: MY_TEAM.name,
+    leaderName: MY_TEAM.leaderName,
+    memberCount: 3,
+    level: 'orta',
+  },
+  { id: OTHER_TEAM.id, name: OTHER_TEAM.name, leaderName: OTHER_TEAM.leaderName, memberCount: 2 },
+]
+
+export const GAME_ID = MY_TEAM.upcomingGame.gameId
+
+const game = {
+  id: GAME_ID,
+  type: 'team_vs_team',
+  status: 'confirmed',
+  stadiumId: stadiums[0]!.id,
+  creatorId: USER_ID,
+  startsAt: '2099-11-21T15:00:00Z',
+  endsAt: '2099-11-21T16:00:00Z',
+  isPublic: false,
+  createdAt: '2026-11-01T10:00:00Z',
+  chatMessageMaxLength: 1000,
+  teams: [
+    {
+      side: 'a',
+      teamId: MY_TEAM.id,
+      teamName: MY_TEAM.name,
+      teamLevel: 'orta',
+      leaderId: USER_ID,
+      leaderName: MY_TEAM.leaderName,
+      price: 5_500_000,
+      remainderAmount: 7_500_000,
+      remainderStatus: 'unpaid',
+      paidInApp: 5_500_000,
+      heldAmount: 0,
+    },
+    {
+      side: 'b',
+      teamId: '018f3a2c-0000-7000-8000-0000000000b9',
+      teamName: 'Yunusobod United',
+      teamLevel: 'professional',
+      leaderId: '018f3a2c-0000-7000-8000-0000000000c9',
+      leaderName: 'Rustam Qodirov',
+      price: 5_500_000,
+      remainderAmount: 7_500_000,
+      remainderStatus: 'unpaid',
+      paidInApp: 5_500_000,
+      heldAmount: 0,
+    },
+  ],
+}
+
+/** Newest first, as the API answers: a system pair, then a run from each side. */
+const messages = [
+  {
+    id: 'm4',
+    gameId: GAME_ID,
+    userId: USER_ID,
+    userName: `${LONG_FIRST_NAME} Abdurahmonov`,
+    message: 'Formamiz oq, sizniki?',
+    createdAt: '2026-11-19T14:12:00Z',
+    kind: 'user',
+    side: 'a',
+    teamId: MY_TEAM.id,
+    teamName: MY_TEAM.name,
+    teamLevel: 'orta',
+  },
+  {
+    id: 'm3',
+    gameId: GAME_ID,
+    userId: '018f3a2c-0000-7000-8000-0000000000c9',
+    userName: 'Rustam Qodirov',
+    message: 'Salom! Soat 20:00 da maydonda boʻlamiz, kechikmaymiz.',
+    createdAt: '2026-11-19T14:10:00Z',
+    kind: 'user',
+    side: 'b',
+    teamId: '018f3a2c-0000-7000-8000-0000000000b9',
+    teamName: 'Yunusobod United',
+    teamLevel: 'professional',
+  },
+  {
+    id: 's2',
+    gameId: GAME_ID,
+    message: 'team_joined',
+    createdAt: '2026-11-18T09:00:10Z',
+    kind: 'system',
+    event: 'team_joined',
+    eventTeamName: 'Yunusobod United',
+  },
+  {
+    id: 's1',
+    gameId: GAME_ID,
+    message: 'game_confirmed',
+    createdAt: '2026-11-18T09:00:00Z',
+    kind: 'system',
+    event: 'game_confirmed',
+  },
+]
+
+const joinQuote = {
+  options: [
+    { option: 'minimum', amount: 5_500_000, remainderAmount: 7_500_000 },
+    { option: 'full', amount: 13_000_000, remainderAmount: 0 },
+  ],
+  cancellationDeadline: '2099-11-20T15:00:00Z',
+}
+
+const cards = [
+  {
+    id: '018f3a2c-0000-7000-8000-0000000000f1',
+    maskedNumber: '8600 •••• •••• 1234',
+    expiry: '12/29',
+    isDefault: true,
+  },
+]
+
+/** A waiting team of another level, so the board's badge and chips have something to show. */
+export const CHALLENGE = {
+  gameId: '018f3a2c-0000-7000-8000-0000000000e2',
+  waitingTeamId: '018f3a2c-0000-7000-8000-0000000000b9',
+  waitingTeamName: 'Yunusobod United',
+  waitingTeamLevel: 'professional',
+  stadiumId: stadiums[0]!.id,
+  stadiumName: LONG_STADIUM_NAME,
+  stadiumAddress: LONG_ADDRESS,
+  stadiumDistrict: 'Mirzo Ulugʻbek',
+  format: '7x7',
+  startsAt: '2099-11-21T15:00:00Z',
+  endsAt: '2099-11-21T16:00:00Z',
+  durationHours: 1,
+  totalPrice: 31_000_000,
+  amountToPayNow: 5_500_000,
+  remainderAmount: 7_500_000,
+  fullAmount: 13_000_000,
+}
+
 function ok(route: Route, data: unknown) {
   return route.fulfill({
     status: 200,
@@ -87,6 +264,10 @@ export interface MiniappOptions {
   theme: 'light' | 'dark'
   /** Telegram's fullscreen layout: our header moves into the Close / ⋯ row. */
   fullscreen?: boolean
+  /** The language the profile reports — every screen is checked in uz and ru. */
+  language?: 'uz' | 'ru' | 'en'
+  /** What the challenge board answers; empty unless a test needs a card on it. */
+  challenges?: unknown[]
 }
 
 /**
@@ -94,7 +275,7 @@ export interface MiniappOptions {
  * with initData), the chosen theme, and every `/api` call the home page makes.
  */
 export async function installMiniapp(page: Page, options: MiniappOptions): Promise<void> {
-  const { theme, fullscreen = false } = options
+  const { theme, fullscreen = false, language = 'uz', challenges = [] } = options
 
   await page.addInitScript(
     ([theme, fullscreen]) => {
@@ -168,11 +349,19 @@ export async function installMiniapp(page: Page, options: MiniappOptions): Promi
       const path = new URL(route.request().url()).pathname
       const method = route.request().method()
 
-      if (path === '/api/auth/telegram') return ok(route, { token: token(), user })
-      if (path === '/api/users/me') return ok(route, user)
+      const me = { ...user, language }
+      if (path === '/api/auth/telegram') return ok(route, { token: token(), user: me })
+      if (path === '/api/users/me') return ok(route, me)
+      if (path === '/api/teams/me') return ok(route, teams)
+      if (path === '/api/teams/' + MY_TEAM.id) return ok(route, MY_TEAM)
+      if (path === '/api/teams/' + OTHER_TEAM.id) return ok(route, OTHER_TEAM)
+      if (path === '/api/games/' + GAME_ID) return ok(route, game)
+      if (path === '/api/games/' + GAME_ID + '/messages') return ok(route, pageOf(messages))
+      if (path === '/api/games/' + GAME_ID + '/join-quote') return ok(route, joinQuote)
+      if (path === '/api/cards') return ok(route, cards)
       if (path === '/api/notifications/unread-count') return ok(route, { count: UNREAD })
       if (path === '/api/notifications') return ok(route, pageOf([]))
-      if (path === '/api/games/challenges') return ok(route, pageOf([]))
+      if (path === '/api/games/challenges') return ok(route, pageOf(challenges))
       if (path === '/api/stadiums') return ok(route, pageOf(stadiums))
       if (path === '/api/favorites') return ok(route, pageOf([]))
 
