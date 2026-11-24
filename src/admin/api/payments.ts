@@ -98,12 +98,17 @@ export interface PaymentSummary {
  * stand-in reaches nothing, so `ok` there means "no real provider is wired in", not that
  * anything answered. `errorCode` is the provider's own code and is absent when ok.
  *
+ * `environment` is which side of ATMOS the backend's credentials are for. The sandbox
+ * answers on the **same host** as production, so it is the only thing that tells them
+ * apart — never the host.
+ *
  * A provider that is down is a normal 200 with `status: 'failed'`, not a failed request.
  */
 export interface ProviderCheck {
   status: 'ok' | 'failed'
   provider: 'atmos' | 'fake'
   host?: string
+  environment?: 'sandbox' | 'production'
   errorCode?: string
 }
 

@@ -2282,6 +2282,7 @@ whether it answered just now:
 | `status` | string | `ok` \| `failed` |
 | `provider` | string | `atmos` (the real client) \| `fake` (the stand-in) |
 | `host` | string | the host of the provider's base URL, e.g. `apigw.atmos.uz`. **Absent under `fake`** — nothing is reached |
+| `environment` | string | `sandbox` \| `production`, from the backend's `ATMOS_ENVIRONMENT`. **Absent under `fake`.** The ATMOS sandbox answers on the **same host** as production, so this is the only thing that tells them apart — never the host |
 | `errorCode` | string | the provider's own code. **Absent when `ok`**: `HTTP_401`, another `HTTP_<status>`, `TOKEN`, `TIMEOUT`, `UNREACHABLE` |
 
 - Under `atmos` it asks for a **fresh access token** — a real round trip, so it is not for

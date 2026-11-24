@@ -71,7 +71,7 @@ describe('Sozlamalar', () => {
       ...base,
       '/api/admin/payments/provider-check': [
         200,
-        { status: 'ok', provider: 'atmos', host: 'apigw-test.atmos.uz' },
+        { status: 'ok', provider: 'atmos', host: 'apigw.atmos.uz', environment: 'sandbox' },
       ],
     })
     signIn()
@@ -79,21 +79,22 @@ describe('Sozlamalar', () => {
     await waitFor(() =>
       expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: ATMOS \(sandbox\) · ulangan$/),
     )
-    expect(providerLine()).toHaveAttribute('title', 'apigw-test.atmos.uz')
+    expect(providerLine()).toHaveAttribute('title', 'apigw.atmos.uz')
   })
 
-  it('calls the production host ATMOS, without the sandbox note', async () => {
+  /** The same host as the sandbox above: only `environment` tells the two apart. */
+  it('says production when the backend is on production', async () => {
     mockBackend({
       ...base,
       '/api/admin/payments/provider-check': [
         200,
-        { status: 'ok', provider: 'atmos', host: 'apigw.atmos.uz' },
+        { status: 'ok', provider: 'atmos', host: 'apigw.atmos.uz', environment: 'production' },
       ],
     })
     signIn()
     renderAt('/sozlamalar')
     await waitFor(() =>
-      expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: ATMOS · ulangan$/),
+      expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: ATMOS \(production\) · ulangan$/),
     )
   })
 
@@ -102,7 +103,13 @@ describe('Sozlamalar', () => {
       ...base,
       '/api/admin/payments/provider-check': [
         200,
-        { status: 'failed', provider: 'atmos', host: 'apigw-test.atmos.uz', errorCode: 'HTTP_401' },
+        {
+          status: 'failed',
+          provider: 'atmos',
+          host: 'apigw.atmos.uz',
+          environment: 'sandbox',
+          errorCode: 'HTTP_401',
+        },
       ],
     })
     signIn()

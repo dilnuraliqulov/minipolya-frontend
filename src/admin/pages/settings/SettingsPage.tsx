@@ -33,15 +33,16 @@ const settingsKeys = {
 }
 
 /**
- * ATMOS's production host; any other host is one of its test environments. The backend
- * sends the host of its base URL (never the URL, never a credential), and this label is
- * the only thing the panel does with it.
+ * Sandbox or production comes from the backend's ATMOS_ENVIRONMENT and nowhere else: the
+ * ATMOS sandbox answers on the same host as production, so the host cannot tell them apart.
+ * An environment the panel does not know is left unnamed rather than guessed.
  */
-const ATMOS_PRODUCTION_HOST = 'apigw.atmos.uz'
-
 function providerName(check: ProviderCheck): string {
   if (check.provider !== 'atmos') return 'Fake'
-  return check.host && check.host !== ATMOS_PRODUCTION_HOST ? 'ATMOS (sandbox)' : 'ATMOS'
+  const environment = check.environment
+  return environment === 'sandbox' || environment === 'production'
+    ? `ATMOS (${environment})`
+    : 'ATMOS'
 }
 
 /**
