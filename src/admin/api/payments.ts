@@ -92,6 +92,21 @@ export interface PaymentSummary {
   held: number
 }
 
+/**
+ * `ProviderCheckResponse`: which card provider the backend talks to and whether it
+ * answered just now. `host` is the base URL's host and is absent under `fake` — the
+ * stand-in reaches nothing, so `ok` there means "no real provider is wired in", not that
+ * anything answered. `errorCode` is the provider's own code and is absent when ok.
+ *
+ * A provider that is down is a normal 200 with `status: 'failed'`, not a failed request.
+ */
+export interface ProviderCheck {
+  status: 'ok' | 'failed'
+  provider: 'atmos' | 'fake'
+  host?: string
+  errorCode?: string
+}
+
 export type PaymentTab = 'all' | 'refunds' | 'held'
 
 export interface PaymentFilters {
@@ -114,6 +129,7 @@ export const PAYMENT_DETAIL = 'GET /api/admin/payments/{id}'
 export const PAYMENTS_SUMMARY = 'GET /api/admin/payments/summary'
 export const REFUND_RETRY = 'POST /api/admin/payments/{id}/retry-refund'
 export const REFUND_MANUAL = 'POST /api/admin/payments/{id}/mark-refunded'
+export const PROVIDER_CHECK = 'GET /api/admin/payments/provider-check'
 
 /**
  * The tabs are filters: Qaytarishlar is `type=refund` (the backend lists failed
@@ -154,6 +170,15 @@ export function retryRefund(id: string): Promise<AdminPayment> {
 /** Only when the money went back another way; the reason is 10–500 characters. */
 export function markRefunded(id: string, reason: string): Promise<AdminPayment> {
   return api.post<AdminPayment>(`/api/admin/payments/${id}/mark-refunded`, { reason })
+}
+
+/**
+ * Asks the backend to reach the card provider now (the real client buys a fresh ATMOS
+ * token). Every call is a real round trip, so it is not for polling. It never carries a
+ * token or a credential.
+ */
+export function getProviderCheck(): Promise<ProviderCheck> {
+  return api.get<ProviderCheck>('/api/admin/payments/provider-check')
 }
 
 /** The payment's audit entries, oldest first. */

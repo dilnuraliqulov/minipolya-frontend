@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { API_MESSAGES, isApiError } from '../../../shared/api'
 import { formatDateTime, formatSom, somInputToTiyin, tiyinToSomInput } from '../../../shared/format'
 import { getAuditLog, type AuditChange, type AuditEntry } from '../../api/audit'
+import { getProviderCheck, type ProviderCheck } from '../../api/payments'
 import {
   getSettings,
   SETTINGS_ACTIONS,
@@ -28,6 +29,50 @@ import { bpsToPercent, formatBps, percentToBps } from '../../format'
 const settingsKeys = {
   settings: ['admin', 'settings'] as const,
   history: (page: number) => ['admin', 'audit-log', 'settings', page] as const,
+  provider: ['admin', 'provider-check'] as const,
+}
+
+/**
+ * ATMOS's production host; any other host is one of its test environments. The backend
+ * sends the host of its base URL (never the URL, never a credential), and this label is
+ * the only thing the panel does with it.
+ */
+const ATMOS_PRODUCTION_HOST = 'apigw.atmos.uz'
+
+function providerName(check: ProviderCheck): string {
+  if (check.provider !== 'atmos') return 'Fake'
+  return check.host && check.host !== ATMOS_PRODUCTION_HOST ? 'ATMOS (sandbox)' : 'ATMOS'
+}
+
+/**
+ * One line: which payment provider the backend talks to, and whether it answered just now.
+ * The fake provider reaches nothing, so it gets no "ulangan" — naming it is the point.
+ * Until the answer is here, and if it never comes, the line stays out of the way rather
+ * than claiming anything.
+ */
+function ProviderStatusLine() {
+  const check = useQuery({
+    queryKey: settingsKeys.provider,
+    queryFn: getProviderCheck,
+    // Every call is a real round trip to the provider, so not on each revisit.
+    staleTime: 60_000,
+  })
+  const data = check.data
+  if (!data) return null
+  const failed = data.status === 'failed'
+  return (
+    <p className="text-sm text-secondary" title={data.host}>
+      Toʻlov tizimi: <span className="font-medium text-primary">{providerName(data)}</span>
+      {data.provider === 'atmos' &&
+        (failed ? (
+          <span className="font-medium text-danger-text">
+            {' · '}xato: {data.errorCode ?? '—'}
+          </span>
+        ) : (
+          <span className="font-medium text-success-text">{' · '}ulangan</span>
+        ))}
+    </p>
+  )
 }
 
 const HISTORY_PAGE_SIZE = 10
@@ -457,6 +502,7 @@ export function SettingsPage() {
       ) : (
         <SettingsSkeleton />
       )}
+      <ProviderStatusLine />
       <SettingsHistory />
     </div>
   )
