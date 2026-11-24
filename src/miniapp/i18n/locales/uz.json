@@ -29,7 +29,7 @@
         "text": "Boʻsh vaqtni tanlang va darhol band qiling."
       }
     },
-    "pickDate": "Sanani tanlash",
+    "otherDate": "Boshqa sana",
     "pickDateTitle": "Sanani tanlang",
     "vs": "vs",
     "opponentWanted": "Raqib kutilmoqda"
@@ -51,7 +51,8 @@
   },
   "format": {
     "longDate": "{{day}}-{{month}}, {{year}}",
-    "dayTitle": "{{weekday}}, {{day}}-{{month}}"
+    "dayTitle": "{{weekday}}, {{day}}-{{month}}",
+    "dayMonth": "{{day}}-{{month}}"
   },
   "months": {
     "jan": "yanvar",
@@ -194,7 +195,7 @@
     }
   },
   "stadiums": {
-    "search": "Maydon yoki manzilni qidiring",
+    "search": "Maydon yoki manzil",
     "filters": "Filtrlar",
     "allFormats": "Hammasi",
     "format": "Format",
@@ -303,7 +304,9 @@
     "emptyText": "Barcha soatlar band qilingan. Boshqa kunni tanlang.",
     "seeDay": "{{day}}ni koʻrish",
     "choose": "Vaqtni tanlang",
-    "book": "Band qilish · {{time}} · {{price}}"
+    "book": "Band qilish · {{time}} · {{price}}",
+    "night": "tun",
+    "nightHint": "Yarim tundan keyingi soatlar shu kunning kechasiga tegishli."
   },
   "checkout": {
     "title": "Bron qilish",
@@ -399,7 +402,8 @@
     "emptyPastTitle": "Oʻtgan bronlar yoʻq",
     "emptyPastText": "Oʻynab boʻlgan bronlaringiz shu yerda koʻrinadi.",
     "findPitch": "Maydon topish",
-    "more": "Yana koʻrsatish"
+    "more": "Yana koʻrsatish",
+    "workingNight": "({{weekday}} kechasi)"
   },
   "booked": {
     "headerTitle": "Bron",
@@ -534,7 +538,66 @@
       "invalidTitle": "Havola yaroqsiz",
       "invalidText": "Taklif havolasi eskirgan yoki notoʻgʻri. Sardordan yangi havola soʻrang.",
       "home": "Bosh sahifaga"
-    }
+    },
+    "level": {
+      "title": "Jamoa darajasi",
+      "unset": "Daraja belgilanmagan",
+      "havaskor": {
+        "name": "Havaskor",
+        "text": "Doʻstlar bilan dam olish uchun oʻynaymiz"
+      },
+      "orta": {
+        "name": "Oʻrta",
+        "text": "Muntazam oʻynaymiz, yaxshi tayyorgarlik"
+      },
+      "professional": {
+        "name": "Professional",
+        "text": "Turnir darajasi, kuchli jamoa"
+      }
+    },
+    "levelBanner": {
+      "title": "Jamoangiz darajasini belgilang",
+      "text": "Shunda raqiblar sizga mos jamoani tezroq topadi.",
+      "action": "Belgilash"
+    },
+    "levelSheet": {
+      "title": "Jamoa darajasi",
+      "save": "Saqlash"
+    },
+    "levelSaved": "Daraja saqlandi",
+    "levelFilter": {
+      "label": "Daraja boʻyicha",
+      "all": "Hammasi"
+    },
+    "levelConfirm": {
+      "title": "Bu jamoa {{level}} darajada. Davom etasizmi?",
+      "text": "Darajalar har xil, lekin oʻyin baribir oʻtkaziladi.",
+      "continue": "Davom etish"
+    },
+    "nextGame": {
+      "title": "Keyingi oʻyin",
+      "opponent": "Raqib: {{name}}",
+      "waiting": "Raqib kutilmoqda",
+      "open": "Oʻyinga oʻtish"
+    },
+    "inviteCard": {
+      "title": "Aʼzo taklif qilish",
+      "text": "Havolani yuboring — doʻstlaringiz bir bosishda qoʻshiladi."
+    },
+    "findOpponent": "Raqib qidirish",
+    "leaderCreatesGames": "Oʻyinlarni faqat sardor yaratadi",
+    "captain": "Sardor: {{name}}",
+    "membersCount": "Aʼzolar ({{count}})",
+    "stats": {
+      "played": "Oʻynalgan oʻyinlar",
+      "upcoming": "Kutilayotgan"
+    },
+    "leave": "Jamoadan chiqish",
+    "leaveTitle": "Jamoadan chiqasizmi?",
+    "leaveText": "«{{name}}» jamoasidan chiqasiz. Qaytish uchun sardordan havola soʻrang.",
+    "leaveConfirm": "Chiqish",
+    "left": "Jamoadan chiqdingiz",
+    "emptyHow": "Jamoa tuzasiz, raqib qidirasiz va maydon haqini ikki jamoa boʻlib boʻlasiz."
   },
   "game": {
     "title": "Oʻyin",
@@ -609,10 +672,21 @@
     "placeholder": "Xabar yozing…",
     "input": "Xabar",
     "send": "Yuborish",
-    "emptyTitle": "Hali xabarlar yoʻq",
-    "emptyText": "Raqib jamoa sardori bilan oʻyinni kelishib oling.",
+    "emptyTitle": "Hali xabar yoʻq",
+    "emptyText": "Raqib jamoa bilan kelishib oling!",
     "closed": "Chat faqat tasdiqlangan oʻyinda ochiq.",
-    "you": "Siz"
+    "you": "Siz",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "newMessages": "Yangi xabarlar",
+    "sending": "Yuborilmoqda",
+    "failed": "Yuborilmadi. Qayta urinish uchun bosing",
+    "older": "Eski xabarlar yuklanmoqda",
+    "openGame": "Oʻyinni ochish",
+    "system": {
+      "gameConfirmed": "Oʻyin tasdiqlandi",
+      "teamJoined": "{{team}} qoʻshildi"
+    }
   },
   "owner": {
     "tabs": {
@@ -813,7 +887,7 @@
       "later": "{{label}}: bir soat keyin",
       "everyDay": "Har kuni {{open}} – {{close}}",
       "everyDayHours": "Har kuni {{open}} – {{close}} · {{count}} soat",
-      "hoursNote": "Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "hoursNote": "Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish ham mumkin (eng kechi 06:00).",
       "yourPrice": "Sizning narxingiz (1 soat)",
       "priceHint": "10 000 dan 5 000 000 soʻmgacha",
       "playerPriceNote": "Oʻyinchilar karta toʻlovi hisobiga biroz yuqoriroq narxni koʻradi.",
@@ -906,8 +980,26 @@
       "sent": "Javob yuborildi"
     },
     "hours": {
-      "note": "Soatlik bronlar shu oraliqda ochiladi. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping.",
-      "saved": "Ish vaqti saqlandi"
+      "note": "Soatlik bronlar shu oraliqda ochiladi. Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping.",
+      "saved": "Ish vaqti saqlandi",
+      "day": {
+        "mon": "Du",
+        "tue": "Se",
+        "wed": "Ch",
+        "thu": "Pa",
+        "fri": "Ju",
+        "sat": "Sh",
+        "sun": "Ya"
+      },
+      "nextDay": "{{time}} (ertasi kuni)",
+      "closedShort": "yopiq",
+      "everyDay": "Har kuni {{hours}}",
+      "otherDays": "boshqa kunlar {{hours}}",
+      "modeSame": "Har kuni bir xil",
+      "modePerDay": "Har kun alohida",
+      "mode": "Ish vaqti rejimi",
+      "closedSwitch": "Yopiq",
+      "dayHours": "{{day}} ish vaqti"
     },
     "terms": {
       "minimum": "Oldindan toʻlov",
@@ -952,10 +1044,14 @@
       "locationRequired": "Maydon joyini xaritada belgilang",
       "outsideUzbekistan": "Joy Oʻzbekiston hududida boʻlishi kerak",
       "priceRange": "Narx 10 000 dan 5 000 000 soʻmgacha boʻlsin",
-      "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlsin. Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi.",
+      "hoursOrder": "Yopilish vaqti ochilishdan keyin boʻlsin.",
       "descriptionLength": "Koʻpi bilan 500 belgi",
       "landmarkLength": "Koʻpi bilan 150 belgi",
-      "photosMin": "Kamida 3 ta rasm qoʻshing"
+      "photosMin": "Kamida 3 ta rasm qoʻshing",
+      "closeTooLate": "Yarim tundan keyin yopilish eng kechi 06:00 boʻlishi mumkin.",
+      "hoursGap": "Bir kun yopilishi bilan keyingi kun ochilishi orasida kamida 1 soat boʻlsin.",
+      "hoursAllClosed": "Kamida bitta kun ochiq boʻlishi kerak.",
+      "hoursWeek": "Haftaning yettala kuni toʻldirilishi kerak."
     },
     "location": {
       "mapTitle": "Xaritada belgilang",

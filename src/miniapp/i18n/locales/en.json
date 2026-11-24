@@ -29,7 +29,7 @@
         "text": "Pick a free time and book it right away."
       }
     },
-    "pickDate": "Choose a date",
+    "otherDate": "Other date",
     "pickDateTitle": "Choose a date",
     "vs": "vs",
     "opponentWanted": "Waiting for an opponent"
@@ -51,7 +51,8 @@
   },
   "format": {
     "longDate": "{{day}} {{month}} {{year}}",
-    "dayTitle": "{{weekday}}, {{day}} {{month}}"
+    "dayTitle": "{{weekday}}, {{day}} {{month}}",
+    "dayMonth": "{{day}}-{{month}}"
   },
   "months": {
     "jan": "January",
@@ -194,7 +195,7 @@
     }
   },
   "stadiums": {
-    "search": "Search for a pitch or address",
+    "search": "Pitch or address",
     "filters": "Filters",
     "allFormats": "All",
     "format": "Format",
@@ -303,7 +304,9 @@
     "emptyText": "Every hour is taken. Choose another day.",
     "seeDay": "See {{day}}",
     "choose": "Choose a time",
-    "book": "Book · {{time}} · {{price}}"
+    "book": "Book · {{time}} · {{price}}",
+    "night": "night",
+    "nightHint": "Hours after midnight belong to this day’s night."
   },
   "checkout": {
     "title": "Booking",
@@ -399,7 +402,8 @@
     "emptyPastTitle": "No past bookings",
     "emptyPastText": "Bookings you have played will show here.",
     "findPitch": "Find a pitch",
-    "more": "Show more"
+    "more": "Show more",
+    "workingNight": "({{weekday}} night)"
   },
   "booked": {
     "headerTitle": "Booking",
@@ -534,7 +538,66 @@
       "invalidTitle": "Invalid link",
       "invalidText": "The invite link is out of date or wrong. Ask the captain for a new one.",
       "home": "Go to home"
-    }
+    },
+    "level": {
+      "title": "Team level",
+      "unset": "Level not set",
+      "havaskor": {
+        "name": "Amateur",
+        "text": "We play with friends, for fun"
+      },
+      "orta": {
+        "name": "Intermediate",
+        "text": "We play regularly and prepare well"
+      },
+      "professional": {
+        "name": "Professional",
+        "text": "Tournament level, a strong side"
+      }
+    },
+    "levelBanner": {
+      "title": "Set your team level",
+      "text": "Opponents will find a team that matches you faster.",
+      "action": "Set it"
+    },
+    "levelSheet": {
+      "title": "Team level",
+      "save": "Save"
+    },
+    "levelSaved": "Level saved",
+    "levelFilter": {
+      "label": "By level",
+      "all": "All"
+    },
+    "levelConfirm": {
+      "title": "This team plays at {{level}} level. Continue?",
+      "text": "The levels differ, but the game goes ahead all the same.",
+      "continue": "Continue"
+    },
+    "nextGame": {
+      "title": "Next game",
+      "opponent": "Opponent: {{name}}",
+      "waiting": "Waiting for an opponent",
+      "open": "Open the game"
+    },
+    "inviteCard": {
+      "title": "Invite a member",
+      "text": "Send the link — your friends join in one tap."
+    },
+    "findOpponent": "Find an opponent",
+    "leaderCreatesGames": "Only the captain creates games",
+    "captain": "Captain: {{name}}",
+    "membersCount": "Members ({{count}})",
+    "stats": {
+      "played": "Games played",
+      "upcoming": "Upcoming"
+    },
+    "leave": "Leave the team",
+    "leaveTitle": "Leave the team?",
+    "leaveText": "You will leave {{name}}. To come back, ask the captain for a link.",
+    "leaveConfirm": "Leave",
+    "left": "You left the team",
+    "emptyHow": "Create a team, find an opponent, and split the pitch between the two sides."
   },
   "game": {
     "title": "Game",
@@ -610,9 +673,20 @@
     "input": "Message",
     "send": "Send",
     "emptyTitle": "No messages yet",
-    "emptyText": "Agree on the game with the other captain.",
+    "emptyText": "Agree the details with the other team!",
     "closed": "Chat is open only for a confirmed game.",
-    "you": "You"
+    "you": "You",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages": "New messages",
+    "sending": "Sending",
+    "failed": "Not sent. Tap to try again",
+    "older": "Loading earlier messages",
+    "openGame": "Open the game",
+    "system": {
+      "gameConfirmed": "The game is confirmed",
+      "teamJoined": "{{team}} joined"
+    }
   },
   "owner": {
     "tabs": {
@@ -813,7 +887,7 @@
       "later": "{{label}}: one hour later",
       "everyDay": "Every day {{open}} – {{close}}",
       "everyDayHours": "Every day {{open}} – {{close}} · {{count}} h",
-      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is not supported.",
+      "hoursNote": "Whole hours only, 24-hour format. Closing after midnight is allowed (06:00 at the latest).",
       "yourPrice": "Your price (1 hour)",
       "priceHint": "From 10 000 to 5 000 000 UZS",
       "playerPriceNote": "Players see a slightly higher price because of the card payment.",
@@ -906,8 +980,26 @@
       "sent": "Reply sent"
     },
     "hours": {
-      "note": "Hourly bookings open within these hours. Close single days in “Closed days”.",
-      "saved": "Opening hours saved"
+      "note": "Hourly bookings open in this range. The hours after midnight belong to that day’s night. Close individual days under “Closed days”.",
+      "saved": "Opening hours saved",
+      "day": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
+      "nextDay": "{{time}} (next day)",
+      "closedShort": "closed",
+      "everyDay": "Every day {{hours}}",
+      "otherDays": "other days {{hours}}",
+      "modeSame": "Same every day",
+      "modePerDay": "Per day of the week",
+      "mode": "Opening hours mode",
+      "closedSwitch": "Closed",
+      "dayHours": "{{day}} opening hours"
     },
     "terms": {
       "minimum": "Deposit",
@@ -952,10 +1044,14 @@
       "locationRequired": "Mark the pitch on the map",
       "outsideUzbekistan": "The location must be in Uzbekistan",
       "priceRange": "The price must be between 10 000 and 5 000 000 UZS",
-      "hoursOrder": "Closing must be after opening. Closing after midnight is not supported.",
+      "hoursOrder": "Closing must be after opening.",
       "descriptionLength": "At most 500 characters",
       "landmarkLength": "At most 150 characters",
-      "photosMin": "Add at least 3 photos"
+      "photosMin": "Add at least 3 photos",
+      "closeTooLate": "Closing after midnight must be 06:00 at the latest.",
+      "hoursGap": "There must be at least 1 hour between one day closing and the next opening.",
+      "hoursAllClosed": "At least one day must be open.",
+      "hoursWeek": "All seven days of the week are needed."
     },
     "location": {
       "mapTitle": "Mark it on the map",

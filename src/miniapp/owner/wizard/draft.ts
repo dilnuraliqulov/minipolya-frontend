@@ -4,18 +4,17 @@ import type { CreateStadiumBody } from '../../api/owner'
 import type { Amenities } from '../../api/stadiums'
 import { formatPhoneInput, toWirePhone } from '../../profile/phone'
 import { NO_AMENITIES } from '../../stadiums/facilities'
+import { checkWeeklyHours, sameEveryDay, toApi, type DayHours } from '../hours'
 import {
   checkAddress,
   checkDescription,
   checkDistrict,
-  checkHours,
   checkLandmark,
   checkLocation,
   checkName,
   checkPhone,
   checkPhotoCount,
   checkPrice,
-  hourToTime,
   type RuleKey,
 } from '../stadiumRules'
 
@@ -43,9 +42,11 @@ export interface Draft {
   photos: DraftPhoto[]
   amenities: Amenities
   description: string
-  /** Whole hours, 0–23. */
-  open: number
-  close: number
+  /**
+   * The weekly opening schedule. Starts as the same hours every day; the step's editor
+   * switches to a day at a time. A day may close after midnight (06:00 at the latest).
+   */
+  hours: DayHours[]
   /** Whole soʻm, digits only. */
   price: string
 }
@@ -63,8 +64,7 @@ export function initialDraft(profilePhone?: string): Draft {
     photos: [],
     amenities: NO_AMENITIES,
     description: '',
-    open: 8,
-    close: 23,
+    hours: sameEveryDay(8, 23),
     price: '',
   }
 }
@@ -133,7 +133,7 @@ export function validateStep(step: Step, draft: Draft): StepErrors {
       add('description', checkDescription(draft.description))
       break
     case 'hours':
-      add('hours', checkHours(draft.open, draft.close))
+      add('hours', checkWeeklyHours(draft.hours))
       add('price', checkPrice(som(draft.price)))
       break
     case 'review':
@@ -164,8 +164,7 @@ export function toCreateBody(draft: Draft): CreateStadiumBody {
     ...(landmark ? { landmark } : {}),
     ...(description ? { description } : {}),
     amenities: draft.amenities,
-    openTime: hourToTime(draft.open),
-    closeTime: hourToTime(draft.close),
+    hours: toApi(draft.hours),
     pricePerHour: somToTiyin(som(draft.price)),
   }
 }

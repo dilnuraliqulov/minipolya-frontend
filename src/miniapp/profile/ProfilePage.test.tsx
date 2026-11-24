@@ -131,6 +131,19 @@ describe('Profil', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('shows a flag beside each language in the sheet', async () => {
+    stubApi({ 'GET /api/users/me': player, 'GET /api/owner/stadiums': [] })
+    renderApp('/profile')
+    fireEvent.click(await screen.findByRole('button', { name: /Til/ }))
+    const sheet = screen.getByRole('dialog', { name: 'Tilni tanlang' })
+    for (const name of ['Oʻzbekcha', 'Русский', 'English']) {
+      const row = within(sheet).getByRole('radio', { name })
+      expect(row.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
+      // A flag is decorative: the row's name is still only the language.
+      expect(row).toHaveAccessibleName(name)
+    }
+  })
+
   it('switches immediately, before the save answers', async () => {
     let answer: (response: Response) => void = () => {}
     const api = stubApi({

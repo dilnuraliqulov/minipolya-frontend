@@ -2,13 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Percent, Phone, Plus, Swords } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  formatTime,
-  somInputToTiyin,
-  tashkentToUtc,
-  tashkentToday,
-  tiyinToSomInput,
-} from '../../shared/format'
+import { formatTime, somInputToTiyin, tashkentToday, tiyinToSomInput } from '../../shared/format'
 import { remainderState } from '../../shared/payments/remainder'
 import type { Booking } from '../api/bookings'
 import type { GameDetail, GameTeam } from '../api/games'
@@ -37,7 +31,7 @@ import {
 import { formatMoney } from '../format'
 import { DateStrip } from '../stadiums/SlotPicker'
 import { availabilityKey } from '../stadiums/queries'
-import { slotLabel } from '../stadiums/dates'
+import { slotLabel, slotStartsAt } from '../stadiums/dates'
 import { DiscountSheet } from './DiscountSheet'
 import { GameTeamsMoney } from './GameCash'
 import { bookingWho } from './bookingWho'
@@ -511,7 +505,14 @@ function WalkInSheet({
   // What the owner typed; null until then, so the hour's own price shows.
   const [priceText, setPriceText] = useState<string | null>(null)
   const [status, setStatus] = useState<'unpaid' | 'paid'>('unpaid')
-  const startsAt = hour ? tashkentToUtc(date, hour) : ''
+  // The slot's own instant, so a walk-in on a night hour is not written a day early.
+  const startsAt = hour
+    ? slotStartsAt(
+        free.find((slot) => slot.startTime.slice(0, 5) === hour),
+        date,
+        hour,
+      )
+    : ''
   const suggested = useQuery({
     queryKey: ['owner', 'walk-in-price', stadium.id, startsAt],
     queryFn: () => getWalkInPrice(stadium.id, startsAt),

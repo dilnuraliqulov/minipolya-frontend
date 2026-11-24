@@ -30,7 +30,10 @@ export type RuleKey =
   | 'owner.rules.locationRequired'
   | 'owner.rules.outsideUzbekistan'
   | 'owner.rules.priceRange'
-  | 'owner.rules.hoursOrder'
+  | 'owner.rules.closeTooLate'
+  | 'owner.rules.hoursGap'
+  | 'owner.rules.hoursAllClosed'
+  | 'owner.rules.hoursWeek'
   | 'owner.rules.descriptionLength'
   | 'owner.rules.landmarkLength'
   | 'owner.rules.photosMin'
@@ -69,17 +72,6 @@ export function checkLocation(point: { lat: number; lon: number } | null): RuleK
 /** `som`: whole soʻm as typed (0 when empty). */
 export function checkPrice(som: number): RuleKey | null {
   return som >= L.priceMin && som <= L.priceMax ? null : 'owner.rules.priceRange'
-}
-
-/** Whole hours 0–23 (D15); closing after midnight is not supported (D14). */
-export function checkHours(open: number, close: number): RuleKey | null {
-  return Number.isInteger(open) &&
-    Number.isInteger(close) &&
-    open >= 0 &&
-    close <= 23 &&
-    open < close
-    ? null
-    : 'owner.rules.hoursOrder'
 }
 
 export function checkDescription(description: string): RuleKey | null {

@@ -327,6 +327,8 @@ The backend owns every rule about money, deadlines and eligibility. The client
 - what a team pays to join → `amountToPayNow`, `feeAmount`, `advanceAmount`
 - prices → `price` on a booking, `pricePerHour` per availability slot
   (promotions already applied)
+- which day an hour belongs to → `afterMidnight` / `workingDate` (see
+  "Opening hours and the working day")
 
 Do not reproduce the cancellation bands, the team-game fee split, the 3-hour
 opponent cutoff, the hold expiry, or per-hour price calculation in TypeScript.
@@ -337,6 +339,34 @@ For how the platform actually works — the three game flows, the team-vs-team
 money model, the cancellation policy, booking statuses — read
 `../minipolyaBackend/CLAUDE.md`. It is the authoritative description of the
 domain.
+
+## Opening hours and the working day
+
+A stadium's hours are a **weekly schedule**: for each day of the week
+(`dayOfWeek` 0 = Monday) either closed, or open between two whole hours. A
+`closeTime` **at or before** the day's `openTime` means the **next morning**
+(08:00–02:00 is a twenty-hour day) and must be 06:00 at the latest;
+`"00:00:00"` means **midnight**, the end of that same day.
+
+The day whose opening started an hour is its **working day**, and the hours
+after midnight belong to it rather than to the calendar day they fall on. With
+Saturday 08:00–02:00, Saturday's slot list ends …, 23:00, **00:00, 01:00**, and
+those two hours happen on Sunday's date.
+
+What that means for this repository — the client never derives any of it:
+
+- **Availability for a date** is that working day. Each slot carries
+  `startTime`/`endTime` (wall clock), `startsAt` (the real UTC instant) and
+  `afterMidnight` (only when true). **Book `slot.startsAt`**, never the chosen
+  date plus the clock time — for a night slot those differ by a day.
+- **A booking** carries `workingDate` and `afterMidnight`. Show the real date
+  from `startsAt` ("Yakshanba, 16-noyabr · 00:00–01:00") and name the night from
+  `workingDate` ("(shanba kechasi)"); `bookings/when.ts` does both.
+- **The owner's editor** (`owner/hours.ts`, `owner/WeeklyHoursEditor.tsx`)
+  mirrors the backend's `WeeklyHoursRules` only to warn before "Saqlash" — the
+  backend still decides. `closingOptions(open)` offers only closings that are
+  valid for that opening, so a refused week cannot be built by hand.
+- Prices, deadlines and the flag itself are the backend's, as ever.
 
 ## Design
 
@@ -620,9 +650,32 @@ npm run lint          # eslint .
 npm run format        # prettier --write .
 npm run format:check  # prettier --check .
 npm run typecheck     # tsc -b (project references, no emit)
+npm run e2e           # Playwright: every admin route at 360×800, 390×844 and
+                      # 1024×800, light and dark, plus the Mini App home page at
+                      # the two phone sizes, windowed and in Telegram fullscreen
+                      # — fails if the page is wider than the viewport or a card
+                      # spills out of its parent
+npm run e2e:ui        # the same, in Playwright's inspector
 ```
 
 Before committing: `typecheck`, `lint`, `test` and `build` must pass.
+
+**`npm run e2e` is the layout check** (`e2e/`, Chromium only). It stubs every
+`/api` call with fixtures, so it needs **no backend and no test admin** — it
+starts the dev server itself, and warms it once (`e2e/warm.ts`) so a cold
+transform is never mistaken for a broken layout. It is deliberately **not**
+part of the pre-commit gate, because it needs a browser and takes a few
+minutes: run it after any change to the admin layout, to a shared admin
+component, to `formatSom`/`formatNumber`, or to the Mini App home header.
+First run on a new checkout needs `npx playwright install chromium`.
+
+`e2e/miniapp-home.spec.ts` covers **Bosh sahifa**: it signs the Mini App in
+with a stand-in `window.Telegram.WebApp` (`e2e/fixtures/miniapp.ts`) and holds
+the home header to one row — the search field filling it with the filter button
+inside it, the bell ending it with its unread badge, 44px targets, the
+placeholder never cut off at 360px, and the date strip ending in "Boshqa sana".
+It runs at the phone viewports only, windowed and in Telegram's fullscreen
+layout.
 
 ## Deploying
 

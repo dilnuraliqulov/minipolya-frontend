@@ -2,9 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { MONTH_KEYS } from '../format'
 import { BottomSheet, cx } from '../components'
 import { haptic } from '../telegram'
-import { bookingDates, dayTitle, WEEKDAY_SHORT_KEYS } from './dates'
+import { bookingMonths, dayTitle, isInBookingWindow, WEEKDAY_SHORT_KEYS } from './dates'
 
-/** The calendar button's sheet: the booking window (today … 28 days) as a month grid. */
+/**
+ * The date strip's "Boshqa sana" sheet: the months the booking window touches,
+ * whole. Today is marked, the window (today … 28 days) is pickable, and every
+ * other day is shown but disabled, so where the window ends is visible.
+ */
 export function DatePickerSheet({
   today,
   value,
@@ -17,8 +21,6 @@ export function DatePickerSheet({
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  const dates = bookingDates(today)
-  const leadingBlanks = dates[0]?.dayOfWeek ?? 0
   return (
     <BottomSheet open title={t('home.pickDateTitle')} onClose={onClose}>
       <div className="grid grid-cols-7 gap-1">
@@ -27,41 +29,50 @@ export function DatePickerSheet({
             {t(key)}
           </span>
         ))}
-        {Array.from({ length: leadingBlanks }, (_, i) => (
-          <span key={`blank-${i}`} aria-hidden />
-        ))}
-        {dates.map((date, i) => {
-          const selected = date.iso === value
-          const showMonth = i === 0 || date.day === 1
-          const month = Number(date.iso.slice(5, 7))
-          return (
-            <button
-              key={date.iso}
-              type="button"
-              aria-label={dayTitle(date.iso)}
-              aria-pressed={selected}
-              onClick={() => {
-                haptic.selection()
-                onChange(date.iso)
-              }}
-              className={cx(
-                'flex h-12 flex-col items-center justify-center rounded-lg text-base font-medium',
-                selected ? 'bg-accent text-on-accent' : 'bg-surface text-primary',
-              )}
-            >
-              {date.day}
-              {showMonth && (
-                <span
-                  className={cx('text-2xs leading-none', !selected && 'text-secondary')}
-                  aria-hidden
-                >
-                  {t(MONTH_KEYS[month - 1] ?? MONTH_KEYS[0]).slice(0, 3)}
-                </span>
-              )}
-            </button>
-          )
-        })}
       </div>
+
+      {bookingMonths(today).map((month) => (
+        <section key={`${month.year}-${month.month}`} className="flex flex-col gap-1">
+          <h3 className="text-base font-semibold text-primary capitalize">
+            {t(MONTH_KEYS[month.month - 1] ?? MONTH_KEYS[0])}
+          </h3>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: month.days[0]?.dayOfWeek ?? 0 }, (_, i) => (
+              <span key={`blank-${i}`} aria-hidden />
+            ))}
+            {month.days.map((date) => {
+              const selected = date.iso === value
+              const isToday = date.iso === today
+              const pickable = isInBookingWindow(date.iso, today)
+              return (
+                <button
+                  key={date.iso}
+                  type="button"
+                  disabled={!pickable}
+                  aria-label={dayTitle(date.iso)}
+                  aria-pressed={selected}
+                  aria-current={isToday ? 'date' : undefined}
+                  onClick={() => {
+                    haptic.selection()
+                    onChange(date.iso)
+                  }}
+                  className={cx(
+                    'flex h-12 items-center justify-center rounded-lg text-base font-medium',
+                    selected
+                      ? 'bg-accent text-on-accent'
+                      : pickable
+                        ? 'bg-surface text-primary'
+                        : 'text-secondary opacity-40',
+                    !selected && isToday && 'ring-1 ring-accent',
+                  )}
+                >
+                  {date.day}
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      ))}
     </BottomSheet>
   )
 }

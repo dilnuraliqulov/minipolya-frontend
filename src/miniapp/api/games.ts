@@ -1,4 +1,5 @@
 import { api, type Page } from '../../shared/api'
+import type { TeamLevel } from '../teams/level'
 import type { PaymentOption } from './bookings'
 
 export type GameType = 'casual' | 'open' | 'team_vs_team'
@@ -28,6 +29,8 @@ export interface GameTeam {
   teamId: string
   leaderId: string
   teamName?: string
+  /** Changeset 054; absent on a team created before levels existed. */
+  teamLevel?: TeamLevel
   leaderName?: string
   /** What this team pays in the app on joining. */
   price: number
@@ -96,6 +99,8 @@ export interface GameDetail extends Game {
    * confirmed, e.g. after 202 PAYMENT_PENDING). Settled by the backend.
    */
   joinPending?: boolean
+  /** Team games only: the longest chat message the server takes — the composer's limit. */
+  chatMessageMaxLength?: number
   participants?: GameParticipant[]
   /** Where the game is played: the same for everyone who can open it. */
   location?: GameLocation
@@ -123,6 +128,8 @@ export interface Challenge {
   title?: string
   waitingTeamId: string
   waitingTeamName?: string
+  /** Changeset 054: how seriously the waiting team plays; absent when it has no level. */
+  waitingTeamLevel?: TeamLevel
   stadiumId: string
   stadiumName: string
   stadiumAddress: string
@@ -169,14 +176,33 @@ export interface TeamGameQuote {
 export interface GameMessage {
   id: string
   gameId: string
-  userId: string
+  /** Absent on a system line, which nobody sent. */
+  userId?: string
   userName?: string
   message: string
   createdAt: string
+  /** `user` or `system`; every message sent before changeset 055 is a user's. */
+  kind?: 'user' | 'system' | string
+  /** System lines only: which event this is. */
+  event?: 'game_confirmed' | 'team_joined' | string
+  /** The team a system line is about (`team_joined`). */
+  eventTeamName?: string
+  /** The sender's side; absent for a system line or a sender in neither team. */
+  side?: GameSide
+  /** The sender's team in this game. */
+  teamId?: string
+  teamName?: string
+  teamLevel?: TeamLevel
 }
 
 export const GAMES_PAGE_SIZE = 20
-/** `@Size(max = 1000)` on a chat message. */
+/** How many messages one page of the chat holds. */
+export const MESSAGES_PAGE_SIZE = 50
+/**
+ * The chat's limit when the game detail has not been read yet. The real one is
+ * `chatMessageMaxLength` on the game — this is only what the composer uses
+ * before the first response lands.
+ */
 export const MESSAGE_MAX = 1000
 
 export const MY_GAMES_KEY = ['games', 'my'] as const
@@ -203,9 +229,10 @@ export function getMyGames(page: number): Promise<Page<Game>> {
   return api.get<Page<Game>>('/api/games/my', { query: { page, size: GAMES_PAGE_SIZE } })
 }
 
-export function getChallenges(page: number): Promise<Page<Challenge>> {
+/** `level` narrows the board on the **server**; left out, every level is listed. */
+export function getChallenges(page: number, level?: TeamLevel): Promise<Page<Challenge>> {
   return api.get<Page<Challenge>>('/api/games/challenges', {
-    query: { page, size: GAMES_PAGE_SIZE },
+    query: { page, size: GAMES_PAGE_SIZE, ...(level ? { level } : {}) },
   })
 }
 
@@ -261,9 +288,14 @@ export function cancelGame(id: string): Promise<void> {
   return api.delete<void>(`/api/games/${id}`)
 }
 
-export function getMessages(gameId: string, page = 0): Promise<Page<GameMessage>> {
+/**
+ * One page of the chat, newest first. `before` (an ISO instant) asks for the
+ * history older than it — a cursor, because a message arriving meanwhile would
+ * shift every page boundary under the reader's thumb.
+ */
+export function getMessages(gameId: string, before?: string): Promise<Page<GameMessage>> {
   return api.get<Page<GameMessage>>(`/api/games/${gameId}/messages`, {
-    query: { page, size: 50 },
+    query: { size: MESSAGES_PAGE_SIZE, ...(before ? { before } : {}) },
   })
 }
 

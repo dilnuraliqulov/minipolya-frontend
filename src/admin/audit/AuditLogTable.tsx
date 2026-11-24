@@ -62,8 +62,8 @@ function ObjectCell({ entry }: { entry: AuditEntry }) {
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex gap-2 text-sm">
-      <dt className="w-44 shrink-0 text-secondary">{label}</dt>
+    <div className="flex flex-col gap-0.5 text-sm md:flex-row md:gap-2">
+      <dt className="text-secondary md:w-44 md:shrink-0">{label}</dt>
       <dd className="min-w-0 font-medium break-words text-primary">{children}</dd>
     </div>
   )
@@ -276,7 +276,10 @@ export function AuditLogTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-background">
+    // `min-w-0` + `contain-paint` for the same reasons as DataTable's wrapper:
+    // a flex item will not shrink below its content, and a wide `<table>`
+    // leaks its overflow to the root unless the box has paint containment.
+    <div className="min-w-0 contain-paint overflow-x-auto rounded-xl border border-border bg-background">
       <table className="w-full border-collapse" aria-busy={loading || undefined}>
         <thead>
           <tr className="h-11 border-b border-border bg-surface text-left text-xs font-semibold text-secondary">

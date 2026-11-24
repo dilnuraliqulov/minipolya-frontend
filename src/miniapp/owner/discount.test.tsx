@@ -4,6 +4,7 @@ import type { OwnerStadium, Promotion } from '../api/owner'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
 import { makeUser, stubApi } from '../test/api'
 import { readySession, renderApp } from '../test/renderApp'
+import { nextDate } from '../stadiums/dates'
 import { makeSlot } from '../test/stadiums'
 
 afterEach(() => {
@@ -100,6 +101,31 @@ describe('Ega rejimi — Jadval — Narxni oʻzgartirish', () => {
     expect(api.calls('POST /api/owner/stadiums/s1/promotions')).toEqual([
       { name: '19:00 chegirmasi', discountPercent: 20, startsAt: START, endsAt: END },
     ])
+  })
+
+  it('covers the hour the owner tapped, even after midnight', async () => {
+    // The working day runs past midnight: its 00:00 hour happens on the NEXT date, so the
+    // promotion must cover that hour and not the one a day earlier.
+    const nightStartsAt = tashkentToUtc(nextDate(TODAY), '00:00')
+    const api = stub(false, {
+      'GET /api/stadiums/s1/availability': {
+        stadiumId: 's1',
+        stadiumName: 'Bunyodkor Arena',
+        date: TODAY,
+        slots: [makeSlot('00:00', { afterMidnight: true, startsAt: nightStartsAt })],
+      },
+      'POST /api/owner/stadiums/s1/promotions': { id: 'pr2' },
+    })
+    renderApp('/owner', { session })
+    fireEvent.click(await screen.findByRole('button', { name: '00:00 narxini oʻzgartirish' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Narxni oʻzgartirish' })
+    fireEvent.change(within(sheet).getByLabelText('Chegirma (%)'), { target: { value: '20' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Saqlash' }))
+
+    await waitFor(() => expect(api.calls('POST /api/owner/stadiums/s1/promotions')).toHaveLength(1))
+    expect(api.calls('POST /api/owner/stadiums/s1/promotions')[0]).toMatchObject({
+      startsAt: nightStartsAt,
+    })
   })
 
   it('shows the current discount and removes it', async () => {

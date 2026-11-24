@@ -355,7 +355,9 @@ describe('Maydonlar — detail', () => {
     const info = within(screen.getByRole('region', { name: 'Maʼlumotlar' }))
     expect(info.getByText('Chilonzor')).toBeInTheDocument()
     expect(info.getByText('+998 71 200 00 00')).toBeInTheDocument()
-    expect(info.getByText('08:00–23:00')).toBeInTheDocument()
+    // The opening hours have their own card now, a day of the week at a time.
+    const hours = within(screen.getByRole('region', { name: 'Ish vaqti' }))
+    expect(hours.getByText('08:00–23:00')).toBeInTheDocument()
     expect(info.getByText('Avtoturargoh')).toBeInTheDocument()
     expect(info.queryByText('Dush')).not.toBeInTheDocument()
 
@@ -644,7 +646,7 @@ describe('Maydonlar — detail', () => {
     fireEvent.click(terms.getByRole('button', { name: 'Oʻzgartirish' }))
     const dialog = within(screen.getByRole('dialog', { name: 'Bron shartlari' }))
     const amount = dialog.getByLabelText('Minimal toʻlov (egasining narxida)')
-    expect(amount).toHaveValue('50 000')
+    expect(amount).toHaveValue('50\u00A0000')
     // Above the owner's hourly price (150 000 so'm): refused before asking.
     fireEvent.change(amount, { target: { value: '200000' } })
     fireEvent.change(dialog.getByLabelText('Bepul bekor qilish'), { target: { value: '200' } })

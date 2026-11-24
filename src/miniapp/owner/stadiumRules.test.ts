@@ -4,7 +4,6 @@ import {
   checkAddress,
   checkDescription,
   checkDistrict,
-  checkHours,
   checkLandmark,
   checkLocation,
   checkName,
@@ -56,12 +55,6 @@ describe('stadium rules (the backend’s, D1 and D10–D15)', () => {
     expect(checkPrice(10_000)).toBeNull()
     expect(checkPrice(5_000_000)).toBeNull()
     expect(checkPrice(5_000_001)).toBe('owner.rules.priceRange')
-  })
-
-  it('hours: whole hours, closing after opening, not after midnight', () => {
-    expect(checkHours(8, 23)).toBeNull()
-    expect(checkHours(8, 8)).toBe('owner.rules.hoursOrder')
-    expect(checkHours(22, 2)).toBe('owner.rules.hoursOrder')
   })
 
   it('description ≤ 500, landmark ≤ 150, at least 3 photos', () => {

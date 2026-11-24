@@ -149,7 +149,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `profile.ownerCard.noneText` | Uni MiniPolyaʼga qoʻshing va bronlarni onlayn qabul qiling | Добавьте его в MiniPolya и принимайте брони онлайн | Add it to MiniPolya and take bookings online |
 | `profile.ownerCard.reviewText` | Koʻrib chiqilmoqda. Tez orada siz bilan bogʻlanamiz. | На проверке. Скоро мы с вами свяжемся. | Under review. We will contact you soon. |
 | `profile.ownerCard.enter` | Ega rejimiga oʻtish | Перейти в режим владельца | Switch to owner mode |
-| `stadiums.search` | Maydon yoki manzilni qidiring | Поиск поля или адреса | Search for a pitch or address |
+| `stadiums.search` | Maydon yoki manzil | Поле или адрес | Pitch or address |
 | `stadiums.filters` | Filtrlar | Фильтры | Filters |
 | `stadiums.allFormats` | Hammasi | Все | All |
 | `stadiums.format` | Format | Формат | Format |
@@ -935,7 +935,7 @@ Placeholders such as `{{count}}` must stay as they are.
 | `home.whyUs.opponent.text` | Jamoangiz bilan oʻyin yarating, raqib jamoa qoʻshiladi. | Создайте игру своей командой, соперник присоединится. | Create a game with your team and an opponent joins. |
 | `home.whyUs.quick.title` | 1 daqiqada bron | Бронь за 1 минуту | Book in 1 minute |
 | `home.whyUs.quick.text` | Boʻsh vaqtni tanlang va darhol band qiling. | Выберите свободное время и сразу забронируйте. | Pick a free time and book it right away. |
-| `home.pickDate` | Sanani tanlash | Выбрать дату | Choose a date |
+| `home.otherDate` | Boshqa sana | Другая дата | Other date |
 | `home.pickDateTitle` | Sanani tanlang | Выберите дату | Choose a date |
 | `home.vs` | vs | vs | vs |
 | `home.opponentWanted` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
@@ -957,3 +957,83 @@ Placeholders such as `{{count}}` must stay as they are.
 | `stadium.mapTapHint` | Surish uchun xaritaga bosing | Нажмите, чтобы двигать карту | Tap to move the map |
 | `stadium.showMap` | Xaritani koʻrsatish | Показать карту | Show map |
 | `stadium.location` | Joylashuv | Местоположение | Location |
+| `owner.hours.day.mon` | Du | Пн | Mon |
+| `owner.hours.day.tue` | Se | Вт | Tue |
+| `owner.hours.day.wed` | Ch | Ср | Wed |
+| `owner.hours.day.thu` | Pa | Чт | Thu |
+| `owner.hours.day.fri` | Ju | Пт | Fri |
+| `owner.hours.day.sat` | Sh | Сб | Sat |
+| `owner.hours.day.sun` | Ya | Вс | Sun |
+| `owner.hours.nextDay` | {{time}} (ertasi kuni) | {{time}} (на следующий день) | {{time}} (next day) |
+| `owner.hours.closedShort` | yopiq | закрыто | closed |
+| `owner.hours.everyDay` | Har kuni {{hours}} | Ежедневно {{hours}} | Every day {{hours}} |
+| `owner.hours.otherDays` | boshqa kunlar {{hours}} | в остальные дни {{hours}} | other days {{hours}} |
+| `owner.hours.modeSame` | Har kuni bir xil | Одинаково каждый день | Same every day |
+| `owner.hours.modePerDay` | Har kun alohida | По дням недели | Per day of the week |
+| `owner.hours.mode` | Ish vaqti rejimi | Режим работы | Opening hours mode |
+| `owner.hours.closedSwitch` | Yopiq | Закрыто | Closed |
+| `owner.hours.dayHours` | {{day}} ish vaqti | Часы работы: {{day}} | {{day}} opening hours |
+| `owner.hours.note` | Soatlik bronlar shu oraliqda ochiladi. Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. Alohida kunlarni «Yopiq kunlar» boʻlimida yoping. | Почасовые брони открываются в этом диапазоне. Часы после полуночи относятся к ночи этого дня. Отдельные дни закрывайте в разделе «Закрытые дни». | Hourly bookings open in this range. The hours after midnight belong to that day’s night. Close individual days under “Closed days”. |
+| `owner.rules.closeTooLate` | Yarim tundan keyin yopilish eng kechi 06:00 boʻlishi mumkin. | Закрытие после полуночи возможно не позже 06:00. | Closing after midnight must be 06:00 at the latest. |
+| `owner.rules.hoursGap` | Bir kun yopilishi bilan keyingi kun ochilishi orasida kamida 1 soat boʻlsin. | Между закрытием одного дня и открытием следующего должен быть минимум 1 час. | There must be at least 1 hour between one day closing and the next opening. |
+| `owner.rules.hoursAllClosed` | Kamida bitta kun ochiq boʻlishi kerak. | Хотя бы один день должен быть рабочим. | At least one day must be open. |
+| `owner.rules.hoursWeek` | Haftaning yettala kuni toʻldirilishi kerak. | Нужно заполнить все семь дней недели. | All seven days of the week are needed. |
+| `owner.rules.hoursOrder` | Yopilish vaqti ochilishdan keyin boʻlsin. | Время закрытия должно быть после открытия. | Closing must be after opening. |
+| `owner.wizard.hoursNote` | Faqat butun soatlar, 24 soatlik format. Yarim tundan keyin yopilish ham mumkin (eng kechi 06:00). | Только целые часы, 24-часовой формат. Закрытие после полуночи возможно (не позже 06:00). | Whole hours only, 24-hour format. Closing after midnight is allowed (06:00 at the latest). |
+| `slots.night` | tun | ночь | night |
+| `slots.nightHint` | Yarim tundan keyingi soatlar shu kunning kechasiga tegishli. | Часы после полуночи относятся к ночи этого дня. | Hours after midnight belong to this day’s night. |
+| `bookings.workingNight` | ({{weekday}} kechasi) | (ночь, {{weekday}}) | ({{weekday}} night) |
+
+## Team level, Teams section and chat (2026-11-19)
+
+| Key | uz | ru (to review) | en (to review) |
+|---|---|---|---|
+| `format.dayMonth` | {{day}}-{{month}} | {{day}}-{{month}} | {{day}}-{{month}} |
+| `team.level.title` | Jamoa darajasi | Уровень команды | Team level |
+| `team.level.unset` | Daraja belgilanmagan | Уровень не указан | Level not set |
+| `team.level.havaskor.name` | Havaskor | Любители | Amateur |
+| `team.level.havaskor.text` | Doʻstlar bilan dam olish uchun oʻynaymiz | Играем с друзьями для удовольствия | We play with friends, for fun |
+| `team.level.orta.name` | Oʻrta | Средний | Intermediate |
+| `team.level.orta.text` | Muntazam oʻynaymiz, yaxshi tayyorgarlik | Играем регулярно, готовимся к матчам | We play regularly and prepare well |
+| `team.level.professional.name` | Professional | Профессионалы | Professional |
+| `team.level.professional.text` | Turnir darajasi, kuchli jamoa | Турнирный уровень, сильная команда | Tournament level, a strong side |
+| `team.levelBanner.title` | Jamoangiz darajasini belgilang | Укажите уровень команды | Set your team level |
+| `team.levelBanner.text` | Shunda raqiblar sizga mos jamoani tezroq topadi. | Так соперники быстрее найдут подходящую команду. | Opponents will find a team that matches you faster. |
+| `team.levelBanner.action` | Belgilash | Указать | Set it |
+| `team.levelSheet.title` | Jamoa darajasi | Уровень команды | Team level |
+| `team.levelSheet.save` | Saqlash | Сохранить | Save |
+| `team.levelSaved` | Daraja saqlandi | Уровень сохранён | Level saved |
+| `team.levelFilter.label` | Daraja boʻyicha | По уровню | By level |
+| `team.levelFilter.all` | Hammasi | Все | All |
+| `team.levelConfirm.title` | Bu jamoa {{level}} darajada. Davom etasizmi? | У этой команды уровень «{{level}}». Продолжить? | This team plays at {{level}} level. Continue? |
+| `team.levelConfirm.text` | Darajalar har xil, lekin oʻyin baribir oʻtkaziladi. | Уровни разные, но игра всё равно состоится. | The levels differ, but the game goes ahead all the same. |
+| `team.levelConfirm.continue` | Davom etish | Продолжить | Continue |
+| `team.nextGame.title` | Keyingi oʻyin | Следующая игра | Next game |
+| `team.nextGame.opponent` | Raqib: {{name}} | Соперник: {{name}} | Opponent: {{name}} |
+| `team.nextGame.waiting` | Raqib kutilmoqda | Ждём соперника | Waiting for an opponent |
+| `team.nextGame.open` | Oʻyinga oʻtish | Перейти к игре | Open the game |
+| `team.inviteCard.title` | Aʼzo taklif qilish | Пригласить участника | Invite a member |
+| `team.inviteCard.text` | Havolani yuboring — doʻstlaringiz bir bosishda qoʻshiladi. | Отправьте ссылку — друзья присоединятся в одно касание. | Send the link — your friends join in one tap. |
+| `team.findOpponent` | Raqib qidirish | Найти соперника | Find an opponent |
+| `team.leaderCreatesGames` | Oʻyinlarni faqat sardor yaratadi | Игры создаёт только капитан | Only the captain creates games |
+| `team.captain` | Sardor: {{name}} | Капитан: {{name}} | Captain: {{name}} |
+| `team.membersCount` | Aʼzolar ({{count}}) | Участники ({{count}}) | Members ({{count}}) |
+| `team.stats.played` | Oʻynalgan oʻyinlar | Сыграно игр | Games played |
+| `team.stats.upcoming` | Kutilayotgan | Предстоящие | Upcoming |
+| `team.leave` | Jamoadan chiqish | Выйти из команды | Leave the team |
+| `team.leaveTitle` | Jamoadan chiqasizmi? | Выйти из команды? | Leave the team? |
+| `team.leaveText` | «{{name}}» jamoasidan chiqasiz. Qaytish uchun sardordan havola soʻrang. | Вы выйдете из команды «{{name}}». Чтобы вернуться, попросите ссылку у капитана. | You will leave {{name}}. To come back, ask the captain for a link. |
+| `team.leaveConfirm` | Chiqish | Выйти | Leave |
+| `team.left` | Jamoadan chiqdingiz | Вы вышли из команды | You left the team |
+| `team.emptyHow` | Jamoa tuzasiz, raqib qidirasiz va maydon haqini ikki jamoa boʻlib boʻlasiz. | Создайте команду, найдите соперника и разделите стоимость поля на две команды. | Create a team, find an opponent, and split the pitch between the two sides. |
+| `chat.today` | Bugun | Сегодня | Today |
+| `chat.yesterday` | Kecha | Вчера | Yesterday |
+| `chat.newMessages` | Yangi xabarlar | Новые сообщения | New messages |
+| `chat.sending` | Yuborilmoqda | Отправляется | Sending |
+| `chat.failed` | Yuborilmadi. Qayta urinish uchun bosing | Не отправлено. Нажмите, чтобы повторить | Not sent. Tap to try again |
+| `chat.older` | Eski xabarlar yuklanmoqda | Загружаем старые сообщения | Loading earlier messages |
+| `chat.openGame` | Oʻyinni ochish | Открыть игру | Open the game |
+| `chat.emptyTitle` | Hali xabar yoʻq | Сообщений пока нет | No messages yet |
+| `chat.emptyText` | Raqib jamoa bilan kelishib oling! | Договоритесь с командой соперника! | Agree the details with the other team! |
+| `chat.system.gameConfirmed` | Oʻyin tasdiqlandi | Игра подтверждена | The game is confirmed |
+| `chat.system.teamJoined` | {{team}} qoʻshildi | {{team}} присоединилась | {{team}} joined |

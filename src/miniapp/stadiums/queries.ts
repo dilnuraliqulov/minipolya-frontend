@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query'
 import type { Page } from '../../shared/api'
 import {
+  getAvailability,
   getFavorites,
   getStadium,
   getStadiumReviews,
@@ -14,12 +15,34 @@ import {
   type Stadium,
   type StadiumDetail,
 } from '../api/stadiums'
+import { previousDate } from './dates'
 
 export const stadiumKey = (id: string) => ['stadium', id] as const
 export const FAVORITES_KEY = ['favorites'] as const
 /** Every Bosh sahifa list, whatever its filters (`['stadiums', filters]`). */
 export const STADIUM_LISTS_KEY = ['stadiums'] as const
 export const availabilityKey = (id: string, date: string) => ['availability', id, date] as const
+
+/**
+ * Whether yesterday's working day is still open — a stadium whose hours run past midnight
+ * is still serving its night hours after 00:00, and the backend still accepts bookings for
+ * them. Asked, never derived: the backend answers 400 for a date that is genuinely past,
+ * and a day whose hours have all started comes back with nothing still ahead.
+ */
+export function useYesterdayStillOpen(stadiumId: string, today: string): boolean {
+  const yesterday = previousDate(today)
+  const { data } = useQuery({
+    queryKey: availabilityKey(stadiumId, yesterday),
+    queryFn: () => getAvailability(stadiumId, yesterday),
+    // A 400 ("date cannot be in the past") is the answer "no", not a failure to retry.
+    retry: false,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  })
+  // The backend has already marked every hour that has begun as past and unavailable, so
+  // "something is still bookable" is its answer, not a clock reading of ours.
+  return (data?.slots ?? []).some((slot) => slot.available)
+}
 
 export function useStadium(id: string) {
   return useQuery({ queryKey: stadiumKey(id), queryFn: () => getStadium(id) })

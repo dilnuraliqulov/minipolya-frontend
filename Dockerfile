@@ -19,6 +19,11 @@ WORKDIR /build
 # `npm ci` (not `npm install`) installs exactly what package-lock.json pins and fails if the
 # two disagree, so the server builds the same dependency versions you tested against.
 COPY package.json package-lock.json ./
+# Playwright is a devDependency used only by `npm run e2e` (the admin layout
+# overflow check). `npm ci` here installs devDependencies too, so without this
+# every image build would download a Chromium nobody runs — slow, and broken on
+# a builder with no network access to Playwright's CDN.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm ci
 
 COPY . .

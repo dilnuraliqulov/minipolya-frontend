@@ -149,7 +149,7 @@ function bookingCard(b: AdminBooking) {
   const s = statusOf(BOOKING_STATUSES, b.status)
   return (
     <RowCard
-      title={<span className="whitespace-nowrap">{formatSlot(b.startsAt, b.endsAt)}</span>}
+      title={<span className="block truncate">{formatSlot(b.startsAt, b.endsAt)}</span>}
       status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
     >
       <dt>Maydon</dt>
@@ -175,7 +175,9 @@ function gameCard(g: AdminGame) {
   const s = gameStatus(g.type, g.status)
   return (
     <RowCard
-      title={<span className="whitespace-nowrap">{formatSlot(g.startsAt, g.endsAt)}</span>}
+      // `block truncate`, not `whitespace-nowrap`: a long slot label must
+      // ellipsize inside the card, not spill out of it at 360px.
+      title={<span className="block truncate">{formatSlot(g.startsAt, g.endsAt)}</span>}
       status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
     >
       <dt>Maydon</dt>

@@ -212,7 +212,7 @@ describe('Maydon — the date from Bosh sahifa', () => {
     const api = stub()
     renderApp(`/stadiums/${ID}?date=${tomorrow}`)
     expect(await screen.findByRole('radio', { name: /Ertaga/ })).toBeChecked()
-    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toEqual([{ date: tomorrow }]))
+    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toContainEqual({ date: tomorrow }))
   })
 
   it.each([
@@ -223,7 +223,7 @@ describe('Maydon — the date from Bosh sahifa', () => {
     const api = stub()
     renderApp(`/stadiums/${ID}?date=${param}`)
     expect(await screen.findByRole('radio', { name: /Bugun/ })).toBeChecked()
-    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toEqual([{ date: today }]))
+    await vi.waitFor(() => expect(api.queries(AVAILABILITY)).toContainEqual({ date: today }))
   })
 })
 

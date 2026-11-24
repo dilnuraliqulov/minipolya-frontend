@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { tashkentToUtc, tashkentToday } from '../../shared/format'
-import { nextDate } from '../stadiums/dates'
+import { dayTitle, nextDate } from '../stadiums/dates'
 import { jsonResponse, stubApi } from '../test/api'
 import { makeBooking, makeCard, makePayment } from '../test/bookings'
 import { installFakeTelegram, removeFakeTelegram } from '../test/fakeTelegram'
@@ -76,14 +76,14 @@ describe('Checkout', () => {
     expect(screen.getByText('20:00–21:00')).toBeInTheDocument()
     expect(screen.getByText('1 soat')).toBeInTheDocument()
     expect(screen.getByText('155 000 soʻm')).toBeInTheDocument()
-    const deposit = screen.getByRole('radio', { name: 'Oldindan toʻlov: 55 000 soʻm' })
-    const full = screen.getByRole('radio', { name: 'Toʻliq toʻlov: 155 000 soʻm' })
+    const deposit = screen.getByRole('radio', { name: 'Oldindan toʻlov: 55\u00A0000 soʻm' })
+    const full = screen.getByRole('radio', { name: 'Toʻliq toʻlov: 155\u00A0000 soʻm' })
     expect(deposit).toBeChecked()
     expect(full).not.toBeChecked()
     expect(
       screen.getByText('Qolgan 100 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.'),
     ).toBeInTheDocument()
-    expect(deposit).toHaveAccessibleDescription(/Qolgan 100 000 soʻmni/)
+    expect(deposit).toHaveAccessibleDescription(/Qolgan 100\u00A0000 soʻmni/)
     expect(screen.getByText(/24 soat oldingacha bekor qilsangiz/)).toBeInTheDocument()
     expect(await payButton()).toHaveTextContent('Toʻlash · 55 000 soʻm')
 
@@ -128,7 +128,9 @@ describe('Checkout', () => {
       },
     })
     renderApp(URL)
-    expect(await screen.findByRole('radio', { name: 'Oldindan toʻlov: 55 000 soʻm' })).toBeChecked()
+    expect(
+      await screen.findByRole('radio', { name: 'Oldindan toʻlov: 55\u00A0000 soʻm' }),
+    ).toBeChecked()
     expect(screen.queryByText(/30 000 soʻm/)).not.toBeInTheDocument()
   })
 
@@ -452,5 +454,45 @@ describe('Checkout', () => {
     fail = false
     fireEvent.click(retry)
     expect(await screen.findByText('Bunyodkor Arena')).toBeInTheDocument()
+  })
+})
+
+describe('Toʻlov — an hour after midnight', () => {
+  const NIGHT_URL = `/checkout?stadium=${ID}&date=${DATE}&start=01:00`
+  /** The API's own instant: 01:00 on the day AFTER the working date. */
+  const NIGHT_STARTS_AT = tashkentToUtc(nextDate(DATE), '01:00')
+
+  function nightStub(overrides: Record<string, unknown> = {}) {
+    return stub({
+      [AVAILABILITY]: {
+        ...availability,
+        slots: [
+          makeSlot('01:00', {
+            pricePerHour: 12_000_000,
+            afterMidnight: true,
+            startsAt: NIGHT_STARTS_AT,
+          }),
+        ],
+      },
+      ...overrides,
+    })
+  }
+
+  it('books the real instant the API gave, not the working date', async () => {
+    const api = nightStub({ [BOOK]: makeBooking({ paymentStatus: 'paid' }) })
+    const { router } = renderApp(NIGHT_URL)
+    fireEvent.click(await screen.findByRole('radio', { name: /•••• 5678/ }))
+    fireEvent.click(await payButton())
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/checkout/done'))
+    expect((api.calls(BOOK)[0] as { startsAt: string }).startsAt).toBe(NIGHT_STARTS_AT)
+  })
+
+  it('shows the real date in the summary, with the night it belongs to', async () => {
+    nightStub()
+    renderApp(NIGHT_URL)
+    // The hour happens the next morning, so the summary names that date, and says which
+    // night it belongs to.
+    const when = await screen.findByText(new RegExp(dayTitle(nextDate(DATE))))
+    expect(when).toHaveTextContent(/kechasi\)$/)
   })
 })

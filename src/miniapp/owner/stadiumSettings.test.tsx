@@ -52,32 +52,84 @@ function stub(routes: Record<string, unknown> = {}) {
 }
 
 describe('Maydonim — Ish vaqti', () => {
-  it('opens from Maydonim, prefilled, and saves whole hours with the steppers', async () => {
+  it('opens from Maydonim, prefilled, and saves the same hours every day', async () => {
     const api = stub({ 'PUT /api/owner/stadiums/s1': detail })
     const { router } = renderApp('/owner/stadium', { session })
     fireEvent.click(await screen.findByRole('button', { name: /Ish vaqti/ }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/owner/stadium/s1/hours'))
     const open = await screen.findByRole('group', { name: 'Ochilish' })
     expect(within(open).getByText('08:00')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Yopilish: bir soat oldin' }))
-    expect(screen.getByText('Har kuni 08:00 – 22:00 · 14 soat')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Yopilish'), { target: { value: '22' } })
+    expect(screen.getByText('Har kuni 08:00–22:00')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
     await waitFor(() =>
       expect(api.calls('PUT /api/owner/stadiums/s1')).toEqual([
-        { openTime: '08:00:00', closeTime: '22:00:00' },
+        {
+          hours: {
+            days: [0, 1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
+              dayOfWeek,
+              closed: false,
+              openTime: '08:00:00',
+              closeTime: '22:00:00',
+            })),
+          },
+        },
       ]),
     )
   })
 
-  it('refuses a closing time not after the opening time (no closing after midnight)', async () => {
-    stub({ 'GET /api/owner/stadiums/s1': { ...detail, openTime: '22:00:00' } })
+  it('sets Friday to 08:00–02:00 and leaves the other days alone', async () => {
+    const api = stub({ 'PUT /api/owner/stadiums/s1': detail })
     renderApp('/owner/stadium/s1/hours', { session })
-    expect(await screen.findByRole('button', { name: 'Yopilish: bir soat keyin' })).toBeDisabled()
-    for (let i = 0; i < 2; i++) {
-      fireEvent.click(screen.getByRole('button', { name: 'Yopilish: bir soat oldin' }))
+    fireEvent.click(await screen.findByRole('radio', { name: 'Har kun alohida' }))
+    fireEvent.change(screen.getByLabelText('Ju Yopilish'), { target: { value: '2' } })
+
+    expect(screen.getByText('Ju 08:00–02:00, boshqa kunlar 08:00–23:00')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    await waitFor(() => expect(api.calls('PUT /api/owner/stadiums/s1')).toHaveLength(1))
+    const sent = api.calls('PUT /api/owner/stadiums/s1')[0] as {
+      hours: { days: Array<{ dayOfWeek: number; closeTime?: string }> }
     }
-    expect(screen.getByRole('alert')).toHaveTextContent(/Yarim tundan keyin yopilish/)
-    expect(screen.getByRole('button', { name: 'Saqlash' })).toBeDisabled()
+    expect(sent.hours.days[4]).toEqual({
+      dayOfWeek: 4,
+      closed: false,
+      openTime: '08:00:00',
+      closeTime: '02:00:00',
+    })
+    expect(sent.hours.days[3]?.closeTime).toBe('23:00:00')
+  })
+
+  it('offers a closing after midnight, labelled as the next day', async () => {
+    stub()
+    renderApp('/owner/stadium/s1/hours', { session })
+    const closing = (await screen.findByLabelText('Yopilish')) as HTMLSelectElement
+    const labels = Array.from(closing.options).map((option) => option.textContent)
+    expect(labels).toContain('02:00 (ertasi kuni)')
+    expect(labels).toContain('00:00')
+    // 07:00 would be a 23-hour day closing after 06:00: never offered.
+    expect(labels).not.toContain('07:00 (ertasi kuni)')
+  })
+
+  it('closes a day with the Yopiq switch', async () => {
+    const api = stub({ 'PUT /api/owner/stadiums/s1': detail })
+    renderApp('/owner/stadium/s1/hours', { session })
+    fireEvent.click(await screen.findByRole('radio', { name: 'Har kun alohida' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Ya Yopiq' }))
+
+    expect(screen.getByText('Ya yopiq, boshqa kunlar 08:00–23:00')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }))
+    await waitFor(() => expect(api.calls('PUT /api/owner/stadiums/s1')).toHaveLength(1))
+    const sent = api.calls('PUT /api/owner/stadiums/s1')[0] as {
+      hours: { days: Array<{ dayOfWeek: number; closed: boolean }> }
+    }
+    expect(sent.hours.days[6]).toEqual({ dayOfWeek: 6, closed: true })
+  })
+
+  it('no longer warns that closing after midnight is unsupported', async () => {
+    stub()
+    renderApp('/owner/stadium/s1/hours', { session })
+    await screen.findByRole('button', { name: 'Saqlash' })
+    expect(screen.queryByText(/Yarim tundan keyin yopilish qoʻllab-quvvatlanmaydi/)).toBeNull()
   })
 
   it('shows the error state and retries', async () => {

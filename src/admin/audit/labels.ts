@@ -45,6 +45,7 @@ export const ACTION_LABELS: Record<string, string> = {
   OWNER_LEGAL_DETAILS_CHANGED: 'Egasining yuridik maʼlumotlarini oʻzgartirdi',
   STADIUM_NOTE_ADDED: 'Maydonga ichki izoh qoʻshdi',
   STADIUM_BOOKING_TERMS_CHANGED: 'Bron shartlarini oʻzgartirdi',
+  STADIUM_HOURS_CHANGED: 'Ish vaqtini oʻzgartirdi',
   SETTINGS_CHANGED: 'Sozlamalarni oʻzgartirdi',
   PLATFORM_SETTINGS_UPDATED: 'Sozlamalarni oʻzgartirdi',
   // Owner
@@ -240,6 +241,8 @@ export const FIELD_LABELS: Record<string, FieldLabel> = {
   format: { label: 'Format', kind: 'text' },
   surfaceType: { label: 'Qoplama', kind: 'enum', values: SURFACE_TYPES },
   openTime: { label: 'Ochilish vaqti', kind: 'time' },
+  // The whole week as one line, e.g. "Mon 08:00-00:00, …, Sun closed".
+  hours: { label: 'Haftalik ish vaqti', kind: 'text' },
   closeTime: { label: 'Yopilish vaqti', kind: 'time' },
   minBookingAmount: { label: 'Minimal toʻlov', kind: 'money' },
   cancellationHours: { label: 'Bekor qilish muddati', kind: 'hours' },

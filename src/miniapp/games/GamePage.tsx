@@ -45,6 +45,7 @@ import { formatLongDate, formatMoney } from '../format'
 import { useGoBack } from '../lib/useGoBack'
 import { LocationCard } from '../map/LocationCard'
 import { TeamAvatar } from '../teams/TeamAvatar'
+import { TeamLevelBadge } from '../teams/TeamLevelBadge'
 import { useTeam } from '../teams/queries'
 import { useGame } from './queries'
 import { gameStatusBadge } from './status'
@@ -233,13 +234,14 @@ function Side({ team }: { team?: GameTeam }) {
   return (
     <div className="flex w-28 flex-col items-center gap-2 text-center">
       {team ? (
-        <TeamAvatar name={name} />
+        <TeamAvatar name={name} id={team.teamId} />
       ) : (
         <span className="flex size-12 items-center justify-center rounded-full border-2 border-dashed border-border text-lg text-secondary">
           ?
         </span>
       )}
       <span className="line-clamp-2 text-sm font-semibold text-primary">{name}</span>
+      <TeamLevelBadge level={team?.teamLevel} />
     </div>
   )
 }
@@ -251,9 +253,12 @@ function TeamMembers({ team }: { team: GameTeam }) {
   return (
     <Card className="flex flex-col gap-2 p-4">
       <div className="flex items-center gap-3">
-        <TeamAvatar name={name} size="sm" />
+        <TeamAvatar name={name} id={team.teamId} size="sm" />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-md font-semibold text-primary">{name}</span>
+          <span className="flex items-center gap-2">
+            <span className="truncate text-md font-semibold text-primary">{name}</span>
+            <TeamLevelBadge level={team.teamLevel} />
+          </span>
           {team.leaderName && (
             <span className="text-xs text-secondary">
               {t('game.captain', { name: team.leaderName })}

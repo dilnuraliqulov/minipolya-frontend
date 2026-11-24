@@ -10,11 +10,11 @@ import {
 
 describe('formatSom', () => {
   it("converts tiyin to grouped so'm", () => {
-    expect(formatSom(15_000_000)).toBe("150 000 so'm")
+    expect(formatSom(15_000_000)).toBe("150\u00A0000 so'm")
   })
 
   it('groups millions', () => {
-    expect(formatSom(123_456_700)).toBe("1 234 567 so'm")
+    expect(formatSom(123_456_700)).toBe("1\u00A0234\u00A0567 so'm")
   })
 
   it("handles amounts below a thousand so'm", () => {
@@ -23,12 +23,12 @@ describe('formatSom', () => {
   })
 
   it('keeps a leftover tiyin part instead of dropping it', () => {
-    expect(formatSom(15_000_050)).toBe("150 000,50 so'm")
+    expect(formatSom(15_000_050)).toBe("150\u00A0000,50 so'm")
     expect(formatSom(105)).toBe("1,05 so'm")
   })
 
   it('formats negative amounts', () => {
-    expect(formatSom(-2_500_000)).toBe("-25 000 so'm")
+    expect(formatSom(-2_500_000)).toBe("-25\u00A0000 so'm")
   })
 
   it('rejects non-integer input', () => {
@@ -37,7 +37,7 @@ describe('formatSom', () => {
   })
 
   it('splits the amount from the unit for separate styling', () => {
-    expect(formatSomParts(4_865_000_000)).toEqual({ amount: '48 650 000', unit: "so'm" })
+    expect(formatSomParts(4_865_000_000)).toEqual({ amount: '48\u00A0650\u00A0000', unit: "so'm" })
     expect(formatSomParts(-105)).toEqual({ amount: '-1,05', unit: "so'm" })
   })
 })
@@ -47,7 +47,7 @@ describe('roundToWholeSom', () => {
     expect(roundToWholeSom(3_017_499)).toBe(3_017_500)
     expect(roundToWholeSom(82_501)).toBe(82_500)
     expect(roundToWholeSom(-314_951)).toBe(-315_000)
-    expect(formatSom(roundToWholeSom(2_917_449))).toBe("29 174 so'm")
+    expect(formatSom(roundToWholeSom(2_917_449))).toBe("29\u00A0174 so'm")
   })
 })
 
@@ -80,6 +80,12 @@ describe('tiyinToSomInput / somInputToTiyin', () => {
     expect(somInputToTiyin('0.01')).toBe(1)
     expect(somInputToTiyin('.5')).toBe(50)
     expect(somInputToTiyin('12.')).toBe(1_200)
+  })
+
+  it('accepts a grouped amount pasted from the page', () => {
+    // What the page shows is grouped with U+00A0, so a copy-paste carries it.
+    expect(somInputToTiyin('12\u00A0345\u00A0000')).toBe(1_234_500_000)
+    expect(somInputToTiyin('12 345 000')).toBe(1_234_500_000)
   })
 
   it('refuses anything but digits with at most two decimals', () => {

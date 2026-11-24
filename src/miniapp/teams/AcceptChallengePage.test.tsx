@@ -85,20 +85,22 @@ describe('Raqibni qabul qilish', () => {
     expect(await screen.findByText('Chilonzor Lions')).toBeInTheDocument()
     expect(screen.getByText('Yunusobod United')).toBeInTheDocument()
     const types = screen.getByRole('radiogroup', { name: 'Toʻlov turi' })
-    const minimum = within(types).getByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' })
+    const minimum = within(types).getByRole('radio', { name: 'Minimal toʻlov: 55\u00A0000 soʻm' })
     expect(minimum).toBeChecked()
     expect(minimum).toHaveAccessibleDescription(
-      'Qolgan 75 000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.',
+      'Qolgan 75\u00A0000 soʻmni keyin ilovada yoki maydonda naqd toʻlaysiz.',
     )
     expect(
-      within(types).getByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' }),
+      within(types).getByRole('radio', { name: 'Toʻliq toʻlov: 130\u00A0000 soʻm' }),
     ).not.toBeChecked()
     expect(screen.queryByText('Maydon narxi')).toBeNull()
     expect(
       screen.getByText(/gacha bekor qilsangiz, jamoangiz toʻlagani toʻliq qaytariladi/),
     ).toBeInTheDocument()
     fireEvent.click(await screen.findByRole('radio', { name: /•••• 5678/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 55 000 soʻm' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 55\u00A0000 soʻm' }),
+    )
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/games/g1'))
     expect(api.calls(JOIN)).toEqual([
       { gameId: 'g1', side: 'b', teamId: 't1', cardId: 'c2', paymentOption: 'MINIMUM' },
@@ -108,9 +110,11 @@ describe('Raqibni qabul qilish', () => {
   it('pays in full when the captain picks it, and the button shows that amount', async () => {
     const api = stub({ [JOIN]: { id: 'p1' }, 'GET /api/games/g1': jsonResponse(404, null, 'x') })
     renderApp(URL)
-    fireEvent.click(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 130 000 soʻm' }))
+    fireEvent.click(await screen.findByRole('radio', { name: 'Toʻliq toʻlov: 130\u00A0000 soʻm' }))
     await screen.findByRole('radio', { name: /•••• 1234/ })
-    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130 000 soʻm' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130\u00A0000 soʻm' }),
+    )
     await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
     expect(api.calls(JOIN)[0]).toMatchObject({ paymentOption: 'FULL' })
   })
@@ -126,7 +130,9 @@ describe('Raqibni qabul qilish', () => {
     expect(screen.queryByRole('radiogroup', { name: 'Toʻlov turi' })).toBeNull()
     expect(screen.queryByText(/Minimal toʻlov/)).toBeNull()
     await screen.findByRole('radio', { name: /•••• 1234/ })
-    fireEvent.click(screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130 000 soʻm' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Toʻlash va qabul qilish · 130\u00A0000 soʻm' }),
+    )
     await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
     expect(api.calls(JOIN)[0]).toMatchObject({ paymentOption: 'FULL' })
   })
@@ -160,7 +166,7 @@ describe('Raqibni qabul qilish', () => {
     fail = false
     fireEvent.click(retry)
     expect(
-      await screen.findByRole('radio', { name: 'Minimal toʻlov: 55 000 soʻm' }),
+      await screen.findByRole('radio', { name: 'Minimal toʻlov: 55\u00A0000 soʻm' }),
     ).toBeInTheDocument()
   })
 
@@ -361,5 +367,77 @@ describe('Raqibni qabul qilish — Joylashuv', () => {
     expect(
       within(section).getByRole('button', { name: 'Google Mapsʼda ochish' }),
     ).toBeInTheDocument()
+  })
+  // ---- Two teams at different levels ----
+
+  const crossLevel = (overrides = {}) =>
+    stub({
+      [JOIN]: { id: 'p1' },
+      'GET /api/games/g1': jsonResponse(404, null, 'x'),
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'professional' }]),
+      'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions', level: 'havaskor' }],
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: '018f3a2c-0000-7000-8000-000000000001',
+        level: 'havaskor',
+        members: [],
+      },
+      ...overrides,
+    } as Parameters<typeof stubApi>[0])
+
+  it('asks once before taking on a team of another level, and joins when told to', async () => {
+    const api = crossLevel()
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+    const sheet = await screen.findByRole('dialog', {
+      name: 'Bu jamoa Professional darajada. Davom etasizmi?',
+    })
+    expect(api.calls(JOIN)).toHaveLength(0)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Davom etish' }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+  })
+
+  it('a refused confirmation joins nothing', async () => {
+    const api = crossLevel()
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+    const sheet = await screen.findByRole('dialog', { name: /Davom etasizmi/ })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Bekor qilish' }))
+
+    expect(api.calls(JOIN)).toHaveLength(0)
+  })
+
+  it('never asks when the two teams play at the same level', async () => {
+    const api = crossLevel({
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'havaskor' }]),
+    })
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
+  })
+
+  it('never asks when either team has no level set', async () => {
+    const api = crossLevel({
+      'GET /api/games/challenges': page([{ ...challenge, waitingTeamLevel: 'professional' }]),
+      'GET /api/teams/me': [{ id: 't1', name: 'Chilonzor Lions' }],
+      'GET /api/teams/t1': {
+        id: 't1',
+        name: 'Chilonzor Lions',
+        leaderId: '018f3a2c-0000-7000-8000-000000000001',
+        members: [],
+      },
+    })
+    renderApp(URL)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Toʻlash/ }))
+
+    await vi.waitFor(() => expect(api.calls(JOIN)).toHaveLength(1))
   })
 })

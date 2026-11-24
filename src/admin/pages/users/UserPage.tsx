@@ -3,6 +3,7 @@ import { Ban, LockOpen, Phone } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { API_MESSAGES, isApiError } from '../../../shared/api'
+import { LanguageFlag } from '../../../shared/flags'
 import { formatDate, formatDateTime, formatNumber, formatSom } from '../../../shared/format'
 import { getAuditLog } from '../../api/audit'
 import { BOOKINGS_LIST, listBookings, type AdminBooking } from '../../api/bookings'
@@ -23,7 +24,8 @@ import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { CARD } from '../../components/card'
 import { cx } from '../../components/cx'
-import { DataTable, type Column } from '../../components/DataTable'
+import { DetailLayout } from '../../components/DetailLayout'
+import { DataTable, RowCard, type Column } from '../../components/DataTable'
 import { ConfirmModal, ReasonModal } from '../../components/Modal'
 import { Pagination } from '../../components/Pagination'
 import { Skeleton } from '../../components/Skeleton'
@@ -83,6 +85,40 @@ const BOOKING_COLUMNS: Column<AdminBooking>[] = [
   },
 ]
 
+/**
+ * The same row as a card below 768px. Without one `DataTable` keeps a wide
+ * table, which cannot be read in a detail page's column on a phone.
+ */
+function bookingCard(b: AdminBooking) {
+  const s = statusOf(BOOKING_STATUSES, b.status)
+  return (
+    <RowCard
+      title={<span className="block truncate">{formatSlot(b.startsAt, b.endsAt)}</span>}
+      status={<StatusBadge tone={s.tone}>{s.label}</StatusBadge>}
+    >
+      <dt>Maydon</dt>
+      <dd className="truncate">{b.stadiumName}</dd>
+      <dt>Summa</dt>
+      <dd className="whitespace-nowrap">{formatSom(b.price)}</dd>
+    </RowCard>
+  )
+}
+
+function stadiumCard(s: StadiumRow) {
+  const status = statusOf(STADIUM_STATUSES, s.status)
+  return (
+    <RowCard
+      // `block`: `overflow` does nothing on an inline span, so a long name
+      // would grow past the card instead of ellipsizing.
+      title={<span className="block truncate">{s.name}</span>}
+      status={<StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
+    >
+      <dt>Manzil</dt>
+      <dd className="truncate">{s.address}</dd>
+    </RowCard>
+  )
+}
+
 function BookingsTab({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
@@ -100,6 +136,7 @@ function BookingsTab({ userId }: { userId: string }) {
       <DataTable
         label="Bronlar"
         columns={BOOKING_COLUMNS}
+        card={bookingCard}
         rows={data?.content}
         rowKey={(b) => b.id}
         onRowClick={(b) => void navigate(`/bronlar?bron=${b.id}`)}
@@ -153,6 +190,7 @@ function StadiumsTab({ ownerId }: { ownerId: string }) {
       <DataTable
         label="Maydonlar"
         columns={STADIUM_COLUMNS}
+        card={stadiumCard}
         rows={data?.content}
         rowKey={(s) => s.id}
         onRowClick={(s) => void navigate(`/maydonlar/${s.id}`)}
@@ -255,7 +293,12 @@ function SummaryCard({ user }: { user: AdminUser }) {
       )}
       <dl className="flex flex-col gap-2.5">
         {user.telegramId !== undefined && <Row label="Telegram ID">{user.telegramId}</Row>}
-        <Row label="Til">{LANGUAGES[user.language] ?? user.language}</Row>
+        <Row label="Til">
+          <span className="inline-flex items-center gap-2">
+            <LanguageFlag language={user.language} />
+            {LANGUAGES[user.language] ?? user.language}
+          </span>
+        </Row>
         <Row label="Roʻyxatdan oʻtgan">{formatDate(user.createdAt)}</Row>
         {user.lastActiveAt && <Row label="Oxirgi faollik">{formatDateTime(user.lastActiveAt)}</Row>}
         <Row label="Rollar">
@@ -452,24 +495,26 @@ export function UserPage() {
   }
   if (!data) {
     return (
-      <div aria-busy className="flex gap-6">
+      <div aria-busy className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         <Skeleton className="h-80 flex-1 rounded-xl" />
-        <Skeleton className="h-80 w-94 rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl lg:w-94 lg:shrink-0" />
       </div>
     )
   }
 
   const own = session.status === 'authenticated' && session.user.id === data.id
+  // Array order is the phone order (Maʼlumotlar, Qaror, the tabs, Tarix last);
+  // `column` keeps today's desktop columns.
   return (
-    <div className="flex items-start gap-6">
-      <div className="flex min-w-0 flex-1 flex-col gap-6">
-        <UserTabs user={data} />
-        <UserHistory userId={data.id} />
-      </div>
-      <aside aria-label="Foydalanuvchi" className="sticky top-6 flex w-94 shrink-0 flex-col gap-4">
-        <SummaryCard user={data} />
-        <BlockPanel user={data} own={own} />
-      </aside>
-    </div>
+    <DetailLayout
+      asideLabel="Foydalanuvchi"
+      mainGap={6}
+      blocks={[
+        { key: 'summary', column: 'aside', node: <SummaryCard user={data} /> },
+        { key: 'decision', column: 'aside', node: <BlockPanel user={data} own={own} /> },
+        { key: 'tabs', column: 'main', node: <UserTabs user={data} /> },
+        { key: 'history', column: 'main', node: <UserHistory userId={data.id} /> },
+      ]}
+    />
   )
 }
