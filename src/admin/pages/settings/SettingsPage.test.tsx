@@ -42,7 +42,13 @@ const base = {
   '/api/admin/stats': [200, stats],
   '/api/admin/settings': [200, settings],
   '/api/admin/audit-log': [200, page(history)],
+  '/api/admin/payments/provider-check': [200, { status: 'ok', provider: 'fake' }],
 } as const
+
+/** The payment-provider line, whichever of its three shapes it has. */
+function providerLine() {
+  return screen.queryByText(/^Toʻlov tizimi:/)
+}
 
 function field(name: string) {
   return screen.getByLabelText(name) as HTMLInputElement
@@ -50,6 +56,79 @@ function field(name: string) {
 
 describe('Sozlamalar', () => {
   useAdminTestSetup()
+
+  it('names the fake provider, with no claim that anything answered', async () => {
+    mockBackend({ ...base })
+    signIn()
+    renderAt('/sozlamalar')
+    await waitFor(() => expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: Fake$/))
+    // Nothing was reached, so neither "connected" nor an error.
+    expect(providerLine()).not.toHaveTextContent('ulangan')
+  })
+
+  it('shows the ATMOS sandbox as connected, and its host in the title', async () => {
+    mockBackend({
+      ...base,
+      '/api/admin/payments/provider-check': [
+        200,
+        { status: 'ok', provider: 'atmos', host: 'apigw.atmos.uz', environment: 'sandbox' },
+      ],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    await waitFor(() =>
+      expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: ATMOS \(sandbox\) · ulangan$/),
+    )
+    expect(providerLine()).toHaveAttribute('title', 'apigw.atmos.uz')
+  })
+
+  /** The same host as the sandbox above: only `environment` tells the two apart. */
+  it('says production when the backend is on production', async () => {
+    mockBackend({
+      ...base,
+      '/api/admin/payments/provider-check': [
+        200,
+        { status: 'ok', provider: 'atmos', host: 'apigw.atmos.uz', environment: 'production' },
+      ],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    await waitFor(() =>
+      expect(providerLine()).toHaveTextContent(/^Toʻlov tizimi: ATMOS \(production\) · ulangan$/),
+    )
+  })
+
+  it('shows the provider’s error code when the check fails', async () => {
+    mockBackend({
+      ...base,
+      '/api/admin/payments/provider-check': [
+        200,
+        {
+          status: 'failed',
+          provider: 'atmos',
+          host: 'apigw.atmos.uz',
+          environment: 'sandbox',
+          errorCode: 'HTTP_401',
+        },
+      ],
+    })
+    signIn()
+    renderAt('/sozlamalar')
+    await waitFor(() =>
+      expect(providerLine()).toHaveTextContent(
+        /^Toʻlov tizimi: ATMOS \(sandbox\) · xato: HTTP_401$/,
+      ),
+    )
+  })
+
+  it('leaves the line out when the check itself cannot be made', async () => {
+    mockBackend({ ...base, '/api/admin/payments/provider-check': [403, 'Access denied'] })
+    signIn()
+    renderAt('/sozlamalar')
+    // The page is itself, the line simply says nothing.
+    expect(await screen.findByLabelText('Platforma haqi')).toBeInTheDocument()
+    await waitFor(() => expect(providerLine()).toBeNull())
+  })
 
   it('shows fees that are not whole so’m exactly, and saves them without rounding', async () => {
     const { requests } = mockBackend({
