@@ -10,6 +10,12 @@ import { formatMoney } from '../format'
  * The design's "Toʻlov" card: Narx, Toʻlangan, Qolgan summa — straight from the
  * booking — and how it was settled (E10): "Toʻliq toʻlangan", or "Maydonda naqd
  * toʻlangan" when cash arrived at the pitch.
+ *
+ * While a card payment of it is still being checked (`paymentState === 'processing'`) the
+ * outstanding amount is badged "Toʻlov tekshirilmoqda" rather than "Toʻlanmagan": nothing is
+ * known to be unpaid yet, and the money has usually already left the card — ATMOS answers
+ * the confirmation with a connection error for payments it has in fact taken. The page polls
+ * while that lasts (`useBooking`), so the badge resolves by itself.
  */
 export function PaymentSummary({ booking, children }: { booking: Booking; children?: ReactNode }) {
   const { t } = useTranslation()
@@ -18,6 +24,9 @@ export function PaymentSummary({ booking, children }: { booking: Booking; childr
   // A cancelled or expired booking owes nothing, whatever remainingAmount says.
   const ended = booking.status === 'expired' || booking.status.startsWith('cancelled')
   const owes = booking.remainingAmount > 0 && !ended
+  // Only where nothing else on the page says it: remainderState is null for a booking still
+  // waiting for its first payment, which is the case with no remainder card above it.
+  const checking = booking.paymentState === 'processing' && !ended && state === null
   const cash = booking.paidInCash ?? 0
   return (
     <Card className="flex flex-col gap-3 p-4" role="region" aria-labelledby="booking-payment">
@@ -45,7 +54,9 @@ export function PaymentSummary({ booking, children }: { booking: Booking; childr
             <dt className="text-secondary">{t('booking.remaining')}</dt>
             <dd className="flex items-center gap-2 font-semibold text-primary">
               {formatMoney(booking.remainingAmount)}
-              <Badge tone="warning">{t('booking.unpaid')}</Badge>
+              <Badge tone={checking ? 'neutral' : 'warning'}>
+                {checking ? t('checkout.checkingTitle') : t('booking.unpaid')}
+              </Badge>
             </dd>
           </div>
         ) : (
