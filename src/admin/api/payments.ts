@@ -42,7 +42,7 @@ export interface AdminPayment {
   commissionPercent?: number
   /** `card` | `cash`. */
   method: string
-  /** `atmos` | `payme` | `click` | `cash`. */
+  /** `atmos` | `cash`; `payme` / `click` only on rows the removed hosted checkout left. */
   provider: string
   /** The provider's transaction id; absent for cash. */
   providerTxnId?: string
@@ -51,11 +51,20 @@ export interface AdminPayment {
   refundReason?: string
   /** For a refund: the payment it gives back. */
   refundOfPaymentId?: string
-  /** For a failed refund: the provider's error, as it sent it. */
+  /**
+   * For a failed refund: the provider's error, as it sent it. For a `needs_review` hold:
+   * why its outcome is unclear ("Capture unclear: …" / "Give-back unclear: …").
+   */
   failureReason?: string
   /** An admin marked this refund as paid back outside the platform. */
   refundedManually?: boolean
   manualRefundReason?: string
+  /** A hold: when it lapses at the provider if nobody settles it (UTC). */
+  holdExpiresAt?: string
+  /** A team-game payment: the team it belongs to. */
+  gameTeamId?: string
+  /** A team-game payment: its team's side. */
+  teamSide?: 'a' | 'b'
 }
 
 /** A payment linked to another: a refund's original, or an original's refunds. */
@@ -135,10 +144,18 @@ export const PAYMENTS_SUMMARY = 'GET /api/admin/payments/summary'
 export const REFUND_RETRY = 'POST /api/admin/payments/{id}/retry-refund'
 export const REFUND_MANUAL = 'POST /api/admin/payments/{id}/mark-refunded'
 export const PROVIDER_CHECK = 'GET /api/admin/payments/provider-check'
+export const REVIEW_RESOLVE = 'POST /api/admin/payments/{id}/resolve-review'
+
+/**
+ * Ushlab turilgan: every hold still on a card or waiting on someone — held, being
+ * captured, being given back, or waiting for an admin (`needs_review`). The backend takes
+ * several statuses comma-separated.
+ */
+export const HELD_TAB_STATUSES = 'held,capture_pending,return_pending,needs_review'
 
 /**
  * The tabs are filters: Qaytarishlar is `type=refund` (the backend lists failed
- * ones first), Ushlab turilgan is `status=held`.
+ * ones first), Ushlab turilgan is every hold still in play (`HELD_TAB_STATUSES`).
  */
 function query(filters: PaymentFilters) {
   const { tab, search, ...rest } = filters
@@ -146,7 +163,7 @@ function query(filters: PaymentFilters) {
     ...rest,
     search: search?.trim() || undefined,
     type: tab === 'refunds' ? 'refund' : rest.type,
-    status: tab === 'held' ? 'held' : rest.status,
+    status: tab === 'held' ? HELD_TAB_STATUSES : rest.status,
   }
 }
 
@@ -175,6 +192,24 @@ export function retryRefund(id: string): Promise<AdminPayment> {
 /** Only when the money went back another way; the reason is 10–500 characters. */
 export function markRefunded(id: string, reason: string): Promise<AdminPayment> {
   return api.post<AdminPayment>(`/api/admin/payments/${id}/mark-refunded`, { reason })
+}
+
+/** What an admin found at ATMOS about a `needs_review` hold. */
+export type ReviewOutcome = 'captured' | 'released' | 'refunded'
+
+/**
+ * Settles a `needs_review` hold by hand, after checking it at ATMOS. No money moves here;
+ * the reason (10–500 characters) says how the admin knows. Answers the payment detail.
+ */
+export function resolveReview(
+  id: string,
+  outcome: ReviewOutcome,
+  reason: string,
+): Promise<AdminPaymentDetail> {
+  return api.post<AdminPaymentDetail>(`/api/admin/payments/${id}/resolve-review`, {
+    outcome,
+    reason,
+  })
 }
 
 /**

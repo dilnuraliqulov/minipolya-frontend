@@ -18,7 +18,7 @@ export type PaymentStatus = 'unpaid' | 'partially_paid' | 'paid'
  * R44: why a card payment was refused. Uppercase on the wire (the backend's
  * `DeclineReason` enum names), unlike the other enums.
  */
-export type DeclineReason = 'INSUFFICIENT_FUNDS' | 'CARD_EXPIRED' | 'CARD_DECLINED'
+export type DeclineReason = 'INSUFFICIENT_FUNDS' | 'CARD_EXPIRED' | 'WRONG_OTP' | 'CARD_DECLINED'
 
 /**
  * Where the booking's latest card payment stands (backend `ccfa4d5`); always sent by

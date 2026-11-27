@@ -373,7 +373,12 @@ function PayTeamRemainderSheet({
       // say so, and reload the game instead of leaving the pay button live.
       // The payment system being down is safe too: nothing was charged.
       const key = errorMessageKey(error)
-      if (isDeclineKey(key) || key === 'errors.providerUnavailable') return
+      if (
+        isDeclineKey(key) ||
+        key === 'errors.providerUnavailable' ||
+        key === 'errors.ownerNotConnected'
+      )
+        return
       toast.show(errorMessage(error), 'danger')
       void queryClient.invalidateQueries({ queryKey: gameKey(game.id) })
       onClose()

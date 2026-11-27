@@ -283,6 +283,22 @@ describe('Booking detail', () => {
       expect(await screen.findByText('Kutilmoqda')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /^Toʻlash/ })).toBeNull()
     })
+
+    // ATMOS answers the confirmation with a connection error for money it has in fact
+    // taken, so a booking whose payment is still being checked must not be called unpaid.
+    // The page reads it again by itself until it settles (queries.ts).
+    it('says the payment is being checked rather than unpaid', async () => {
+      stub(
+        pending(new Date(Date.now() + 5 * 60_000).toISOString(), {
+          paymentState: 'processing',
+          declineReason: undefined,
+        }),
+      )
+      renderApp('/bookings/b1')
+      const pay = await screen.findByRole('region', { name: 'Toʻlov' })
+      expect(await within(pay).findByText('Toʻlov tekshirilmoqda')).toBeInTheDocument()
+      expect(within(pay).queryByText('Toʻlanmagan')).toBeNull()
+    })
   })
 
   it('shows a cancelled booking without actions', async () => {

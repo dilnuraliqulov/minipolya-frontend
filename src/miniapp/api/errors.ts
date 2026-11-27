@@ -40,6 +40,9 @@ export type ErrorMessageKey =
   | 'errors.cardDeclined'
   | 'errors.insufficientFunds'
   | 'errors.providerUnavailable'
+  | 'errors.ownerNotConnected'
+  | 'errors.wrongOtp'
+  | 'errors.cardAlreadyAdded'
   | 'errors.cardNotSupported'
   | 'errors.cardExpiryInvalid'
   | 'errors.cardExpired'
@@ -78,9 +81,11 @@ const CARD_CODES: Record<string, ErrorMessageKey> = {
   [API_CODES.smsResendUnavailable]: 'errors.smsResendUnavailable',
   [API_CODES.bindingNotFound]: 'errors.bindingNotFound',
   [API_CODES.cardBindingFailed]: 'errors.cardBindingFailed',
+  [API_CODES.cardAlreadyAdded]: 'errors.cardAlreadyAdded',
   // R44: a refused card payment (team-game 400s). CARD_EXPIRED above reads the same.
   [API_CODES.cardDeclined]: 'errors.cardDeclined',
   [API_CODES.insufficientFunds]: 'errors.insufficientFunds',
+  [API_CODES.wrongOtp]: 'errors.wrongOtp',
 }
 
 /** The 400s of `POST` / `PUT /api/owner/stadiums` (backend `StadiumRules`) → their text. */
@@ -110,6 +115,8 @@ export function declineMessageKey(reason: string | undefined): ErrorMessageKey {
       return 'errors.insufficientFunds'
     case API_CODES.cardExpired:
       return 'errors.cardExpired'
+    case API_CODES.wrongOtp:
+      return 'errors.wrongOtp'
     default:
       return 'errors.cardDeclined'
   }
@@ -123,7 +130,8 @@ export function isDeclineKey(key: ErrorMessageKey | null | undefined): boolean {
   return (
     key === 'errors.cardDeclined' ||
     key === 'errors.insufficientFunds' ||
-    key === 'errors.cardExpired'
+    key === 'errors.cardExpired' ||
+    key === 'errors.wrongOtp'
   )
 }
 
@@ -143,6 +151,10 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
   // so a proxy's 502 (whose outcome is unknown) stays a server error.
   if (error.status === 502 && error.message === API_MESSAGES.providerUnavailable) {
     return 'errors.providerUnavailable'
+  }
+  // The stadium's owner cannot be paid yet: nothing was charged, and no card can fix it.
+  if (error.status === 502 && error.message === API_MESSAGES.ownerNotConnected) {
+    return 'errors.ownerNotConnected'
   }
   if (error.status >= 500) return 'errors.server'
   switch (error.status) {
@@ -218,7 +230,9 @@ export function errorMessageKey(error: unknown): ErrorMessageKey {
  * so it never looks like a declined card; everything else is a danger notice.
  */
 export function errorTone(key: ErrorMessageKey): 'warning' | 'danger' {
-  return key === 'errors.providerUnavailable' ? 'warning' : 'danger'
+  return key === 'errors.providerUnavailable' || key === 'errors.ownerNotConnected'
+    ? 'warning'
+    : 'danger'
 }
 
 /** The translated message for an error, in the current language. */

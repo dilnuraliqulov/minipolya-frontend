@@ -35,11 +35,15 @@ export const API_CODES = {
   bindingNotFound: 'BINDING_NOT_FOUND',
   /** Any other refusal of the card. */
   cardBindingFailed: 'CARD_BINDING_FAILED',
+  /** 409 from `POST /api/cards`: the player already has this card. */
+  cardAlreadyAdded: 'CARD_ALREADY_ADDED',
   // R44: a refused card payment. The `code` of the 400 declines of the team-game calls
   // (POST /api/games, /join, /pay-remainder), and the `declineReason` of a booking or a
   // payment row. CARD_EXPIRED (above) is the third reason.
   /** Not enough money on the card. */
   insufficientFunds: 'INSUFFICIENT_FUNDS',
+  /** The confirmation code was wrong (ATMOS STPIMS-ERR-098); nothing was taken. */
+  wrongOtp: 'WRONG_OTP',
   /** Any other refusal. */
   cardDeclined: 'CARD_DECLINED',
   // R28: POST /api/bookings/{id}/pay, 409s.
@@ -70,6 +74,11 @@ export const API_MESSAGES = {
    * nothing was charged or bound, the player may try again. Not a decline.
    */
   providerUnavailable: "To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring",
+  /**
+   * 502 from any card payment, production only: the stadium's owner has no signed ATMOS
+   * contract yet, so nobody could be paid. Nothing was charged; not the player's card.
+   */
+  ownerNotConnected: 'Maydon egasi toʻlov qabul qilishga hali ulanmagan',
   /** 403 on any endpoint, at any time, when an admin has blocked the user. */
   accountBlocked: 'Account is blocked',
   /** 400 from `PUT /api/admin/users/{id}` when an admin tries to block their own account. */
