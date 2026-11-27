@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '../../shared/api'
 import i18n from '../i18n'
-import { errorMessage, errorMessageKey, errorTone, isUnclearPaymentError } from './errors'
+import {
+  declineMessageKey,
+  errorMessage,
+  errorMessageKey,
+  errorTone,
+  isDeclineKey,
+  isUnclearPaymentError,
+} from './errors'
 
 describe('errorMessageKey — the one mapping from backend errors to our text', () => {
   it.each([
@@ -48,6 +55,17 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
     // R44 (requested): a decline that says why.
     [new ApiError('x', 400, 'CARD_DECLINED'), 'errors.cardDeclined'],
     [new ApiError('x', 400, 'INSUFFICIENT_FUNDS'), 'errors.insufficientFunds'],
+    [new ApiError('x', 400, 'WRONG_OTP'), 'errors.wrongOtp'],
+    // A card the player already has (POST /api/cards, 409).
+    [
+      new ApiError('Bu karta allaqachon qoʻshilgan', 409, 'CARD_ALREADY_ADDED'),
+      'errors.cardAlreadyAdded',
+    ],
+    // The stadium's owner cannot be paid yet: a 502 with its own message, never a decline.
+    [
+      new ApiError('Maydon egasi toʻlov qabul qilishga hali ulanmagan', 502),
+      'errors.ownerNotConnected',
+    ],
     [new ApiError('Authentication required', 401), 'errors.session'],
     [new ApiError('Session ended', 401, 'TOKEN_REVOKED'), 'errors.session'],
     [new ApiError('Account is blocked', 403), 'errors.blocked'],
@@ -100,6 +118,18 @@ describe('errorMessageKey — the one mapping from backend errors to our text', 
       'Toʻlov tizimi vaqtincha ishlamayapti. Birozdan soʻng urinib koʻring.',
     )
     expect(errorTone('errors.cardDeclined')).toBe('danger')
+  })
+
+  it('shows "the owner cannot be paid yet" as a warning: nothing was taken, not a decline', () => {
+    const owner = new ApiError('Maydon egasi toʻlov qabul qilishga hali ulanmagan', 502)
+    expect(errorTone(errorMessageKey(owner))).toBe('warning')
+    expect(isUnclearPaymentError(owner)).toBe(false)
+    expect(isDeclineKey(errorMessageKey(owner))).toBe(false)
+  })
+
+  it('a wrong confirmation code is a decline the player may retry', () => {
+    expect(declineMessageKey('WRONG_OTP')).toBe('errors.wrongOtp')
+    expect(isDeclineKey('errors.wrongOtp')).toBe(true)
   })
 
   it('never offers to pay again after 202 PAYMENT_PENDING', () => {

@@ -82,6 +82,8 @@ export const PAYMENT_STATUSES: StatusMap = {
   return_pending: { label: 'Qaytarilmoqda', tone: 'warning' },
   /** The original of a refund the provider declined: the money is still owed. */
   refund_failed: { label: 'Qaytarish oʻtmadi', tone: 'danger' },
+  /** A hold whose capture or give-back had no clear answer from ATMOS: an admin resolves it. */
+  needs_review: { label: 'Tekshirish kerak', tone: 'danger' },
 }
 
 export const PAYMENT_TYPES: Record<string, string> = {

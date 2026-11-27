@@ -65,6 +65,18 @@ const held: AdminPayment = {
   refundOfPaymentId: undefined,
   refundReason: undefined,
 }
+/** F6: a hold whose capture had no clear answer from ATMOS. */
+const review: AdminPayment = {
+  ...held,
+  id: 'p5',
+  userName: 'Bekzod Karimov',
+  status: 'needs_review',
+  failureReason:
+    'Capture unclear: ATMOS reports the hold as released after a capture whose answer was lost',
+  holdExpiresAt: '2026-11-03T12:00:00Z',
+  gameTeamId: 'gt9',
+  teamSide: 'b',
+}
 const cash: AdminPayment = {
   ...held,
   id: 'p4',
@@ -123,8 +135,10 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
       return [
         200,
         page(
-          [failedRefund, held, cash].filter(
-            (p) => (!type || p.paymentType === type) && (!status || p.status === status),
+          [failedRefund, held, review, cash].filter(
+            (p) =>
+              (!type || p.paymentType === type) &&
+              (!status || status.split(',').includes(p.status)),
           ),
         ),
       ]
@@ -132,6 +146,7 @@ function backend(extra: Record<string, Reply | ((r: Request) => Reply)> = {}) {
     '/api/admin/payments/summary': [200, summary],
     '/api/admin/payments/p1': [200, detail(failedRefund)],
     '/api/admin/payments/p3': [200, detail(held)],
+    '/api/admin/payments/p5': [200, detail(review)],
     '/api/admin/audit-log': [200, page([])],
     ...extra,
   })
@@ -195,7 +210,12 @@ describe('Toʻlovlar', () => {
     await waitFor(() => expect(last(requests, '/api/admin/payments').get('type')).toBe('refund'))
     expect(screen.queryByLabelText('Turi')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: /Ushlab turilgan/ }))
-    await waitFor(() => expect(last(requests, '/api/admin/payments').get('status')).toBe('held'))
+    // Every hold still in play, the ones waiting for an admin included.
+    await waitFor(() =>
+      expect(last(requests, '/api/admin/payments').get('status')).toBe(
+        'held,capture_pending,return_pending,needs_review',
+      ),
+    )
     expect(screen.queryByLabelText('Holat')).not.toBeInTheDocument()
   })
 
@@ -374,6 +394,48 @@ describe('Toʻlovlar', () => {
     expect(within(panel).getByText('ATMOS ushlab qoldi')).toBeInTheDocument()
     expect(
       within(panel).queryByRole('button', { name: /Qayta urinish|Qoʻlda/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows a hold that needs review with its side and expiry, and resolves it with a reason', async () => {
+    const { requests } = backend({
+      'POST /api/admin/payments/p5/resolve-review': [
+        200,
+        { ...detail(review), status: 'released' },
+      ],
+    })
+    signIn()
+    renderAt('/tolovlar?tolov=p5')
+    const panel = await screen.findByRole('dialog', { name: /Jamoa oʻyini ·/ })
+    expect(await within(panel).findByText('Natija noaniq: ATMOSda tekshiring')).toBeInTheDocument()
+    expect(within(panel).getByText(/Capture unclear/)).toBeInTheDocument()
+    expect(within(panel).getByText('Tekshirish kerak')).toBeInTheDocument()
+    expect(within(panel).getByText('B jamoa')).toBeInTheDocument()
+    expect(within(panel).getByText('Ushlab turish muddati')).toBeInTheDocument()
+    // Not a failed refund: none of those actions.
+    expect(within(panel).queryByRole('button', { name: /Qayta urinish/ })).not.toBeInTheDocument()
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Boʻshatildi' }))
+    const dialog = screen.getByRole('dialog', { name: 'Pul boʻshatildi deb hal qilish' })
+    fireEvent.change(within(dialog).getByRole('textbox'), {
+      target: { value: 'ATMOS: hold bekor qilingan, pul yechilmagan' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Belgilash' }))
+    expect(await screen.findByText('Toʻlov hal qilindi')).toBeInTheDocument()
+    expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
+      outcome: 'released',
+      reason: 'ATMOS: hold bekor qilingan, pul yechilmagan',
+    })
+  })
+
+  it('a plain held payment offers no review actions', async () => {
+    backend()
+    signIn()
+    renderAt('/tolovlar?tolov=p3')
+    const panel = await screen.findByRole('dialog', { name: /Jamoa oʻyini ·/ })
+    expect(await within(panel).findByText('Ushlab turilgan')).toBeInTheDocument()
+    expect(
+      within(panel).queryByRole('button', { name: /Yechildi|Boʻshatildi|Qaytarildi/ }),
     ).not.toBeInTheDocument()
   })
 

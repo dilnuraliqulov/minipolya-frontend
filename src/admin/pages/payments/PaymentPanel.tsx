@@ -11,9 +11,12 @@ import {
   markRefunded,
   REFUND_MANUAL,
   REFUND_RETRY,
+  resolveReview,
   retryRefund,
+  REVIEW_RESOLVE,
   type AdminPayment,
   type LinkedPayment,
+  type ReviewOutcome,
 } from '../../api/payments'
 import { entityPath } from '../../audit/links'
 import { StatusTimeline } from '../../audit/StatusTimeline'
@@ -238,6 +241,122 @@ function useFailedRefund(payment: AdminPayment | undefined) {
   return { notice, actions, dialogs }
 }
 
+/** The three things an admin can find at ATMOS about an unclear hold. */
+const REVIEW_OUTCOMES: Array<{
+  outcome: ReviewOutcome
+  label: string
+  title: string
+  hint: string
+}> = [
+  {
+    outcome: 'captured',
+    label: 'Yechildi',
+    title: 'Pul yechildi deb hal qilish',
+    hint: 'ATMOSda pul kartadan yechilgan va saqlanadi.',
+  },
+  {
+    outcome: 'released',
+    label: 'Boʻshatildi',
+    title: 'Pul boʻshatildi deb hal qilish',
+    hint: 'ATMOSda pul yechilmagan: ushlab turish bekor qilingan.',
+  },
+  {
+    outcome: 'refunded',
+    label: 'Qaytarildi',
+    title: 'Pul qaytarildi deb hal qilish',
+    hint: 'Pul yechilgan, keyin kartaga qaytarilgan (ATMOS yoki qoʻlda).',
+  },
+]
+
+/**
+ * F6: a hold whose capture or give-back had no clear answer from ATMOS — the money may or
+ * may not have been taken. Nothing settles it automatically; the admin checks it at ATMOS
+ * and records what happened. Same three pieces as {@link useFailedRefund}.
+ */
+function useNeedsReview(payment: AdminPayment | undefined) {
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [choosing, setChoosing] = useState<ReviewOutcome | null>(null)
+  const mode = availability(REVIEW_RESOLVE)
+  const id = payment?.id ?? ''
+
+  const resolve = useMutation({
+    mutationFn: ({ outcome, reason }: { outcome: ReviewOutcome; reason: string }) =>
+      resolveReview(id, outcome, reason),
+    onSuccess: () => {
+      setChoosing(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      toast.success('Toʻlov hal qilindi')
+    },
+    onError: (error) => {
+      setChoosing(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      toast.error(
+        isApiError(error) && error.status === 400
+          ? 'Bu toʻlov endi tekshiruvda emas. Sahifa yangilandi'
+          : 'Hal qilib boʻlmadi. Qayta urinib koʻring',
+      )
+    },
+  })
+
+  if (!payment || payment.status !== 'needs_review') {
+    return { notice: null, actions: null, dialogs: null }
+  }
+
+  const notice = (
+    <div className="flex flex-col gap-3 rounded-lg border border-danger-text bg-danger-soft p-4">
+      <p className="flex items-center gap-2 text-base font-semibold text-danger-text">
+        <TriangleAlert size={18} aria-hidden />
+        Natija noaniq: ATMOSda tekshiring
+      </p>
+      <p className="text-sm text-primary">
+        Pul kartadan yechilgan yoki yechilmaganini ATMOS aniq aytmadi. Tranzaksiyani ATMOS
+        kabinetida tekshiring va nima boʻlganini belgilang.
+      </p>
+      {payment.failureReason && (
+        <p className="text-sm text-primary">Sabab: «{payment.failureReason}»</p>
+      )}
+    </div>
+  )
+
+  const buttons = REVIEW_OUTCOMES.map(({ outcome, label }) => {
+    const button = (
+      <Button
+        key={outcome}
+        variant={outcome === 'captured' ? 'primary' : 'secondary'}
+        disabled={mode === 'soon' || resolve.isPending}
+        onClick={() => setChoosing(outcome)}
+      >
+        {label}
+      </Button>
+    )
+    return mode === 'soon' ? (
+      <DisabledHint key={outcome} hint={SOON}>
+        {button}
+      </DisabledHint>
+    ) : (
+      button
+    )
+  })
+
+  const chosen = REVIEW_OUTCOMES.find((o) => o.outcome === choosing)
+  const dialogs = (
+    <ReasonModal
+      open={chosen !== undefined}
+      title={chosen?.title ?? ''}
+      description={`${chosen?.hint ?? ''} ${payment.userName ?? 'Toʻlovchi'} · ${money(payment.amount)}. Qanday bilganingizni yozing.`}
+      minLength={10}
+      confirmLabel="Belgilash"
+      confirmVariant="primary"
+      busy={resolve.isPending}
+      onClose={() => setChoosing(null)}
+      onConfirm={(reason) => chosen && resolve.mutate({ outcome: chosen.outcome, reason })}
+    />
+  )
+
+  return { notice, actions: <>{buttons}</>, dialogs }
+}
+
 export function PaymentPanel({
   id,
   onClose,
@@ -258,6 +377,7 @@ export function PaymentPanel({
   })
   const p = payment.data
   const failedRefund = useFailedRefund(p)
+  const review = useNeedsReview(p)
   const refund = p?.paymentType === 'refund'
   const type = p ? (PAYMENT_TYPES[p.paymentType] ?? p.paymentType) : ''
   const status = p && statusOf(PAYMENT_STATUSES, p.status)
@@ -271,7 +391,7 @@ export function PaymentPanel({
       onClose={onClose}
       title={p ? `${type} · ${money(p.amount)}` : 'Toʻlov'}
       subtitle={p ? `${formatDateTime(p.createdAt)} · ${p.userName ?? '—'}` : undefined}
-      actions={failedRefund.actions}
+      actions={failedRefund.actions ?? review.actions}
     >
       {payment.isError ? (
         <ErrorState onRetry={() => void payment.refetch()} className="py-10" />
@@ -284,6 +404,8 @@ export function PaymentPanel({
         <>
           {failedRefund.notice}
           {failedRefund.dialogs}
+          {review.notice}
+          {review.dialogs}
 
           <PanelSection title="Toʻlov maʼlumotlari">
             <dl className="flex flex-col gap-2.5">
@@ -336,6 +458,12 @@ export function PaymentPanel({
                     Oʻyinni ochish
                   </Link>
                 </PanelRow>
+              )}
+              {p.teamSide && (
+                <PanelRow label="Jamoa tomoni">{p.teamSide.toUpperCase()} jamoa</PanelRow>
+              )}
+              {p.holdExpiresAt && (
+                <PanelRow label="Ushlab turish muddati">{formatDateTime(p.holdExpiresAt)}</PanelRow>
               )}
               {p.refundReason && <PanelRow label="Qaytarish sababi">{p.refundReason}</PanelRow>}
               {p.refundedManually && (

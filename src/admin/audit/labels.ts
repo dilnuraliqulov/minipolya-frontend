@@ -85,6 +85,7 @@ export const ACTION_LABELS: Record<string, string> = {
   GAME_AUTO_CANCELLED: 'Oʻyin avtomatik bekor qilindi',
   PAYMENT_COMPLETED: 'Toʻlov qabul qilindi',
   PAYMENT_RELEASED: 'Ushlab turilgan pul boʻshatildi',
+  PAYMENT_NEEDS_REVIEW: 'Toʻlov natijasi noaniq: tekshirish kerak',
   REFUND_CREATED: 'Pul qaytarildi',
   PROMOTION_EXPIRED: 'Aksiya muddati tugadi',
   // Requested in R17; not written by the backend yet.
@@ -92,6 +93,7 @@ export const ACTION_LABELS: Record<string, string> = {
   REFUND_FAILED: 'Pulni qaytarib boʻlmadi',
   REFUND_RETRIED: 'Qaytarishni qayta urindi',
   REFUND_MARKED_MANUAL: 'Qoʻlda qaytarildi deb belgiladi',
+  PAYMENT_REVIEW_RESOLVED: 'Noaniq toʻlovni hal qildi',
 }
 
 export const ACTOR_TYPE_LABELS: Record<AuditActorType, string> = {
@@ -363,6 +365,8 @@ export const TIMELINE_LABELS: Record<string, string> = {
   GAME_REMAINDER_PAID: 'Qoldiq toʻlandi',
   PAYMENT_COMPLETED: 'Toʻlov qabul qilindi',
   PAYMENT_RELEASED: 'Ushlab turilgan pul boʻshatildi',
+  PAYMENT_NEEDS_REVIEW: 'Tekshirish kerak',
+  PAYMENT_REVIEW_RESOLVED: 'Admin hal qildi',
   REFUND_CREATED: 'Pul qaytarildi',
   REFUND_REQUESTED: 'Qaytarish soʻraldi',
   REFUND_FAILED: 'Muvaffaqiyatsiz',

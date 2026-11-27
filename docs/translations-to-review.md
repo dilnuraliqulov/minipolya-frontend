@@ -1037,3 +1037,11 @@ Placeholders such as `{{count}}` must stay as they are.
 | `chat.emptyText` | Raqib jamoa bilan kelishib oling! | Договоритесь с командой соперника! | Agree the details with the other team! |
 | `chat.system.gameConfirmed` | Oʻyin tasdiqlandi | Игра подтверждена | The game is confirmed |
 | `chat.system.teamJoined` | {{team}} qoʻshildi | {{team}} присоединилась | {{team}} joined |
+
+## Card payments: duplicate card, wrong code, owner not connected (2026-11-26)
+
+| Key | uz | ru (to review) | en (to review) |
+|---|---|---|---|
+| `errors.cardAlreadyAdded` | Bu karta allaqachon qoʻshilgan. | Эта карта уже добавлена. | This card has already been added. |
+| `errors.wrongOtp` | Tasdiqlash kodi notoʻgʻri. Toʻlov oʻtmadi, qaytadan urinib koʻring. | Неверный код подтверждения. Оплата не прошла, попробуйте ещё раз. | Wrong confirmation code. The payment did not go through; please try again. |
+| `errors.ownerNotConnected` | Maydon egasi hali karta orqali toʻlov qabul qila olmaydi. Pul yechilmadi. | Владелец площадки пока не может принимать оплату картой. Деньги не списаны. | The pitch owner cannot accept card payments yet. Nothing was charged. |

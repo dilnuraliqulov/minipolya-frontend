@@ -9,7 +9,7 @@ when the backend changes.
 | Backend repository | `../minipolyaBackend` |
 | Branch | `fix/home-header` — **not on `main` yet** (`main` is `c855af6`, the merge of `feature/admin-login-impl`, the same tree as `00d3bb7`) |
 | Commit | `bca6de8` (_docs: the team level, the richer team detail and the chat's new fields_, 2026-11-19; was `2b0b58a`) |
-| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`); updated 2026-11-06 for `08687d6..ba6db84` (`GameTeamResponse.heldAmount`; no endpoint changed); updated 2026-11-06 for `ba6db84..d0ad9d7` (add-stadium rework, backend `docs/frontend-field-changes-2026-11-06.md`: create/update rules in `StadiumRules` — name 3–150, address 5–300, district/phone/location required on create, Uzbekistan box, price 10 000–5 000 000 so'm, whole hours, no closing after midnight, description ≤ 500; `landmark` and four amenities (changeset 048); booking terms and photo URLs leave the owner's requests; new `PUT /api/admin/stadiums/{id}/booking-terms` and audit `STADIUM_BOOKING_TERMS_CHANGED`; photos ≤ 5 MB re-encoded to JPEG without EXIF and open to any signed-in user for their own stadium; approval needs ≥ 3 photos); updated 2026-11-06 for `d0ad9d7..f4527f1` (deposit/remainder, backend `docs/frontend-field-changes-2026-11-06-payments.md`: rounding step 500 000 tiyin by default (changeset 049); `TimeSlot.depositAmount` / `remainderAmount` (R27 superseded); `BookingResponse.paidInCash` (R30), `remainderMark`, owner/admin `remainderMarkedAt`, owner `remainderMarkUndoableUntil` (changeset 050); `/cash` 400s now 409 and it sets the mark; new `POST /api/owner/bookings/{id}/not-paid`, `DELETE /api/owner/bookings/{id}/remainder-mark`, `DELETE /api/admin/bookings/{id}/remainder-mark`; payment status `cancelled` for a voided cash row; audit `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE`; `GameChallengeResponse.stadiumPhotoUrl` / `stadiumDistrict`); updated 2026-11-07 for `f4527f1..cc3bcb6` (team vs team minimum / full payment, backend `docs/frontend-field-changes-2026-11-06-team-payments.md`: platform setting `defaultMinBookingAmount` (changeset 051) — every stadium has a minimum, `minBookingAmount: null` in booking terms = the platform default, `MINIMUM` bookings never refused; quotes `GET /api/stadiums/{id}/team-game-quote` and `GET /api/games/{id}/join-quote` (R33); `paymentOption` on `POST /api/games` and join; `GameChallengeResponse.fullAmount`, `amountToPayNow` = the minimum; `GameTeamResponse.paymentOption` / `paidAmount` / `remainingAmount` / `remainderMark` / `remainderMarkedAt`, owner `remainderMarkUndoableUntil`, admin `ownerPart` (changeset 052); team marks `POST /api/games/{id}/not-paid`, `DELETE /api/games/{id}/remainder-mark`, `DELETE /api/admin/games/{id}/remainder-mark`, `/cash` sets the mark and its 400 "Already paid" is now 409; new 400s for a minimum not above the team fee); updated 2026-11-09 for `cc3bcb6..b17ad47` (`GET /api/stadiums?date=` and `freeSlotsCount`; walk-ins: `price`, `paymentStatus`, `clientPhone` must be `+998XXXXXXXXX`, `paymentMethod` removed, `GET /api/owner/stadiums/{id}/bookings/suggested-price`; bot `/start` in two messages); updated 2026-11-10 for `cf654ad..817a2b8` (`location` — `StadiumLocationResponse`: id, name, address, district, landmark, latitude, longitude, coverPhotoUrl, format — on every `GameDetailResponse` and each `GameChallengeResponse`); updated 2026-11-18 for `817a2b8..2b0b58a` (opening hours past midnight, per day of the week: `hours` (`DayHours[]`) on the owner's create/update and on every stadium detail next to the legacy `openTime` / `closeTime`; new `PUT /api/admin/stadiums/{id}/hours` and audit `STADIUM_HOURS_CHANGED`; `TimeSlot.startsAt` / `afterMidnight`; `BookingResponse.workingDate` / `afterMidnight`; the three old open/close booking messages replaced by `"The stadium is not open at that hour"`; changeset 053 `stadium_hours`); updated 2026-11-19 for `2b0b58a..bca6de8` (team level, team page and chat, backend `docs/frontend-field-changes-2026-11-19.md`: `teams.level` `havaskor` / `orta` / `professional` (changeset 054) — required on `POST /api/teams`, changed only by the leader with the new `PATCH /api/teams/{id}`, audited as `TEAM_LEVEL_CHANGED`, nullable so older teams have none; `level` on `TeamResponse` and `TeamDetailResponse`, `teamLevel` on `GameTeamResponse` and each chat message, `waitingTeamLevel` on `GameChallengeResponse`; `GET /api/games/challenges?level=`; `TeamDetailResponse.gamesPlayed` and `upcomingGame`; `DELETE /api/teams/{id}/members/{userId}` also accepts the member themselves; chat system lines `kind` / `event` / `eventTeamName` and the sender's `side` / `teamId` / `teamName` / `teamLevel` (changeset 055), `GET /api/games/{id}/messages?before=`, `GameDetailResponse.chatMessageMaxLength`) |
+| Generated | 2026-10-27; updated 2026-10-28 for `bba7504..12e3a91` (error codes, admin password login, token revocation) and `12e3a91..ed5dec6` (structured audit log, own-password endpoint removed, 404/405 for unknown paths); updated 2026-10-31 for `ed5dec6..00d3bb7` (card fee and card prices, ATMOS provider and reconciliation, new payment statuses, admin bookings/games/payments, failed refunds, stadium review detail + district + `rejected` status + notes, owner legal details, user filters and teams, overview stats, CORS); updated 2026-10-31 for `00d3bb7..d2c55a2` (one player price: owner's own price + playerPrice, breakdown fields removed from player views, booking commission removed, admin atmosFee/ownerReceives); updated 2026-11-01 for `d2c55a2..4d5faf0` (a booking is exactly one hour; R18 owner/admin booking amounts; R19 dev-only sign-in; R20 profile first/last name and phone; R21 blocked-account reason; R22 new users in Uzbek; R23 district filter, cover photo and `isFavorited` on the list, rating on the detail, slot `status`); updated 2026-11-01 for `4d5faf0..ed403c7` (Telegram bot steps 1–6: **no `/api` endpoint or DTO changed**, but the audit API now returns the new action code `PHONE_SHARED_VIA_BOT`; bot notes in §2, §3 and Webhooks); updated 2026-11-02 for `ed403c7..253f585` (R26: the dev-profile sign-in requires `X-Dev-Login-Key` = `DEV_LOGIN_KEY`, missing or wrong → 404 `"Not found"`, and the `dev` profile refuses to start without a 16+ character key; no other endpoint, DTO or audit code changed); updated 2026-11-05 for `253f585..5cc6ef6` (R42 `POST`/`GET /api/owner/stadiums` open to any signed-in user; R35 `GET /api/owner/stadiums/{id}`; R36 stadium photo upload/delete/reorder and public `GET /api/uploads/**`; R37 `POST /api/owner/bookings/{id}/cash`; R39 `GET /api/owner/legal-details`; R41 `clearMinBookingAmount`; R43 owner revenue `?days=7|30`, every day; R32 team invite links, changeset 043 `teams.invite_code`; R38 owner bookings `?unpaid=true` and nine paid-in-app/cash/outstanding stats fields; new global 409/413/415 answers); updated 2026-11-05 for `5cc6ef6..9e9acb5` (the fake payment provider answers like ATMOS; card binding errors with a `code` and `POST /api/cards/resend`; the card mask `8600 •••• •••• 1234` and `maskedPhone` `+998 ** *** ** 58`; 502 when the payment provider is unreachable; team join: leader only, the server picks the side, each step committed, 202 `PAYMENT_PENDING`; dev-only `GET /api/dev/fake-payments`); updated 2026-11-06 for `9e9acb5..08687d6` (R44 `declineReason` on bookings and payments and decline `code`s on the team-game 400s; `BookingResponse.paymentState`; R28 `POST /api/bookings/{id}/pay`; R29 `?when=upcoming|past`; R45 challenge board without games being joined and `GameDetailResponse.joinPending`); updated 2026-11-06 for `08687d6..ba6db84` (`GameTeamResponse.heldAmount`; no endpoint changed); updated 2026-11-06 for `ba6db84..d0ad9d7` (add-stadium rework, backend `docs/frontend-field-changes-2026-11-06.md`: create/update rules in `StadiumRules` — name 3–150, address 5–300, district/phone/location required on create, Uzbekistan box, price 10 000–5 000 000 so'm, whole hours, no closing after midnight, description ≤ 500; `landmark` and four amenities (changeset 048); booking terms and photo URLs leave the owner's requests; new `PUT /api/admin/stadiums/{id}/booking-terms` and audit `STADIUM_BOOKING_TERMS_CHANGED`; photos ≤ 5 MB re-encoded to JPEG without EXIF and open to any signed-in user for their own stadium; approval needs ≥ 3 photos); updated 2026-11-06 for `d0ad9d7..f4527f1` (deposit/remainder, backend `docs/frontend-field-changes-2026-11-06-payments.md`: rounding step 500 000 tiyin by default (changeset 049); `TimeSlot.depositAmount` / `remainderAmount` (R27 superseded); `BookingResponse.paidInCash` (R30), `remainderMark`, owner/admin `remainderMarkedAt`, owner `remainderMarkUndoableUntil` (changeset 050); `/cash` 400s now 409 and it sets the mark; new `POST /api/owner/bookings/{id}/not-paid`, `DELETE /api/owner/bookings/{id}/remainder-mark`, `DELETE /api/admin/bookings/{id}/remainder-mark`; payment status `cancelled` for a voided cash row; audit `REMAINDER_NOT_PAID`, `REMAINDER_MARK_UNDONE`; `GameChallengeResponse.stadiumPhotoUrl` / `stadiumDistrict`); updated 2026-11-07 for `f4527f1..cc3bcb6` (team vs team minimum / full payment, backend `docs/frontend-field-changes-2026-11-06-team-payments.md`: platform setting `defaultMinBookingAmount` (changeset 051) — every stadium has a minimum, `minBookingAmount: null` in booking terms = the platform default, `MINIMUM` bookings never refused; quotes `GET /api/stadiums/{id}/team-game-quote` and `GET /api/games/{id}/join-quote` (R33); `paymentOption` on `POST /api/games` and join; `GameChallengeResponse.fullAmount`, `amountToPayNow` = the minimum; `GameTeamResponse.paymentOption` / `paidAmount` / `remainingAmount` / `remainderMark` / `remainderMarkedAt`, owner `remainderMarkUndoableUntil`, admin `ownerPart` (changeset 052); team marks `POST /api/games/{id}/not-paid`, `DELETE /api/games/{id}/remainder-mark`, `DELETE /api/admin/games/{id}/remainder-mark`, `/cash` sets the mark and its 400 "Already paid" is now 409; new 400s for a minimum not above the team fee); updated 2026-11-09 for `cc3bcb6..b17ad47` (`GET /api/stadiums?date=` and `freeSlotsCount`; walk-ins: `price`, `paymentStatus`, `clientPhone` must be `+998XXXXXXXXX`, `paymentMethod` removed, `GET /api/owner/stadiums/{id}/bookings/suggested-price`; bot `/start` in two messages); updated 2026-11-10 for `cf654ad..817a2b8` (`location` — `StadiumLocationResponse`: id, name, address, district, landmark, latitude, longitude, coverPhotoUrl, format — on every `GameDetailResponse` and each `GameChallengeResponse`); updated 2026-11-18 for `817a2b8..2b0b58a` (opening hours past midnight, per day of the week: `hours` (`DayHours[]`) on the owner's create/update and on every stadium detail next to the legacy `openTime` / `closeTime`; new `PUT /api/admin/stadiums/{id}/hours` and audit `STADIUM_HOURS_CHANGED`; `TimeSlot.startsAt` / `afterMidnight`; `BookingResponse.workingDate` / `afterMidnight`; the three old open/close booking messages replaced by `"The stadium is not open at that hour"`; changeset 053 `stadium_hours`); updated 2026-11-19 for `2b0b58a..bca6de8` (team level, team page and chat, backend `docs/frontend-field-changes-2026-11-19.md`: `teams.level` `havaskor` / `orta` / `professional` (changeset 054) — required on `POST /api/teams`, changed only by the leader with the new `PATCH /api/teams/{id}`, audited as `TEAM_LEVEL_CHANGED`, nullable so older teams have none; `level` on `TeamResponse` and `TeamDetailResponse`, `teamLevel` on `GameTeamResponse` and each chat message, `waitingTeamLevel` on `GameChallengeResponse`; `GET /api/games/challenges?level=`; `TeamDetailResponse.gamesPlayed` and `upcomingGame`; `DELETE /api/teams/{id}/members/{userId}` also accepts the member themselves; chat system lines `kind` / `event` / `eventTeamName` and the sender's `side` / `teamId` / `teamName` / `teamLevel` (changeset 055), `GET /api/games/{id}/messages?before=`, `GameDetailResponse.chatMessageMaxLength`); updated 2026-11-26 by hand for backend branch `feature/atmos-sandbox` (backend `docs/frontend-field-changes-2026-11-26.md`, second round: Payme/Click checkout removed — `POST /api/payments/initiate`, `/webhooks/payme`, `/webhooks/click`, `PaymentInitResponse.checkoutUrl`, `POST /api/games/{id}/pay` without `cardId`; `declineReason` `WRONG_OTP`; 409 `CARD_ALREADY_ADDED`; 502 owner-not-connected; payment status `needs_review` and `POST /api/admin/payments/{id}/resolve-review`; admin `status` list filter; `AdminPaymentResponse.holdExpiresAt` / `gameTeamId` / `teamSide`; audit `PAYMENT_NEEDS_REVIEW`, `PAYMENT_REVIEW_RESOLVED`) |
 | Endpoints documented | **130** callable by the frontend, plus 3 webhooks and 3 dev-profile-only endpoints (§2, §7.1) |
 
 ---
@@ -70,8 +70,9 @@ Every endpoint — success or error — answers with the same wrapper
 | `TOKEN_REVOKED` | 401 | — | **any** authenticated request (§1.5) |
 | `PHONE_TAKEN` | 409 | — | `PATCH /api/users/me` — the phone belongs to another account |
 | `CARD_NOT_SUPPORTED`, `CARD_EXPIRY_INVALID`, `CARD_EXPIRED`, `SMS_CODE_WRONG`, `SMS_CODE_EXPIRED`, `SMS_RESEND_TOO_EARLY`, `SMS_RESEND_UNAVAILABLE`, `BINDING_NOT_FOUND`, `CARD_BINDING_FAILED` | 400 | — | `POST /api/cards`, `/api/cards/resend`, `/api/cards/confirm` (`CardBindingException`, since `9e9acb5`) — §7.1 |
+| `CARD_ALREADY_ADDED` | **409** | — | `POST /api/cards`: the player already has this card (same masked number and expiry), or ATMOS says it bound it before (`STPIMS-ERR-001` at init); `message` `"Bu karta allaqachon qoʻshilgan"` — §7.1 |
 | `PAYMENT_PENDING` | **202**, `success: false` | — | `POST /api/games/{id}/join` (team game): paid, the other team's capture has no clear answer yet (`PaymentPendingException`) — §9 |
-| `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `CARD_DECLINED` | 400 | — | since `41a786c` (R44, `CardDeclinedException`): why a card payment was refused, on the declines of `POST /api/games` (team game), `POST /api/games/{id}/join`, `POST /api/games/{id}/pay-remainder` and `POST /api/games/{id}/pay?cardId=`; the `message` is the old prose. A **booking** decline is 200 and says it in `declineReason` instead (§5) |
+| `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `WRONG_OTP`, `CARD_DECLINED` | 400 | — | since `41a786c` (R44, `CardDeclinedException`; `WRONG_OTP` — ATMOS `-098` — since `feature/atmos-sandbox`): why a card payment was refused, on the declines of `POST /api/games` (team game), `POST /api/games/{id}/join`, `POST /api/games/{id}/pay-remainder` and `POST /api/games/{id}/pay?cardId=`; the `message` is the old prose. A **booking** decline is 200 and says it in `declineReason` instead (§5) |
 | `BOOKING_NOT_PENDING`, `BOOKING_EXPIRED`, `PAYMENT_IN_PROGRESS` | 409 | — | `POST /api/bookings/{id}/pay` (R28, `BookingPaymentConflictException`) — §5 |
 
 A 202 `PAYMENT_PENDING` is a **2xx with `success: false`**: a client that only
@@ -189,6 +190,7 @@ These apply to every endpoint and are not repeated below.
 | 413 | `"File too large"` | an upload over 5 MB, or a multipart body over 6 MB (`spring.servlet.multipart.*`, or the service's own check) |
 | 415 | `"Unsupported media type"` | a body type the endpoint does not take (e.g. JSON to the photo upload) |
 | 410 | `"Booking has expired"` | `BookingExpiredException` |
+| 502 | `"Maydon egasi toʻlov qabul qilishga hali ulanmagan"` | production only: any card payment for a stadium whose owner has no signed ATMOS contract — nobody could be paid. **Nothing was charged**; not the card's fault, and retrying soon will not help |
 | 502 | `"To'lov tizimi vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring"` (Uzbek, like Q7) | since `9e9acb5`: the payment provider could not be reached (HTTP 5xx, or ATMOS `STPIMS-ERR-024/-026/-041/-094/-102`) while **creating** a charge or hold, or on any card-binding call. **Nothing was charged, held or bound** — the request may simply be sent again. Not a decline. Any card call: `POST /api/cards`, `/resend`, `/confirm`, `POST /api/bookings`, the two `pay-remainder`s, `POST /api/games` (team), `POST /api/games/{id}/join` (team) |
 | 502 | `"Payment provider unavailable"` | admin refund retry only (§10.9) |
 | 500 | `"Internal server error"` | anything unhandled |
@@ -268,7 +270,8 @@ was deliberately not renamed because casual games share the column.
 | `cancelled` | since `32afe9f`: a **cash** row voided when the owner or an admin undid "Naqd olindi" — never a refund; it no longer counts anywhere |
 | `refund_failed` | on an **original** payment: ATMOS declined to give it back, the money is still owed; its refund row is `failed` until an admin retries it or marks it refunded by hand (§10.9) |
 | `failed` | a declined charge, or a **refund row** ATMOS declined (`failureReason` on the admin view) |
-| `pending`, `completed` | legacy Payme/Click hosted checkout only |
+| `needs_review` | a team game's **hold** whose capture or give-back had no clear answer from ATMOS — the money may or may not have been taken. Never settled automatically; an admin resolves it (`POST /api/admin/payments/{id}/resolve-review`, §10.9). `failureReason` says why |
+| `pending`, `completed` | rows left by the **removed** Payme/Click hosted checkout; nothing writes them any more |
 
 ### 1.10 The player price (one price)
 
@@ -1190,6 +1193,7 @@ The `message` is Uzbek Latin with `'` for ʻ/ʼ; branch on `code`:
 | `SMS_RESEND_UNAVAILABLE` | the provider cannot resend — **always, with real ATMOS** (no binding resend is documented): enter the card again | `"Kodni qayta olish uchun karta ma'lumotlarini qaytadan kiriting"` |
 | `BINDING_NOT_FOUND` | unknown or already confirmed binding — start again | `"Karta qo'shish jarayoni topilmadi. Qaytadan boshlang"` |
 | `CARD_BINDING_FAILED` | any other refusal | `"Kartani qo'shib bo'lmadi. Boshqa karta bilan urinib ko'ring"` |
+| `CARD_ALREADY_ADDED` (**409**) | `POST /api/cards` only: the player already has this card (same masked number and expiry among their active cards — checked before ATMOS), or ATMOS answers `STPIMS-ERR-001` (a card it bound before) | `"Bu karta allaqachon qoʻshilgan"` |
 
 #### `POST /api/cards/resend` — user
 
@@ -1266,21 +1270,8 @@ Soft delete (`isActive = false`) so past payments stay explainable.
 | `providerTxnId` | string? | unique — makes webhooks idempotent |
 | `status` | string | §1.9 |
 | `refundReason` | string? | |
-| `declineReason` | string? | since `41a786c` (R44): on a `failed` row the provider **refused** — `INSUFFICIENT_FUNDS`, `CARD_EXPIRED` or `CARD_DECLINED` (uppercase); absent when a payment failed without a refusal. Never the provider's own code or text (`failureReason` stays admin-only). `AdminPaymentResponse` has it too |
+| `declineReason` | string? | since `41a786c` (R44): on a `failed` row the provider **refused** — `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `WRONG_OTP` or `CARD_DECLINED` (uppercase); absent when a payment failed without a refusal. Never the provider's own code or text (`failureReason` stays admin-only). `AdminPaymentResponse` has it too |
 | `createdAt` | timestamp (UTC) | |
-
-#### `POST /api/payments/initiate` — user
-
-**Legacy hosted checkout (Payme/Click).** Kept for the casual game flow; do
-not use it for a new flow — ordinary bookings charge a saved card in
-`POST /api/bookings`.
-
-**Body** — `{ "bookingId": UUID, "provider": "payme" | "click" }`
-(`@NotNull`, `@NotBlank`).
-
-**Response** — `PaymentInitResponse`: `{ paymentId: UUID, checkoutUrl: string, provider: string }`.
-
-**Errors** — 400 `"Unknown payment provider: <name>"`, `"Booking is not awaiting payment"`, `"Cash is recorded by the owner, not initiated as a checkout"`; 403 `"This booking does not belong to you"`; 404 `"Booking not found"`.
 
 #### `GET /api/payments/my` — user · paged
 
@@ -1647,19 +1638,18 @@ answer leaves a record the reconcile job finishes:
 
 ### `POST /api/games/{id}/pay` — user
 
-A casual player's share. Refuses a team game. With `cardId` the share is
-charged now to that saved card through ATMOS (the detail's `price`, §1.10); without it,
-the **legacy** hosted checkout of `provider`.
+A casual player's share. Refuses a team game. The share is charged now to a saved card
+through ATMOS (the detail's `price`, §1.10). The legacy Payme/Click hosted checkout that
+answered without a card is **removed**.
 
 | Query | Type | Required |
 |---|---|---|
-| `cardId` | UUID | no — when set, `provider` is ignored |
-| `provider` | string (`payme` \| `click`) | when there is no `cardId` |
+| `cardId` | UUID | **yes** — else 400 `"cardId is required"` |
 
-**Response** — `PaymentInitResponse`; for a card payment it carries `status`:
-`paid`, or `processing` while the provider has not answered (§1.9).
+**Response** — `PaymentInitResponse` `{ paymentId, provider: "atmos", status }`: `status` is
+`paid`, or `processing` while the provider has not answered (§1.9). (`checkoutUrl` is gone.)
 
-**Errors** — 400 `"Unknown payment provider: <name>"`, `"A team game is paid when creating or joining it"`, `"Join the game before paying"`, `"Already paid"`, `"Card payment was declined"`; 404 `"Game not found"` / `"Card not found"`.
+**Errors** — 400 `"cardId is required"`, `"A team game is paid when creating or joining it"`, `"Join the game before paying"`, `"Already paid"`, `"Card payment was declined"`; 404 `"Game not found"` / `"Card not found"`.
 
 ### `POST /api/games/{id}/pay-remainder` — user (team leader)
 
@@ -2272,6 +2262,7 @@ leave out the ones marked `cancelled` (a team that left took its players).
 | `GET /api/admin/payments/summary` | `AdminPaymentSummaryResponse`; `from` and `to` **both required** |
 | `POST /api/admin/payments/{id}/retry-refund` | no body; `message: "Refund retried"` |
 | `POST /api/admin/payments/{id}/mark-refunded` | body `{ reason }`; `message: "Refund marked as refunded"` |
+| `POST /api/admin/payments/{id}/resolve-review` | body `{ outcome, reason }` — a `needs_review` hold settled by hand after checking it at ATMOS: `outcome` `captured` \| `released` \| `refunded` (writes the refund row, marked returned by hand); `reason` 10–500 chars. Answers the detail, `message: "Payment resolved"`. 400 `"outcome must be one of captured, released, refunded"`, `"reason must be at least 10 characters"`, `"Only a payment that needs review can be resolved"` |
 | `GET /api/admin/payments/provider-check` | `ProviderCheckResponse`: is the card provider reachable right now |
 
 `ProviderCheckResponse` (`NON_NULL`) — which card provider the backend talks to and
@@ -2299,7 +2290,7 @@ List query parameters:
 |---|---|---|
 | `search` | string | payer name or phone, or `providerTxnId` |
 | `type` | string | a `payment.paymentType` value (§1.9), case-insensitive — else 400 `"Invalid type"` |
-| `status` | string | a `payment.status` value, case-insensitive — else 400 `"Invalid status"` |
+| `status` | string | one `payment.status` value, or **several comma-separated** (e.g. `held,capture_pending,return_pending,needs_review`), case-insensitive — else 400 `"Invalid status"` |
 | `method` | string | `card` \| `cash` — else 400 `"Invalid method"` |
 | `stadiumId` | UUID | the booking's or the game's stadium |
 | `from`, `to` | `LocalDate` | Tashkent days on `createdAt` |
@@ -2323,14 +2314,17 @@ List query parameters:
 | `providerCommission` | number? **(tiyin)** | what ATMOS reports having taken; absent until it does |
 | `commissionPercent` | number? | the booking commission stored on the row when it was taken; **0 on every new payment** (there is no booking commission any more) |
 | `method` | string | `card` \| `cash` |
-| `provider` | string | `atmos` \| `payme` \| `click` \| `cash` |
+| `provider` | string | `atmos` \| `cash`; `payme` \| `click` only on rows the removed hosted checkout left |
 | `providerTxnId` | string? | the charge's transaction ids (comma-separated, one per split) or the hold id |
 | `status` | string | §1.9 |
 | `refundReason` | string? | |
 | `refundOfPaymentId` | UUID? | on a refund: the payment it gives back |
-| `failureReason` | string? | a refund the provider declined: its error, for the admin |
+| `failureReason` | string? | a refund the provider declined: its error, for the admin; on a `needs_review` hold, why its outcome is unclear |
 | `refundedManually` | boolean? | **only present when `true`** |
 | `manualRefundReason` | string? | |
+| `holdExpiresAt` | timestamp? (UTC) | a hold: when it lapses at the provider if nobody settles it |
+| `gameTeamId` | UUID? | a team-game payment: its team |
+| `teamSide` | string? | a team-game payment: `a` \| `b` |
 | `linkedPayments` | `LinkedPayment[]`? | **detail only**: a refund's original, or an original's refunds (oldest first) |
 
 `LinkedPayment` (`NON_NULL`): `id` UUID, `paymentType` string, `amount`
@@ -2567,13 +2561,12 @@ took its `statusReason` from that latest action. Older audit rows still show
 
 ## Webhooks — called by Telegram / payment providers, **not by the frontend**
 
-Listed for completeness only. All three are public (no JWT) and must never be
-called from the client.
+Listed for completeness only. It is public (no JWT) and must never be called from the
+client. The unsigned Payme/Click callbacks (`/webhooks/payme`, `/webhooks/click`) are
+**removed**: any other `/webhooks` path answers 401 without a JWT and 404 with one.
 
 | Endpoint | Caller | Notes |
 |---|---|---|
-| `POST /webhooks/payme` | Payme | mock — accepts any body, extracts `txnId`/`transactionId`/`providerTxnId`/`id` and `status`. **`TODO: Verify Payme request signature`** |
-| `POST /webhooks/click` | Click | mock — same shape. **`TODO: Verify Click request signature`** |
 | `POST /webhooks/telegram` | Telegram | the bot's update handler; since `ed403c7` it is secret-checked. The bot opens the Mini App as `MINIAPP_URL?startapp=<payload>`, because Telegram passes no `start_param` to `web_app` buttons — the Mini App reads the payload from the URL |
 
 ---
